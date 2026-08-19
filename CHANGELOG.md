@@ -23,10 +23,12 @@ This changelog starts when the Git repository was created. Earlier local prototy
 - Added a reload-friendly property-reader registry with a Build 42 `PropertyContainer:get(name)` default reader, while keeping per-property overrides available for exceptional cases.
 - Added dedicated property-container and sprite inspection, including property values, surface metadata, and sprite-grid metadata.
 - Expanded IsoDoor inspection with obstruction, curtain, barricade, key, and thump-state details, using the public open-sprite getter when available.
-- Structured Full details by object depth, keeping Object, Sprite, and IsoDoor data in their own sections while separating named properties from property-container metadata.
+- Added door-like IsoThumpable inspection for Build 42 entity-scripted gates and grouped openings.
+- Structured Full details by object depth, keeping Object, Sprite, and runtime-class data in their own sections while separating named properties from property-container metadata.
+- Added a debug door-showroom scanner/spawner that enumerates loaded sprites by door properties rather than sprite names, groups garage and DoubleDoor families, deduplicates obvious N/W single-door pairs, and lays the resulting families out from a chosen world square.
 
 ### Pickup research
-- Confirmed simple doors, sliding doors, large gates, and garage-door pieces can all appear as `IsoDoor` objects.
-- Confirmed double-door/gate grouping through `doubleDoorIndex`.
-- Confirmed garage grouping through `garageDoorIndex` plus first/prev/next linkage.
+- Confirmed simple doors, sliding doors, and garage-door pieces can appear as `IsoDoor` objects, while Build 42 entity-scripted gates can also appear as door-like `IsoThumpable` objects.
+- Confirmed double-door/gate grouping through the `DoubleDoor` tile property and runtime double-door helpers.
+- Confirmed garage grouping through `garageDoorIndex` plus first/prev/next linkage; open sprites use `GarageDoor=4..6` while the runtime index remains normalized to `1..3`.
 - Confirmed `closedSprite` can be retrieved independently of the current state through controlled reflection; current Build 42 APIs also expose a public `getOpenSprite()` getter.

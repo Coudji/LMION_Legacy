@@ -8,9 +8,11 @@ require "LMION/Debug/Inspect/ObjectInspector"
 require "LMION/Debug/Inspect/CoreObject"
 require "LMION/Debug/Inspect/IsoSprite"
 require "LMION/Debug/Inspect/IsoDoor"
+require "LMION/Debug/Inspect/IsoThumpable"
 require "LMION/Debug/World/SquareScanner"
 require "LMION/Debug/World/Selection"
 require "LMION/Debug/UI/InspectorWindow"
+require "LMION/Debug/Showroom"
 
 local Debug = LMION.Debug
 
@@ -49,6 +51,12 @@ function Inspector.openAtSquare(square)
     Debug.Window.openAtSquare(square)
 end
 
+function Inspector.spawnDoorShowroom(square)
+    if Debug.Showroom ~= nil then
+        Debug.Showroom.spawnAt(square)
+    end
+end
+
 function Inspector.onFillWorldObjectContextMenu(playerNum, context, worldObjects, test)
     if test then
         return
@@ -60,6 +68,12 @@ function Inspector.onFillWorldObjectContextMenu(playerNum, context, worldObjects
         "LMION Inspector",
         square,
         Inspector.openAtSquare
+    )
+
+    context:addOption(
+        "LMION Spawn Door Showroom here",
+        square,
+        Inspector.spawnDoorShowroom
     )
 end
 
