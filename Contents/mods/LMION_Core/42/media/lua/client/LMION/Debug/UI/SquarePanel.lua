@@ -41,6 +41,18 @@ function SquarePanel:createChildren()
     self.titleLabel:initialise()
     self:addChild(self.titleLabel)
 
+    self.reloadButton = ISButton:new(
+        self.width - pad - 96,
+        5,
+        96,
+        22,
+        "Reload LMION",
+        self,
+        SquarePanel.onReload
+    )
+    self.reloadButton:initialise()
+    self:addChild(self.reloadButton)
+
     self.infoLabel = ISLabel:new(
         pad, 28, 18,
         "0 selected",
@@ -183,6 +195,10 @@ end
 
 function SquarePanel:onPick()
     self.controller:startWorldPicker()
+end
+
+function SquarePanel:onReload()
+    self.controller:reloadLMION()
 end
 
 function SquarePanel:onPrev()
