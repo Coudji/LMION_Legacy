@@ -15,7 +15,9 @@ The shared Core/Pickup bootstrap is currently versioned as `0.0.3-dev` in Lua.
 
 The repository is the source of truth for project structure and committed code. Development is done against the live Project Zomboid Workshop source tree, with VS Code used for direct Lua edits.
 
-For client-only Lua changes, prefer a Lua reload and reopen/recreate affected UI instances when possible. Full game restarts are still appropriate when load order, mod metadata, folder structure, or initialization state changes.
+Use the in-game `Reload LMION` debug action for Lua-only iteration whenever possible. It reloads every already-loaded Lua file under the shared `LMION/` namespace in load order, so active LMION submods are included automatically. In multiplayer, an authorized debug/admin client also asks the server-side LMION reload endpoint to reload the LMION Lua files loaded in the server Lua environment.
+
+A full game/server restart is still required after adding brand-new Lua files, changing load order, changing mod metadata/folder structure, or when engine state cannot be safely reconstructed by Lua reload.
 
 Avoid speculative Java method calls in debug code: in Debug Mode, Java/Kahlua runtime exceptions can open the Lua debugger even when Lua code uses `pcall`.
 
@@ -30,11 +32,12 @@ Its responsibilities include:
 - producing copyable text reports;
 - reporting generic `IsoObject` data;
 - reporting `IsoDoor`-specific runtime data;
-- exposing selected internal fields such as closed/open door sprites through controlled reflection.
+- exposing selected internal fields such as closed/open door sprites through controlled reflection;
+- selecting arbitrary world squares with a picker;
+- keeping selected/active squares highlighted in the world;
+- reloading LMION Lua code without reopening F11 for every edit.
 
 The debug code is intentionally modular under `Debug/Inspect`, `Debug/UI`, `Debug/Util`, and `Debug/World`.
-
-Planned inspector improvements include a world square picker and persistent highlights for selected squares.
 
 ## Pickup research workflow
 
