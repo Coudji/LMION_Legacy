@@ -97,6 +97,10 @@ function SquarePanel:createChildren()
     self.nextButton:initialise()
     self:addChild(self.nextButton)
 
+    self.pickButton = ISButton:new(270, controlY, 42, 22, "Pick", self, SquarePanel.onPick)
+    self.pickButton:initialise()
+    self:addChild(self.pickButton)
+
     self.removeButton = ISButton:new(150, controlY + 24, 116, 22, "Remove active", self, SquarePanel.onRemove)
     self.removeButton:initialise()
     self:addChild(self.removeButton)
@@ -175,6 +179,10 @@ end
 
 function SquarePanel:onEast()
     self:addAdjacent(1, 0)
+end
+
+function SquarePanel:onPick()
+    self.controller:startWorldPicker()
 end
 
 function SquarePanel:onPrev()
