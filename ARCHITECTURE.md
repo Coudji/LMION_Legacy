@@ -18,6 +18,9 @@ LMION_Workshop/
         │       ├── mod.info
         │       └── media/lua/
         │           ├── shared/LMION/
+        │           │   ├── Core.lua
+        │           │   ├── Doors.lua
+        │           │   └── Doors/Models.lua
         │           └── client/LMION/Debug/
         │
         ├── LMION_Build/
@@ -27,7 +30,6 @@ LMION_Workshop/
         │       │   ├── Build.lua
         │       │   └── Build/Catalog.lua
         │       └── media/scripts/
-        │           └── LMION_Build_Catalog_*.txt
         │
         └── LMION_Pickup/
             └── 42/
@@ -43,12 +45,14 @@ LMION_Workshop/
 Core owns functionality that must stay neutral and reusable across feature modules:
 
 - module registration and cross-module hooks;
-- shared opening-family identity/definition APIs once those are formalized;
+- the shared `LMION.Doors` registry and canonical `DoorModel` data;
 - shared low-level placement primitives when both Build and Pickup need the same implementation;
 - persistence/world integration that genuinely crosses module boundaries;
 - developer/debug tooling.
 
-Core should not become a pile of hard-coded `if Build`, `if Pickup`, `if Locksmith` branches. Feature modules register what they add.
+A `DoorModel` describes only shared facts about a door that multiple modules need. The current model intentionally stays minimal: a stable `doorId`, optional source identity, and the closed sprites needed for placement by orientation. Do not add mechanism/gameplay classifications merely because they might be useful later.
+
+Core should not become a pile of hard-coded `if Build`, `if Pickup`, `if Locksmith` branches. Feature modules register what they add through Core APIs.
 
 ### `LMION_Build`
 
@@ -56,10 +60,10 @@ Build owns the player-facing construction side:
 
 - construction-menu entries;
 - craft recipes and progression;
-- choosing a new opening family to place;
-- Build-specific validation and UX around creating a new opening.
+- dismantle and destruction salvage rules;
+- Build-specific validation and UX around creating a door.
 
-The current `Build/Catalog.lua` and `LMION_Build_Catalog_*.txt` files are a **research/menu snapshot** of the 77 showroom families. They are not yet the canonical door-definition registry and the placeholder recipes are intentionally not production recipes.
+The current `Build/Catalog.lua` is a **research/menu snapshot** of the showroom door set. It is not the canonical `DoorModel` registry.
 
 Build depends on Core, not Pickup.
 
@@ -67,28 +71,32 @@ Build depends on Core, not Pickup.
 
 Pickup owns the player-facing recovery/transport side:
 
-- recognizing an existing world opening;
+- recognizing an existing world door;
+- pickup eligibility such as unlocked/no barricade/no curtain requirements;
+- tool requirements for recovering a door when needed;
 - clean removal;
 - serializing physical/runtime state needed for transport;
-- inventory representation of a recovered opening;
-- requesting re-placement of that recovered opening.
+- inventory representation of a recovered door;
+- requesting re-placement of that recovered door.
 
 Pickup depends on Core, not Build.
 
-### Shared placement rule
+### Shared door-model rule
 
-Build and Pickup must not grow two independent placement engines.
+Build and Pickup must not grow separate definitions or placement engines for the same door.
 
 The intended direction is:
 
 ```text
-Core/shared opening definition + neutral placement primitives
-        ↑                              ↑
-      Build                          Pickup
- new construction              recovered opening
+Core / LMION.Doors / DoorModel + neutral placement primitives
+               ↑                              ↑
+             Build                          Pickup
+      construction/economy            recovery/transport
 ```
 
-Build decides how a new door is acquired/crafted. Pickup decides how an existing door is removed and transported. Both should ultimately describe the same opening family to shared placement code.
+Build and Pickup know only Core contracts plus their own data. They do not depend on each other. Module-specific data stays owned by that module and may be attached to a `doorId` through `LMION.Doors.extend(...)` when cross-module lookup is useful.
+
+Core does not currently need to model open-state sprites, hinge/sliding mechanisms, double-door classifications, garage-door classifications, or runtime grouping. Multi-sprite placement data will be added only when a real placement/pickup case proves what structure is required.
 
 ## Folder rules
 

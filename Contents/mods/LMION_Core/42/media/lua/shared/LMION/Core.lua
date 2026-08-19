@@ -97,4 +97,7 @@ function LMION.emit(eventName, ...)
     end
 end
 
+require "LMION/Doors"
+require "LMION/Doors/Models"
+
 LMION.log("Core", "loaded " .. LMION.VERSION)
