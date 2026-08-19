@@ -91,37 +91,20 @@ Debug.registerInspector("core.sprite", 20, function(object, report)
         report:field("parentObjectName", sprite:getParentObjectName())
     end
 
-    if Reflection.hasMethod(sprite, "getItemHeight", 0) then
-        report:field("itemHeight", sprite:getItemHeight())
-    end
-
-    if Reflection.hasMethod(sprite, "getSurface", 0) then
-        report:field("surface", sprite:getSurface())
-    end
-
-    if Reflection.hasMethod(sprite, "isSurfaceOffset", 0) then
-        report:field("surfaceOffset", sprite:isSurfaceOffset())
-    end
-
-    if Reflection.hasMethod(sprite, "isTable", 0) then
-        report:field("table", sprite:isTable())
-    end
-
-    if Reflection.hasMethod(sprite, "isTableTop", 0) then
-        report:field("tableTop", sprite:isTableTop())
-    end
-
-    if Reflection.hasMethod(sprite, "getStackReplaceTileOffset", 0) then
-        report:field("stackReplaceTileOffset", sprite:getStackReplaceTileOffset())
-    end
-
-    if Reflection.hasMethod(sprite, "getSlopedSurfaceDirection", 0) then
-        report:field("slopedSurface.direction", sprite:getSlopedSurfaceDirection())
-    end
-
     dumpSpriteGrid(sprite, report)
 
-    if Reflection.hasMethod(sprite, "getProperties", 0) then
-        PropertyContainer.dumpFull(sprite:getProperties(), report, "Sprite")
+    if not Reflection.hasMethod(sprite, "getProperties", 0) then
+        return
     end
+
+    local objectProperties = PropertyContainer.fromObject(object)
+    local spriteProperties = sprite:getProperties()
+
+    if spriteProperties == objectProperties then
+        report:section("Sprite properties")
+        report:field("same as", "Object properties")
+        return
+    end
+
+    PropertyContainer.dumpFull(spriteProperties, report, "Sprite")
 end)
