@@ -153,6 +153,13 @@ local function sameOrientation(a, b)
         and a.west == b.west
 end
 
+local function oppositeOrientation(a, b)
+    return a ~= nil
+        and b ~= nil
+        and a.north == b.west
+        and a.west == b.north
+end
+
 local function getExpectedStateOffset(record)
     if record == nil then
         return nil
@@ -235,7 +242,7 @@ local function validateDoubleOpenState(scan, record, wantedValue)
 
     return openRecord ~= nil
         and openRecord.open
-        and sameOrientation(record, openRecord)
+        and oppositeOrientation(record, openRecord)
         and openRecord.doubleDoor == wantedValue + 4
 end
 
