@@ -61,7 +61,13 @@ local function addMarker(square, r, g, b, alpha, size)
     )
 
     if marker ~= nil then
+        -- Force a stable alpha. GridSquareMarker has its own fade state even
+        -- when created with doAlpha=false, so keep all alpha values pinned.
         marker:setA(alpha)
+        marker:setAlpha(alpha)
+        marker:setAlphaMin(alpha)
+        marker:setAlphaMax(alpha)
+        marker:setFadeSpeed(0)
         marker:setDoAlpha(false)
         marker:setDoBlink(false)
     end
@@ -127,7 +133,10 @@ function Highlight.setHover(square)
     end
 
     Highlight.hoverKey = key
-    Highlight.hoverMarker = addMarker(square, 1.0, 1.0, 1.0, 0.95, 1.08)
+
+    -- Pick hover: deliberately loud magenta and fully opaque so it is
+    -- immediately visible and cannot be confused with selected/active squares.
+    Highlight.hoverMarker = addMarker(square, 1.0, 0.10, 0.90, 1.0, 1.08)
 end
 
 return Highlight
