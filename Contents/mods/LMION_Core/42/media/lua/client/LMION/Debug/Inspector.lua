@@ -1,5 +1,7 @@
 require "ISUI/ISContextMenu"
 require "LMION/Debug/Registry"
+require "LMION/Debug/Inspect/Options"
+require "LMION/Debug/Inspect/PropertyReaders"
 require "LMION/Debug/Inspect/ObjectInspector"
 require "LMION/Debug/Inspect/CoreObject"
 require "LMION/Debug/Inspect/IsoDoor"
@@ -58,7 +60,6 @@ function Inspector.onFillWorldObjectContextMenu(playerNum, context, worldObjects
     )
 end
 
--- Reload-friendly event registration.
 if Inspector._contextHandler ~= nil then
     Events.OnFillWorldObjectContextMenu.Remove(Inspector._contextHandler)
 end

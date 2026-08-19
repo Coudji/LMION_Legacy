@@ -3,14 +3,17 @@ require "ISUI/ISLabel"
 require "ISUI/ISRichTextPanel"
 require "ISUI/ISButton"
 require "LMION/Debug/Registry"
+require "LMION/Debug/Inspect/Options"
 
 LMION.Debug.UI = LMION.Debug.UI or {}
 
+local Options = LMION.Debug.Inspect.Options
 local ReportPanel = ISPanel:derive("LMIONDebugReportPanel")
 LMION.Debug.UI.ReportPanel = ReportPanel
 
-function ReportPanel:new(x, y, width, height)
+function ReportPanel:new(x, y, width, height, controller)
     local o = ISPanel.new(self, x, y, width, height)
+    o.controller = controller
     o.background = true
     o.borderColor = { r = 0.45, g = 0.45, b = 0.45, a = 1 }
     o.backgroundColor = { r = 0, g = 0, b = 0, a = 0.45 }
@@ -28,7 +31,8 @@ function ReportPanel:createChildren()
     local pad = 8
     local titleH = 20
     local buttonH = 24
-    local buttonW = 90
+    local copyW = 90
+    local detailsW = 132
 
     self.titleLabel = ISLabel:new(
         pad,
@@ -61,10 +65,26 @@ function ReportPanel:createChildren()
     self.output:paginate()
     self:addChild(self.output)
 
-    self.copyButton = ISButton:new(
-        self.width - pad - buttonW,
+    self.detailsButton = ISButton:new(
+        pad,
         self.height - pad - buttonH,
-        buttonW,
+        detailsW,
+        buttonH,
+        "",
+        self,
+        ReportPanel.onToggleDetails
+    )
+    self.detailsButton:initialise()
+    self.detailsButton.anchorTop = false
+    self.detailsButton.anchorBottom = true
+    self.detailsButton.anchorLeft = true
+    self.detailsButton.anchorRight = false
+    self:addChild(self.detailsButton)
+
+    self.copyButton = ISButton:new(
+        self.width - pad - copyW,
+        self.height - pad - buttonH,
+        copyW,
         buttonH,
         "Copy",
         self,
@@ -77,14 +97,25 @@ function ReportPanel:createChildren()
     self.copyButton.anchorRight = true
     self:addChild(self.copyButton)
 
+    self:updateDetailsButton()
     self:layout()
+end
+
+function ReportPanel:updateDetailsButton()
+    if self.detailsButton == nil then
+        return
+    end
+
+    self.detailsButton:setTitle(
+        Options.isFullDetails() and "Full details: ON" or "Full details: OFF"
+    )
 end
 
 function ReportPanel:layout()
     local pad = 8
     local titleH = 20
     local buttonH = 24
-    local buttonW = 90
+    local copyW = 90
 
     if self.output ~= nil then
         self.output:setWidth(self.width - pad * 2)
@@ -93,8 +124,6 @@ function ReportPanel:layout()
             - (pad * 3 + titleH + buttonH + 4)
         )
 
-        -- addScrollBars() creates the scrollbar using the panel size at that time.
-        -- Keep it synced when the Inspector window is resized afterwards.
         if self.output.vscroll ~= nil then
             self.output.vscroll:setX(self.output:getWidth() - self.output.vscroll:getWidth())
             self.output.vscroll:setHeight(self.output:getHeight())
@@ -104,8 +133,13 @@ function ReportPanel:layout()
         self.output:paginate()
     end
 
+    if self.detailsButton ~= nil then
+        self.detailsButton:setX(pad)
+        self.detailsButton:setY(self.height - pad - buttonH)
+    end
+
     if self.copyButton ~= nil then
-        self.copyButton:setX(self.width - pad - buttonW)
+        self.copyButton:setX(self.width - pad - copyW)
         self.copyButton:setY(self.height - pad - buttonH)
     end
 end
@@ -124,6 +158,8 @@ function ReportPanel:setText(text)
     if self.copyButton ~= nil then
         self.copyButton:setTitle("Copy")
     end
+
+    self:updateDetailsButton()
 end
 
 function ReportPanel:appendText(text)
@@ -141,6 +177,15 @@ function ReportPanel:appendText(text)
 
     if self.copyButton ~= nil then
         self.copyButton:setTitle("Copy")
+    end
+end
+
+function ReportPanel:onToggleDetails()
+    Options.toggleFullDetails()
+    self:updateDetailsButton()
+
+    if self.controller ~= nil and self.controller.refreshReportFromSelection ~= nil then
+        self.controller:refreshReportFromSelection()
     end
 end
 

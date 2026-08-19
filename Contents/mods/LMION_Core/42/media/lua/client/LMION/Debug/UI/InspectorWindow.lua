@@ -4,6 +4,7 @@ require "LMION/Debug/Reload"
 require "LMION/Debug/World/Selection"
 require "LMION/Debug/World/Highlight"
 require "LMION/Debug/World/WorldPicker"
+require "LMION/Debug/Inspect/Options"
 require "LMION/Debug/Inspect/ObjectInspector"
 require "LMION/Debug/UI/SquarePanel"
 require "LMION/Debug/UI/ObjectPanel"
@@ -75,7 +76,8 @@ function InspectorWindow:createChildren()
         pad + leftW + gap,
         top,
         self.width - (pad * 2 + leftW + gap),
-        contentH
+        contentH,
+        self
     )
     self.reportPanel:initialise()
     self.reportPanel:instantiate()
@@ -171,8 +173,6 @@ function InspectorWindow:startWorldPicker()
     local picker = WorldPicker:new(self)
     self.worldPicker = picker
 
-    -- Keep persistent selection markers visible, but get the Inspector itself
-    -- out of the way while the player chooses a world square.
     self:setVisible(false)
     picker:start()
 end

@@ -1,8 +1,12 @@
 require "LMION/Debug/Registry"
 require "LMION/Debug/Util/Safe"
+require "LMION/Debug/Inspect/Options"
+require "LMION/Debug/Inspect/PropertyReaders"
 
 local Debug = LMION.Debug
 local Safe = Debug.Util.Safe
+local Options = Debug.Inspect.Options
+local PropertyReaders = Debug.Inspect.PropertyReaders
 
 local function dumpModData(object, report)
     local modData = Safe.value("getModData", function()
@@ -26,67 +30,110 @@ local function dumpModData(object, report)
     end
 end
 
-local function dumpProperties(object, report)
-    local properties = Safe.value("getProperties", function()
+local function collectionToStrings(collection)
+    local result = {}
+    local count = Safe.collectionSize(collection)
+
+    for i = 0, count - 1 do
+        local value = Safe.collectionGet(collection, i)
+        result[#result + 1] = tostring(value)
+    end
+
+    return result
+end
+
+local function joinOrEmpty(values)
+    if #values == 0 then
+        return "<none>"
+    end
+
+    return table.concat(values, ", ")
+end
+
+local function getProperties(object)
+    return Safe.value("getProperties", function()
         return object:getProperties()
     end, nil)
+end
 
+local function dumpPropertiesClean(properties, report)
+    if properties == nil then
+        report:field("flags", "<nil>")
+        report:field("properties", "<nil>")
+        return
+    end
+
+    local flags = Safe.value("getFlagsList", function()
+        return properties:getFlagsList()
+    end, nil)
+
+    local names = Safe.value("getPropertyNames", function()
+        return properties:getPropertyNames()
+    end, nil)
+
+    report:field("flags", joinOrEmpty(collectionToStrings(flags)))
+    report:field("properties", joinOrEmpty(collectionToStrings(names)))
+end
+
+local function dumpPropertiesFull(properties, report)
     if properties == nil then
         report:field("properties", "<nil>")
         return
     end
 
-    -- IMPORTANT: do not call PropertyContainer:Val(key) here.
-    -- Some property names exposed by getPropertyNames() can throw a Java
-    -- RuntimeException in debug mode and force-open the Lua debugger.
     local flags = Safe.value("getFlagsList", function()
         return properties:getFlagsList()
     end, nil)
 
-    local flagCount = Safe.collectionSize(flags)
-    report:field("flags.count", flagCount)
+    local flagValues = collectionToStrings(flags)
+    report:field("flags.count", #flagValues)
 
-    for i = 0, flagCount - 1 do
-        report:field("flag[" .. tostring(i) .. "]", Safe.collectionGet(flags, i))
+    for i, flag in ipairs(flagValues) do
+        report:field("flag[" .. tostring(i - 1) .. "]", flag)
     end
 
     local names = Safe.value("getPropertyNames", function()
         return properties:getPropertyNames()
     end, nil)
 
-    local propertyCount = Safe.collectionSize(names)
-    report:field("properties.count", propertyCount)
+    local propertyNames = collectionToStrings(names)
+    report:field("properties.count", #propertyNames)
 
-    for i = 0, propertyCount - 1 do
-        report:field("property[" .. tostring(i) .. "]", Safe.collectionGet(names, i))
+    for i, name in ipairs(propertyNames) do
+        local hasReader, value = PropertyReaders.read(properties, name)
+        local suffix = hasReader and "" or " [no reader]"
+        report:field("property[" .. tostring(i - 1) .. "]." .. name .. suffix, value)
     end
 end
 
 Debug.registerInspector("core.object", 10, function(object, report)
-    report:section("Core object")
-    report:field("tostring", tostring(object))
+    report:section("Object")
     report:field("class", Safe.className(object))
+    report:field("square", Safe.squareString(object:getSquare()))
+    report:field("type", object:getType())
+    report:field("sprite", Safe.spriteName(object))
+
+    local properties = getProperties(object)
+    dumpPropertiesClean(properties, report)
+
+    if not Options.isFullDetails() then
+        return
+    end
+
+    report:section("Object details")
+    report:field("tostring", tostring(object))
     report:field("objectName", object:getObjectName())
     report:field("name", object:getName())
-    report:field("type", object:getType())
     report:field("scriptName", object:getScriptName())
-    report:field("square", Safe.squareString(object:getSquare()))
     report:field("objectIndex", object:getObjectIndex())
     report:field("specialObjectIndex", object:getSpecialObjectIndex())
     report:field("worldObjectIndex", object:getWorldObjectIndex())
-    report:field("spriteName", Safe.spriteName(object))
 
     local sprite = object:getSprite()
-
-    if sprite ~= nil then
-        report:field("sprite.getName", sprite:getName())
-    else
-        report:field("sprite.getName", nil)
-    end
-
+    report:field("sprite.getName", sprite ~= nil and sprite:getName() or nil)
     report:field("textureName", object:getTextureName())
     report:field("dir", object:getDir())
 
     dumpModData(object, report)
-    dumpProperties(object, report)
+    dumpPropertiesFull(properties, report)
 end)
