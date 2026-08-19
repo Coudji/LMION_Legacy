@@ -27,6 +27,83 @@ local function getSquare(x, y, z)
     return getCell():getGridSquare(x, y, z)
 end
 
+function Spawner.isAreaLoaded(originX, originY, z, width, height)
+    for y = originY, originY + height - 1 do
+        for x = originX, originX + width - 1 do
+            if getSquare(x, y, z) == nil then
+                return false, x, y
+            end
+        end
+    end
+
+    return true, nil, nil
+end
+
+local function clearSquare(square)
+    local removed = 0
+    local objects = square:getObjects()
+
+    for i = objects:size() - 1, 0, -1 do
+        local object = objects:get(i)
+
+        if object ~= nil then
+            square:transmitRemoveItemFromSquare(object)
+
+            if object:getObjectIndex() ~= -1 then
+                square:RemoveTileObject(object)
+            end
+
+            removed = removed + 1
+        end
+    end
+
+    return removed
+end
+
+function Spawner.prepareArea(originX, originY, z, width, height, floorSprite)
+    if isMultiplayer() then
+        return false, "showroom workspace is single-player debug only for now"
+    end
+
+    if floorSprite == nil or tostring(floorSprite) == "" then
+        return false, "missing floor sprite"
+    end
+
+    if getSprite ~= nil and getSprite(floorSprite) == nil then
+        return false, "unknown floor sprite: " .. tostring(floorSprite)
+    end
+
+    local loaded, missingX, missingY = Spawner.isAreaLoaded(
+        originX,
+        originY,
+        z,
+        width,
+        height
+    )
+
+    if not loaded then
+        return false, "unloaded:" .. tostring(missingX) .. "," .. tostring(missingY)
+    end
+
+    local result = {
+        squares = 0,
+        removedObjects = 0,
+        floorSprite = floorSprite,
+    }
+
+    for y = originY, originY + height - 1 do
+        for x = originX, originX + width - 1 do
+            local square = getSquare(x, y, z)
+            result.removedObjects = result.removedObjects + clearSquare(square)
+            square:addFloor(floorSprite)
+            square:disableErosion()
+            result.squares = result.squares + 1
+        end
+    end
+
+    return true, nil, result
+end
+
 local function squareIsUsable(square)
     if square == nil then
         return false, "unloaded"
