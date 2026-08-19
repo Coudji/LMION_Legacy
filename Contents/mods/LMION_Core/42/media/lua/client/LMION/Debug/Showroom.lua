@@ -29,6 +29,17 @@ local function formatSkipReasons(reasons)
     return #parts > 0 and table.concat(parts, ", ") or "none"
 end
 
+local function formatDistribution(values)
+    local parts = {}
+
+    for name, count in pairs(values or {}) do
+        parts[#parts + 1] = tostring(name) .. "=" .. tostring(count)
+    end
+
+    table.sort(parts)
+    return #parts > 0 and table.concat(parts, ", ") or "<none>"
+end
+
 local function logRejected(scan)
     if LMION.log == nil then
         return
@@ -77,13 +88,14 @@ function Showroom.scan()
                 .. ")"
         )
 
-        local doorSounds = reportData.doorSounds or {}
-        local soundParts = {}
-        for sound, count in pairs(doorSounds) do
-            soundParts[#soundParts + 1] = tostring(sound) .. "=" .. tostring(count)
-        end
-        table.sort(soundParts)
-        LMION.log("Debug", "DoorSound distribution: " .. (#soundParts > 0 and table.concat(soundParts, ", ") or "<none>"))
+        LMION.log(
+            "Debug",
+            "DoorSound distribution: " .. formatDistribution(reportData.doorSounds)
+        )
+        LMION.log(
+            "Debug",
+            "EntityScriptName distribution: " .. formatDistribution(reportData.entityScripts)
+        )
     end
 
     logRejected(scan)
