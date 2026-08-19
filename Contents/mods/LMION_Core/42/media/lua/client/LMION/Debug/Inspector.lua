@@ -57,6 +57,12 @@ function Inspector.spawnDoorShowroom(square)
     end
 end
 
+function Inspector.rebuildFixedDoorShowroom()
+    if Debug.Showroom ~= nil then
+        Debug.Showroom.rebuildFixed()
+    end
+end
+
 function Inspector.copyDoorShowroomReport()
     if Debug.Showroom ~= nil then
         Debug.Showroom.copyReport()
@@ -74,6 +80,12 @@ function Inspector.onFillWorldObjectContextMenu(playerNum, context, worldObjects
         "LMION Inspector",
         square,
         Inspector.openAtSquare
+    )
+
+    context:addOption(
+        "LMION Rebuild Fixed Door Showroom",
+        nil,
+        Inspector.rebuildFixedDoorShowroom
     )
 
     context:addOption(
