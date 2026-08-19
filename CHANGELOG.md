@@ -21,9 +21,11 @@ This changelog starts when the Git repository was created. Earlier local prototy
 - Added project-wide LMION Lua reload tooling for loaded Core and optional-module Lua files, including a server-side reload request path for multiplayer development.
 - Split inspection output into a compact default view and an optional `Full details` view.
 - Added a reload-friendly property-reader registry with a Build 42 `PropertyContainer:get(name)` default reader, while keeping per-property overrides available for exceptional cases.
+- Added dedicated property-container and sprite inspection, including property values, surface metadata, and sprite-grid metadata.
+- Expanded IsoDoor inspection with obstruction, curtain, barricade, key, and thump-state details, using the public open-sprite getter when available.
 
 ### Pickup research
 - Confirmed simple doors, sliding doors, large gates, and garage-door pieces can all appear as `IsoDoor` objects.
 - Confirmed double-door/gate grouping through `doubleDoorIndex`.
 - Confirmed garage grouping through `garageDoorIndex` plus first/prev/next linkage.
-- Confirmed `closedSprite` and `openSprite` can be retrieved independently of the current open/closed state through the debug reflection helper.
+- Confirmed `closedSprite` can be retrieved independently of the current state through controlled reflection; current Build 42 APIs also expose a public `getOpenSprite()` getter.

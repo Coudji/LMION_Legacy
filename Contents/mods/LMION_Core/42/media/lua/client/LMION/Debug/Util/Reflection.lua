@@ -5,6 +5,46 @@ LMION.Debug.Util.Reflection = LMION.Debug.Util.Reflection or {}
 local Safe = LMION.Debug.Util.Safe
 local Reflection = LMION.Debug.Util.Reflection
 
+function Reflection.hasMethod(object, wantedName, parameterCount)
+    if object == nil
+        or getNumClassFunctions == nil
+        or getClassFunction == nil then
+        return false
+    end
+
+    local count = Safe.value("getNumClassFunctions", function()
+        return getNumClassFunctions(object)
+    end, 0)
+
+    for i = 0, count - 1 do
+        local method = Safe.value("getClassFunction", function()
+            return getClassFunction(object, i)
+        end, nil)
+
+        if method ~= nil then
+            local name = Safe.value("Method.getName", function()
+                return method:getName()
+            end, nil)
+
+            if name == wantedName then
+                if parameterCount == nil then
+                    return true
+                end
+
+                local countParams = Safe.value("Method.getParameterCount", function()
+                    return method:getParameterCount()
+                end, nil)
+
+                if countParams == parameterCount then
+                    return true
+                end
+            end
+        end
+    end
+
+    return false
+end
+
 function Reflection.getField(object, wantedName)
     if object == nil then
         return nil, "<nil object>"

@@ -14,6 +14,16 @@ local function isIsoDoor(object)
         and instanceof(object, "IsoDoor") == true
 end
 
+local function spriteName(sprite)
+    if sprite == nil then
+        return nil
+    end
+
+    return Safe.value("sprite.getName", function()
+        return sprite:getName()
+    end, tostring(sprite))
+end
+
 local function spriteLabel(object)
     if object == nil then
         return nil
@@ -22,6 +32,16 @@ local function spriteLabel(object)
     return Safe.squareString(object:getSquare())
         .. " / "
         .. tostring(Safe.spriteName(object) or "<no sprite>")
+end
+
+local function objectLabel(object)
+    if object == nil then
+        return nil
+    end
+
+    return Safe.squareString(object:getSquare())
+        .. " / "
+        .. Safe.objectLabel(object)
 end
 
 local function getDoubleDoorIndex(object)
@@ -34,6 +54,14 @@ local function getGarageDoorIndex(object)
     return Safe.value("IsoDoor.getGarageDoorIndex", function()
         return IsoDoor.getGarageDoorIndex(object)
     end, -1)
+end
+
+local function getOpenSpriteInfo(object)
+    if Reflection.hasMethod(object, "getOpenSprite", 0) then
+        return spriteName(object:getOpenSprite()), "public:getOpenSprite"
+    end
+
+    return Reflection.getSpriteFieldName(object, "openSprite"), "reflection:openSprite"
 end
 
 local function dumpDoubleDoorGroup(object, report, doubleDoorIndex)
@@ -81,6 +109,10 @@ Debug.registerInspector("vanilla.isoDoor", 50, function(object, report)
 
     local doubleDoorIndex = getDoubleDoorIndex(object)
     local garageDoorIndex = getGarageDoorIndex(object)
+    local openSprite, openSpriteSource = getOpenSpriteInfo(object)
+    local hasCurtains = Reflection.hasMethod(object, "HasCurtains", 0)
+        and object:HasCurtains()
+        or false
 
     report:section("IsoDoor")
     report:field("north", object:getNorth())
@@ -90,14 +122,27 @@ Debug.registerInspector("vanilla.isoDoor", 50, function(object, report)
     report:field("keyId", object:getKeyId())
     report:field("health", tostring(object:getHealth()) .. " / " .. tostring(object:getMaxHealth()))
     report:field("barricaded", object:isBarricaded())
+
+    if Reflection.hasMethod(object, "isDestroyed", 0) then
+        report:field("destroyed", object:isDestroyed())
+    end
+
+    if Reflection.hasMethod(object, "isObstructed", 0) then
+        report:field("obstructed", object:isObstructed())
+    end
+
+    report:field("curtains", hasCurtains)
+
+    if hasCurtains and Reflection.hasMethod(object, "isCurtainOpen", 0) then
+        report:field("curtainOpen", object:isCurtainOpen())
+    end
+
     report:field("closedSprite", Reflection.getSpriteFieldName(object, "closedSprite"))
-    report:field("openSprite", Reflection.getSpriteFieldName(object, "openSprite"))
+    report:field("openSprite", openSprite)
     report:field("oppositeSquare", Safe.squareString(object:getOppositeSquare()))
     report:field("doubleDoorIndex", doubleDoorIndex)
     report:field("garageDoorIndex", garageDoorIndex)
 
-    -- Group linkage is valuable even in the clean report when the object is
-    -- actually part of a grouped opening.
     dumpDoubleDoorGroup(object, report, doubleDoorIndex)
     dumpGarageGroup(object, report, garageDoorIndex)
 
@@ -109,6 +154,39 @@ Debug.registerInspector("vanilla.isoDoor", 50, function(object, report)
     report:field("maxHealth", object:getMaxHealth())
     report:field("exterior", object:isExterior())
     report:field("hoppable", object:isHoppable())
-    report:field("closedSprite.source", "reflection: closedSprite")
-    report:field("openSprite.source", "reflection: openSprite")
+
+    if Reflection.hasMethod(object, "haveKey", 0) then
+        report:field("haveKey", object:haveKey())
+    end
+
+    if Reflection.hasMethod(object, "isBarricadeAllowed", 0) then
+        report:field("barricadeAllowed", object:isBarricadeAllowed())
+    end
+
+    if Reflection.hasMethod(object, "getBarricadeOnSameSquare", 0) then
+        report:field("barricade.sameSquare", objectLabel(object:getBarricadeOnSameSquare()))
+    end
+
+    if Reflection.hasMethod(object, "getBarricadeOnOppositeSquare", 0) then
+        report:field("barricade.oppositeSquare", objectLabel(object:getBarricadeOnOppositeSquare()))
+    end
+
+    if Reflection.hasMethod(object, "canAddCurtain", 0) then
+        report:field("canAddCurtain", object:canAddCurtain())
+    end
+
+    if hasCurtains and Reflection.hasMethod(object, "getSheetSquare", 0) then
+        report:field("sheetSquare", Safe.squareString(object:getSheetSquare()))
+    end
+
+    if Reflection.hasMethod(object, "getThumpCondition", 0) then
+        report:field("thumpCondition", object:getThumpCondition())
+    end
+
+    if Reflection.hasMethod(object, "IsStrengthenedByPushedItems", 0) then
+        report:field("strengthenedByPushedItems", object:IsStrengthenedByPushedItems())
+    end
+
+    report:field("closedSprite.source", "reflection:closedSprite")
+    report:field("openSprite.source", openSpriteSource)
 end)
