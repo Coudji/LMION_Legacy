@@ -1,5 +1,6 @@
 require "ISUI/ISCollapsableWindow"
 require "LMION/Debug/Registry"
+require "LMION/Debug/Reload"
 require "LMION/Debug/World/Selection"
 require "LMION/Debug/World/Highlight"
 require "LMION/Debug/World/WorldPicker"
@@ -11,6 +12,7 @@ require "LMION/Debug/UI/ReportPanel"
 LMION.Debug.UI = LMION.Debug.UI or {}
 
 local Debug = LMION.Debug
+local Reload = Debug.Reload
 local Selection = Debug.World.Selection
 local Highlight = Debug.World.Highlight
 local WorldPicker = Debug.World.WorldPicker
@@ -173,6 +175,10 @@ function InspectorWindow:startWorldPicker()
     -- out of the way while the player chooses a world square.
     self:setVisible(false)
     picker:start()
+end
+
+function InspectorWindow:reloadLMION()
+    Reload.reloadAll({ reloadServer = true })
 end
 
 function InspectorWindow:close()
