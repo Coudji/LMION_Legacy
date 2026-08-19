@@ -1,0 +1,36 @@
+module Base
+{
+    xuiSkin default
+    {
+        entity ES_LMION_Probe
+        {
+            LuaWindowClass = ISEntityWindow,
+            DisplayName = LMION Probe - menu only,
+            Icon = Build_DoorWood,
+        }
+    }
+}
+
+module LMIONBuild
+{
+    entity DoorCatalogProbe
+    {
+        component UiConfig
+        {
+            xuiSkin = default,
+            entityStyle = ES_LMION_Probe,
+            uiEnabled = false,
+        }
+
+        component CraftRecipe
+        {
+            time = 1,
+            category = LMION,
+            SkillRequired = Woodwork:10,
+            inputs
+            {
+                item 999 [Base.Plank],
+            }
+        }
+    }
+}
