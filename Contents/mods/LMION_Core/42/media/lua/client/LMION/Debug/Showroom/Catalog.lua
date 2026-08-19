@@ -5,6 +5,12 @@ LMION.Debug.Showroom = LMION.Debug.Showroom or {}
 local Catalog = LMION.Debug.Showroom.Catalog or {}
 LMION.Debug.Showroom.Catalog = Catalog
 
+local DOUBLE_CLOSED_OFFSETS = { 0, 1, 8, 9 }
+local DOUBLE_NORTH_OPEN_OFFSETS = { 5, 3, 4, 4 }
+local DOUBLE_WEST_OPEN_OFFSETS = { 4, 4, 5, 3 }
+local GARAGE_CLOSED_OFFSETS = { 0, 1, 2 }
+local GARAGE_OPEN_OFFSET = 8
+
 local function propertyValue(properties, name)
     if properties == nil or not properties:has(name) then
         return nil
@@ -115,6 +121,10 @@ local function hasUsableOrientation(record)
     return record ~= nil and record.north ~= record.west
 end
 
+local function isCanonicalOrientation(record)
+    return record ~= nil and record.north == true and record.west ~= true
+end
+
 local function sameGroupIdentity(a, b)
     if a == nil or b == nil then
         return false
@@ -122,27 +132,6 @@ local function sameGroupIdentity(a, b)
 
     return sameValue(a.entityScriptName, b.entityScriptName)
         and sameValue(a.doorSound, b.doorSound)
-        and sameValue(a.material, b.material)
-        and sameValue(a.material2, b.material2)
-        and sameValue(a.material3, b.material3)
-end
-
-local function sameSingleIdentity(a, b)
-    if a == nil or b == nil
-        or a.open or b.open
-        or a.doubleDoor ~= nil or b.doubleDoor ~= nil
-        or a.garageDoor ~= nil or b.garageDoor ~= nil
-        or a.sheet == nil or b.sheet == nil
-        or a.sheet ~= b.sheet
-        or not hasUsableOrientation(a)
-        or not hasUsableOrientation(b)
-        or a.north == b.north then
-        return false
-    end
-
-    return sameValue(a.entityScriptName, b.entityScriptName)
-        and sameValue(a.doorSound, b.doorSound)
-        and sameValue(a.customName, b.customName)
         and sameValue(a.material, b.material)
         and sameValue(a.material2, b.material2)
         and sameValue(a.material3, b.material3)
@@ -157,17 +146,23 @@ local function getBySheetIndex(scan, sheet, index)
     return sheetRecords ~= nil and sheetRecords[index] or nil
 end
 
+local function sameOrientation(a, b)
+    return a ~= nil
+        and b ~= nil
+        and a.north == b.north
+        and a.west == b.west
+end
+
 local function getExpectedStateOffset(record)
     if record == nil then
         return nil
     end
 
     if record.garageDoor ~= nil then
-        return 8
+        return GARAGE_OPEN_OFFSET
     end
 
-    -- DoubleDoor groups do not have a reliable one-part closed/open mate.
-    -- Opening the group can rotate and relocate parts onto other squares.
+    -- DoubleDoor groups use a different sprite offset for each group member.
     if record.doubleDoor ~= nil then
         return nil
     end
@@ -192,11 +187,7 @@ function Catalog.getStateMate(scan, record)
 
     local candidate = getBySheetIndex(scan, record.sheet, record.index + offset)
 
-    if candidate == nil then
-        return nil
-    end
-
-    if record.north ~= candidate.north or record.west ~= candidate.west then
+    if candidate == nil or not sameOrientation(record, candidate) then
         return nil
     end
 
@@ -204,110 +195,63 @@ function Catalog.getStateMate(scan, record)
         return nil
     end
 
+    if record.garageDoor ~= nil then
+        local expected = record.open and record.garageDoor - 3 or record.garageDoor + 3
+
+        if candidate.garageDoor ~= expected then
+            return nil
+        end
+    end
+
     return candidate
 end
 
-local function shouldKeepSingleOrientation(scan, record)
-    if record.north or record.sheet == nil or record.index == nil then
-        return true
-    end
+local function getClosedGroupPart(scan, anchor, fieldName, wantedValue, offset)
+    local candidate = getBySheetIndex(
+        scan,
+        anchor.sheet,
+        anchor.index ~= nil and anchor.index + offset or nil
+    )
 
-    for _, delta in ipairs({ -1, 1 }) do
-        local mate = getBySheetIndex(scan, record.sheet, record.index + delta)
-
-        if sameSingleIdentity(record, mate) and mate.north then
-            local openA = Catalog.getStateMate(scan, record)
-            local openB = Catalog.getStateMate(scan, mate)
-
-            if openA ~= nil
-                and openB ~= nil
-                and openA.sheet == openB.sheet
-                and openA.index ~= nil
-                and openB.index ~= nil
-                and math.abs(openA.index - openB.index) == 1 then
-                return false
-            end
-        end
-    end
-
-    return true
-end
-
-local function nearestGroupPart(scan, anchor, fieldName, wantedValue, maxDistance)
-    if anchor == nil or anchor.sheet == nil or anchor.index == nil then
+    if candidate == nil
+        or candidate[fieldName] ~= wantedValue
+        or candidate.open
+        or not sameOrientation(anchor, candidate)
+        or not sameGroupIdentity(anchor, candidate) then
         return nil
     end
 
-    local sheetRecords = scan.bySheetIndex[anchor.sheet]
-
-    if sheetRecords == nil then
-        return nil
-    end
-
-    local best = nil
-    local bestDistance = nil
-
-    for index, candidate in pairs(sheetRecords) do
-        if candidate ~= nil
-            and candidate[fieldName] == wantedValue
-            and candidate.open == false
-            and candidate.north == anchor.north
-            and candidate.west == anchor.west
-            and sameGroupIdentity(candidate, anchor) then
-            local distance = math.abs(index - anchor.index)
-
-            if distance <= maxDistance
-                and (bestDistance == nil or distance < bestDistance) then
-                best = candidate
-                bestDistance = distance
-            end
-        end
-    end
-
-    return best
+    return candidate
 end
 
-local function collectGarageParts(scan, anchor)
-    local expectedOffsets = { 0, 1, 2 }
-    local parts = {}
-
-    for wanted = 1, 3 do
-        local candidate = getBySheetIndex(
-            scan,
-            anchor.sheet,
-            anchor.index ~= nil and anchor.index + expectedOffsets[wanted] or nil
-        )
-
-        if candidate == nil or candidate.garageDoor ~= wanted or candidate.open then
-            candidate = nearestGroupPart(scan, anchor, "garageDoor", wanted, 16)
-        end
-
-        if candidate == nil then
-            return nil
-        end
-
-        parts[#parts + 1] = candidate
+local function validateDoubleOpenState(scan, record, wantedValue)
+    if record == nil or record.sheet == nil or record.index == nil then
+        return false
     end
 
-    return parts
+    local offsets = record.north and DOUBLE_NORTH_OPEN_OFFSETS or DOUBLE_WEST_OPEN_OFFSETS
+    local offset = offsets[wantedValue]
+    local openRecord = getBySheetIndex(scan, record.sheet, record.index + offset)
+
+    return openRecord ~= nil
+        and openRecord.open
+        and sameOrientation(record, openRecord)
+        and openRecord.doubleDoor == wantedValue + 4
 end
 
 local function collectDoubleParts(scan, anchor)
-    local expectedOffsets = { 0, 1, 8, 9 }
     local parts = {}
 
     for wanted = 1, 4 do
-        local candidate = getBySheetIndex(
+        local candidate = getClosedGroupPart(
             scan,
-            anchor.sheet,
-            anchor.index ~= nil and anchor.index + expectedOffsets[wanted] or nil
+            anchor,
+            "doubleDoor",
+            wanted,
+            DOUBLE_CLOSED_OFFSETS[wanted]
         )
 
-        if candidate == nil or candidate.doubleDoor ~= wanted or candidate.open then
-            candidate = nearestGroupPart(scan, anchor, "doubleDoor", wanted, 16)
-        end
-
-        if candidate == nil then
+        if candidate == nil or not validateDoubleOpenState(scan, candidate, wanted) then
             return nil
         end
 
@@ -315,6 +259,52 @@ local function collectDoubleParts(scan, anchor)
     end
 
     return parts
+end
+
+local function validateGarageOpenState(scan, record, wantedValue)
+    if record == nil or record.sheet == nil or record.index == nil then
+        return false
+    end
+
+    local openRecord = getBySheetIndex(
+        scan,
+        record.sheet,
+        record.index + GARAGE_OPEN_OFFSET
+    )
+
+    return openRecord ~= nil
+        and openRecord.open
+        and sameOrientation(record, openRecord)
+        and openRecord.garageDoor == wantedValue + 3
+end
+
+local function collectGarageParts(scan, anchor)
+    local parts = {}
+
+    for wanted = 1, 3 do
+        local candidate = getClosedGroupPart(
+            scan,
+            anchor,
+            "garageDoor",
+            wanted,
+            GARAGE_CLOSED_OFFSETS[wanted]
+        )
+
+        if candidate == nil or not validateGarageOpenState(scan, candidate, wanted) then
+            return nil
+        end
+
+        parts[wanted] = candidate
+    end
+
+    -- A garage chain is START + one or more MID + END. Spawn a four-wide
+    -- representative so the showroom also exercises repeated middle segments.
+    return {
+        parts[1],
+        parts[2],
+        parts[2],
+        parts[3],
+    }
 end
 
 local function familySort(a, b)
@@ -378,12 +368,15 @@ function Catalog.buildFamilies(scan)
         single = 0,
         incomplete = 0,
         unoriented = 0,
+        ignoredOrientation = 0,
     }
 
     for _, record in ipairs(scan.records) do
         if not record.open then
             if not hasUsableOrientation(record) then
                 counts.unoriented = counts.unoriented + 1
+            elseif not isCanonicalOrientation(record) then
+                counts.ignoredOrientation = counts.ignoredOrientation + 1
             elseif record.garageDoor == 1 then
                 local parts = collectGarageParts(scan, record)
 
@@ -410,9 +403,7 @@ function Catalog.buildFamilies(scan)
                 else
                     counts.incomplete = counts.incomplete + 1
                 end
-            elseif record.garageDoor == nil
-                and record.doubleDoor == nil
-                and shouldKeepSingleOrientation(scan, record) then
+            elseif record.garageDoor == nil and record.doubleDoor == nil then
                 local kind = record.entityScriptName ~= nil and "entity" or "single"
 
                 families[#families + 1] = {
