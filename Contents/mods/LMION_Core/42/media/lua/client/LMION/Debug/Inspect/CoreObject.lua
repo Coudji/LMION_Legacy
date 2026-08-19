@@ -56,7 +56,8 @@ Debug.registerInspector("core.object", 10, function(object, report)
         return
     end
 
-    report:section("Object details")
+    -- Full details deepen the existing Object section instead of creating a
+    -- second artificial level such as "Object details".
     report:field("tostring", tostring(object))
     report:field("objectName", object:getObjectName())
     report:field("name", object:getName())
@@ -93,5 +94,5 @@ Debug.registerInspector("core.object", 10, function(object, report)
     end
 
     dumpModData(object, report)
-    PropertyContainer.dumpFull(properties, report, "Object properties")
+    PropertyContainer.dumpFull(properties, report, "Object")
 end)

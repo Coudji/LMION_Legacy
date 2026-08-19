@@ -72,7 +72,7 @@ Debug.registerInspector("core.sprite", 20, function(object, report)
         return
     end
 
-    report:section("Sprite details")
+    report:section("Sprite")
     report:field("name", spriteName(sprite))
 
     if Reflection.hasMethod(sprite, "getID", 0) then
@@ -122,6 +122,6 @@ Debug.registerInspector("core.sprite", 20, function(object, report)
     dumpSpriteGrid(sprite, report)
 
     if Reflection.hasMethod(sprite, "getProperties", 0) then
-        PropertyContainer.dumpFull(sprite:getProperties(), report, "Sprite properties")
+        PropertyContainer.dumpFull(sprite:getProperties(), report, "Sprite")
     end
 end)

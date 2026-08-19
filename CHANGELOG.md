@@ -23,6 +23,7 @@ This changelog starts when the Git repository was created. Earlier local prototy
 - Added a reload-friendly property-reader registry with a Build 42 `PropertyContainer:get(name)` default reader, while keeping per-property overrides available for exceptional cases.
 - Added dedicated property-container and sprite inspection, including property values, surface metadata, and sprite-grid metadata.
 - Expanded IsoDoor inspection with obstruction, curtain, barricade, key, and thump-state details, using the public open-sprite getter when available.
+- Structured Full details by object depth, keeping Object, Sprite, and IsoDoor data in their own sections while separating named properties from property-container metadata.
 
 ### Pickup research
 - Confirmed simple doors, sliding doors, large gates, and garage-door pieces can all appear as `IsoDoor` objects.

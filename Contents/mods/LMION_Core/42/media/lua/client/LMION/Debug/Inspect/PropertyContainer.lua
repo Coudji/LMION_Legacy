@@ -92,7 +92,7 @@ local function formatPropertySummary(entries)
     return table.concat(parts, ", ")
 end
 
-local function dumpOptionalMetadata(properties, report)
+local function dumpMetadata(properties, report)
     if Reflection.hasMethod(properties, "getSurface", 0) then
         report:field("surface", properties:getSurface())
     end
@@ -167,8 +167,12 @@ function PropertyContainer.dumpCompact(properties, report)
     report:field("properties", formatPropertySummary(readPropertyEntries(properties)))
 end
 
-function PropertyContainer.dumpFull(properties, report, sectionName)
-    report:section(sectionName or "Properties")
+function PropertyContainer.dumpFull(properties, report, ownerLabel)
+    local owner = ownerLabel or ""
+    local propertiesSection = owner ~= "" and (owner .. " properties") or "Properties"
+    local metadataSection = owner ~= "" and (owner .. " property metadata") or "Property metadata"
+
+    report:section(propertiesSection)
 
     if properties == nil then
         report:field("properties", "<nil>")
@@ -192,7 +196,8 @@ function PropertyContainer.dumpFull(properties, report, sectionName)
         report:field(name, displayValue(entry.value))
     end
 
-    dumpOptionalMetadata(properties, report)
+    report:section(metadataSection)
+    dumpMetadata(properties, report)
 end
 
 return PropertyContainer
