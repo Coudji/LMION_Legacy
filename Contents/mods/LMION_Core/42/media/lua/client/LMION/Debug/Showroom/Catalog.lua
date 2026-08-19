@@ -346,9 +346,9 @@ function Catalog.scan()
     }
 
     local manager = IsoSpriteManager.instance
-    local sprites = manager:getNamedMap():values():toArray()
+    local namedSprites = transformIntoKahluaTable(manager:getNamedMap())
 
-    for _, sprite in ipairs(sprites) do
+    for _, sprite in pairs(namedSprites) do
         scan.counts.sprites = scan.counts.sprites + 1
 
         local record = makeRecord(sprite)
