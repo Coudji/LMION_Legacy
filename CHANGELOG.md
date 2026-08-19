@@ -18,6 +18,10 @@ This changelog starts when the Git repository was created. Earlier local prototy
 - Added persistent world highlights for selected squares, with a stronger marker for the active square.
 - Added a world square picker with hover highlighting and click-to-add selection.
 - Added active-square directional expansion through `+N`, `+S`, `+E`, and `+W`.
+- Fixed world-picker targeting across camera zoom levels.
+- Made the picker hover marker static and high-contrast instead of pulsing/fading.
+- Added `Reload LMION`, which reloads all currently loaded Lua files under the shared `LMION/` namespace in load order, including active LMION submods.
+- Added a debug/admin multiplayer server endpoint so the same action can reload LMION Lua in the server Lua environment as well as on the client.
 
 ### Pickup research
 - Confirmed simple doors, sliding doors, large gates, and garage-door pieces can all appear as `IsoDoor` objects.
