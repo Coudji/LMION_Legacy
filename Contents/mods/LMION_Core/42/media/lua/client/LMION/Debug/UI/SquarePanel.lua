@@ -124,9 +124,18 @@ function SquarePanel:refresh()
         local entry = entries[first + row - 1]
 
         if entry ~= nil then
-            local prefix = entry.key == Selection.activeKey and "> " or "  "
-            button:setTitle(prefix .. entry.text)
+            local isActive = entry.key == Selection.activeKey
+            button:setTitle(entry.text)
             button.squareKey = entry.key
+
+            if isActive then
+                button.backgroundColor = { r = 0.35, g = 0.35, b = 0.35, a = 0.90 }
+                button.backgroundColorMouseOver = { r = 0.45, g = 0.45, b = 0.45, a = 0.95 }
+            else
+                button.backgroundColor = { r = 0, g = 0, b = 0, a = 0.35 }
+                button.backgroundColorMouseOver = { r = 0.25, g = 0.25, b = 0.25, a = 0.60 }
+            end
+
             button:setVisible(true)
         else
             button.squareKey = nil
@@ -134,6 +143,10 @@ function SquarePanel:refresh()
             button:setVisible(false)
         end
     end
+
+    local hasMultiplePages = maxPage > 1
+    self.prevButton:setVisible(hasMultiplePages)
+    self.nextButton:setVisible(hasMultiplePages)
 end
 
 function SquarePanel:onSquareRow(button)
