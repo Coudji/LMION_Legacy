@@ -2,11 +2,11 @@ require "LMION/Debug/Inspect/PropertyReaders"
 
 local PropertyReaders = LMION.Debug.Inspect.PropertyReaders
 
--- Start deliberately small. Each property reader is validated in-game before
--- being added here because blind PropertyContainer:Val() calls have already
--- proven capable of tripping PZ's Java/Kahlua debugger.
+-- Build 42.18's PropertyContainer exposes get(String) for string property
+-- lookup. The older Val(String) API still appears in stale documentation but
+-- trips the debugger on current builds, so do not use it here.
 PropertyReaders.register("DoorSound", function(properties)
-    return properties:Val("DoorSound")
+    return properties:get("DoorSound")
 end)
 
 return PropertyReaders
