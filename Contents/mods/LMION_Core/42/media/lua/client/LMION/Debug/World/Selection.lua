@@ -115,7 +115,6 @@ function Selection.removeActiveSquare()
 
     Selection.activeKey = Selection.squares[1] ~= nil and Selection.squares[1].key or nil
 
-    -- Remove object selections that belonged to the removed square.
     for key, selected in pairs(Selection.selectedObjectByKey) do
         if selected.squareKey == removedKey then
             Selection.selectedObjectByKey[key] = nil
@@ -201,16 +200,24 @@ function Selection.clearObjectSelection()
     Selection.selectedObjectByKey = {}
 end
 
-function Selection.selectAllObjects()
+function Selection.selectObjectEntries(entries)
     Selection.selectedObjectByKey = {}
 
-    local entries = SquareScanner.flattenObjects(Selection.getSquares())
+    for _, entry in ipairs(entries or {}) do
+        if entry ~= nil and entry.object ~= nil then
+            local key = entry.key or Safe.objectKey(entry.object)
 
-    for _, entry in ipairs(entries) do
-        if entry.key ~= nil then
-            Selection.selectedObjectByKey[entry.key] = entry
+            if key ~= nil then
+                Selection.selectedObjectByKey[key] = entry
+            end
         end
     end
+end
+
+function Selection.selectAllObjects()
+    Selection.selectObjectEntries(
+        SquareScanner.flattenObjects(Selection.getSquares())
+    )
 end
 
 function Selection.getSelectedObjects()
