@@ -152,7 +152,6 @@ Debug.registerInspector("vanilla.isoDoor", 50, function(object, report)
 
     -- Full details deepen the existing IsoDoor section instead of creating a
     -- separate artificial "IsoDoor details" section.
-    report:field("maxHealth", object:getMaxHealth())
     report:field("exterior", object:isExterior())
     report:field("hoppable", object:isHoppable())
 
