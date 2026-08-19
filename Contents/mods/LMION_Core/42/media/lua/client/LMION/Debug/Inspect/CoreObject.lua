@@ -50,14 +50,12 @@ Debug.registerInspector("core.object", 10, function(object, report)
     report:field("sprite", Safe.spriteName(object))
 
     local properties = PropertyContainer.fromObject(object)
-    PropertyContainer.dumpCompact(properties, report)
 
     if not Options.isFullDetails() then
+        PropertyContainer.dumpCompact(properties, report)
         return
     end
 
-    -- Full details deepen the existing Object section instead of creating a
-    -- second artificial level such as "Object details".
     report:field("tostring", tostring(object))
     report:field("objectName", object:getObjectName())
     report:field("name", object:getName())
