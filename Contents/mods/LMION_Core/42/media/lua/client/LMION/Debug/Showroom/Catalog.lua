@@ -346,11 +346,9 @@ function Catalog.scan()
     }
 
     local manager = IsoSpriteManager.instance
-    local values = manager:getNamedMap():values()
-    local iterator = values:iterator()
+    local sprites = manager:getNamedMap():values():toArray()
 
-    while iterator:hasNext() do
-        local sprite = iterator:next()
+    for _, sprite in ipairs(sprites) do
         scan.counts.sprites = scan.counts.sprites + 1
 
         local record = makeRecord(sprite)
