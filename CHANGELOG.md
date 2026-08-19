@@ -20,7 +20,7 @@ This changelog starts when the Git repository was created. Earlier local prototy
 - Added active-square directional expansion through `+N`, `+S`, `+E`, and `+W`.
 - Added project-wide LMION Lua reload tooling for loaded Core and optional-module Lua files, including a server-side reload request path for multiplayer development.
 - Split inspection output into a compact default view and an optional `Full details` view.
-- Added a reload-friendly property-reader registry so property values can be enabled one-by-one without blindly calling unsafe `PropertyContainer:Val()` lookups.
+- Added a reload-friendly property-reader registry with a Build 42 `PropertyContainer:get(name)` default reader, while keeping per-property overrides available for exceptional cases.
 
 ### Pickup research
 - Confirmed simple doors, sliding doors, large gates, and garage-door pieces can all appear as `IsoDoor` objects.
