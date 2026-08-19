@@ -13,6 +13,10 @@ local SINGLE_COLUMNS = 16
 local SINGLE_CELL_X = 3
 local SINGLE_CELL_Y = 3
 local SECTION_GAP = 4
+local REJECTED_COLUMNS = 10
+local REJECTED_CELL_X = 4
+local REJECTED_CELL_Y = 4
+local REJECTED_SECTION_GAP = 8
 
 local function isMultiplayer()
     return (isClient ~= nil and isClient())
@@ -215,6 +219,41 @@ local function spawnGrid(scan, families, originX, originY, z, columns, cellX, ce
     return math.floor((#families - 1) / columns) + 1
 end
 
+local function spawnRejected(scan, originX, originY, z, result)
+    local rejected = Catalog.getRejected(scan)
+    result.rejectedFound = #rejected
+
+    for index, entry in ipairs(rejected) do
+        local zero = index - 1
+        local column = zero % REJECTED_COLUMNS
+        local row = math.floor(zero / REJECTED_COLUMNS)
+        local x = originX + column * REJECTED_CELL_X
+        local y = originY + row * REJECTED_CELL_Y
+        local record = entry.record
+        local family = {
+            kind = "rejected",
+            anchor = record,
+            parts = { record },
+        }
+        local ok, reason, objectCount = spawnFamily(scan, family, x, y, z)
+
+        if ok then
+            result.rejectedSpawned = result.rejectedSpawned + 1
+            result.objectsSpawned = result.objectsSpawned + objectCount
+        else
+            result.rejectedSkipped = result.rejectedSkipped + 1
+            local key = "rejected:" .. tostring(reason or "unknown")
+            result.skipReasons[key] = (result.skipReasons[key] or 0) + 1
+        end
+    end
+
+    if #rejected == 0 then
+        return 0
+    end
+
+    return math.floor((#rejected - 1) / REJECTED_COLUMNS) + 1
+end
+
 function Spawner.spawn(scan, families, originSquare)
     local result = {
         familiesFound = #families,
@@ -222,6 +261,9 @@ function Spawner.spawn(scan, families, originSquare)
         objectsSpawned = 0,
         skipped = 0,
         skipReasons = {},
+        rejectedFound = 0,
+        rejectedSpawned = 0,
+        rejectedSkipped = 0,
     }
 
     if originSquare == nil then
@@ -257,7 +299,7 @@ function Spawner.spawn(scan, families, originSquare)
         singlesY = singlesY + SECTION_GAP
     end
 
-    spawnGrid(
+    local singleRows = spawnGrid(
         scan,
         singles,
         originX,
@@ -268,6 +310,9 @@ function Spawner.spawn(scan, families, originSquare)
         SINGLE_CELL_Y,
         result
     )
+
+    local rejectedY = singlesY + singleRows * SINGLE_CELL_Y + REJECTED_SECTION_GAP
+    spawnRejected(scan, originX, rejectedY, z, result)
 
     Spawner.lastResult = result
     return result
