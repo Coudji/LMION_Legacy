@@ -14,6 +14,10 @@ This changelog starts when the Git repository was created. Earlier local prototy
 - Modularized the LMION Inspector under `Debug/Inspect`, `Debug/UI`, `Debug/Util`, and `Debug/World`.
 - Added square/object inspection tooling for runtime investigation of vanilla world objects.
 - Added copyable inspection reports.
+- Made object selection drive the inspection report directly, including Ctrl+click multi-selection.
+- Added persistent world highlights for selected squares, with a stronger marker for the active square.
+- Added a world square picker with hover highlighting and click-to-add selection.
+- Added active-square directional expansion through `+N`, `+S`, `+E`, and `+W`.
 
 ### Pickup research
 - Confirmed simple doors, sliding doors, large gates, and garage-door pieces can all appear as `IsoDoor` objects.
