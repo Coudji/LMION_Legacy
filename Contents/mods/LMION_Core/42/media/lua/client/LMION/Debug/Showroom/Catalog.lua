@@ -169,7 +169,6 @@ local function getExpectedStateOffset(record)
         return GARAGE_OPEN_OFFSET
     end
 
-    -- DoubleDoor groups use a different sprite offset for each group member.
     if record.doubleDoor ~= nil then
         return nil
     end
@@ -304,8 +303,6 @@ local function collectGarageParts(scan, anchor)
         parts[wanted] = candidate
     end
 
-    -- A garage chain is START + one or more MID + END. Spawn a four-wide
-    -- representative so the showroom also exercises repeated middle segments.
     return {
         parts[1],
         parts[2],
@@ -330,6 +327,57 @@ local function familySort(a, b)
     end
 
     return a.anchor.name < b.anchor.name
+end
+
+local function displayValue(value)
+    if value == nil or tostring(value) == "" then
+        return "<none>"
+    end
+
+    return tostring(value)
+end
+
+local function orientationText(record)
+    if record == nil then
+        return "<none>"
+    end
+
+    if record.north and not record.west then
+        return "N"
+    end
+
+    if record.west and not record.north then
+        return "W"
+    end
+
+    if record.north and record.west then
+        return "N+W"
+    end
+
+    return "none"
+end
+
+local function addDistribution(map, value)
+    local key = displayValue(value)
+    map[key] = (map[key] or 0) + 1
+end
+
+local function distributionText(map)
+    local keys = {}
+
+    for key in pairs(map) do
+        keys[#keys + 1] = key
+    end
+
+    table.sort(keys)
+
+    local parts = {}
+
+    for _, key in ipairs(keys) do
+        parts[#parts + 1] = key .. "=" .. tostring(map[key])
+    end
+
+    return #parts > 0 and table.concat(parts, ", ") or "<none>"
 end
 
 function Catalog.scan()
@@ -378,12 +426,26 @@ function Catalog.buildFamilies(scan)
         ignoredOrientation = 0,
     }
 
+    scan.excluded = {
+        incomplete = {},
+        unoriented = {},
+        ignoredOrientation = {},
+    }
+
     for _, record in ipairs(scan.records) do
         if not record.open then
             if not hasUsableOrientation(record) then
                 counts.unoriented = counts.unoriented + 1
+                scan.excluded.unoriented[#scan.excluded.unoriented + 1] = {
+                    record = record,
+                    reason = "no unique doorN/doorW orientation",
+                }
             elseif not isCanonicalOrientation(record) then
                 counts.ignoredOrientation = counts.ignoredOrientation + 1
+                scan.excluded.ignoredOrientation[#scan.excluded.ignoredOrientation + 1] = {
+                    record = record,
+                    reason = "non-canonical W orientation",
+                }
             elseif record.garageDoor == 1 then
                 local parts = collectGarageParts(scan, record)
 
@@ -396,6 +458,10 @@ function Catalog.buildFamilies(scan)
                     counts.garage = counts.garage + 1
                 else
                     counts.incomplete = counts.incomplete + 1
+                    scan.excluded.incomplete[#scan.excluded.incomplete + 1] = {
+                        record = record,
+                        reason = "garage family validation failed",
+                    }
                 end
             elseif record.doubleDoor == 1 then
                 local parts = collectDoubleParts(scan, record)
@@ -409,6 +475,10 @@ function Catalog.buildFamilies(scan)
                     counts.double = counts.double + 1
                 else
                     counts.incomplete = counts.incomplete + 1
+                    scan.excluded.incomplete[#scan.excluded.incomplete + 1] = {
+                        record = record,
+                        reason = "double-door family validation failed",
+                    }
                 end
             elseif record.garageDoor == nil and record.doubleDoor == nil then
                 local kind = record.entityScriptName ~= nil and "entity" or "single"
@@ -428,6 +498,100 @@ function Catalog.buildFamilies(scan)
     scan.families = families
     scan.familyCounts = counts
     return families, counts
+end
+
+function Catalog.getRejected(scan)
+    local rejected = {}
+
+    for _, entry in ipairs((scan.excluded and scan.excluded.incomplete) or {}) do
+        rejected[#rejected + 1] = entry
+    end
+
+    for _, entry in ipairs((scan.excluded and scan.excluded.unoriented) or {}) do
+        rejected[#rejected + 1] = entry
+    end
+
+    table.sort(rejected, function(a, b)
+        return a.record.name < b.record.name
+    end)
+
+    return rejected
+end
+
+function Catalog.buildReport(scan, families, counts)
+    local lines = {}
+    local doorSounds = {}
+    local entityScripts = {}
+
+    lines[#lines + 1] = "LMION Door Showroom Scan"
+    lines[#lines + 1] = "sprites = " .. tostring(scan.counts.sprites)
+    lines[#lines + 1] = "door candidates = " .. tostring(scan.counts.candidates)
+    lines[#lines + 1] = "families = " .. tostring(#families)
+    lines[#lines + 1] = "garage = " .. tostring(counts.garage or 0)
+    lines[#lines + 1] = "double = " .. tostring(counts.double or 0)
+    lines[#lines + 1] = "entity = " .. tostring(counts.entity or 0)
+    lines[#lines + 1] = "single = " .. tostring(counts.single or 0)
+    lines[#lines + 1] = "incomplete = " .. tostring(counts.incomplete or 0)
+    lines[#lines + 1] = "unoriented = " .. tostring(counts.unoriented or 0)
+    lines[#lines + 1] = "ignoredOrientation = " .. tostring(counts.ignoredOrientation or 0)
+    lines[#lines + 1] = ""
+
+    for index, family in ipairs(families) do
+        local anchor = family.anchor
+        local partNames = {}
+
+        for _, part in ipairs(family.parts) do
+            partNames[#partNames + 1] = part.name
+        end
+
+        addDistribution(doorSounds, anchor.doorSound)
+        addDistribution(entityScripts, anchor.entityScriptName)
+
+        lines[#lines + 1] = "=== Family " .. tostring(index) .. " / " .. tostring(#families) .. " ==="
+        lines[#lines + 1] = "kind = " .. tostring(family.kind)
+        lines[#lines + 1] = "anchor = " .. anchor.name
+        lines[#lines + 1] = "orientation = " .. orientationText(anchor)
+        lines[#lines + 1] = "DoorSound = " .. displayValue(anchor.doorSound)
+        lines[#lines + 1] = "EntityScriptName = " .. displayValue(anchor.entityScriptName)
+        lines[#lines + 1] = "CustomName = " .. displayValue(anchor.customName)
+        lines[#lines + 1] = "Material = " .. displayValue(anchor.material)
+        lines[#lines + 1] = "Material2 = " .. displayValue(anchor.material2)
+        lines[#lines + 1] = "Material3 = " .. displayValue(anchor.material3)
+        lines[#lines + 1] = "parts = " .. table.concat(partNames, ", ")
+        lines[#lines + 1] = ""
+    end
+
+    lines[#lines + 1] = "--- DoorSound distribution ---"
+    lines[#lines + 1] = distributionText(doorSounds)
+    lines[#lines + 1] = ""
+    lines[#lines + 1] = "--- EntityScriptName distribution ---"
+    lines[#lines + 1] = distributionText(entityScripts)
+    lines[#lines + 1] = ""
+
+    local rejected = Catalog.getRejected(scan)
+    lines[#lines + 1] = "--- Rejected candidates spawned separately ---"
+
+    if #rejected == 0 then
+        lines[#lines + 1] = "<none>"
+    else
+        for index, entry in ipairs(rejected) do
+            local record = entry.record
+            lines[#lines + 1] = tostring(index)
+                .. ". " .. record.name
+                .. " | reason=" .. tostring(entry.reason)
+                .. " | orientation=" .. orientationText(record)
+                .. " | DoorSound=" .. displayValue(record.doorSound)
+                .. " | EntityScriptName=" .. displayValue(record.entityScriptName)
+                .. " | DoubleDoor=" .. displayValue(record.doubleDoor)
+                .. " | GarageDoor=" .. displayValue(record.garageDoor)
+        end
+    end
+
+    return table.concat(lines, "\n"), {
+        doorSounds = doorSounds,
+        entityScripts = entityScripts,
+        rejected = rejected,
+    }
 end
 
 return Catalog
