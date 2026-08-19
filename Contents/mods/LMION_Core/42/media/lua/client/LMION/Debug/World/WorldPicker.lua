@@ -33,8 +33,11 @@ local function squareUnderMouse()
         return nil
     end
 
-    local mouseX = getMouseXScaled()
-    local mouseY = getMouseYScaled()
+    -- screenToIsoX/Y expect the same raw screen-space mouse coordinates used by
+    -- vanilla placement/building cursors. Using the scaled UI coordinates here
+    -- causes the picked square to drift as the camera zoom changes.
+    local mouseX = getMouseX()
+    local mouseY = getMouseY()
     local z = getTargetZ()
 
     local isoX = math.floor(screenToIsoX(0, mouseX, mouseY, z))
