@@ -34,6 +34,12 @@ This changelog starts when the Git repository was created. Earlier local prototy
 - Added object-list filters to the Inspector for all objects, doors/gates, floor tiles, and world inventory items; `Select shown` follows the active filter.
 - Restored the world context menu to a single `LMION Inspector` entry and moved showroom rebuild/report actions into the Inspector window.
 
+### Build
+- Added the optional `LMION_Build` module, depending only on `LMION_Core`.
+- Added a 77-entry construction research catalog mirroring the current canonical showroom families.
+- Added placeholder Build 42 entity recipes so every catalog family can be listed in the construction menu before real recipes and placement rules are implemented.
+- Documented the initial Core / Build / Pickup responsibility split and the rule that Build and Pickup should converge on shared placement primitives rather than duplicate placement engines.
+
 ### Pickup research
 - Confirmed simple doors, sliding doors, and garage-door pieces can appear as `IsoDoor` objects, while Build 42 entity-scripted gates can also appear as door-like `IsoThumpable` objects.
 - Confirmed double-door/gate grouping through the `DoubleDoor` tile property and runtime double-door helpers.

@@ -1,0 +1,88 @@
+module LMIONBuild
+{
+    xuiSkin default
+    {
+        entity ES_LMION_Door_001
+        {
+            LuaWindowClass = ISEntityWindow,
+            DisplayName = LMION 001 - garage - industry_trucks_01_35,
+            Icon = Build_DoorWood,
+        }
+        entity ES_LMION_Door_002 { LuaWindowClass = ISEntityWindow, DisplayName = LMION 002 - garage - walls_garage_01_19, Icon = Build_DoorWood, }
+        entity ES_LMION_Door_003 { LuaWindowClass = ISEntityWindow, DisplayName = LMION 003 - garage - walls_garage_01_3, Icon = Build_DoorWood, }
+        entity ES_LMION_Door_004 { LuaWindowClass = ISEntityWindow, DisplayName = LMION 004 - garage - walls_garage_01_51, Icon = Build_DoorWood, }
+        entity ES_LMION_Door_005 { LuaWindowClass = ISEntityWindow, DisplayName = LMION 005 - garage - walls_garage_02_3, Icon = Build_DoorWood, }
+        entity ES_LMION_Door_006 { LuaWindowClass = ISEntityWindow, DisplayName = LMION 006 - garage - walls_garage_02_35, Icon = Build_DoorWood, }
+        entity ES_LMION_Door_007 { LuaWindowClass = ISEntityWindow, DisplayName = LMION 007 - garage - walls_garage_02_51, Icon = Build_DoorWood, }
+        entity ES_LMION_Door_008 { LuaWindowClass = ISEntityWindow, DisplayName = LMION 008 - double - fixtures_doors_fences_01_114, Icon = Build_DoorWood, }
+        entity ES_LMION_Door_009 { LuaWindowClass = ISEntityWindow, DisplayName = LMION 009 - double - fixtures_doors_fences_01_34, Icon = Build_DoorWood, }
+        entity ES_LMION_Door_010 { LuaWindowClass = ISEntityWindow, DisplayName = LMION 010 - double - fixtures_doors_fences_01_50, Icon = Build_DoorWood, }
+        entity ES_LMION_Door_011 { LuaWindowClass = ISEntityWindow, DisplayName = LMION 011 - double - DoubleWireGate - fixtures_doors_fences_01_66, Icon = Build_DoorWood, }
+        entity ES_LMION_Door_012 { LuaWindowClass = ISEntityWindow, DisplayName = LMION 012 - double - DoubleFenceGate - fixtures_doors_fences_01_82, Icon = Build_DoorWood, }
+        entity ES_LMION_Door_013 { LuaWindowClass = ISEntityWindow, DisplayName = LMION 013 - double - DoubleDoor - fixtures_doors_fences_01_98, Icon = Build_DoorWood, }
+        entity ES_LMION_Door_014 { LuaWindowClass = ISEntityWindow, DisplayName = LMION 014 - entity - WoodenDoorLvl1 - carpentry_01_49, Icon = Build_DoorWood, }
+        entity ES_LMION_Door_015 { LuaWindowClass = ISEntityWindow, DisplayName = LMION 015 - entity - WoodenDoorLvl2 - carpentry_01_53, Icon = Build_DoorWood, }
+        entity ES_LMION_Door_016 { LuaWindowClass = ISEntityWindow, DisplayName = LMION 016 - entity - WoodenDoorLvl3 - carpentry_01_57, Icon = Build_DoorWood, }
+        entity ES_LMION_Door_017 { LuaWindowClass = ISEntityWindow, DisplayName = LMION 017 - entity - MetalDoorLvl2 - fixtures_doors_01_53, Icon = Build_DoorWood, }
+        entity ES_LMION_Door_018 { LuaWindowClass = ISEntityWindow, DisplayName = LMION 018 - entity - MetalDoorLvl1 - fixtures_doors_01_69, Icon = Build_DoorWood, }
+        entity ES_LMION_Door_019 { LuaWindowClass = ISEntityWindow, DisplayName = LMION 019 - entity - MetalWireFenceGate - fixtures_doors_fences_01_129, Icon = Build_DoorWood, }
+        entity ES_LMION_Door_020 { LuaWindowClass = ISEntityWindow, DisplayName = LMION 020 - entity - MetalWireFenceGateSmall - fixtures_doors_fences_01_17, Icon = Build_DoorWood, }
+        entity ES_LMION_Door_021 { LuaWindowClass = ISEntityWindow, DisplayName = LMION 021 - entity - MetalPoleFenceGate - fixtures_doors_fences_01_25, Icon = Build_DoorWood, }
+        entity ES_LMION_Door_022 { LuaWindowClass = ISEntityWindow, DisplayName = LMION 022 - entity - MetalPoleFenceGateSmall - fixtures_doors_fences_01_29, Icon = Build_DoorWood, }
+        entity ES_LMION_Door_023 { LuaWindowClass = ISEntityWindow, DisplayName = LMION 023 - entity - WoodFenceGate - fixtures_doors_fences_01_5, Icon = Build_DoorWood, }
+        entity ES_LMION_Door_024 { LuaWindowClass = ISEntityWindow, DisplayName = LMION 024 - single - fixtures_bathroom_01_49, Icon = Build_DoorWood, }
+        entity ES_LMION_Door_025 { LuaWindowClass = ISEntityWindow, DisplayName = LMION 025 - single - fixtures_bathroom_01_65, Icon = Build_DoorWood, }
+        entity ES_LMION_Door_026 { LuaWindowClass = ISEntityWindow, DisplayName = LMION 026 - single - fixtures_bathroom_02_17, Icon = Build_DoorWood, }
+        entity ES_LMION_Door_027 { LuaWindowClass = ISEntityWindow, DisplayName = LMION 027 - single - fixtures_bathroom_02_33, Icon = Build_DoorWood, }
+        entity ES_LMION_Door_028 { LuaWindowClass = ISEntityWindow, DisplayName = LMION 028 - single - fixtures_doors_01_1, Icon = Build_DoorWood, }
+        entity ES_LMION_Door_029 { LuaWindowClass = ISEntityWindow, DisplayName = LMION 029 - single - fixtures_doors_01_109, Icon = Build_DoorWood, }
+        entity ES_LMION_Door_030 { LuaWindowClass = ISEntityWindow, DisplayName = LMION 030 - single - fixtures_doors_01_117, Icon = Build_DoorWood, }
+        entity ES_LMION_Door_031 { LuaWindowClass = ISEntityWindow, DisplayName = LMION 031 - single - fixtures_doors_01_13, Icon = Build_DoorWood, }
+        entity ES_LMION_Door_032 { LuaWindowClass = ISEntityWindow, DisplayName = LMION 032 - single - fixtures_doors_01_17, Icon = Build_DoorWood, }
+        entity ES_LMION_Door_033 { LuaWindowClass = ISEntityWindow, DisplayName = LMION 033 - single - fixtures_doors_01_21, Icon = Build_DoorWood, }
+        entity ES_LMION_Door_034 { LuaWindowClass = ISEntityWindow, DisplayName = LMION 034 - single - fixtures_doors_01_25, Icon = Build_DoorWood, }
+        entity ES_LMION_Door_035 { LuaWindowClass = ISEntityWindow, DisplayName = LMION 035 - single - fixtures_doors_01_29, Icon = Build_DoorWood, }
+        entity ES_LMION_Door_036 { LuaWindowClass = ISEntityWindow, DisplayName = LMION 036 - single - fixtures_doors_01_33, Icon = Build_DoorWood, }
+        entity ES_LMION_Door_037 { LuaWindowClass = ISEntityWindow, DisplayName = LMION 037 - single - fixtures_doors_01_37, Icon = Build_DoorWood, }
+        entity ES_LMION_Door_038 { LuaWindowClass = ISEntityWindow, DisplayName = LMION 038 - single - fixtures_doors_01_41, Icon = Build_DoorWood, }
+        entity ES_LMION_Door_039 { LuaWindowClass = ISEntityWindow, DisplayName = LMION 039 - single - fixtures_doors_01_45, Icon = Build_DoorWood, }
+        entity ES_LMION_Door_040 { LuaWindowClass = ISEntityWindow, DisplayName = LMION 040 - single - fixtures_doors_01_49, Icon = Build_DoorWood, }
+        entity ES_LMION_Door_041 { LuaWindowClass = ISEntityWindow, DisplayName = LMION 041 - single - fixtures_doors_01_5, Icon = Build_DoorWood, }
+        entity ES_LMION_Door_042 { LuaWindowClass = ISEntityWindow, DisplayName = LMION 042 - single - fixtures_doors_01_57, Icon = Build_DoorWood, }
+        entity ES_LMION_Door_043 { LuaWindowClass = ISEntityWindow, DisplayName = LMION 043 - single - fixtures_doors_01_61, Icon = Build_DoorWood, }
+        entity ES_LMION_Door_044 { LuaWindowClass = ISEntityWindow, DisplayName = LMION 044 - single - fixtures_doors_01_65, Icon = Build_DoorWood, }
+        entity ES_LMION_Door_045 { LuaWindowClass = ISEntityWindow, DisplayName = LMION 045 - single - fixtures_doors_01_9, Icon = Build_DoorWood, }
+        entity ES_LMION_Door_046 { LuaWindowClass = ISEntityWindow, DisplayName = LMION 046 - single - fixtures_doors_02_1, Icon = Build_DoorWood, }
+        entity ES_LMION_Door_047 { LuaWindowClass = ISEntityWindow, DisplayName = LMION 047 - single - fixtures_doors_02_13, Icon = Build_DoorWood, }
+        entity ES_LMION_Door_048 { LuaWindowClass = ISEntityWindow, DisplayName = LMION 048 - single - fixtures_doors_02_17, Icon = Build_DoorWood, }
+        entity ES_LMION_Door_049 { LuaWindowClass = ISEntityWindow, DisplayName = LMION 049 - single - fixtures_doors_02_21, Icon = Build_DoorWood, }
+        entity ES_LMION_Door_050 { LuaWindowClass = ISEntityWindow, DisplayName = LMION 050 - single - fixtures_doors_02_25, Icon = Build_DoorWood, }
+        entity ES_LMION_Door_051 { LuaWindowClass = ISEntityWindow, DisplayName = LMION 051 - single - fixtures_doors_02_41, Icon = Build_DoorWood, }
+        entity ES_LMION_Door_052 { LuaWindowClass = ISEntityWindow, DisplayName = LMION 052 - single - fixtures_doors_02_45, Icon = Build_DoorWood, }
+        entity ES_LMION_Door_053 { LuaWindowClass = ISEntityWindow, DisplayName = LMION 053 - single - fixtures_doors_02_49, Icon = Build_DoorWood, }
+        entity ES_LMION_Door_054 { LuaWindowClass = ISEntityWindow, DisplayName = LMION 054 - single - fixtures_doors_02_5, Icon = Build_DoorWood, }
+        entity ES_LMION_Door_055 { LuaWindowClass = ISEntityWindow, DisplayName = LMION 055 - single - fixtures_doors_02_53, Icon = Build_DoorWood, }
+        entity ES_LMION_Door_056 { LuaWindowClass = ISEntityWindow, DisplayName = LMION 056 - single - fixtures_doors_02_57, Icon = Build_DoorWood, }
+        entity ES_LMION_Door_057 { LuaWindowClass = ISEntityWindow, DisplayName = LMION 057 - single - fixtures_doors_02_61, Icon = Build_DoorWood, }
+        entity ES_LMION_Door_058 { LuaWindowClass = ISEntityWindow, DisplayName = LMION 058 - single - fixtures_doors_02_9, Icon = Build_DoorWood, }
+        entity ES_LMION_Door_059 { LuaWindowClass = ISEntityWindow, DisplayName = LMION 059 - single - fixtures_doors_fences_01_1, Icon = Build_DoorWood, }
+        entity ES_LMION_Door_060 { LuaWindowClass = ISEntityWindow, DisplayName = LMION 060 - single - fixtures_doors_fences_01_13, Icon = Build_DoorWood, }
+        entity ES_LMION_Door_061 { LuaWindowClass = ISEntityWindow, DisplayName = LMION 061 - single - fixtures_doors_fences_01_21, Icon = Build_DoorWood, }
+        entity ES_LMION_Door_062 { LuaWindowClass = ISEntityWindow, DisplayName = LMION 062 - single - fixtures_doors_fences_01_9, Icon = Build_DoorWood, }
+        entity ES_LMION_Door_063 { LuaWindowClass = ISEntityWindow, DisplayName = LMION 063 - single - location_community_church_small_01_25, Icon = Build_DoorWood, }
+        entity ES_LMION_Door_064 { LuaWindowClass = ISEntityWindow, DisplayName = LMION 064 - single - location_community_church_small_01_29, Icon = Build_DoorWood, }
+        entity ES_LMION_Door_065 { LuaWindowClass = ISEntityWindow, DisplayName = LMION 065 - single - location_community_church_small_01_65, Icon = Build_DoorWood, }
+        entity ES_LMION_Door_066 { LuaWindowClass = ISEntityWindow, DisplayName = LMION 066 - single - location_community_church_small_01_69, Icon = Build_DoorWood, }
+        entity ES_LMION_Door_067 { LuaWindowClass = ISEntityWindow, DisplayName = LMION 067 - single - location_community_police_01_5, Icon = Build_DoorWood, }
+        entity ES_LMION_Door_068 { LuaWindowClass = ISEntityWindow, DisplayName = LMION 068 - single - location_restaurant_pileocrepe_01_49, Icon = Build_DoorWood, }
+        entity ES_LMION_Door_069 { LuaWindowClass = ISEntityWindow, DisplayName = LMION 069 - single - location_restaurant_pileocrepe_01_53, Icon = Build_DoorWood, }
+        entity ES_LMION_Door_070 { LuaWindowClass = ISEntityWindow, DisplayName = LMION 070 - single - location_restaurant_pizzawhirled_01_57, Icon = Build_DoorWood, }
+        entity ES_LMION_Door_071 { LuaWindowClass = ISEntityWindow, DisplayName = LMION 071 - single - location_restaurant_pizzawhirled_01_61, Icon = Build_DoorWood, }
+        entity ES_LMION_Door_072 { LuaWindowClass = ISEntityWindow, DisplayName = LMION 072 - single - location_restaurant_seahorse_01_49, Icon = Build_DoorWood, }
+        entity ES_LMION_Door_073 { LuaWindowClass = ISEntityWindow, DisplayName = LMION 073 - single - location_restaurant_spiffos_01_49, Icon = Build_DoorWood, }
+        entity ES_LMION_Door_074 { LuaWindowClass = ISEntityWindow, DisplayName = LMION 074 - single - location_restaurant_spiffos_01_53, Icon = Build_DoorWood, }
+        entity ES_LMION_Door_075 { LuaWindowClass = ISEntityWindow, DisplayName = LMION 075 - single - location_shop_fossoil_01_61, Icon = Build_DoorWood, }
+        entity ES_LMION_Door_076 { LuaWindowClass = ISEntityWindow, DisplayName = LMION 076 - single - location_shop_gas2go_01_61, Icon = Build_DoorWood, }
+        entity ES_LMION_Door_077 { LuaWindowClass = ISEntityWindow, DisplayName = LMION 077 - single - walls_logs_41, Icon = Build_DoorWood, }
+    }
+}

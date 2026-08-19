@@ -1,0 +1,6 @@
+id=LMION_Build
+name=Let Me In... Or Not - Build
+description=Craft and construct doors, gates and other opening families.
+tags=Build 42
+versionMin=42.0
+require=\LMION_Core
