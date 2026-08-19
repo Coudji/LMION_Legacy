@@ -1,28 +1,149 @@
-# LMION — Design notes (short foundation copy)
+# LMION — Design notes
 
 ## Fixed architecture
 
 - One Workshop item.
 - Several internal Mod IDs.
-- `LMION_Core` orchestrates shared systems and optional-module interactions.
-- `LMION_Pickup` is a single user-facing pickup module for all passable opening systems.
-- Internal complexity is handled through Pickup strategies, not through separate user-facing pickup mods.
+- `LMION_Core` orchestrates shared systems, persistence conventions, optional-module interaction, and developer tooling.
+- `LMION_Pickup` is the single user-facing pickup module for passable opening systems.
+- Internal complexity is handled through Pickup strategies, not through separate user-facing pickup mods for each opening family.
 
 ## Pickup rule
 
 > If it opens and the player can pass through it, Pickup owns it.
 
-Known families to investigate:
+Synchronization between world objects does not automatically make them one inventory item. Pickup identity follows the physical/gameplay unit that makes sense to transport and reinstall.
 
-- simple doors;
-- double-door leaves (left/right);
-- small doors / one-tile gates;
-- sliding doors;
-- large gate leaves (pivot + end);
-- garage doors with contiguous-segment propagation.
+## General pickup behavior
 
-## First MVP
+Pickup is a non-destructive alternative to vanilla dismantling.
 
-Pick up and replace one vanilla simple door correctly.
+For normal hinged doors:
 
-Before implementing it, build an inspector so the mod can report the real runtime properties of every tested opening family.
+- the door should be open before removal;
+- barricades should be removed first;
+- curtains should be removed first;
+- a locked closed door must be opened normally before Pickup can remove it.
+
+The primary physical condition observed so far is `health / maxHealth`. `modData.itemCondition` is not reliable as the authoritative damage state: damaged doors/gates can keep `itemCondition = 10/10`, and some linked pieces have no such modData at all.
+
+## Runtime findings
+
+### Generic `IsoDoor`
+
+Multiple visually and behaviorally different opening families use `zombie.iso.objects.IsoDoor`. Runtime class alone is therefore not enough to classify an opening.
+
+For tested doors, internal `closedSprite` and `openSprite` remain available regardless of the current open/closed state. The debug inspector retrieves them through controlled reflection. This avoids guessing sprite-number relationships or toggling the door just to serialize it.
+
+For `IsoDoor` orientation, prefer door-specific orientation data such as `north` / `doorN` / `doorW` over generic `dir`; garage tests showed `dir = N` while the actual door orientation was west-facing.
+
+### Simple / autonomous 1×1 doors
+
+Observed classic doors generally expose:
+
+- `doubleDoorIndex = -1`;
+- `garageDoorIndex = -1`;
+- one closed sprite and one open sprite;
+- north/west wall orientation;
+- individual health/maxHealth.
+
+This is not yet a sufficient classifier by itself because tested sliding doors can share the same broad runtime shape.
+
+### Visually glazed doors
+
+Tested doors that look glazed do not appear to contain an independently breakable window component. Shooting or striking the visible glass did not produce a separate glass state in the tested samples.
+
+Do not serialize a door `glassState` unless a real vanilla runtime state is later found.
+
+### Sliding doors
+
+Tested sliding doors are also `IsoDoor` and can report:
+
+- `doubleDoorIndex = -1`;
+- `garageDoorIndex = -1`;
+- closed/open sprite pairs;
+- 1×1 footprint behavior.
+
+Do not assume a dedicated sliding-door class exists for classification.
+
+### Double doors and large gates
+
+Large gate pieces tested as `IsoDoor` expose a `DoubleDoor` property and non-negative `doubleDoorIndex` values.
+
+Observed large-gate structure strongly suggests fixed logical member indexes across a grouped opening. A partially destroyed/removed group can still resolve non-contiguous members, so synchronization is not simply nearest-neighbor propagation.
+
+A large gate leaf is physically multi-tile. Damage is stored per component, but destroying one component through normal gameplay can destroy the corresponding leaf while leaving the other leaf of the double gate intact.
+
+Working hypothesis, still to be validated across more vanilla families:
+
+```text
+Double opening
+├── leaf A: logical members 1 + 2
+└── leaf B: logical members 3 + 4
+```
+
+Do not encode this assumption as universal until more complete double doors/gates are inspected.
+
+### Garage doors
+
+Garage doors are also composed of `IsoDoor` objects, but use a distinct linkage system:
+
+- `doubleDoorIndex = -1`;
+- `garageDoorIndex >= 0`;
+- `garage.first` identifies the start of the contiguous chain;
+- `garage.prev` / `garage.next` link neighboring compatible pieces.
+
+Tests with a four-tile garage door showed the likely role pattern:
+
+```text
+[START][MIDDLE][MIDDLE][END]
+   1       2       2      3
+```
+
+This matches earlier gameplay tests where arbitrarily long contiguous garage doors synchronize, while a gap breaks propagation.
+
+Although vanilla stores separate `IsoDoor` components, LMION should treat a functioning garage door as one transportable opening rather than exposing individual garage segments as inventory items.
+
+## Debug inspector design
+
+The LMION Inspector belongs to Core because it is a general developer tool, not Pickup gameplay.
+
+The current architecture separates:
+
+- generic/specialized object inspection;
+- safe utility/reflection helpers;
+- square scanning and selection state;
+- UI panels.
+
+The target UX is a dedicated inspector window rather than many debug context-menu entries. Selected objects should map directly to the report content. Planned world-picker work will keep selected squares visibly highlighted while the inspector is open, including multi-square selection.
+
+## Future module ideas
+
+### Locksmith
+
+Possible scope includes:
+
+- removable/installable cylinders or barrels;
+- Key ID belonging conceptually to the cylinder;
+- rekeying;
+- duplicating keys from blanks with appropriate tools/machines;
+- padlocks and hasps;
+- hinge wear/breakage and replacement;
+- forced entry based on material, strength, lock type, damage, and injury risk.
+
+### Access Control
+
+Possible scope includes:
+
+- powered keypad/code access;
+- mechanical key fallback;
+- fail-secure/fail-safe behavior depending on hardware;
+- battery-backed keypads;
+- RFID/badges;
+- exit buttons;
+- alarms after repeated failed codes;
+- codes/credentials found in notes, maps, zombies, or containers.
+
+## First gameplay MVP
+
+Pick up and replace one vanilla autonomous 1×1 door correctly, preserving the runtime data that actually matters and rejecting opening families that require specialized handling.

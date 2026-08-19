@@ -1,43 +1,53 @@
 # Let Me In... Or Not — Development
 
-## Current bootstrap
+## Current modules
 
-The project currently contains two Build 42 modules:
+The Build 42 project currently contains two internal Mod IDs:
 
 - `LMION_Core`
 - `LMION_Pickup`
 
 `LMION_Pickup` requires `LMION_Core`.
 
-## First validation in game
+The shared Core/Pickup bootstrap is currently versioned as `0.0.3-dev` in Lua.
 
-1. Put/extract these files into the root of `LMION_Workshop`.
-2. Start Project Zomboid Build 42.
-3. Enable `Let Me In... Or Not - Core`.
-4. Enable `Let Me In... Or Not - Pickup`.
-5. Start a test game.
-6. Check `console.txt`.
+## Current development workflow
 
-Expected messages:
+The repository is the source of truth for project structure and committed code. Development is done against the live Project Zomboid Workshop source tree, with VS Code used for direct Lua edits.
 
-```text
-[LMION:Core] loaded 0.0.1-dev
-[LMION:Core] registered module: LMION_Pickup
-[LMION:Pickup] loaded 0.0.1-dev
-```
+For client-only Lua changes, prefer a Lua reload and reopen/recreate affected UI instances when possible. Full game restarts are still appropriate when load order, mod metadata, folder structure, or initialization state changes.
 
-If those lines appear, the base architecture loads and Pickup sees Core.
+Avoid speculative Java method calls in debug code: in Debug Mode, Java/Kahlua runtime exceptions can open the Lua debugger even when Lua code uses `pcall`.
 
-## Next milestone
+## LMION Inspector
 
-Add a temporary in-game inspector for world opening objects.
+The current milestone is a reusable in-game inspector in `LMION_Core`.
 
-Its purpose will be to log the real properties/classes/sprites of:
+Its responsibilities include:
 
-- simple doors;
-- double-door leaves;
-- sliding doors;
-- large gates;
-- garage-door segments.
+- inspecting all objects present on selected grid squares;
+- inspecting one or several selected world objects;
+- producing copyable text reports;
+- reporting generic `IsoObject` data;
+- reporting `IsoDoor`-specific runtime data;
+- exposing selected internal fields such as closed/open door sprites through controlled reflection.
 
-Only after that inspection layer works should the first real pickup strategy be implemented.
+The debug code is intentionally modular under `Debug/Inspect`, `Debug/UI`, `Debug/Util`, and `Debug/World`.
+
+Planned inspector improvements include a world square picker and persistent highlights for selected squares.
+
+## Pickup research workflow
+
+Before writing a Pickup strategy for an opening family:
+
+1. place or find representative vanilla objects;
+2. inspect their real runtime class and state;
+3. compare closed/open and damaged/intact variants when relevant;
+4. inspect multi-tile/group linkage where relevant;
+5. only then encode a strategy matcher and serialization/restoration logic.
+
+Sprite names are identifiers for appearance/restoration, not reliable family classifiers.
+
+## Next gameplay milestone
+
+Implement the first real Pickup strategy for a vanilla 1×1 autonomous door once classification boundaries are sufficiently understood.

@@ -1,0 +1,25 @@
+# Local/editor files
+.vscode/
+.idea/
+*.code-workspace
+
+# OS noise
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs / temporary files
+*.log
+*.tmp
+*.bak
+*.swp
+*~
+
+# Generated archives
+*.zip
+
+# Project Zomboid local runtime/debug output
+console.txt
+logs.zip
+
+# Keep Workshop source files and mod assets tracked intentionally.
