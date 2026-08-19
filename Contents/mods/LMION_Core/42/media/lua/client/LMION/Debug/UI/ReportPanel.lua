@@ -92,6 +92,14 @@ function ReportPanel:layout()
             self.height
             - (pad * 3 + titleH + buttonH + 4)
         )
+
+        -- addScrollBars() creates the scrollbar using the panel size at that time.
+        -- Keep it synced when the Inspector window is resized afterwards.
+        if self.output.vscroll ~= nil then
+            self.output.vscroll:setX(self.output:getWidth() - self.output.vscroll:getWidth())
+            self.output.vscroll:setHeight(self.output:getHeight())
+        end
+
         self.output.textDirty = true
         self.output:paginate()
     end
