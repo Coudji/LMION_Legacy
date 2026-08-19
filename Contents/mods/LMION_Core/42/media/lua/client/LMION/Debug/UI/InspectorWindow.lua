@@ -1,6 +1,8 @@
 require "ISUI/ISCollapsableWindow"
 require "LMION/Debug/Registry"
 require "LMION/Debug/World/Selection"
+require "LMION/Debug/World/Highlight"
+require "LMION/Debug/World/WorldPicker"
 require "LMION/Debug/Inspect/ObjectInspector"
 require "LMION/Debug/UI/SquarePanel"
 require "LMION/Debug/UI/ObjectPanel"
@@ -10,6 +12,8 @@ LMION.Debug.UI = LMION.Debug.UI or {}
 
 local Debug = LMION.Debug
 local Selection = Debug.World.Selection
+local Highlight = Debug.World.Highlight
+local WorldPicker = Debug.World.WorldPicker
 local ObjectInspector = Debug.Inspect.ObjectInspector
 local SquarePanel = Debug.UI.SquarePanel
 local ObjectPanel = Debug.UI.ObjectPanel
@@ -25,6 +29,7 @@ function InspectorWindow:new(x, y, width, height)
     o.resizable = true
     o.minimumWidth = 900
     o.minimumHeight = 640
+    o.worldPicker = nil
     return o
 end
 
@@ -118,6 +123,7 @@ function InspectorWindow:refreshAll()
     end
 
     self:refreshReportFromSelection()
+    Highlight.sync()
 end
 
 function InspectorWindow:refreshReportFromSelection()
@@ -139,7 +145,6 @@ function InspectorWindow:refreshReportFromSelection()
     )
 end
 
-
 function InspectorWindow:refreshObjectSelection()
     if self.objectPanel ~= nil then
         self.objectPanel:refresh()
@@ -156,7 +161,28 @@ function InspectorWindow:addSquare(square)
     self:refreshAll()
 end
 
+function InspectorWindow:startWorldPicker()
+    if self.worldPicker ~= nil then
+        return
+    end
+
+    local picker = WorldPicker:new(self)
+    self.worldPicker = picker
+
+    -- Keep persistent selection markers visible, but get the Inspector itself
+    -- out of the way while the player chooses a world square.
+    self:setVisible(false)
+    picker:start()
+end
+
 function InspectorWindow:close()
+    if self.worldPicker ~= nil then
+        self.worldPicker.cancelled = true
+        self.worldPicker:finish()
+        self.worldPicker = nil
+    end
+
+    Highlight.clearAll()
     Selection.reset()
     Debug.Window.instance = nil
     ISCollapsableWindow.close(self)
@@ -187,11 +213,6 @@ function Debug.Window.openAtSquare(square)
     local window = Debug.Window.ensure()
     window:addSquare(square)
     return window
-end
-
-function Debug.Window.inspectObject(object)
-    local window = Debug.Window.ensure()
-    window:inspectOne(object)
 end
 
 return InspectorWindow
