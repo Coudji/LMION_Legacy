@@ -8,6 +8,8 @@ local Reload = LMION.Debug.Reload
 
 local NAMESPACE_TOKEN = "/LMION/"
 local SELF_SUFFIX = "/LMION/Debug/Reload.lua"
+local NET_MODULE = "LMION_Debug"
+local NET_COMMAND_RELOAD = "ReloadAllLua"
 
 local function normalize(path)
     if path == nil then
@@ -193,6 +195,24 @@ local function reopenInspector(windowSnapshot)
     end
 end
 
+local function requestServerReload()
+    if isClient == nil or not isClient() then
+        return false
+    end
+
+    if sendClientCommand == nil then
+        return false
+    end
+
+    sendClientCommand(NET_MODULE, NET_COMMAND_RELOAD, {})
+
+    if LMION.log ~= nil then
+        LMION.log("Reload", "requested LMION Lua reload on server")
+    end
+
+    return true
+end
+
 function Reload.getLoadedFiles()
     local files, selfFile = collectLoadedLMIONFiles()
 
@@ -203,7 +223,9 @@ function Reload.getLoadedFiles()
     return files
 end
 
-function Reload.reloadAll()
+function Reload.reloadAll(options)
+    options = options or {}
+
     if reloadLuaFile == nil then
         if LMION.warn ~= nil then
             LMION.warn("Reload", "reloadLuaFile() is unavailable")
@@ -223,17 +245,22 @@ function Reload.reloadAll()
     local windowSnapshot = snapshotWindow()
     local selectionSnapshot = snapshotSelection()
 
+    if options.reloadServer ~= false then
+        requestServerReload()
+    end
+
     if LMION.log ~= nil then
         LMION.log(
             "Reload",
-            "reloading " .. tostring(#files + (selfFile ~= nil and 1 or 0)) .. " loaded LMION Lua files"
+            "reloading " .. tostring(#files + (selfFile ~= nil and 1 or 0)) .. " loaded LMION Lua files in this Lua environment"
         )
     end
 
     closeInspectorForReload()
 
-    -- Keep the engine's original load order. Core/shared code therefore reloads
-    -- before the client files that already depended on it.
+    -- Keep the engine's original load order. Shared/Core code therefore reloads
+    -- before client files that already depended on it. This also means any
+    -- active LMION sub-mod under the common LMION/ Lua namespace is included.
     for _, path in ipairs(files) do
         if LMION.log ~= nil then
             LMION.log("Reload", "-> " .. tostring(path))
