@@ -9,6 +9,7 @@ This changelog starts when the Git repository was created. Earlier local prototy
 - Added a root README and `.gitignore`.
 - Replaced the old Word design notebook with Markdown documentation.
 - Removed temporary refactor notes that no longer describe the current debug workflow.
+- Added a living per-door research dossier, starting with `Base.WoodenDoorLvl3`, to preserve runtime facts and future LMION identity/classification decisions.
 
 ### Core / Debug
 - Modularized the LMION Inspector under `Debug/Inspect`, `Debug/UI`, `Debug/Util`, and `Debug/World`.
@@ -25,6 +26,7 @@ This changelog starts when the Git repository was created. Earlier local prototy
 - Expanded IsoDoor inspection with obstruction, curtain, barricade, key, and thump-state details, using the public open-sprite getter when available.
 - Added door-like IsoThumpable inspection for Build 42 entity-scripted gates and grouped openings.
 - Added Full-details inspection of Build 42 `GameEntityScript` and `SpriteConfig` data for objects carrying `EntityScriptName`, including script identity, component list, tile list, face dimensions, and configured tiles.
+- Expanded entity-backed Full details with modular UiConfig, SpriteConfig source/face metadata, CraftRecipe components, exact recipe IO lines, possible items, tools, skills, XP awards, and script-source metadata.
 - Structured Full details by object depth, keeping Object, Sprite, and runtime-class data in their own sections while separating named properties from property-container metadata.
 - Added a debug door-showroom scanner/spawner that enumerates loaded sprites by door properties rather than sprite names, groups garage and DoubleDoor families, deduplicates obvious N/W single-door pairs, and lays the resulting families out from a chosen world square.
 - Added canonical closed-orientation showroom generation using vanilla DoubleDoor and garage sprite/group rules, plus a separate rejected-candidate area for incomplete or unoriented records.
