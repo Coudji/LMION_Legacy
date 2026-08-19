@@ -57,6 +57,12 @@ function Inspector.spawnDoorShowroom(square)
     end
 end
 
+function Inspector.copyDoorShowroomReport()
+    if Debug.Showroom ~= nil then
+        Debug.Showroom.copyReport()
+    end
+end
+
 function Inspector.onFillWorldObjectContextMenu(playerNum, context, worldObjects, test)
     if test then
         return
@@ -74,6 +80,12 @@ function Inspector.onFillWorldObjectContextMenu(playerNum, context, worldObjects
         "LMION Spawn Door Showroom here",
         square,
         Inspector.spawnDoorShowroom
+    )
+
+    context:addOption(
+        "LMION Copy Door Showroom Report",
+        nil,
+        Inspector.copyDoorShowroomReport
     )
 end
 
