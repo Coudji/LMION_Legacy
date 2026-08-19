@@ -1,6 +1,7 @@
 require "ISUI/ISPanel"
 require "ISUI/ISLabel"
 require "ISUI/ISButton"
+require "ISUI/ISComboBox"
 require "LMION/Debug/World/Selection"
 require "LMION/Debug/World/SquareScanner"
 
@@ -13,12 +14,83 @@ LMION.Debug.UI.ObjectPanel = ObjectPanel
 
 local ROWS_PER_PAGE = 7
 
+local function hasProperty(object, name)
+    if object == nil then
+        return false
+    end
+
+    local properties = object:getProperties()
+    return properties ~= nil and properties:has(name)
+end
+
+local function propertyValue(object, name)
+    if object == nil then
+        return nil
+    end
+
+    local properties = object:getProperties()
+
+    if properties == nil or not properties:has(name) then
+        return nil
+    end
+
+    return properties:get(name)
+end
+
+local function looksLikeDoor(entry)
+    if entry == nil or entry.object == nil then
+        return false
+    end
+
+    if entry.classShort == "IsoDoor" then
+        return true
+    end
+
+    if entry.classShort ~= "IsoThumpable" then
+        return false
+    end
+
+    if hasProperty(entry.object, "DoubleDoor") or hasProperty(entry.object, "GarageDoor") then
+        return true
+    end
+
+    local entityScriptName = propertyValue(entry.object, "EntityScriptName")
+
+    if entityScriptName ~= nil then
+        local lower = string.lower(tostring(entityScriptName))
+        return string.find(lower, "door", 1, true) ~= nil
+            or string.find(lower, "gate", 1, true) ~= nil
+    end
+
+    return false
+end
+
+local function matchesFilter(entry, filter)
+    if filter == "doors" then
+        return looksLikeDoor(entry)
+    end
+
+    if filter == "floor" then
+        return entry ~= nil
+            and entry.square ~= nil
+            and entry.object == entry.square:getFloor()
+    end
+
+    if filter == "items" then
+        return entry ~= nil and entry.classShort == "IsoWorldInventoryObject"
+    end
+
+    return true
+end
+
 function ObjectPanel:new(x, y, width, height, controller)
     local o = ISPanel.new(self, x, y, width, height)
     o.controller = controller
     o.page = 1
     o.entries = {}
+    o.allEntries = {}
     o.rowButtons = {}
+    o.filter = "all"
     o.background = true
     o.borderColor = { r = 0.45, g = 0.45, b = 0.45, a = 1 }
     o.backgroundColor = { r = 0, g = 0, b = 0, a = 0.35 }
@@ -75,7 +147,23 @@ function ObjectPanel:createChildren()
     self.infoLabel:initialise()
     self:addChild(self.infoLabel)
 
-    local rowY = 50
+    self.filterCombo = ISComboBox:new(
+        pad,
+        48,
+        self.width - pad * 2,
+        22,
+        self,
+        ObjectPanel.onFilterChanged
+    )
+    self.filterCombo:initialise()
+    self:addChild(self.filterCombo)
+    self.filterCombo:addOptionWithData("All objects", "all")
+    self.filterCombo:addOptionWithData("Doors / gates", "doors")
+    self.filterCombo:addOptionWithData("Floor tiles", "floor")
+    self.filterCombo:addOptionWithData("World items", "items")
+    self.filterCombo.selected = 1
+
+    local rowY = 76
     local rowH = 24
 
     for i = 1, ROWS_PER_PAGE do
@@ -125,7 +213,7 @@ function ObjectPanel:createChildren()
         controlY + 24,
         116,
         22,
-        "Select all",
+        "Select shown",
         self,
         ObjectPanel.onSelectAll
     )
@@ -145,10 +233,22 @@ function ObjectPanel:createChildren()
     self:addChild(self.clearSelectionButton)
 end
 
+function ObjectPanel:applyFilter()
+    self.entries = {}
+
+    for _, entry in ipairs(self.allEntries) do
+        if matchesFilter(entry, self.filter) then
+            self.entries[#self.entries + 1] = entry
+        end
+    end
+end
+
 function ObjectPanel:refresh()
-    self.entries = SquareScanner.flattenObjects(Selection.getSquares())
+    self.allEntries = SquareScanner.flattenObjects(Selection.getSquares())
+    self:applyFilter()
 
     local count = #self.entries
+    local totalCount = #self.allEntries
     local selectedCount = #Selection.getSelectedObjects()
     local maxPage = math.max(1, math.ceil(count / ROWS_PER_PAGE))
 
@@ -158,7 +258,9 @@ function ObjectPanel:refresh()
 
     self.infoLabel:setName(
         tostring(count)
-            .. " objects | "
+            .. "/"
+            .. tostring(totalCount)
+            .. " shown | "
             .. tostring(selectedCount)
             .. " selected | page "
             .. tostring(self.page)
@@ -229,6 +331,12 @@ function ObjectPanel:refresh()
     self.nextButton:setVisible(hasMultiplePages)
 end
 
+function ObjectPanel:onFilterChanged(combo)
+    self.filter = combo:getOptionData(combo.selected) or "all"
+    self.page = 1
+    self:refresh()
+end
+
 function ObjectPanel:onObjectRow(button)
     if button.entry == nil then
         return
@@ -255,7 +363,7 @@ function ObjectPanel:onNext()
 end
 
 function ObjectPanel:onSelectAll()
-    Selection.selectAllObjects()
+    Selection.selectObjectEntries(self.entries)
     self.controller:refreshObjectSelection()
 end
 
