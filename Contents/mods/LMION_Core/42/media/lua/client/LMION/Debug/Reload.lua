@@ -289,4 +289,32 @@ function Reload.reloadAll(options)
     return true
 end
 
+function Reload.onServerCommand(module, command, args)
+    if module ~= NET_MODULE then
+        return
+    end
+
+    if command == "ReloadComplete" then
+        if LMION.log ~= nil then
+            LMION.log(
+                "Reload",
+                "server confirmed reload of " .. tostring(args ~= nil and args.count or "?") .. " LMION Lua files"
+            )
+        end
+    elseif command == "ReloadDenied" then
+        if LMION.warn ~= nil then
+            LMION.warn("Reload", "server denied the LMION reload request")
+        end
+    end
+end
+
+if Events ~= nil and Events.OnServerCommand ~= nil then
+    if Reload._serverCommandHandler ~= nil then
+        Events.OnServerCommand.Remove(Reload._serverCommandHandler)
+    end
+
+    Reload._serverCommandHandler = Reload.onServerCommand
+    Events.OnServerCommand.Add(Reload._serverCommandHandler)
+end
+
 return Reload
