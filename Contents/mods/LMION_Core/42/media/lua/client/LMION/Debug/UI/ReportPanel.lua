@@ -33,6 +33,8 @@ function ReportPanel:createChildren()
     local buttonH = 24
     local copyW = 90
     local detailsW = 132
+    local showroomW = 132
+    local showroomGap = 6
 
     self.titleLabel = ISLabel:new(
         pad,
@@ -81,6 +83,38 @@ function ReportPanel:createChildren()
     self.detailsButton.anchorRight = false
     self:addChild(self.detailsButton)
 
+    self.rebuildShowroomButton = ISButton:new(
+        pad + detailsW + showroomGap,
+        self.height - pad - buttonH,
+        showroomW,
+        buttonH,
+        "Rebuild showroom",
+        self,
+        ReportPanel.onRebuildShowroom
+    )
+    self.rebuildShowroomButton:initialise()
+    self.rebuildShowroomButton.anchorTop = false
+    self.rebuildShowroomButton.anchorBottom = true
+    self.rebuildShowroomButton.anchorLeft = true
+    self.rebuildShowroomButton.anchorRight = false
+    self:addChild(self.rebuildShowroomButton)
+
+    self.copyShowroomButton = ISButton:new(
+        pad + detailsW + showroomGap + showroomW + showroomGap,
+        self.height - pad - buttonH,
+        showroomW,
+        buttonH,
+        "Copy showroom report",
+        self,
+        ReportPanel.onCopyShowroom
+    )
+    self.copyShowroomButton:initialise()
+    self.copyShowroomButton.anchorTop = false
+    self.copyShowroomButton.anchorBottom = true
+    self.copyShowroomButton.anchorLeft = true
+    self.copyShowroomButton.anchorRight = false
+    self:addChild(self.copyShowroomButton)
+
     self.copyButton = ISButton:new(
         self.width - pad - copyW,
         self.height - pad - buttonH,
@@ -116,6 +150,9 @@ function ReportPanel:layout()
     local titleH = 20
     local buttonH = 24
     local copyW = 90
+    local detailsW = 132
+    local showroomW = 132
+    local showroomGap = 6
 
     if self.output ~= nil then
         self.output:setWidth(self.width - pad * 2)
@@ -133,14 +170,26 @@ function ReportPanel:layout()
         self.output:paginate()
     end
 
+    local buttonY = self.height - pad - buttonH
+
     if self.detailsButton ~= nil then
         self.detailsButton:setX(pad)
-        self.detailsButton:setY(self.height - pad - buttonH)
+        self.detailsButton:setY(buttonY)
+    end
+
+    if self.rebuildShowroomButton ~= nil then
+        self.rebuildShowroomButton:setX(pad + detailsW + showroomGap)
+        self.rebuildShowroomButton:setY(buttonY)
+    end
+
+    if self.copyShowroomButton ~= nil then
+        self.copyShowroomButton:setX(pad + detailsW + showroomGap + showroomW + showroomGap)
+        self.copyShowroomButton:setY(buttonY)
     end
 
     if self.copyButton ~= nil then
         self.copyButton:setX(self.width - pad - copyW)
-        self.copyButton:setY(self.height - pad - buttonH)
+        self.copyButton:setY(buttonY)
     end
 end
 
@@ -186,6 +235,18 @@ function ReportPanel:onToggleDetails()
 
     if self.controller ~= nil and self.controller.refreshReportFromSelection ~= nil then
         self.controller:refreshReportFromSelection()
+    end
+end
+
+function ReportPanel:onRebuildShowroom()
+    if self.controller ~= nil and self.controller.rebuildDoorShowroom ~= nil then
+        self.controller:rebuildDoorShowroom()
+    end
+end
+
+function ReportPanel:onCopyShowroom()
+    if self.controller ~= nil and self.controller.copyDoorShowroomReport ~= nil then
+        self.controller:copyDoorShowroomReport()
     end
 end
 

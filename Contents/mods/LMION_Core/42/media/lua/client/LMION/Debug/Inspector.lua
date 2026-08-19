@@ -7,6 +7,7 @@ require "LMION/Debug/Inspect/PropertyContainer"
 require "LMION/Debug/Inspect/ObjectInspector"
 require "LMION/Debug/Inspect/CoreObject"
 require "LMION/Debug/Inspect/IsoSprite"
+require "LMION/Debug/Inspect/EntityScript"
 require "LMION/Debug/Inspect/IsoDoor"
 require "LMION/Debug/Inspect/IsoThumpable"
 require "LMION/Debug/World/SquareScanner"
@@ -51,24 +52,6 @@ function Inspector.openAtSquare(square)
     Debug.Window.openAtSquare(square)
 end
 
-function Inspector.spawnDoorShowroom(square)
-    if Debug.Showroom ~= nil then
-        Debug.Showroom.spawnAt(square)
-    end
-end
-
-function Inspector.rebuildFixedDoorShowroom()
-    if Debug.Showroom ~= nil then
-        Debug.Showroom.rebuildFixed()
-    end
-end
-
-function Inspector.copyDoorShowroomReport()
-    if Debug.Showroom ~= nil then
-        Debug.Showroom.copyReport()
-    end
-end
-
 function Inspector.onFillWorldObjectContextMenu(playerNum, context, worldObjects, test)
     if test then
         return
@@ -80,24 +63,6 @@ function Inspector.onFillWorldObjectContextMenu(playerNum, context, worldObjects
         "LMION Inspector",
         square,
         Inspector.openAtSquare
-    )
-
-    context:addOption(
-        "LMION Rebuild Fixed Door Showroom",
-        nil,
-        Inspector.rebuildFixedDoorShowroom
-    )
-
-    context:addOption(
-        "LMION Spawn Door Showroom here",
-        square,
-        Inspector.spawnDoorShowroom
-    )
-
-    context:addOption(
-        "LMION Copy Door Showroom Report",
-        nil,
-        Inspector.copyDoorShowroomReport
     )
 end
 

@@ -24,11 +24,13 @@ This changelog starts when the Git repository was created. Earlier local prototy
 - Added dedicated property-container and sprite inspection, including property values, surface metadata, and sprite-grid metadata.
 - Expanded IsoDoor inspection with obstruction, curtain, barricade, key, and thump-state details, using the public open-sprite getter when available.
 - Added door-like IsoThumpable inspection for Build 42 entity-scripted gates and grouped openings.
+- Added Full-details inspection of Build 42 `GameEntityScript` and `SpriteConfig` data for objects carrying `EntityScriptName`, including script identity, component list, tile list, face dimensions, and configured tiles.
 - Structured Full details by object depth, keeping Object, Sprite, and runtime-class data in their own sections while separating named properties from property-container metadata.
 - Added a debug door-showroom scanner/spawner that enumerates loaded sprites by door properties rather than sprite names, groups garage and DoubleDoor families, deduplicates obvious N/W single-door pairs, and lays the resulting families out from a chosen world square.
 - Added canonical closed-orientation showroom generation using vanilla DoubleDoor and garage sprite/group rules, plus a separate rejected-candidate area for incomplete or unoriented records.
 - Added automatic door-showroom scan reports with DoorSound and EntityScriptName distributions and a context-menu action that copies the full report without selecting showroom objects.
 - Added object-list filters to the Inspector for all objects, doors/gates, floor tiles, and world inventory items; `Select shown` follows the active filter.
+- Restored the world context menu to a single `LMION Inspector` entry and moved showroom rebuild/report actions into the Inspector window.
 
 ### Pickup research
 - Confirmed simple doors, sliding doors, and garage-door pieces can appear as `IsoDoor` objects, while Build 42 entity-scripted gates can also appear as door-like `IsoThumpable` objects.

@@ -181,6 +181,18 @@ function InspectorWindow:reloadLMION()
     Reload.reloadAll({ reloadServer = true })
 end
 
+function InspectorWindow:rebuildDoorShowroom()
+    if Debug.Showroom ~= nil and Debug.Showroom.rebuildFixed ~= nil then
+        Debug.Showroom.rebuildFixed()
+    end
+end
+
+function InspectorWindow:copyDoorShowroomReport()
+    if Debug.Showroom ~= nil and Debug.Showroom.copyReport ~= nil then
+        Debug.Showroom.copyReport()
+    end
+end
+
 function InspectorWindow:close()
     if self.worldPicker ~= nil then
         self.worldPicker.cancelled = true
