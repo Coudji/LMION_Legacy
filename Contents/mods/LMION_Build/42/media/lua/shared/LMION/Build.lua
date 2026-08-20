@@ -53,4 +53,5 @@ function Build.getCatalogCount()
 end
 
 LMION.registerModule(Build.ID, Build)
+require "LMION/Build/Drafts"
 LMION.log("Build", "loaded " .. Build.VERSION)
