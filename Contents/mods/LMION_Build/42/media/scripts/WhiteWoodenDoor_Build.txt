@@ -1,6 +1,5 @@
--- Working baseline: keep the complete native build entity in LMION_Build.
--- The Base namespace is required so EntityScriptName=WhiteWoodenDoor resolves
--- to Base.WhiteWoodenDoor at runtime.
+-- Build-only XUI style for Base.WhiteWoodenDoor.
+-- The Entity itself is defined physically by LMION_Core and extended at runtime by LMION_Build Lua.
 
 module Base
 {
@@ -11,69 +10,6 @@ module Base
             LuaWindowClass = ISEntityWindow,
             DisplayName = White Wooden Door,
             Icon = Build_DoorWood,
-        }
-    }
-
-    entity WhiteWoodenDoor
-    {
-        component UiConfig
-        {
-            xuiSkin = default,
-            entityStyle = ES_WhiteWoodenDoor,
-            uiEnabled = false,
-        }
-
-        component SpriteConfig
-        {
-            skillBaseHealth = 300,
-            BreakSound = BreakDoor,
-
-            face W
-            {
-                layer
-                {
-                    row = fixtures_doors_01_0,
-                }
-            }
-
-            face N
-            {
-                layer
-                {
-                    row = fixtures_doors_01_1,
-                }
-            }
-
-            face W_OPEN
-            {
-                layer
-                {
-                    row = fixtures_doors_01_2,
-                }
-            }
-
-            face N_OPEN
-            {
-                layer
-                {
-                    row = fixtures_doors_01_3,
-                }
-            }
-        }
-
-        component CraftRecipe
-        {
-            timedAction = BuildWallHammer,
-            time = 20,
-            category = LMION,
-            SkillRequired = Woodwork:1,
-            xpAward = Woodwork:1,
-
-            inputs
-            {
-                item 1 tags[base:hammer] mode:keep flags[Prop1;MayDegradeVeryLight],
-                item 1 [Base.Plank],
-            }
         }
     }
 }
