@@ -9,20 +9,36 @@ local Layout = LMION.Debug.Showroom.Layout
 local Spawner = LMION.Debug.Showroom.Spawner or {}
 LMION.Debug.Showroom.Spawner = Spawner
 
-local GROUP_COLUMNS = 8
-local GROUP_CELL = 6
-local SINGLE_COLUMNS = 16
-local SINGLE_CELL_X = 3
-local SINGLE_CELL_Y = 3
-local SECTION_GAP = 4
+local SECTION_GAP = 2
 local REJECTED_COLUMNS = 10
 local REJECTED_CELL_X = 4
 local REJECTED_CELL_Y = 4
-local REJECTED_SECTION_GAP = 8
-local FRAME_COLUMNS = 12
-local FRAME_CELL_X = 4
-local FRAME_CELL_Y = 4
-local FRAME_SECTION_GAP = 6
+local REJECTED_SECTION_GAP = 4
+
+local STANDARD_FRAME_N = "fixtures_doors_frames_01_1"
+local PAIRED_FRAME_LEFT_N = "fixtures_doors_frames_01_26"
+local PAIRED_FRAME_RIGHT_N = "fixtures_doors_frames_01_27"
+
+local SECTION_SPECS = {
+    { key = "garage", columns = 7, cellX = 5, cellY = 4 },
+    { key = "double", columns = 6, cellX = 5, cellY = 4 },
+    { key = "paired", columns = 5, cellX = 4, cellY = 4 },
+    { key = "sliding", columns = 8, cellX = 3, cellY = 3 },
+    { key = "fence-high", columns = 8, cellX = 3, cellY = 3 },
+    { key = "fence-low", columns = 8, cellX = 3, cellY = 3 },
+    { key = "small", columns = 8, cellX = 3, cellY = 3 },
+    { key = "standard", columns = 16, cellX = 3, cellY = 3 },
+}
+
+local EXPLICIT_SECTIONS = {
+    garage = true,
+    double = true,
+    paired = true,
+    sliding = true,
+    ["fence-high"] = true,
+    ["fence-low"] = true,
+    small = true,
+}
 
 local function isMultiplayer()
     return (isClient ~= nil and isClient())
@@ -182,7 +198,52 @@ local function createEntityDoor(scan, record, square)
     return object
 end
 
-local function tagShowroomObject(object, family, familyIndex, partIndex)
+local function frameSpriteFor(family, partIndex)
+    local mode = Layout.getFrameMode(family)
+
+    if mode == "none" or family.kind == "garage" or family.kind == "double" then
+        return nil
+    end
+
+    if mode == "paired" or family.kind == "paired" then
+        if partIndex == 1 then
+            return PAIRED_FRAME_LEFT_N
+        end
+        return PAIRED_FRAME_RIGHT_N
+    end
+
+    return STANDARD_FRAME_N
+end
+
+local function spawnFrame(square, spriteName, family, familyIndex, partIndex)
+    if spriteName == nil then
+        return nil
+    end
+
+    if getSprite ~= nil and getSprite(spriteName) == nil then
+        return nil
+    end
+
+    local frame = IsoObject.new(getCell(), square, spriteName)
+    if frame == nil then
+        return nil
+    end
+
+    if frame.getModData ~= nil then
+        local data = frame:getModData()
+        data.lmionShowroomFrame = true
+        data.lmionShowroomFrameSprite = spriteName
+        data.lmionShowroomIndex = familyIndex
+        data.lmionShowroomPart = partIndex
+        data.lmionShowroomKind = family.kind
+        data.lmionShowroomAnchor = family.anchor ~= nil and family.anchor.name or nil
+    end
+
+    square:AddTileObject(frame)
+    return frame
+end
+
+local function tagShowroomObject(object, family, familyIndex, partIndex, frameSprite)
     if object == nil or object.getModData == nil then
         return
     end
@@ -194,6 +255,7 @@ local function tagShowroomObject(object, family, familyIndex, partIndex)
     data.lmionShowroomAnchor = family.anchor ~= nil and family.anchor.name or nil
     data.lmionShowroomName = Layout.getDisplayName(family)
     data.lmionShowroomFrame = Layout.getFrameMode(family)
+    data.lmionShowroomFrameSprite = frameSprite
 
     if family.profile ~= nil then
         data.lmionShowroomSide = family.profile.side
@@ -201,7 +263,18 @@ local function tagShowroomObject(object, family, familyIndex, partIndex)
     end
 end
 
-local function spawnPart(scan, family, record, square, familyIndex, partIndex)
+local function spawnPart(scan, family, record, square, familyIndex, partIndex, result)
+    local frameSprite = frameSpriteFor(family, partIndex)
+
+    if frameSprite ~= nil then
+        result.framesFound = result.framesFound + 1
+        if spawnFrame(square, frameSprite, family, familyIndex, partIndex) == nil then
+            return nil, "frame-spawn-failed:" .. tostring(frameSprite)
+        end
+        result.framesSpawned = result.framesSpawned + 1
+        result.objectsSpawned = result.objectsSpawned + 1
+    end
+
     local object
     if record.entityScriptName ~= nil then
         object = createEntityDoor(scan, record, square)
@@ -209,18 +282,19 @@ local function spawnPart(scan, family, record, square, familyIndex, partIndex)
         object = createIsoDoor(record, square)
     end
     if object == nil then
-        return nil
+        return nil, "door-spawn-failed"
     end
 
-    tagShowroomObject(object, family, familyIndex, partIndex)
+    tagShowroomObject(object, family, familyIndex, partIndex, frameSprite)
 
     if not addSpecialObject(square, object) then
-        return nil
+        return nil, "door-add-failed"
     end
-    return object
+
+    return object, nil
 end
 
-local function spawnFamily(scan, family, baseX, baseY, z, familyIndex)
+local function spawnFamily(scan, family, baseX, baseY, z, familyIndex, result)
     local available, reason = familySquaresAvailable(family, baseX, baseY, z)
     if not available then
         return false, reason, 0
@@ -230,9 +304,11 @@ local function spawnFamily(scan, family, baseX, baseY, z, familyIndex)
     for i, record in ipairs(family.parts) do
         local x, y = partPosition(family, baseX, baseY, i)
         local square = getSquare(x, y, z)
-        local object = spawnPart(scan, family, record, square, familyIndex, i)
+        local object, partReason = spawnPart(
+            scan, family, record, square, familyIndex, i, result
+        )
         if object == nil then
-            return false, "spawn-failed", spawned
+            return false, partReason or "spawn-failed", spawned
         end
         spawned = spawned + 1
     end
@@ -240,22 +316,40 @@ local function spawnFamily(scan, family, baseX, baseY, z, familyIndex)
     return true, nil, spawned
 end
 
-local function splitFamilies(families)
-    local grouped = {}
-    local singles = {}
-
-    for _, family in ipairs(families) do
-        if family.kind == "garage" or family.kind == "double" or family.kind == "paired" then
-            grouped[#grouped + 1] = family
-        else
-            singles[#singles + 1] = family
-        end
+local function sectionKey(family)
+    if EXPLICIT_SECTIONS[family.kind] then
+        return family.kind
     end
-
-    return grouped, singles
+    return "standard"
 end
 
-local function spawnGrid(scan, families, originX, originY, z, columns, cellX, cellY, result, indexOffset)
+local function splitSections(families)
+    local sections = {}
+
+    for _, spec in ipairs(SECTION_SPECS) do
+        sections[spec.key] = {}
+    end
+
+    for _, family in ipairs(families) do
+        local key = sectionKey(family)
+        sections[key][#sections[key] + 1] = family
+    end
+
+    return sections
+end
+
+local function spawnGrid(
+    scan,
+    families,
+    originX,
+    originY,
+    z,
+    columns,
+    cellX,
+    cellY,
+    result,
+    indexOffset
+)
     indexOffset = indexOffset or 0
 
     for index, family in ipairs(families) do
@@ -265,14 +359,17 @@ local function spawnGrid(scan, families, originX, originY, z, columns, cellX, ce
         local x = originX + column * cellX
         local y = originY + row * cellY
         local familyIndex = indexOffset + index
-        local ok, reason, objectCount = spawnFamily(scan, family, x, y, z, familyIndex)
+        local ok, reason, objectCount = spawnFamily(
+            scan, family, x, y, z, familyIndex, result
+        )
 
         if ok then
             result.familiesSpawned = result.familiesSpawned + 1
             result.objectsSpawned = result.objectsSpawned + objectCount
         else
             result.skipped = result.skipped + 1
-            result.skipReasons[reason or "unknown"] = (result.skipReasons[reason or "unknown"] or 0) + 1
+            result.skipReasons[reason or "unknown"] =
+                (result.skipReasons[reason or "unknown"] or 0) + 1
         end
     end
 
@@ -298,7 +395,9 @@ local function spawnRejected(scan, originX, originY, z, result)
             anchor = record,
             parts = { record },
         }
-        local ok, reason, objectCount = spawnFamily(scan, family, x, y, z, 9000 + index)
+        local ok, reason, objectCount = spawnFamily(
+            scan, family, x, y, z, 9000 + index, result
+        )
 
         if ok then
             result.rejectedSpawned = result.rejectedSpawned + 1
@@ -316,59 +415,9 @@ local function spawnRejected(scan, originX, originY, z, result)
     return math.floor((#rejected - 1) / REJECTED_COLUMNS) + 1
 end
 
-local function collectDoorFrames()
-    local frames = {}
-    local manager = IsoSpriteManager.instance
-    local namedSprites = transformIntoKahluaTable(manager:getNamedMap())
-
-    for _, sprite in pairs(namedSprites) do
-        if sprite ~= nil and sprite:getType() == IsoObjectType.doorFrN then
-            local name = sprite:getName()
-            if name ~= nil and tostring(name) ~= "" then
-                frames[#frames + 1] = tostring(name)
-            end
-        end
-    end
-
-    table.sort(frames)
-    return frames
-end
-
-local function spawnFramePalette(originX, originY, z, result)
-    local frames = collectDoorFrames()
-    result.framesFound = #frames
-    result.framesSpawned = 0
-
-    for index, spriteName in ipairs(frames) do
-        local zero = index - 1
-        local column = zero % FRAME_COLUMNS
-        local row = math.floor(zero / FRAME_COLUMNS)
-        local x = originX + column * FRAME_CELL_X
-        local y = originY + row * FRAME_CELL_Y
-        local square = getSquare(x, y, z)
-        local usable = squareIsUsable(square)
-
-        if usable then
-            local object = IsoObject.new(getCell(), square, spriteName)
-            if object ~= nil then
-                local data = object:getModData()
-                data.lmionShowroomFrameIndex = index
-                data.lmionShowroomFrameSprite = spriteName
-                square:AddTileObject(object)
-                result.framesSpawned = result.framesSpawned + 1
-                result.objectsSpawned = result.objectsSpawned + 1
-            end
-        end
-    end
-
-    if #frames == 0 then
-        return 0
-    end
-    return math.floor((#frames - 1) / FRAME_COLUMNS) + 1
-end
-
 function Spawner.spawn(scan, families, originSquare)
     local prepared = Layout.prepare(families)
+    local sections = splitSections(prepared)
     local result = {
         familiesFound = #prepared,
         familiesSpawned = 0,
@@ -380,6 +429,7 @@ function Spawner.spawn(scan, families, originSquare)
         rejectedSkipped = 0,
         framesFound = 0,
         framesSpawned = 0,
+        sectionCounts = {},
     }
 
     if originSquare == nil then
@@ -392,33 +442,38 @@ function Spawner.spawn(scan, families, originSquare)
     end
 
     local originX = originSquare:getX()
-    local originY = originSquare:getY()
+    local currentY = originSquare:getY()
     local z = originSquare:getZ()
-    local grouped, singles = splitFamilies(prepared)
+    local familyIndexOffset = 0
 
-    local groupRows = spawnGrid(
-        scan, grouped, originX, originY, z,
-        GROUP_COLUMNS, GROUP_CELL, GROUP_CELL, result, 0
-    )
+    for _, spec in ipairs(SECTION_SPECS) do
+        local sectionFamilies = sections[spec.key]
+        result.sectionCounts[spec.key] = #sectionFamilies
 
-    local singlesY = originY + groupRows * GROUP_CELL
-    if #grouped > 0 and #singles > 0 then
-        singlesY = singlesY + SECTION_GAP
+        if #sectionFamilies > 0 then
+            local rows = spawnGrid(
+                scan,
+                sectionFamilies,
+                originX,
+                currentY,
+                z,
+                spec.columns,
+                spec.cellX,
+                spec.cellY,
+                result,
+                familyIndexOffset
+            )
+            familyIndexOffset = familyIndexOffset + #sectionFamilies
+            currentY = currentY + rows * spec.cellY + SECTION_GAP
+        end
     end
 
-    local singleRows = spawnGrid(
-        scan, singles, originX, singlesY, z,
-        SINGLE_COLUMNS, SINGLE_CELL_X, SINGLE_CELL_Y, result, #grouped
-    )
-
-    local rejectedY = singlesY + singleRows * SINGLE_CELL_Y + REJECTED_SECTION_GAP
-    local rejectedRows = spawnRejected(scan, originX, rejectedY, z, result)
-
-    local framesY = rejectedY + rejectedRows * REJECTED_CELL_Y + FRAME_SECTION_GAP
-    spawnFramePalette(originX, framesY, z, result)
+    currentY = currentY + REJECTED_SECTION_GAP
+    spawnRejected(scan, originX, currentY, z, result)
 
     Spawner.lastResult = result
     Spawner.lastPreparedFamilies = prepared
+    Spawner.lastSections = sections
     return result
 end
 
