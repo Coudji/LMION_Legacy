@@ -16,6 +16,8 @@ Build.VERSION = "0.0.3-dev"
 Build.Catalog = Build.Catalog or {}
 Build.CatalogById = Build.CatalogById or {}
 
+local whiteDoorInjected = false
+
 local function componentNames(entity)
     local names = {}
     local components = entity and entity:getComponentScripts()
@@ -28,14 +30,19 @@ local function componentNames(entity)
     return table.concat(names, ", ")
 end
 
-local function injectWhiteWoodenDoorBuildComponents()
-    local entity = ScriptManager.instance:getGameEntityScript("Base.WhiteWoodenDoor")
-    if not entity then
-        LMION.error("Build", "WhiteWoodenDoor injection: Base.WhiteWoodenDoor not found")
-        return
+local function tryInjectWhiteWoodenDoorBuildComponents(phase)
+    if whiteDoorInjected then
+        return true
     end
 
-    LMION.log("Build", "WhiteWoodenDoor before injection: " .. componentNames(entity))
+    local entity = ScriptManager.instance:getGameEntityScript("Base.WhiteWoodenDoor")
+    if not entity then
+        LMION.log("Build", "WhiteWoodenDoor unavailable at " .. tostring(phase))
+        return false
+    end
+
+    LMION.log("Build", "WhiteWoodenDoor found at " .. tostring(phase)
+        .. "; before injection: " .. componentNames(entity))
 
     local ok, err = pcall(function()
         entity:Load("WhiteWoodenDoor", [[
@@ -67,14 +74,38 @@ local function injectWhiteWoodenDoorBuildComponents()
     end)
 
     if not ok then
-        LMION.error("Build", "WhiteWoodenDoor injection failed: " .. tostring(err))
-        return
+        LMION.error("Build", "WhiteWoodenDoor injection failed at " .. tostring(phase)
+            .. ": " .. tostring(err))
+        return false
     end
 
-    LMION.log("Build", "WhiteWoodenDoor after injection: " .. componentNames(entity))
+    whiteDoorInjected = true
+    LMION.log("Build", "WhiteWoodenDoor after injection at " .. tostring(phase)
+        .. ": " .. componentNames(entity))
+    return true
 end
 
-injectWhiteWoodenDoorBuildComponents()
+-- Probe several lifecycle points. The first point where the Core entity becomes
+-- visible performs the injection; later callbacks become no-ops.
+tryInjectWhiteWoodenDoorBuildComponents("Build.lua load")
+
+if Events.OnLoadedTileDefinitions then
+    Events.OnLoadedTileDefinitions.Add(function()
+        tryInjectWhiteWoodenDoorBuildComponents("OnLoadedTileDefinitions")
+    end)
+end
+
+if Events.OnLoadedMapZones then
+    Events.OnLoadedMapZones.Add(function()
+        tryInjectWhiteWoodenDoorBuildComponents("OnLoadedMapZones")
+    end)
+end
+
+if Events.OnGameStart then
+    Events.OnGameStart.Add(function()
+        tryInjectWhiteWoodenDoorBuildComponents("OnGameStart")
+    end)
+end
 
 function Build.registerCatalogEntry(entry)
     if type(entry) ~= "table" or type(entry.id) ~= "string" or entry.id == "" then
