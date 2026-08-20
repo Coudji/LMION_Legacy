@@ -101,6 +101,36 @@ local function dumpGarageGroup(object, report, garageDoorIndex)
     report:field("garage.next", next ~= nil and spriteLabel(next) or nil)
 end
 
+local function groupSummary(doubleDoorIndex, garageDoorIndex)
+    if type(garageDoorIndex) == "number" and garageDoorIndex >= 0 then
+        return "garage[" .. tostring(garageDoorIndex) .. "]"
+    end
+    if type(doubleDoorIndex) == "number" and doubleDoorIndex >= 0 then
+        return "double[" .. tostring(doubleDoorIndex) .. "]"
+    end
+    return "single"
+end
+
+local function securitySummary(object)
+    local parts = {}
+
+    if object:isLocked() then
+        parts[#parts + 1] = "locked"
+    else
+        parts[#parts + 1] = "unlocked"
+    end
+
+    if object:isLockedByKey() then
+        parts[#parts + 1] = "key=" .. tostring(object:getKeyId())
+    end
+
+    if object:isBarricaded() then
+        parts[#parts + 1] = "barricaded"
+    end
+
+    return table.concat(parts, ", ")
+end
+
 Debug.registerInspector("vanilla.isoThumpableDoor", 55, function(object, report)
     if not isDoorLikeThumpable(object) then
         return
@@ -111,8 +141,25 @@ Debug.registerInspector("vanilla.isoThumpableDoor", 55, function(object, report)
     local openSprite = Reflection.hasMethod(object, "getOpenSprite", 0)
         and spriteName(object:getOpenSprite())
         or Reflection.getSpriteFieldName(object, "openSprite")
+    local closedSprite = Reflection.getSpriteFieldName(object, "closedSprite")
 
-    report:section("IsoThumpable")
+    report:section("Door")
+
+    if not Options.isFullDetails() then
+        if Reflection.hasMethod(object, "getEntityFullTypeDebug", 0) then
+            local entityType = object:getEntityFullTypeDebug()
+            if entityType ~= nil and tostring(entityType) ~= "" then
+                report:field("entityType", entityType)
+            end
+        end
+
+        report:field("state", (object:getNorth() and "N" or "W") .. ", " .. (object:IsOpen() and "open" or "closed"))
+        report:field("health", tostring(object:getHealth()) .. " / " .. tostring(object:getMaxHealth()))
+        report:field("security", securitySummary(object))
+        report:field("sprites", tostring(closedSprite or "<nil>") .. " -> " .. tostring(openSprite or "<nil>"))
+        report:field("group", groupSummary(doubleDoorIndex, garageDoorIndex))
+        return
+    end
 
     if Reflection.hasMethod(object, "getEntityFullTypeDebug", 0) then
         report:field("entityType", object:getEntityFullTypeDebug())
@@ -131,7 +178,7 @@ Debug.registerInspector("vanilla.isoThumpableDoor", 55, function(object, report)
         report:field("destroyed", object:isDestroyed())
     end
 
-    report:field("closedSprite", Reflection.getSpriteFieldName(object, "closedSprite"))
+    report:field("closedSprite", closedSprite)
     report:field("openSprite", openSprite)
     report:field("oppositeSquare", Safe.squareString(object:getOppositeSquare()))
     report:field("doubleDoorIndex", doubleDoorIndex)
@@ -139,10 +186,6 @@ Debug.registerInspector("vanilla.isoThumpableDoor", 55, function(object, report)
 
     dumpDoubleDoorGroup(object, report, doubleDoorIndex)
     dumpGarageGroup(object, report, garageDoorIndex)
-
-    if not Options.isFullDetails() then
-        return
-    end
 
     report:field("hoppable", object:isHoppable())
 
