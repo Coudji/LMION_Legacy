@@ -1,5 +1,6 @@
--- Split probe: Build owns only construction UI and recipe data.
--- Core defines the shared physical SpriteConfig for Base.WhiteWoodenDoor.
+-- Working baseline: keep the complete native build entity in LMION_Build.
+-- The Base namespace is required so EntityScriptName=WhiteWoodenDoor resolves
+-- to Base.WhiteWoodenDoor at runtime.
 
 module Base
 {
@@ -20,6 +21,44 @@ module Base
             xuiSkin = default,
             entityStyle = ES_WhiteWoodenDoor,
             uiEnabled = false,
+        }
+
+        component SpriteConfig
+        {
+            skillBaseHealth = 300,
+            BreakSound = BreakDoor,
+
+            face W
+            {
+                layer
+                {
+                    row = fixtures_doors_01_0,
+                }
+            }
+
+            face N
+            {
+                layer
+                {
+                    row = fixtures_doors_01_1,
+                }
+            }
+
+            face W_OPEN
+            {
+                layer
+                {
+                    row = fixtures_doors_01_2,
+                }
+            }
+
+            face N_OPEN
+            {
+                layer
+                {
+                    row = fixtures_doors_01_3,
+                }
+            }
         }
 
         component CraftRecipe
