@@ -1,10 +1,10 @@
--- Shared native entity definition for the vanilla white wooden door family.
--- Core owns the physical SpriteConfig so the entity identity exists whether
--- Build, Pickup, or both feature modules are enabled.
+-- Shared native definition for the vanilla white wooden door family.
+-- The template owns the physical SpriteConfig once; feature modules can
+-- rebuild Base.WhiteWoodenDoor from it without duplicating sprite ownership.
 
 module Base
 {
-    entity WhiteWoodenDoor
+    template entity WhiteWoodenDoorTemplate
     {
         component SpriteConfig
         {
@@ -43,5 +43,10 @@ module Base
                 }
             }
         }
+    }
+
+    entity WhiteWoodenDoor
+    {
+        entitytemplate = WhiteWoodenDoorTemplate,
     }
 }
