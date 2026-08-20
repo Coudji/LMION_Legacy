@@ -1,9 +1,11 @@
 require "LMION/Debug/Registry"
 require "LMION/Debug/Showroom/Catalog"
+require "LMION/Debug/Showroom/Layout"
 
 LMION.Debug.Showroom = LMION.Debug.Showroom or {}
 
 local Catalog = LMION.Debug.Showroom.Catalog
+local Layout = LMION.Debug.Showroom.Layout
 local Spawner = LMION.Debug.Showroom.Spawner or {}
 LMION.Debug.Showroom.Spawner = Spawner
 
@@ -17,6 +19,10 @@ local REJECTED_COLUMNS = 10
 local REJECTED_CELL_X = 4
 local REJECTED_CELL_Y = 4
 local REJECTED_SECTION_GAP = 8
+local FRAME_COLUMNS = 12
+local FRAME_CELL_X = 4
+local FRAME_CELL_Y = 4
+local FRAME_SECTION_GAP = 6
 
 local function isMultiplayer()
     return (isClient ~= nil and isClient())
@@ -35,7 +41,6 @@ function Spawner.isAreaLoaded(originX, originY, z, width, height)
             end
         end
     end
-
     return true, nil, nil
 end
 
@@ -45,14 +50,11 @@ local function clearSquare(square)
 
     for i = objects:size() - 1, 0, -1 do
         local object = objects:get(i)
-
         if object ~= nil then
             square:transmitRemoveItemFromSquare(object)
-
             if object:getObjectIndex() ~= -1 then
                 square:RemoveTileObject(object)
             end
-
             removed = removed + 1
         end
     end
@@ -64,23 +66,14 @@ function Spawner.prepareArea(originX, originY, z, width, height, floorSprite)
     if isMultiplayer() then
         return false, "showroom workspace is single-player debug only for now"
     end
-
     if floorSprite == nil or tostring(floorSprite) == "" then
         return false, "missing floor sprite"
     end
-
     if getSprite ~= nil and getSprite(floorSprite) == nil then
         return false, "unknown floor sprite: " .. tostring(floorSprite)
     end
 
-    local loaded, missingX, missingY = Spawner.isAreaLoaded(
-        originX,
-        originY,
-        z,
-        width,
-        height
-    )
-
+    local loaded, missingX, missingY = Spawner.isAreaLoaded(originX, originY, z, width, height)
     if not loaded then
         return false, "unloaded:" .. tostring(missingX) .. "," .. tostring(missingY)
     end
@@ -112,13 +105,11 @@ local function squareIsUsable(square)
     local objects = square:getObjects()
     local floor = square:getFloor()
     local expected = floor ~= nil and 1 or 0
-
     if objects ~= nil and objects:size() > expected then
         return false, "occupied"
     end
 
     local specialObjects = square:getSpecialObjects()
-
     if specialObjects ~= nil and specialObjects:size() > 0 then
         return false, "occupied"
     end
@@ -132,11 +123,9 @@ local function partPosition(family, baseX, baseY, partIndex)
     end
 
     local offset = partIndex - 1
-
     if family.anchor.north then
         return baseX + offset, baseY
     end
-
     return baseX, baseY + offset
 end
 
@@ -144,12 +133,10 @@ local function familySquaresAvailable(family, baseX, baseY, z)
     for i = 1, #family.parts do
         local x, y = partPosition(family, baseX, baseY, i)
         local usable, reason = squareIsUsable(getSquare(x, y, z))
-
         if not usable then
             return false, reason
         end
     end
-
     return true, nil
 end
 
@@ -160,7 +147,6 @@ local function addSpecialObject(square, object)
 
     if GameEntityFactory ~= nil then
         local properties = object:getProperties()
-
         if properties ~= nil and properties:has(IsoFlagType.EntityScript) then
             GameEntityFactory.CreateIsoEntityFromCellLoading(object)
         end
@@ -177,12 +163,7 @@ local function addSpecialObject(square, object)
 end
 
 local function createIsoDoor(record, square)
-    return IsoDoor.new(
-        getCell(),
-        square,
-        record.name,
-        record.north == true
-    )
+    return IsoDoor.new(getCell(), square, record.name, record.north == true)
 end
 
 local function createEntityDoor(scan, record, square)
@@ -191,65 +172,68 @@ local function createEntityDoor(scan, record, square)
 
     if openRecord ~= nil then
         object = IsoThumpable.new(
-            getCell(),
-            square,
-            record.name,
-            openRecord.name,
-            record.north == true,
-            {}
+            getCell(), square, record.name, openRecord.name, record.north == true, {}
         )
     else
-        object = IsoThumpable.new(
-            getCell(),
-            square,
-            record.name,
-            record.north == true,
-            {}
-        )
+        object = IsoThumpable.new(getCell(), square, record.name, record.north == true, {})
     end
 
     object:setIsDoor(true)
     return object
 end
 
-local function spawnPart(scan, family, record, square)
-    local object
+local function tagShowroomObject(object, family, familyIndex, partIndex)
+    if object == nil or object.getModData == nil then
+        return
+    end
 
+    local data = object:getModData()
+    data.lmionShowroomIndex = familyIndex
+    data.lmionShowroomKind = family.kind
+    data.lmionShowroomPart = partIndex
+    data.lmionShowroomAnchor = family.anchor ~= nil and family.anchor.name or nil
+    data.lmionShowroomName = Layout.getDisplayName(family)
+    data.lmionShowroomFrame = Layout.getFrameMode(family)
+
+    if family.profile ~= nil then
+        data.lmionShowroomSide = family.profile.side
+        data.lmionShowroomPair = family.profile.pair
+    end
+end
+
+local function spawnPart(scan, family, record, square, familyIndex, partIndex)
+    local object
     if record.entityScriptName ~= nil then
         object = createEntityDoor(scan, record, square)
     else
         object = createIsoDoor(record, square)
     end
-
     if object == nil then
         return nil
     end
 
+    tagShowroomObject(object, family, familyIndex, partIndex)
+
     if not addSpecialObject(square, object) then
         return nil
     end
-
     return object
 end
 
-local function spawnFamily(scan, family, baseX, baseY, z)
+local function spawnFamily(scan, family, baseX, baseY, z, familyIndex)
     local available, reason = familySquaresAvailable(family, baseX, baseY, z)
-
     if not available then
         return false, reason, 0
     end
 
     local spawned = 0
-
     for i, record in ipairs(family.parts) do
         local x, y = partPosition(family, baseX, baseY, i)
         local square = getSquare(x, y, z)
-        local object = spawnPart(scan, family, record, square)
-
+        local object = spawnPart(scan, family, record, square, familyIndex, i)
         if object == nil then
             return false, "spawn-failed", spawned
         end
-
         spawned = spawned + 1
     end
 
@@ -261,7 +245,7 @@ local function splitFamilies(families)
     local singles = {}
 
     for _, family in ipairs(families) do
-        if family.kind == "garage" or family.kind == "double" then
+        if family.kind == "garage" or family.kind == "double" or family.kind == "paired" then
             grouped[#grouped + 1] = family
         else
             singles[#singles + 1] = family
@@ -271,14 +255,17 @@ local function splitFamilies(families)
     return grouped, singles
 end
 
-local function spawnGrid(scan, families, originX, originY, z, columns, cellX, cellY, result)
+local function spawnGrid(scan, families, originX, originY, z, columns, cellX, cellY, result, indexOffset)
+    indexOffset = indexOffset or 0
+
     for index, family in ipairs(families) do
         local zero = index - 1
         local column = zero % columns
         local row = math.floor(zero / columns)
         local x = originX + column * cellX
         local y = originY + row * cellY
-        local ok, reason, objectCount = spawnFamily(scan, family, x, y, z)
+        local familyIndex = indexOffset + index
+        local ok, reason, objectCount = spawnFamily(scan, family, x, y, z, familyIndex)
 
         if ok then
             result.familiesSpawned = result.familiesSpawned + 1
@@ -292,7 +279,6 @@ local function spawnGrid(scan, families, originX, originY, z, columns, cellX, ce
     if #families == 0 then
         return 0
     end
-
     return math.floor((#families - 1) / columns) + 1
 end
 
@@ -312,7 +298,7 @@ local function spawnRejected(scan, originX, originY, z, result)
             anchor = record,
             parts = { record },
         }
-        local ok, reason, objectCount = spawnFamily(scan, family, x, y, z)
+        local ok, reason, objectCount = spawnFamily(scan, family, x, y, z, 9000 + index)
 
         if ok then
             result.rejectedSpawned = result.rejectedSpawned + 1
@@ -327,13 +313,64 @@ local function spawnRejected(scan, originX, originY, z, result)
     if #rejected == 0 then
         return 0
     end
-
     return math.floor((#rejected - 1) / REJECTED_COLUMNS) + 1
 end
 
+local function collectDoorFrames()
+    local frames = {}
+    local manager = IsoSpriteManager.instance
+    local namedSprites = transformIntoKahluaTable(manager:getNamedMap())
+
+    for _, sprite in pairs(namedSprites) do
+        if sprite ~= nil and sprite:getType() == IsoObjectType.doorFrN then
+            local name = sprite:getName()
+            if name ~= nil and tostring(name) ~= "" then
+                frames[#frames + 1] = tostring(name)
+            end
+        end
+    end
+
+    table.sort(frames)
+    return frames
+end
+
+local function spawnFramePalette(originX, originY, z, result)
+    local frames = collectDoorFrames()
+    result.framesFound = #frames
+    result.framesSpawned = 0
+
+    for index, spriteName in ipairs(frames) do
+        local zero = index - 1
+        local column = zero % FRAME_COLUMNS
+        local row = math.floor(zero / FRAME_COLUMNS)
+        local x = originX + column * FRAME_CELL_X
+        local y = originY + row * FRAME_CELL_Y
+        local square = getSquare(x, y, z)
+        local usable = squareIsUsable(square)
+
+        if usable then
+            local object = IsoObject.new(getCell(), square, spriteName)
+            if object ~= nil then
+                local data = object:getModData()
+                data.lmionShowroomFrameIndex = index
+                data.lmionShowroomFrameSprite = spriteName
+                square:AddTileObject(object)
+                result.framesSpawned = result.framesSpawned + 1
+                result.objectsSpawned = result.objectsSpawned + 1
+            end
+        end
+    end
+
+    if #frames == 0 then
+        return 0
+    end
+    return math.floor((#frames - 1) / FRAME_COLUMNS) + 1
+end
+
 function Spawner.spawn(scan, families, originSquare)
+    local prepared = Layout.prepare(families)
     local result = {
-        familiesFound = #families,
+        familiesFound = #prepared,
         familiesSpawned = 0,
         objectsSpawned = 0,
         skipped = 0,
@@ -341,13 +378,14 @@ function Spawner.spawn(scan, families, originSquare)
         rejectedFound = 0,
         rejectedSpawned = 0,
         rejectedSkipped = 0,
+        framesFound = 0,
+        framesSpawned = 0,
     }
 
     if originSquare == nil then
         result.error = "missing origin square"
         return result
     end
-
     if isMultiplayer() then
         result.error = "showroom spawning is single-player debug only for now"
         return result
@@ -356,42 +394,31 @@ function Spawner.spawn(scan, families, originSquare)
     local originX = originSquare:getX()
     local originY = originSquare:getY()
     local z = originSquare:getZ()
-    local grouped, singles = splitFamilies(families)
+    local grouped, singles = splitFamilies(prepared)
 
     local groupRows = spawnGrid(
-        scan,
-        grouped,
-        originX,
-        originY,
-        z,
-        GROUP_COLUMNS,
-        GROUP_CELL,
-        GROUP_CELL,
-        result
+        scan, grouped, originX, originY, z,
+        GROUP_COLUMNS, GROUP_CELL, GROUP_CELL, result, 0
     )
 
     local singlesY = originY + groupRows * GROUP_CELL
-
     if #grouped > 0 and #singles > 0 then
         singlesY = singlesY + SECTION_GAP
     end
 
     local singleRows = spawnGrid(
-        scan,
-        singles,
-        originX,
-        singlesY,
-        z,
-        SINGLE_COLUMNS,
-        SINGLE_CELL_X,
-        SINGLE_CELL_Y,
-        result
+        scan, singles, originX, singlesY, z,
+        SINGLE_COLUMNS, SINGLE_CELL_X, SINGLE_CELL_Y, result, #grouped
     )
 
     local rejectedY = singlesY + singleRows * SINGLE_CELL_Y + REJECTED_SECTION_GAP
-    spawnRejected(scan, originX, rejectedY, z, result)
+    local rejectedRows = spawnRejected(scan, originX, rejectedY, z, result)
+
+    local framesY = rejectedY + rejectedRows * REJECTED_CELL_Y + FRAME_SECTION_GAP
+    spawnFramePalette(originX, framesY, z, result)
 
     Spawner.lastResult = result
+    Spawner.lastPreparedFamilies = prepared
     return result
 end
 
