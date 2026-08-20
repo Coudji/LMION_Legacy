@@ -1,6 +1,3 @@
--- Build-only XUI style for Base.WhiteWoodenDoor.
--- The Entity itself is defined physically by LMION_Core and extended at runtime by LMION_Build Lua.
-
 module Base
 {
     xuiSkin default
@@ -10,6 +7,31 @@ module Base
             LuaWindowClass = ISEntityWindow,
             DisplayName = White Wooden Door,
             Icon = Build_DoorWood,
+        }
+    }
+
+    entity WhiteWoodenDoor
+    {
+        component UiConfig
+        {
+            xuiSkin = default,
+            entityStyle = ES_WhiteWoodenDoor,
+            uiEnabled = false,
+        }
+
+        component CraftRecipe
+        {
+            timedAction = BuildWallHammer,
+            time = 20,
+            category = LMION,
+            SkillRequired = Woodwork:1,
+            xpAward = Woodwork:1,
+
+            inputs
+            {
+                item 1 tags[base:hammer] mode:keep flags[Prop1;MayDegradeVeryLight],
+                item 1 [Base.Plank],
+            }
         }
     }
 }
