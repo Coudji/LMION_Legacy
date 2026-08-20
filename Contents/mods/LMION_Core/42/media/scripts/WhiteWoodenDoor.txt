@@ -1,6 +1,3 @@
--- Shared physical definition for the vanilla white wooden door family.
--- Build-specific UI and CraftRecipe are injected later by LMION_Build.
-
 module Base
 {
     entity WhiteWoodenDoor
