@@ -11,6 +11,22 @@ local PropertyReaders = LMION.Debug.Inspect.PropertyReaders
 local PropertyContainer = LMION.Debug.Inspect.PropertyContainer or {}
 LMION.Debug.Inspect.PropertyContainer = PropertyContainer
 
+-- Compact mode is for quick door diagnosis, not exhaustive tile archaeology.
+-- Keep the properties that currently matter to identity, family structure,
+-- interaction sound/material and salvage classification. Full mode still dumps
+-- every property exposed by the tile.
+local COMPACT_PROPERTY_ORDER = {
+    "EntityScriptName",
+    "DoubleDoor",
+    "GarageDoor",
+    "DoorSound",
+    "Material",
+    "Material2",
+    "Material3",
+    "MaterialType",
+    "CanScrap",
+}
+
 local function collectionToStrings(collection)
     local result = {}
     local count = Safe.collectionSize(collection)
@@ -92,6 +108,31 @@ local function formatPropertySummary(entries)
     return table.concat(parts, ", ")
 end
 
+local function compactPropertyEntries(entries)
+    local byName = {}
+
+    for _, entry in ipairs(entries) do
+        byName[entry.name] = entry
+    end
+
+    local selected = {}
+
+    for _, name in ipairs(COMPACT_PROPERTY_ORDER) do
+        local entry = byName[name]
+        if entry ~= nil then
+            selected[#selected + 1] = entry
+        end
+    end
+
+    -- Preserve generic usefulness when inspecting something that does not have
+    -- any of the door-oriented properties above.
+    if #selected == 0 then
+        return entries
+    end
+
+    return selected
+end
+
 local function dumpMetadata(properties, report)
     if Reflection.hasMethod(properties, "getSurface", 0) then
         report:field("surface", properties:getSurface())
@@ -163,8 +204,10 @@ function PropertyContainer.dumpCompact(properties, report)
         return
     end
 
+    local entries = readPropertyEntries(properties)
+
     report:field("flags", joinOrNone(PropertyContainer.getFlags(properties)))
-    report:field("properties", formatPropertySummary(readPropertyEntries(properties)))
+    report:field("properties", formatPropertySummary(compactPropertyEntries(entries)))
 end
 
 function PropertyContainer.dumpFull(properties, report, ownerLabel)
