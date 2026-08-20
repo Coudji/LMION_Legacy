@@ -1,0 +1,35 @@
+module Base
+{
+    xuiSkin default
+    {
+        entity ES_LMIONLogDoor
+        {
+            LuaWindowClass = ISEntityWindow,
+            DisplayName = Log Door,
+            Icon = Build_DoorWood,
+        }
+    }
+
+    entity LMIONLogDoor
+    {
+        component UiConfig
+        {
+            xuiSkin = default,
+            entityStyle = ES_LMIONLogDoor,
+            uiEnabled = false,
+        }
+
+        component CraftRecipe
+        {
+            timedAction = BuildWallNoTool,
+            time = 200,
+            category = LMION,
+            xpAward = Woodwork:10,
+            inputs
+            {
+                item 4 [Base.Log],
+                item 4 [Base.RippedSheets;Base.RippedSheetsDirty;Base.Twine;Base.Rope;Base.SheetRope] flags[DontReplace],
+            }
+        }
+    }
+}
