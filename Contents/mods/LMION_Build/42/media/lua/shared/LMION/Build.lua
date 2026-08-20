@@ -16,6 +16,66 @@ Build.VERSION = "0.0.3-dev"
 Build.Catalog = Build.Catalog or {}
 Build.CatalogById = Build.CatalogById or {}
 
+local function componentNames(entity)
+    local names = {}
+    local components = entity and entity:getComponentScripts()
+    if components then
+        for i = 0, components:size() - 1 do
+            local component = components:get(i)
+            names[#names + 1] = tostring(component:getName())
+        end
+    end
+    return table.concat(names, ", ")
+end
+
+local function injectWhiteWoodenDoorBuildComponents()
+    local entity = ScriptManager.instance:getGameEntityScript("Base.WhiteWoodenDoor")
+    if not entity then
+        LMION.error("Build", "WhiteWoodenDoor injection: Base.WhiteWoodenDoor not found")
+        return
+    end
+
+    LMION.log("Build", "WhiteWoodenDoor before injection: " .. componentNames(entity))
+
+    local ok, err = pcall(function()
+        entity:Load("WhiteWoodenDoor", [[
+            entity WhiteWoodenDoor
+            {
+                component UiConfig
+                {
+                    xuiSkin = default,
+                    entityStyle = ES_WhiteWoodenDoor,
+                    uiEnabled = false,
+                }
+
+                component CraftRecipe
+                {
+                    timedAction = BuildWallHammer,
+                    time = 20,
+                    category = LMION,
+                    SkillRequired = Woodwork:1,
+                    xpAward = Woodwork:1,
+
+                    inputs
+                    {
+                        item 1 tags[base:hammer] mode:keep flags[Prop1;MayDegradeVeryLight],
+                        item 1 [Base.Plank],
+                    }
+                }
+            }
+        ]])
+    end)
+
+    if not ok then
+        LMION.error("Build", "WhiteWoodenDoor injection failed: " .. tostring(err))
+        return
+    end
+
+    LMION.log("Build", "WhiteWoodenDoor after injection: " .. componentNames(entity))
+end
+
+injectWhiteWoodenDoorBuildComponents()
+
 function Build.registerCatalogEntry(entry)
     if type(entry) ~= "table" or type(entry.id) ~= "string" or entry.id == "" then
         LMION.error("Build", "registerCatalogEntry(): invalid entry")
