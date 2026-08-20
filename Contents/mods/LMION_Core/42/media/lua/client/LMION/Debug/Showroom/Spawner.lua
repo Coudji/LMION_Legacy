@@ -23,17 +23,18 @@ local SECTION_SPECS = {
     { key = "garage", columns = 7, cellX = 5, cellY = 4 },
     { key = "double", columns = 6, cellX = 5, cellY = 4 },
     { key = "paired", columns = 5, cellX = 4, cellY = 4 },
-    { key = "sliding", columns = 8, cellX = 3, cellY = 3 },
-    { key = "fence-high", columns = 8, cellX = 3, cellY = 3 },
-    { key = "fence-low", columns = 8, cellX = 3, cellY = 3 },
-    { key = "small", columns = 8, cellX = 3, cellY = 3 },
+    { key = "special", columns = 16, cellX = 3, cellY = 3 },
     { key = "standard", columns = 16, cellX = 3, cellY = 3 },
 }
 
-local EXPLICIT_SECTIONS = {
-    garage = true,
-    double = true,
-    paired = true,
+local SPECIAL_KIND_ORDER = {
+    "sliding",
+    "fence-high",
+    "fence-low",
+    "small",
+}
+
+local SPECIAL_KINDS = {
     sliding = true,
     ["fence-high"] = true,
     ["fence-low"] = true,
@@ -316,23 +317,34 @@ local function spawnFamily(scan, family, baseX, baseY, z, familyIndex, result)
     return true, nil, spawned
 end
 
-local function sectionKey(family)
-    if EXPLICIT_SECTIONS[family.kind] then
-        return family.kind
-    end
-    return "standard"
-end
-
 local function splitSections(families)
-    local sections = {}
+    local sections = {
+        garage = {},
+        double = {},
+        paired = {},
+        special = {},
+        standard = {},
+    }
+    local special = {}
 
-    for _, spec in ipairs(SECTION_SPECS) do
-        sections[spec.key] = {}
+    for _, kind in ipairs(SPECIAL_KIND_ORDER) do
+        special[kind] = {}
     end
 
     for _, family in ipairs(families) do
-        local key = sectionKey(family)
-        sections[key][#sections[key] + 1] = family
+        if family.kind == "garage" or family.kind == "double" or family.kind == "paired" then
+            sections[family.kind][#sections[family.kind] + 1] = family
+        elseif SPECIAL_KINDS[family.kind] then
+            special[family.kind][#special[family.kind] + 1] = family
+        else
+            sections.standard[#sections.standard + 1] = family
+        end
+    end
+
+    for _, kind in ipairs(SPECIAL_KIND_ORDER) do
+        for _, family in ipairs(special[kind]) do
+            sections.special[#sections.special + 1] = family
+        end
     end
 
     return sections
