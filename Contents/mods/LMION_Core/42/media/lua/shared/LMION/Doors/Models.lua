@@ -15,4 +15,12 @@ LMION.Doors.register("Base.WoodenDoorLvl3", {
     },
 })
 
+LMION.Doors.register("Base.LMIONLogDoor", {
+    sourceEntity = "Base.LMIONLogDoor",
+    closedSprites = {
+        north = "walls_logs_41",
+        west = "walls_logs_40",
+    },
+})
+
 LMION.log("Doors", "registered door models: " .. tostring(LMION.Doors.getCount()))
