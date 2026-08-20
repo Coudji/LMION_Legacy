@@ -1,0 +1,41 @@
+-- Build-side extension for Base.WhiteWoodenDoor.
+-- The physical SpriteConfig lives in LMION_Core; Build contributes only
+-- construction UI and recipe data.
+
+module Base
+{
+    xuiSkin default
+    {
+        entity ES_WhiteWoodenDoor
+        {
+            LuaWindowClass = ISEntityWindow,
+            DisplayName = White Wooden Door,
+            Icon = Build_DoorWood,
+        }
+    }
+
+    entity WhiteWoodenDoor
+    {
+        component UiConfig
+        {
+            xuiSkin = default,
+            entityStyle = ES_WhiteWoodenDoor,
+            uiEnabled = false,
+        }
+
+        component CraftRecipe
+        {
+            timedAction = BuildWallHammer,
+            time = 20,
+            category = LMION,
+            SkillRequired = Woodwork:1,
+            xpAward = Woodwork:1,
+
+            inputs
+            {
+                item 1 tags[base:hammer] mode:keep flags[Prop1;MayDegradeVeryLight],
+                item 1 [Base.Plank],
+            }
+        }
+    }
+}
