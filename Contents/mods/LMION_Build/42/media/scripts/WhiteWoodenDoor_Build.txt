@@ -1,5 +1,6 @@
--- Build-side definition for Base.WhiteWoodenDoor.
--- Rebuild from the Core template, then add construction UI and recipe data.
+-- Baseline probe: keep the whole native build entity in LMION_Build.
+-- This intentionally mirrors the first TestDoor028 setup that successfully
+-- registered the vanilla door sprites and appeared in the construction menu.
 
 module Base
 {
@@ -12,16 +13,55 @@ module Base
             Icon = Build_DoorWood,
         }
     }
+}
 
+module LMIONBuild
+{
     entity WhiteWoodenDoor
     {
-        entitytemplate = WhiteWoodenDoorTemplate,
-
         component UiConfig
         {
             xuiSkin = default,
             entityStyle = ES_WhiteWoodenDoor,
             uiEnabled = false,
+        }
+
+        component SpriteConfig
+        {
+            skillBaseHealth = 300,
+            BreakSound = BreakDoor,
+
+            face W
+            {
+                layer
+                {
+                    row = fixtures_doors_01_0,
+                }
+            }
+
+            face N
+            {
+                layer
+                {
+                    row = fixtures_doors_01_1,
+                }
+            }
+
+            face W_OPEN
+            {
+                layer
+                {
+                    row = fixtures_doors_01_2,
+                }
+            }
+
+            face N_OPEN
+            {
+                layer
+                {
+                    row = fixtures_doors_01_3,
+                }
+            }
         }
 
         component CraftRecipe
