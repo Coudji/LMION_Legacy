@@ -1,6 +1,5 @@
--- Baseline probe: keep the whole native build entity in LMION_Build.
--- This intentionally mirrors the first TestDoor028 setup that successfully
--- registered the vanilla door sprites and appeared in the construction menu.
+-- Split probe: Build owns only construction UI and recipe data.
+-- Core defines the shared physical SpriteConfig for Base.WhiteWoodenDoor.
 
 module Base
 {
@@ -13,10 +12,7 @@ module Base
             Icon = Build_DoorWood,
         }
     }
-}
 
-module LMIONBuild
-{
     entity WhiteWoodenDoor
     {
         component UiConfig
@@ -24,44 +20,6 @@ module LMIONBuild
             xuiSkin = default,
             entityStyle = ES_WhiteWoodenDoor,
             uiEnabled = false,
-        }
-
-        component SpriteConfig
-        {
-            skillBaseHealth = 300,
-            BreakSound = BreakDoor,
-
-            face W
-            {
-                layer
-                {
-                    row = fixtures_doors_01_0,
-                }
-            }
-
-            face N
-            {
-                layer
-                {
-                    row = fixtures_doors_01_1,
-                }
-            }
-
-            face W_OPEN
-            {
-                layer
-                {
-                    row = fixtures_doors_01_2,
-                }
-            }
-
-            face N_OPEN
-            {
-                layer
-                {
-                    row = fixtures_doors_01_3,
-                }
-            }
         }
 
         component CraftRecipe
