@@ -1,0 +1,46 @@
+-- Split probe: Core owns only the shared physical SpriteConfig.
+-- Build extends the same Base.WhiteWoodenDoor with construction-only components.
+
+module Base
+{
+    entity WhiteWoodenDoor
+    {
+        component SpriteConfig
+        {
+            skillBaseHealth = 300,
+            BreakSound = BreakDoor,
+
+            face W
+            {
+                layer
+                {
+                    row = fixtures_doors_01_0,
+                }
+            }
+
+            face N
+            {
+                layer
+                {
+                    row = fixtures_doors_01_1,
+                }
+            }
+
+            face W_OPEN
+            {
+                layer
+                {
+                    row = fixtures_doors_01_2,
+                }
+            }
+
+            face N_OPEN
+            {
+                layer
+                {
+                    row = fixtures_doors_01_3,
+                }
+            }
+        }
+    }
+}
