@@ -1,6 +1,5 @@
--- Build-side extension for Base.WhiteWoodenDoor.
--- The physical SpriteConfig lives in LMION_Core; Build contributes only
--- construction UI and recipe data.
+-- Build-side definition for Base.WhiteWoodenDoor.
+-- Rebuild from the Core template, then add construction UI and recipe data.
 
 module Base
 {
@@ -16,6 +15,8 @@ module Base
 
     entity WhiteWoodenDoor
     {
+        entitytemplate = WhiteWoodenDoorTemplate,
+
         component UiConfig
         {
             xuiSkin = default,
