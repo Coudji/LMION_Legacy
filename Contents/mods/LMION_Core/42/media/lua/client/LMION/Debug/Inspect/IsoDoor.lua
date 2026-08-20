@@ -102,6 +102,40 @@ local function dumpGarageGroup(object, report, garageDoorIndex)
     report:field("garage.next", next ~= nil and spriteLabel(next) or nil)
 end
 
+local function groupSummary(doubleDoorIndex, garageDoorIndex)
+    if type(garageDoorIndex) == "number" and garageDoorIndex >= 0 then
+        return "garage[" .. tostring(garageDoorIndex) .. "]"
+    end
+    if type(doubleDoorIndex) == "number" and doubleDoorIndex >= 0 then
+        return "double[" .. tostring(doubleDoorIndex) .. "]"
+    end
+    return "single"
+end
+
+local function securitySummary(object)
+    local parts = {}
+
+    if object:isLocked() then
+        parts[#parts + 1] = "locked"
+    else
+        parts[#parts + 1] = "unlocked"
+    end
+
+    if object:isLockedByKey() then
+        parts[#parts + 1] = "key=" .. tostring(object:getKeyId())
+    end
+
+    if object:isBarricaded() then
+        parts[#parts + 1] = "barricaded"
+    end
+
+    if Reflection.hasMethod(object, "HasCurtains", 0) and object:HasCurtains() then
+        parts[#parts + 1] = "curtains"
+    end
+
+    return table.concat(parts, ", ")
+end
+
 Debug.registerInspector("vanilla.isoDoor", 50, function(object, report)
     if not isIsoDoor(object) then
         return
@@ -110,11 +144,22 @@ Debug.registerInspector("vanilla.isoDoor", 50, function(object, report)
     local doubleDoorIndex = getDoubleDoorIndex(object)
     local garageDoorIndex = getGarageDoorIndex(object)
     local openSprite, openSpriteSource = getOpenSpriteInfo(object)
+    local closedSprite = Reflection.getSpriteFieldName(object, "closedSprite")
     local hasCurtains = Reflection.hasMethod(object, "HasCurtains", 0)
         and object:HasCurtains()
         or false
 
-    report:section("IsoDoor")
+    report:section("Door")
+
+    if not Options.isFullDetails() then
+        report:field("state", (object:getNorth() and "N" or "W") .. ", " .. (object:IsOpen() and "open" or "closed"))
+        report:field("health", tostring(object:getHealth()) .. " / " .. tostring(object:getMaxHealth()))
+        report:field("security", securitySummary(object))
+        report:field("sprites", tostring(closedSprite or "<nil>") .. " -> " .. tostring(openSprite or "<nil>"))
+        report:field("group", groupSummary(doubleDoorIndex, garageDoorIndex))
+        return
+    end
+
     report:field("north", object:getNorth())
     report:field("open", object:IsOpen())
     report:field("locked", object:isLocked())
@@ -137,7 +182,7 @@ Debug.registerInspector("vanilla.isoDoor", 50, function(object, report)
         report:field("curtainOpen", object:isCurtainOpen())
     end
 
-    report:field("closedSprite", Reflection.getSpriteFieldName(object, "closedSprite"))
+    report:field("closedSprite", closedSprite)
     report:field("openSprite", openSprite)
     report:field("oppositeSquare", Safe.squareString(object:getOppositeSquare()))
     report:field("doubleDoorIndex", doubleDoorIndex)
@@ -146,12 +191,6 @@ Debug.registerInspector("vanilla.isoDoor", 50, function(object, report)
     dumpDoubleDoorGroup(object, report, doubleDoorIndex)
     dumpGarageGroup(object, report, garageDoorIndex)
 
-    if not Options.isFullDetails() then
-        return
-    end
-
-    -- Full details deepen the existing IsoDoor section instead of creating a
-    -- separate artificial "IsoDoor details" section.
     report:field("exterior", object:isExterior())
     report:field("hoppable", object:isHoppable())
 
