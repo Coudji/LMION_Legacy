@@ -297,7 +297,7 @@ local function spawnGrid(scan, families, originX, originY, z, columns, cellX, ce
 end
 
 local function spawnRejected(scan, originX, originY, z, result)
-    local rejected = Catalog.getRejected(scan)
+    local rejected = (scan.excluded and scan.excluded.incomplete) or {}
     result.rejectedFound = #rejected
 
     for index, entry in ipairs(rejected) do
