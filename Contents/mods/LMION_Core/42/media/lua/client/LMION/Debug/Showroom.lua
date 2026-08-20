@@ -12,7 +12,7 @@ local FIXED_ORIGIN_X = 15600
 local FIXED_ORIGIN_Y = 600
 local FIXED_Z = 0
 local FIXED_WIDTH = 52
-local FIXED_HEIGHT = 50
+local FIXED_HEIGHT = 70
 local FIXED_TELEPORT_X = FIXED_ORIGIN_X - 2
 local FIXED_TELEPORT_Y = FIXED_ORIGIN_Y - 2
 local FIXED_FLOOR_CANDIDATES = {
@@ -114,6 +114,10 @@ local function logSpawnResult(result)
                 .. tostring(result.rejectedSpawned)
                 .. "/"
                 .. tostring(result.rejectedFound)
+                .. " + frames "
+                .. tostring(result.framesSpawned or 0)
+                .. "/"
+                .. tostring(result.framesFound or 0)
                 .. " ("
                 .. tostring(result.objectsSpawned)
                 .. " objects); skipped="
