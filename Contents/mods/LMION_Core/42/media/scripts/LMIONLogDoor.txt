@@ -1,0 +1,43 @@
+module Base
+{
+    entity LMIONLogDoor
+    {
+        component SpriteConfig
+        {
+            skillBaseHealth = 300,
+            BreakSound = BreakDoor,
+
+            face W
+            {
+                layer
+                {
+                    row = walls_logs_40,
+                }
+            }
+
+            face N
+            {
+                layer
+                {
+                    row = walls_logs_41,
+                }
+            }
+
+            face W_OPEN
+            {
+                layer
+                {
+                    row = walls_logs_42,
+                }
+            }
+
+            face N_OPEN
+            {
+                layer
+                {
+                    row = walls_logs_43,
+                }
+            }
+        }
+    }
+}
