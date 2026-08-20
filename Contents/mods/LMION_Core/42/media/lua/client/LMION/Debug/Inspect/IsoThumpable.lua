@@ -156,7 +156,8 @@ Debug.registerInspector("vanilla.isoThumpableDoor", 55, function(object, report)
         report:field("state", (object:getNorth() and "N" or "W") .. ", " .. (object:IsOpen() and "open" or "closed"))
         report:field("health", tostring(object:getHealth()) .. " / " .. tostring(object:getMaxHealth()))
         report:field("security", securitySummary(object))
-        report:field("sprites", tostring(closedSprite or "<nil>") .. " -> " .. tostring(openSprite or "<nil>"))
+        report:field("closedSprite", closedSprite)
+        report:field("openSprite", openSprite)
         report:field("group", groupSummary(doubleDoorIndex, garageDoorIndex))
         return
     end
