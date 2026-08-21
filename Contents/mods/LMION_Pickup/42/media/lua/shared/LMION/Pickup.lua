@@ -1,11 +1,3 @@
---[[
-    Let Me In... Or Not - Pickup
-    Shared registry for opening-family strategies.
-
-    User-facing rule:
-      If it opens and the player can pass through it, Pickup owns it.
-]]
-
 require "LMION/Core"
 
 LMION.Pickup = LMION.Pickup or {}
@@ -31,7 +23,6 @@ function Pickup.registerStrategy(id, strategy, priority)
         return false
     end
 
-    -- Reload-friendly: replace existing strategy by id.
     for i = #Pickup.Strategies, 1, -1 do
         if Pickup.Strategies[i].id == id then
             table.remove(Pickup.Strategies, i)

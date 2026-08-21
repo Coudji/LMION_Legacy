@@ -26,8 +26,6 @@ local function isLMIONLua(path)
         return false
     end
 
-    -- Prefixing with '/' also handles require-style paths such as
-    -- "LMION/Core.lua" in addition to full media/lua/... paths.
     return ("/" .. normalized):find(NAMESPACE_TOKEN, 1, true) ~= nil
 end
 
@@ -258,9 +256,6 @@ function Reload.reloadAll(options)
 
     closeInspectorForReload()
 
-    -- Keep the engine's original load order. Shared/Core code therefore reloads
-    -- before client files that already depended on it. This also means any
-    -- active LMION sub-mod under the common LMION/ Lua namespace is included.
     for _, path in ipairs(files) do
         if LMION.log ~= nil then
             LMION.log("Reload", "-> " .. tostring(path))
@@ -269,8 +264,6 @@ function Reload.reloadAll(options)
         reloadLuaFile(path)
     end
 
-    -- Reload this file last so the currently executing reload loop is never
-    -- replaced halfway through the operation.
     if selfFile ~= nil then
         if LMION.log ~= nil then
             LMION.log("Reload", "-> " .. tostring(selfFile))

@@ -14,7 +14,6 @@ function PropertyReaders.register(name, reader)
         return false
     end
 
-    -- Reload-friendly: a specific reader always overrides the default reader.
     PropertyReaders.readers[name] = reader
     return true
 end
@@ -45,9 +44,6 @@ function PropertyReaders.read(properties, name)
         return false, "<unread>"
     end
 
-    -- Keep the registry extensible: most properties can use the current
-    -- PropertyContainer string getter, while exceptional properties may
-    -- register a dedicated reader later.
     local ok, value = pcall(reader, properties, name)
 
     if not ok then

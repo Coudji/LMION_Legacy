@@ -3,7 +3,6 @@ require "LMION/Debug/World/Selection"
 
 LMION.Debug.World = LMION.Debug.World or {}
 
--- Reload-friendly cleanup of markers created by a previous version of this file.
 if LMION.Debug.World.Highlight ~= nil and LMION.Debug.World.Highlight.clearAll ~= nil then
     LMION.Debug.World.Highlight.clearAll()
 end
@@ -61,8 +60,6 @@ local function addMarker(square, r, g, b, alpha, size)
     )
 
     if marker ~= nil then
-        -- Force a stable alpha. GridSquareMarker has its own fade state even
-        -- when created with doAlpha=false, so keep all alpha values pinned.
         marker:setA(alpha)
         marker:setAlpha(alpha)
         marker:setAlphaMin(alpha)
@@ -106,10 +103,8 @@ function Highlight.sync()
         local marker
 
         if active then
-            -- Active square: stronger warm marker.
             marker = addMarker(entry.square, 1.0, 0.72, 0.15, 0.90, 1.02)
         else
-            -- Other selected squares: clearly visible but less dominant.
             marker = addMarker(entry.square, 0.20, 0.80, 1.0, 0.62, 0.96)
         end
 
@@ -134,8 +129,6 @@ function Highlight.setHover(square)
 
     Highlight.hoverKey = key
 
-    -- Pick hover: deliberately loud magenta and fully opaque so it is
-    -- immediately visible and cannot be confused with selected/active squares.
     Highlight.hoverMarker = addMarker(square, 1.0, 0.10, 0.90, 1.0, 1.08)
 end
 

@@ -1,8 +1,3 @@
---[[
-    Let Me In... Or Not - Core
-    Stable shared namespace / module registry / internal event bus.
-]]
-
 LMION = LMION or {}
 
 LMION.VERSION = "0.0.3-dev"
@@ -34,7 +29,6 @@ function LMION.registerModule(id, api)
         return false
     end
 
-    -- Reload-friendly: replace the API instead of refusing a second registration.
     LMION.Modules[id] = api or {}
     LMION.log("Core", "registered module: " .. id)
     return true
@@ -48,8 +42,6 @@ function LMION.isModuleRegistered(id)
     return LMION.Modules[id] ~= nil
 end
 
--- Optional-module communication.
--- ownerId lets us replace/remove listeners cleanly later if needed.
 function LMION.on(eventName, ownerId, callback)
     if type(eventName) ~= "string" or eventName == "" then
         LMION.error("Core", "on(): invalid event name")
@@ -63,7 +55,6 @@ function LMION.on(eventName, ownerId, callback)
 
     LMION.Listeners[eventName] = LMION.Listeners[eventName] or {}
 
-    -- Reload-friendly: one listener per owner/event.
     for i = #LMION.Listeners[eventName], 1, -1 do
         if LMION.Listeners[eventName][i].owner == ownerId then
             table.remove(LMION.Listeners[eventName], i)

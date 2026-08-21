@@ -1,10 +1,3 @@
---[[
-    Let Me In... Or Not - Core door-model registry.
-
-    Core owns only the shared identity and placement-facing representation
-    of a door model. Feature modules may attach their own data by owner id.
-]]
-
 require "LMION/Core"
 
 LMION.Doors = LMION.Doors or {}

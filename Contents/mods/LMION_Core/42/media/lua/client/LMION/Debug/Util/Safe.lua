@@ -112,7 +112,6 @@ function Safe.spriteName(object)
         return name
     end
 
-    -- Last-resort debug fallback. IsoObject tostring() often contains the tile.
     local raw = tostring(object)
     local parsed = raw:match("^[^:]*:([^:]+):")
 

@@ -4,7 +4,6 @@ LMION.Debug.Inspect = LMION.Debug.Inspect or {}
 local Options = LMION.Debug.Inspect.Options or {}
 LMION.Debug.Inspect.Options = Options
 
--- Keep the current choice across reloads. New sessions default to the clean view.
 if Options.fullDetails == nil then
     Options.fullDetails = false
 end

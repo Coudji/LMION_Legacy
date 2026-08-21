@@ -18,7 +18,6 @@ function Debug.registerInspector(id, priority, callback)
         return false
     end
 
-    -- Reload-friendly: same id replaces the previous section.
     Debug.Sections[id] = {
         id = id,
         priority = tonumber(priority) or 100,

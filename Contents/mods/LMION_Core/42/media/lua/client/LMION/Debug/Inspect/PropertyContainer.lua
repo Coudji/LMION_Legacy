@@ -11,10 +11,6 @@ local PropertyReaders = LMION.Debug.Inspect.PropertyReaders
 local PropertyContainer = LMION.Debug.Inspect.PropertyContainer or {}
 LMION.Debug.Inspect.PropertyContainer = PropertyContainer
 
--- Compact mode is for quick door diagnosis, not exhaustive tile archaeology.
--- Keep the properties that currently matter to identity, family structure,
--- interaction sound/material and salvage classification. Full mode still dumps
--- every property exposed by the tile.
 local COMPACT_PROPERTY_ORDER = {
     "EntityScriptName",
     "DoubleDoor",
@@ -97,8 +93,6 @@ local function formatPropertySummary(entries)
         if not entry.readable then
             parts[#parts + 1] = entry.name .. "=<unread>"
         elseif entry.value == nil or tostring(entry.value) == "" then
-            -- Empty-valued properties behave like presence markers in many
-            -- vanilla tiles, so the compact report only needs their name.
             parts[#parts + 1] = entry.name
         else
             parts[#parts + 1] = entry.name .. "=" .. tostring(entry.value)
@@ -124,8 +118,6 @@ local function compactPropertyEntries(entries)
         end
     end
 
-    -- Preserve generic usefulness when inspecting something that does not have
-    -- any of the door-oriented properties above.
     if #selected == 0 then
         return entries
     end

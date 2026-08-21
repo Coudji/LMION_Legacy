@@ -114,5 +114,6 @@ Core does not currently need to model open-state sprites, hinge/sliding mechanis
 - Pickup strategies will live under `shared/LMION/Pickup/Strategies/` when the first real strategy is implemented.
 - New code should be reload-friendly whenever practical: replace registrations by ID and remove/re-add event handlers instead of stacking duplicates.
 - Runtime classification must not rely on sprite names alone.
+- Game-loaded Lua and script files intentionally avoid source comments; important rationale and implementation constraints belong in project documentation such as this file or `LMION_Design_Notes.md`.
 - `media/scripts` changes require a real game restart; LMION Lua reload cannot reparse script definitions.
 - Development-only migration tooling should not remain in the repository after the migration it served is complete.

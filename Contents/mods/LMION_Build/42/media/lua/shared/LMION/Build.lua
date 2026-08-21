@@ -1,11 +1,3 @@
---[[
-    Let Me In... Or Not - Build
-    Construction/crafting entry points for opening families.
-
-    The current catalog is intentionally menu/research data.
-    Canonical opening-family definitions shared with Pickup belong in Core.
-]]
-
 require "LMION/Core"
 
 LMION.Build = LMION.Build or {}
