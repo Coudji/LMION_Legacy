@@ -6,7 +6,7 @@ module Base
         {
             LuaWindowClass = ISEntityWindow,
             DisplayName = Log Door,
-            Icon = Build_DoorWood,
+            Icon = walls_logs_41,
         }
     }
 
