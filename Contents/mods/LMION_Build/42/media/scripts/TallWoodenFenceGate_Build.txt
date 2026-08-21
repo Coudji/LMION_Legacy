@@ -2,27 +2,27 @@ module Base
 {
     xuiSkin default
     {
-        entity ES_FossoilDoor
+        entity ES_TallWoodenFenceGate
         {
             LuaWindowClass = ISEntityWindow,
-            DisplayName = Blue Glass Door,
-            Icon = location_shop_fossoil_01_61,
+            DisplayName = Tall Wooden Fence Gate,
+            Icon = fixtures_doors_fences_01_13,
         }
     }
 
-    entity FossoilDoor
+    entity TallWoodenFenceGate
     {
         component UiConfig
         {
             xuiSkin = default,
-            entityStyle = ES_FossoilDoor,
+            entityStyle = ES_TallWoodenFenceGate,
             uiEnabled = false,
         }
 
         component CraftRecipe
         {
             timedAction = BuildWallHammer,
-            time = 120,
+            time = 200,
             category = LMION,
             SkillRequired = Woodwork:3,
             xpAward = Woodwork:30,
@@ -31,10 +31,9 @@ module Base
             {
                 item 1 tags[base:hammer] mode:keep flags[Prop1;MayDegradeVeryLight],
                 item 1 [Base.Screwdriver] mode:keep,
-                item 2 [Base.Plank],
-                item 1 [Base.GlassPanel],
+                item 4 [Base.Plank],
+                item 4 [Base.Nails],
                 item 2 [Base.Hinge],
-                item 1 [Base.Doorknob],
                 item 4 [Base.Screws],
             }
         }

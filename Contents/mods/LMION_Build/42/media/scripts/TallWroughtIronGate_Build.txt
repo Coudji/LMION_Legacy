@@ -1,0 +1,43 @@
+module Base
+{
+    xuiSkin default
+    {
+        entity ES_TallWroughtIronGate
+        {
+            LuaWindowClass = ISEntityWindow,
+            DisplayName = Tall Wrought Iron Gate,
+            Icon = fixtures_doors_fences_01_21,
+        }
+    }
+
+    entity TallWroughtIronGate
+    {
+        component UiConfig
+        {
+            xuiSkin = default,
+            entityStyle = ES_TallWroughtIronGate,
+            uiEnabled = false,
+        }
+
+        component CraftRecipe
+        {
+            timedAction = BuildWireFence,
+            time = 200,
+            category = LMION,
+            SkillRequired = MetalWelding:3,
+            xpAward = MetalWelding:30,
+
+            inputs
+            {
+                item 1 [Base.WeldingMask] mode:keep,
+                item 1 [Base.Screwdriver] mode:keep,
+                item 4 [Base.BlowTorch] flags[DontRecordInput],
+                item 2 [Base.SmallSheetMetal],
+                item 2 [Base.MetalBar],
+                item 2 [Base.Hinge],
+                item 4 [Base.Screws],
+                item 4 [Base.WeldingRods] flags[DontRecordInput],
+            }
+        }
+    }
+}

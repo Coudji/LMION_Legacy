@@ -25,6 +25,7 @@ module Base
             time = 200,
             category = LMION,
             xpAward = Woodwork:10,
+
             inputs
             {
                 item 4 [Base.Log],

@@ -1,0 +1,83 @@
+module Base
+{
+    xuiSkin default
+    {
+        entity ES_GreyMetalDoubleDoorLeft
+        {
+            LuaWindowClass = ISEntityWindow,
+            DisplayName = Double Grey Metal Door - Left,
+            Icon = fixtures_doors_02_49,
+        }
+
+        entity ES_GreyMetalDoubleDoorRight
+        {
+            LuaWindowClass = ISEntityWindow,
+            DisplayName = Double Grey Metal Door - Right,
+            Icon = fixtures_doors_02_53,
+        }
+    }
+
+    entity GreyMetalDoubleDoorLeft
+    {
+        component UiConfig
+        {
+            xuiSkin = default,
+            entityStyle = ES_GreyMetalDoubleDoorLeft,
+            uiEnabled = false,
+        }
+
+        component CraftRecipe
+        {
+            timedAction = BuildWallMetal,
+            time = 200,
+            category = LMION,
+            SkillRequired = MetalWelding:3,
+            xpAward = MetalWelding:30,
+
+            inputs
+            {
+                item 1 [Base.WeldingMask] mode:keep,
+                item 1 [Base.Screwdriver] mode:keep,
+                item 4 [Base.BlowTorch] flags[DontRecordInput],
+                item 2 [Base.SmallSheetMetal],
+                item 2 [Base.MetalBar],
+                item 2 [Base.Hinge],
+                item 4 [Base.Screws],
+                item 1 [Base.Doorknob],
+                item 4 [Base.WeldingRods] flags[DontRecordInput],
+            }
+        }
+    }
+
+    entity GreyMetalDoubleDoorRight
+    {
+        component UiConfig
+        {
+            xuiSkin = default,
+            entityStyle = ES_GreyMetalDoubleDoorRight,
+            uiEnabled = false,
+        }
+
+        component CraftRecipe
+        {
+            timedAction = BuildWallMetal,
+            time = 200,
+            category = LMION,
+            SkillRequired = MetalWelding:3,
+            xpAward = MetalWelding:30,
+
+            inputs
+            {
+                item 1 [Base.WeldingMask] mode:keep,
+                item 1 [Base.Screwdriver] mode:keep,
+                item 4 [Base.BlowTorch] flags[DontRecordInput],
+                item 2 [Base.SmallSheetMetal],
+                item 2 [Base.MetalBar],
+                item 2 [Base.Hinge],
+                item 4 [Base.Screws],
+                item 1 [Base.Doorknob],
+                item 4 [Base.WeldingRods] flags[DontRecordInput],
+            }
+        }
+    }
+}

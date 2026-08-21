@@ -1,0 +1,44 @@
+module Base
+{
+    xuiSkin default
+    {
+        entity ES_BlackMetalDoor
+        {
+            LuaWindowClass = ISEntityWindow,
+            DisplayName = Black Metal Door,
+            Icon = fixtures_doors_02_13,
+        }
+    }
+
+    entity BlackMetalDoor
+    {
+        component UiConfig
+        {
+            xuiSkin = default,
+            entityStyle = ES_BlackMetalDoor,
+            uiEnabled = false,
+        }
+
+        component CraftRecipe
+        {
+            timedAction = BuildWallMetal,
+            time = 200,
+            category = LMION,
+            SkillRequired = MetalWelding:3,
+            xpAward = MetalWelding:30,
+
+            inputs
+            {
+                item 1 [Base.WeldingMask] mode:keep,
+                item 1 [Base.Screwdriver] mode:keep,
+                item 4 [Base.BlowTorch] flags[DontRecordInput],
+                item 2 [Base.SmallSheetMetal],
+                item 2 [Base.MetalBar],
+                item 2 [Base.Hinge],
+                item 4 [Base.Screws],
+                item 1 [Base.Doorknob],
+                item 4 [Base.WeldingRods] flags[DontRecordInput],
+            }
+        }
+    }
+}

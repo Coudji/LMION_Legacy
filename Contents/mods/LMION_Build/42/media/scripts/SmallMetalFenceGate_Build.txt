@@ -1,0 +1,43 @@
+module Base
+{
+    xuiSkin default
+    {
+        entity ES_SmallMetalFenceGate
+        {
+            LuaWindowClass = ISEntityWindow,
+            DisplayName = Small Metal Fence Gate,
+            Icon = fixtures_doors_fences_01_1,
+        }
+    }
+
+    entity SmallMetalFenceGate
+    {
+        component UiConfig
+        {
+            xuiSkin = default,
+            entityStyle = ES_SmallMetalFenceGate,
+            uiEnabled = false,
+        }
+
+        component CraftRecipe
+        {
+            timedAction = BuildWireFence,
+            time = 200,
+            category = LMION,
+            SkillRequired = MetalWelding:2,
+            xpAward = MetalWelding:20,
+
+            inputs
+            {
+                item 1 [Base.WeldingMask] mode:keep,
+                item 1 [Base.Screwdriver] mode:keep,
+                item 4 [Base.BlowTorch] flags[DontRecordInput],
+                item 1 [Base.SmallSheetMetal],
+                item 1 [Base.MetalBar],
+                item 2 [Base.Hinge],
+                item 4 [Base.Screws],
+                item 4 [Base.WeldingRods] flags[DontRecordInput],
+            }
+        }
+    }
+}

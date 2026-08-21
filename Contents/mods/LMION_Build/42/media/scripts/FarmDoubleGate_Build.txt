@@ -1,0 +1,43 @@
+module Base
+{
+    xuiSkin default
+    {
+        entity ES_FarmDoubleGate
+        {
+            LuaWindowClass = ISEntityWindow,
+            DisplayName = Farm Double Gate,
+            Icon = fixtures_doors_fences_01_114,
+        }
+    }
+
+    entity FarmDoubleGate
+    {
+        component UiConfig
+        {
+            xuiSkin = default,
+            entityStyle = ES_FarmDoubleGate,
+            uiEnabled = false,
+        }
+
+        component CraftRecipe
+        {
+            timedAction = BuildWireFence,
+            time = 200,
+            category = LMION,
+            SkillRequired = MetalWelding:4,
+            xpAward = MetalWelding:40,
+
+            inputs
+            {
+                item 1 [Base.WeldingMask] mode:keep,
+                item 1 [Base.Screwdriver] mode:keep,
+                item 8 [Base.BlowTorch] flags[DontRecordInput],
+                item 8 [Base.MetalBar],
+                item 4 [Base.MetalPipe],
+                item 4 [Base.Hinge],
+                item 8 [Base.Screws],
+                item 6 [Base.WeldingRods] flags[DontRecordInput],
+            }
+        }
+    }
+}

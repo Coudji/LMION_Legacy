@@ -1,0 +1,43 @@
+module Base
+{
+    xuiSkin default
+    {
+        entity ES_IndustrialGarageDoor
+        {
+            LuaWindowClass = ISEntityWindow,
+            DisplayName = Industrial Rolling Garage Door,
+            Icon = industry_trucks_01_35,
+        }
+    }
+
+    entity IndustrialGarageDoor
+    {
+        component UiConfig
+        {
+            xuiSkin = default,
+            entityStyle = ES_IndustrialGarageDoor,
+            uiEnabled = false,
+        }
+
+        component CraftRecipe
+        {
+            timedAction = BuildWallMetal,
+            time = 200,
+            category = LMION,
+            SkillRequired = MetalWelding:5,
+            xpAward = MetalWelding:50,
+
+            inputs
+            {
+                item 1 [Base.WeldingMask] mode:keep,
+                item 1 [Base.Screwdriver] mode:keep,
+                item 10 [Base.BlowTorch] flags[DontRecordInput],
+                item 9 [Base.SmallSheetMetal],
+                item 3 [Base.MetalBar],
+                item 6 [Base.Hinge],
+                item 12 [Base.Screws],
+                item 5 [Base.WeldingRods] flags[DontRecordInput],
+            }
+        }
+    }
+}
