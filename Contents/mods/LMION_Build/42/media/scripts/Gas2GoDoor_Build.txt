@@ -6,7 +6,7 @@ module Base
         {
             LuaWindowClass = ISEntityWindow,
             DisplayName = Gas 2 Go Door,
-            Icon = Build_DoorWood,
+            Icon = location_shop_gas2go_01_61,
         }
     }
 
