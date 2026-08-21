@@ -1,0 +1,325 @@
+module Base
+{
+    xuiSkin default
+    {
+        entity ES_BlackDoorWithWindow
+        {
+            Icon = LMION_BlackDoorWithWindow,
+        }
+
+        entity ES_BlackGlassDoor
+        {
+            Icon = LMION_BlackGlassDoor,
+        }
+
+        entity ES_BlackGlassDoubleDoorLeft
+        {
+            Icon = LMION_BlackGlassDoubleDoorLeft,
+        }
+
+        entity ES_BlackGlassDoubleDoorRight
+        {
+            Icon = LMION_BlackGlassDoubleDoorRight,
+        }
+
+        entity ES_BlackMetalDoor
+        {
+            Icon = LMION_BlackMetalDoor,
+        }
+
+        entity ES_BlackTwoPaneDoor
+        {
+            Icon = LMION_BlackTwoPaneDoor,
+        }
+
+        entity ES_BlueChurchDoubleDoorLeft
+        {
+            Icon = LMION_BlueChurchDoubleDoorLeft,
+        }
+
+        entity ES_BlueChurchDoubleDoorRight
+        {
+            Icon = LMION_BlueChurchDoubleDoorRight,
+        }
+
+        entity ES_BlueDoor
+        {
+            Icon = LMION_BlueDoor,
+        }
+
+        entity ES_BlueMetalDoor
+        {
+            Icon = LMION_BlueMetalDoor,
+        }
+
+        entity ES_BlueRestroomDoor
+        {
+            Icon = LMION_BlueRestroomDoor,
+        }
+
+        entity ES_BrownChurchDoubleDoorLeft
+        {
+            Icon = LMION_BrownChurchDoubleDoorLeft,
+        }
+
+        entity ES_BrownChurchDoubleDoorRight
+        {
+            Icon = LMION_BrownChurchDoubleDoorRight,
+        }
+
+        entity ES_BrownDoor
+        {
+            Icon = LMION_BrownDoor,
+        }
+
+        entity ES_BrownDoorWithWindows
+        {
+            Icon = LMION_BrownDoorWithWindows,
+        }
+
+        entity ES_BrownSlidingGlassDoor
+        {
+            Icon = LMION_BrownSlidingGlassDoor,
+        }
+
+        entity ES_CherryDoor
+        {
+            Icon = LMION_CherryDoor,
+        }
+
+        entity ES_ChestnutGlassDoor
+        {
+            Icon = LMION_ChestnutGlassDoor,
+        }
+
+        entity ES_FarmDoubleGate
+        {
+            Icon = LMION_FarmDoubleGate,
+        }
+
+        entity ES_FossoilDoor
+        {
+            Icon = LMION_FossoilDoor,
+        }
+
+        entity ES_Gas2GoDoor
+        {
+            Icon = LMION_Gas2GoDoor,
+        }
+
+        entity ES_GreenGarageDoor
+        {
+            Icon = LMION_GreenGarageDoor,
+        }
+
+        entity ES_GreyGarageDoor
+        {
+            Icon = LMION_GreyGarageDoor,
+        }
+
+        entity ES_GreyMetalDoubleDoorLeft
+        {
+            Icon = LMION_GreyMetalDoubleDoorLeft,
+        }
+
+        entity ES_GreyMetalDoubleDoorRight
+        {
+            Icon = LMION_GreyMetalDoubleDoorRight,
+        }
+
+        entity ES_IndustrialGarageDoor
+        {
+            Icon = LMION_IndustrialGarageDoor,
+        }
+
+        entity ES_JailDoor
+        {
+            Icon = LMION_JailDoor,
+        }
+
+        entity ES_LogDoor
+        {
+            Icon = LMION_LogDoor,
+        }
+
+        entity ES_OuthouseDoor
+        {
+            Icon = LMION_OuthouseDoor,
+        }
+
+        entity ES_PileOCrepeBlueDoorWithWindow
+        {
+            Icon = LMION_PileOCrepeBlueDoorWithWindow,
+        }
+
+        entity ES_PileOCrepeOrangeDoor
+        {
+            Icon = LMION_PileOCrepeOrangeDoor,
+        }
+
+        entity ES_PizzaWhirledBrownGlassDoor
+        {
+            Icon = LMION_PizzaWhirledBrownGlassDoor,
+        }
+
+        entity ES_PizzaWhirledGreenMetalDoor
+        {
+            Icon = LMION_PizzaWhirledGreenMetalDoor,
+        }
+
+        entity ES_RedMetalDoor
+        {
+            Icon = LMION_RedMetalDoor,
+        }
+
+        entity ES_RedWindowGarageDoor
+        {
+            Icon = LMION_RedWindowGarageDoor,
+        }
+
+        entity ES_RollingGarageDoor
+        {
+            Icon = LMION_RollingGarageDoor,
+        }
+
+        entity ES_RollingWindowGarageDoor
+        {
+            Icon = LMION_RollingWindowGarageDoor,
+        }
+
+        entity ES_RoughWoodenDoor
+        {
+            Icon = LMION_RoughWoodenDoor,
+        }
+
+        entity ES_SeaHorseGlassDoor
+        {
+            Icon = LMION_SeaHorseGlassDoor,
+        }
+
+        entity ES_SecurityDoor
+        {
+            Icon = LMION_SecurityDoor,
+        }
+
+        entity ES_SmallBlackPanelDoor
+        {
+            Icon = LMION_SmallBlackPanelDoor,
+        }
+
+        entity ES_SmallBlueDoor
+        {
+            Icon = LMION_SmallBlueDoor,
+        }
+
+        entity ES_SmallBrownPanelDoor
+        {
+            Icon = LMION_SmallBrownPanelDoor,
+        }
+
+        entity ES_SmallMetalFenceGate
+        {
+            Icon = LMION_SmallMetalFenceGate,
+        }
+
+        entity ES_SmallPinkDoor
+        {
+            Icon = LMION_SmallPinkDoor,
+        }
+
+        entity ES_SmallWhitePanelDoor
+        {
+            Icon = LMION_SmallWhitePanelDoor,
+        }
+
+        entity ES_SmallWhiteWoodenFenceGate
+        {
+            Icon = LMION_SmallWhiteWoodenFenceGate,
+        }
+
+        entity ES_SpiffosGlassDoor
+        {
+            Icon = LMION_SpiffosGlassDoor,
+        }
+
+        entity ES_SpiffosRedMetalDoor
+        {
+            Icon = LMION_SpiffosRedMetalDoor,
+        }
+
+        entity ES_TallWoodenFenceGate
+        {
+            Icon = LMION_TallWoodenFenceGate,
+        }
+
+        entity ES_TallWroughtIronGate
+        {
+            Icon = LMION_TallWroughtIronGate,
+        }
+
+        entity ES_TanDoorWithWindow
+        {
+            Icon = LMION_TanDoorWithWindow,
+        }
+
+        entity ES_TanMetalDoor
+        {
+            Icon = LMION_TanMetalDoor,
+        }
+
+        entity ES_WhiteDoorWithWindows
+        {
+            Icon = LMION_WhiteDoorWithWindows,
+        }
+
+        entity ES_WhiteGarageDoor
+        {
+            Icon = LMION_WhiteGarageDoor,
+        }
+
+        entity ES_WhiteMetalDoor
+        {
+            Icon = LMION_WhiteMetalDoor,
+        }
+
+        entity ES_WhiteMetalDoorWithWindow
+        {
+            Icon = LMION_WhiteMetalDoorWithWindow,
+        }
+
+        entity ES_WhiteSlidingGlassDoor
+        {
+            Icon = LMION_WhiteSlidingGlassDoor,
+        }
+
+        entity ES_WhiteWoodenDoor
+        {
+            Icon = LMION_WhiteWoodenDoor,
+        }
+
+        entity ES_WoodenDoor
+        {
+            Icon = LMION_WoodenDoor,
+        }
+
+        entity ES_WoodenFenceDoubleGate
+        {
+            Icon = LMION_WoodenFenceDoubleGate,
+        }
+
+        entity ES_WroughtIronDoubleGate
+        {
+            Icon = LMION_WroughtIronDoubleGate,
+        }
+
+        entity ES_YellowMetalDoubleDoorLeft
+        {
+            Icon = LMION_YellowMetalDoubleDoorLeft,
+        }
+
+        entity ES_YellowMetalDoubleDoorRight
+        {
+            Icon = LMION_YellowMetalDoubleDoorRight,
+        }
+    }
+}
