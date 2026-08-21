@@ -1,0 +1,45 @@
+module Base
+{
+    entity BrownSlidingGlassDoor
+    {
+        component SpriteConfig
+        {
+            health = 500,
+            skillBaseHealth = 50,
+            BreakSound = BreakDoor,
+            dontNeedFrame = true,
+
+            face W
+            {
+                layer
+                {
+                    row = fixtures_doors_01_108,
+                }
+            }
+
+            face N
+            {
+                layer
+                {
+                    row = fixtures_doors_01_109,
+                }
+            }
+
+            face W_OPEN
+            {
+                layer
+                {
+                    row = fixtures_doors_01_110,
+                }
+            }
+
+            face N_OPEN
+            {
+                layer
+                {
+                    row = fixtures_doors_01_111,
+                }
+            }
+        }
+    }
+}

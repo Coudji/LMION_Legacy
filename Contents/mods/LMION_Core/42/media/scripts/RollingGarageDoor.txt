@@ -1,0 +1,32 @@
+module Base
+{
+    entity RollingGarageDoor
+    {
+        component SpriteConfig
+        {
+            health = 500,
+            skillBaseHealth = 50,
+            dontNeedFrame = true,
+            BreakSound = BreakDoor,
+            OnCreate = LMION.Doors.onCreateGarage,
+
+            face W
+            {
+                layer
+                {
+                    row = walls_garage_02_2,
+                    row = walls_garage_02_1,
+                    row = walls_garage_02_0,
+                }
+            }
+
+            face N
+            {
+                layer
+                {
+                    row = walls_garage_02_3 walls_garage_02_4 walls_garage_02_5,
+                }
+            }
+        }
+    }
+}

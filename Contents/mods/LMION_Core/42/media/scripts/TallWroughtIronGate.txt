@@ -1,0 +1,45 @@
+module Base
+{
+    entity TallWroughtIronGate
+    {
+        component SpriteConfig
+        {
+            health = 500,
+            skillBaseHealth = 50,
+            BreakSound = BreakDoor,
+            dontNeedFrame = true,
+
+            face W
+            {
+                layer
+                {
+                    row = fixtures_doors_fences_01_20,
+                }
+            }
+
+            face N
+            {
+                layer
+                {
+                    row = fixtures_doors_fences_01_21,
+                }
+            }
+
+            face W_OPEN
+            {
+                layer
+                {
+                    row = fixtures_doors_fences_01_22,
+                }
+            }
+
+            face N_OPEN
+            {
+                layer
+                {
+                    row = fixtures_doors_fences_01_23,
+                }
+            }
+        }
+    }
+}

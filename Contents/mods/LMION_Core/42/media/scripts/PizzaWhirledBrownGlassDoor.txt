@@ -1,0 +1,44 @@
+module Base
+{
+    entity PizzaWhirledBrownGlassDoor
+    {
+        component SpriteConfig
+        {
+            health = 500,
+            skillBaseHealth = 50,
+            BreakSound = BreakDoor,
+
+            face W
+            {
+                layer
+                {
+                    row = location_restaurant_pizzawhirled_01_56,
+                }
+            }
+
+            face N
+            {
+                layer
+                {
+                    row = location_restaurant_pizzawhirled_01_57,
+                }
+            }
+
+            face W_OPEN
+            {
+                layer
+                {
+                    row = location_restaurant_pizzawhirled_01_58,
+                }
+            }
+
+            face N_OPEN
+            {
+                layer
+                {
+                    row = location_restaurant_pizzawhirled_01_59,
+                }
+            }
+        }
+    }
+}
