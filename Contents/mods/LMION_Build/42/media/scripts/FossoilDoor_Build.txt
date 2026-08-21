@@ -6,7 +6,7 @@ module Base
         {
             LuaWindowClass = ISEntityWindow,
             DisplayName = Fossoil Door,
-            Icon = Build_DoorWood,
+            Icon = location_shop_fossoil_01_61,
         }
     }
 
