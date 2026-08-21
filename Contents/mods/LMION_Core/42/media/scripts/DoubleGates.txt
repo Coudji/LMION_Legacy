@@ -1,0 +1,92 @@
+module Base
+{
+    entity FarmDoubleGate
+    {
+        component SpriteConfig
+        {
+            health = 500,
+            skillBaseHealth = 50,
+            dontNeedFrame = true,
+            BreakSound = BreakDoor,
+
+            face W
+            {
+                layer
+                {
+                    row = fixtures_doors_fences_01_113,
+                    row = fixtures_doors_fences_01_112,
+                    row = fixtures_doors_fences_01_121,
+                    row = fixtures_doors_fences_01_120,
+                }
+            }
+
+            face N
+            {
+                layer
+                {
+                    row = fixtures_doors_fences_01_114 fixtures_doors_fences_01_115 fixtures_doors_fences_01_122 fixtures_doors_fences_01_123,
+                }
+            }
+        }
+    }
+
+    entity WroughtIronDoubleGate
+    {
+        component SpriteConfig
+        {
+            health = 500,
+            skillBaseHealth = 50,
+            dontNeedFrame = true,
+            BreakSound = BreakDoor,
+
+            face W
+            {
+                layer
+                {
+                    row = fixtures_doors_fences_01_33,
+                    row = fixtures_doors_fences_01_32,
+                    row = fixtures_doors_fences_01_41,
+                    row = fixtures_doors_fences_01_40,
+                }
+            }
+
+            face N
+            {
+                layer
+                {
+                    row = fixtures_doors_fences_01_34 fixtures_doors_fences_01_35 fixtures_doors_fences_01_42 fixtures_doors_fences_01_43,
+                }
+            }
+        }
+    }
+
+    entity WoodenFenceDoubleGate
+    {
+        component SpriteConfig
+        {
+            health = 500,
+            skillBaseHealth = 50,
+            dontNeedFrame = true,
+            BreakSound = BreakDoor,
+
+            face W
+            {
+                layer
+                {
+                    row = fixtures_doors_fences_01_49,
+                    row = fixtures_doors_fences_01_48,
+                    row = fixtures_doors_fences_01_57,
+                    row = fixtures_doors_fences_01_56,
+                }
+            }
+
+            face N
+            {
+                layer
+                {
+                    row = fixtures_doors_fences_01_50 fixtures_doors_fences_01_51 fixtures_doors_fences_01_58 fixtures_doors_fences_01_59,
+                }
+            }
+        }
+    }
+}
