@@ -1,0 +1,384 @@
+module Base
+{
+    xuiSkin default
+    {
+        entity ES_WoodenDoor
+        {
+            LuaWindowClass = ISEntityWindow,
+            DisplayName = Wooden Door,
+            Icon = fixtures_doors_01_9,
+        }
+
+        entity ES_OuthouseDoor
+        {
+            LuaWindowClass = ISEntityWindow,
+            DisplayName = Outhouse Door,
+            Icon = fixtures_bathroom_02_33,
+        }
+
+        entity ES_BlueDoor
+        {
+            LuaWindowClass = ISEntityWindow,
+            DisplayName = Blue Door,
+            Icon = fixtures_doors_02_1,
+        }
+
+        entity ES_CherryDoor
+        {
+            LuaWindowClass = ISEntityWindow,
+            DisplayName = Cherry Door,
+            Icon = fixtures_doors_01_13,
+        }
+
+        entity ES_BlackMetalDoor
+        {
+            LuaWindowClass = ISEntityWindow,
+            DisplayName = Black Metal Door,
+            Icon = fixtures_doors_02_13,
+        }
+
+        entity ES_TanDoorWithWindow
+        {
+            LuaWindowClass = ISEntityWindow,
+            DisplayName = Tan Door with Window,
+            Icon = fixtures_doors_01_17,
+        }
+
+        entity ES_BrownDoorWithWindows
+        {
+            LuaWindowClass = ISEntityWindow,
+            DisplayName = Brown Door with Windows,
+            Icon = fixtures_doors_02_5,
+        }
+
+        entity ES_BlackDoorWithWindow
+        {
+            LuaWindowClass = ISEntityWindow,
+            DisplayName = Black Door with Window,
+            Icon = fixtures_doors_01_21,
+        }
+
+        entity ES_RedMetalDoor
+        {
+            LuaWindowClass = ISEntityWindow,
+            DisplayName = Red Metal Door,
+            Icon = fixtures_doors_02_9,
+        }
+
+        entity ES_BlueMetalDoor
+        {
+            LuaWindowClass = ISEntityWindow,
+            DisplayName = Blue Metal Door,
+            Icon = fixtures_doors_01_25,
+        }
+    }
+
+    entity WoodenDoor
+    {
+        component UiConfig
+        {
+            xuiSkin = default,
+            entityStyle = ES_WoodenDoor,
+            uiEnabled = false,
+        }
+
+        component CraftRecipe
+        {
+            timedAction = BuildWallHammer,
+            time = 200,
+            category = LMION,
+            SkillRequired = Woodwork:3,
+            xpAward = Woodwork:30,
+
+            inputs
+            {
+                item 1 tags[base:hammer] mode:keep flags[Prop1;MayDegradeVeryLight],
+                item 1 [Base.Screwdriver] mode:keep,
+                item 4 [Base.Plank],
+                item 4 [Base.Nails],
+                item 2 [Base.Hinge],
+                item 4 [Base.Screws],
+                item 1 [Base.Doorknob],
+            }
+        }
+    }
+
+    entity OuthouseDoor
+    {
+        component UiConfig
+        {
+            xuiSkin = default,
+            entityStyle = ES_OuthouseDoor,
+            uiEnabled = false,
+        }
+
+        component CraftRecipe
+        {
+            timedAction = BuildWallHammer,
+            time = 200,
+            category = LMION,
+            SkillRequired = Woodwork:3,
+            xpAward = Woodwork:30,
+
+            inputs
+            {
+                item 1 tags[base:hammer] mode:keep flags[Prop1;MayDegradeVeryLight],
+                item 1 [Base.Screwdriver] mode:keep,
+                item 4 [Base.Plank],
+                item 4 [Base.Nails],
+                item 2 [Base.Hinge],
+                item 4 [Base.Screws],
+                item 1 [Base.Doorknob],
+            }
+        }
+    }
+
+    entity BlueDoor
+    {
+        component UiConfig
+        {
+            xuiSkin = default,
+            entityStyle = ES_BlueDoor,
+            uiEnabled = false,
+        }
+
+        component CraftRecipe
+        {
+            timedAction = BuildWallHammer,
+            time = 200,
+            category = LMION,
+            SkillRequired = Woodwork:3,
+            xpAward = Woodwork:30,
+
+            inputs
+            {
+                item 1 tags[base:hammer] mode:keep flags[Prop1;MayDegradeVeryLight],
+                item 1 [Base.Screwdriver] mode:keep,
+                item 4 [Base.Plank],
+                item 4 [Base.Nails],
+                item 2 [Base.Hinge],
+                item 4 [Base.Screws],
+                item 1 [Base.Doorknob],
+            }
+        }
+    }
+
+    entity CherryDoor
+    {
+        component UiConfig
+        {
+            xuiSkin = default,
+            entityStyle = ES_CherryDoor,
+            uiEnabled = false,
+        }
+
+        component CraftRecipe
+        {
+            timedAction = BuildWallHammer,
+            time = 200,
+            category = LMION,
+            SkillRequired = Woodwork:3,
+            xpAward = Woodwork:30,
+
+            inputs
+            {
+                item 1 tags[base:hammer] mode:keep flags[Prop1;MayDegradeVeryLight],
+                item 1 [Base.Screwdriver] mode:keep,
+                item 4 [Base.Plank],
+                item 4 [Base.Nails],
+                item 2 [Base.Hinge],
+                item 4 [Base.Screws],
+                item 1 [Base.Doorknob],
+            }
+        }
+    }
+
+    entity BlackMetalDoor
+    {
+        component UiConfig
+        {
+            xuiSkin = default,
+            entityStyle = ES_BlackMetalDoor,
+            uiEnabled = false,
+        }
+
+        component CraftRecipe
+        {
+            timedAction = BuildWallMetal,
+            time = 200,
+            category = LMION,
+            SkillRequired = MetalWelding:3,
+            xpAward = MetalWelding:30,
+
+            inputs
+            {
+                item 1 [Base.WeldingMask] mode:keep,
+                item 1 [Base.Screwdriver] mode:keep,
+                item 4 [Base.BlowTorch] flags[DontRecordInput],
+                item 2 [Base.SmallSheetMetal],
+                item 2 [Base.MetalBar],
+                item 2 [Base.Hinge],
+                item 4 [Base.Screws],
+                item 1 [Base.Doorknob],
+                item 4 [Base.WeldingRods] flags[DontRecordInput],
+            }
+        }
+    }
+
+    entity TanDoorWithWindow
+    {
+        component UiConfig
+        {
+            xuiSkin = default,
+            entityStyle = ES_TanDoorWithWindow,
+            uiEnabled = false,
+        }
+
+        component CraftRecipe
+        {
+            timedAction = BuildWallHammer,
+            time = 200,
+            category = LMION,
+            SkillRequired = Woodwork:3,
+            xpAward = Woodwork:30,
+
+            inputs
+            {
+                item 1 tags[base:hammer] mode:keep flags[Prop1;MayDegradeVeryLight],
+                item 1 [Base.Screwdriver] mode:keep,
+                item 4 [Base.Plank],
+                item 4 [Base.Nails],
+                item 2 [Base.Hinge],
+                item 4 [Base.Screws],
+                item 1 [Base.Doorknob],
+                item 1 [Base.GlassPanel],
+            }
+        }
+    }
+
+    entity BrownDoorWithWindows
+    {
+        component UiConfig
+        {
+            xuiSkin = default,
+            entityStyle = ES_BrownDoorWithWindows,
+            uiEnabled = false,
+        }
+
+        component CraftRecipe
+        {
+            timedAction = BuildWallHammer,
+            time = 200,
+            category = LMION,
+            SkillRequired = Woodwork:3,
+            xpAward = Woodwork:30,
+
+            inputs
+            {
+                item 1 tags[base:hammer] mode:keep flags[Prop1;MayDegradeVeryLight],
+                item 1 [Base.Screwdriver] mode:keep,
+                item 4 [Base.Plank],
+                item 4 [Base.Nails],
+                item 2 [Base.Hinge],
+                item 4 [Base.Screws],
+                item 1 [Base.Doorknob],
+                item 1 [Base.GlassPanel],
+            }
+        }
+    }
+
+    entity BlackDoorWithWindow
+    {
+        component UiConfig
+        {
+            xuiSkin = default,
+            entityStyle = ES_BlackDoorWithWindow,
+            uiEnabled = false,
+        }
+
+        component CraftRecipe
+        {
+            timedAction = BuildWallHammer,
+            time = 200,
+            category = LMION,
+            SkillRequired = Woodwork:3,
+            xpAward = Woodwork:30,
+
+            inputs
+            {
+                item 1 tags[base:hammer] mode:keep flags[Prop1;MayDegradeVeryLight],
+                item 1 [Base.Screwdriver] mode:keep,
+                item 4 [Base.Plank],
+                item 4 [Base.Nails],
+                item 2 [Base.Hinge],
+                item 4 [Base.Screws],
+                item 1 [Base.Doorknob],
+                item 1 [Base.GlassPanel],
+            }
+        }
+    }
+
+    entity RedMetalDoor
+    {
+        component UiConfig
+        {
+            xuiSkin = default,
+            entityStyle = ES_RedMetalDoor,
+            uiEnabled = false,
+        }
+
+        component CraftRecipe
+        {
+            timedAction = BuildWallMetal,
+            time = 200,
+            category = LMION,
+            SkillRequired = MetalWelding:3,
+            xpAward = MetalWelding:30,
+
+            inputs
+            {
+                item 1 [Base.WeldingMask] mode:keep,
+                item 1 [Base.Screwdriver] mode:keep,
+                item 4 [Base.BlowTorch] flags[DontRecordInput],
+                item 2 [Base.SmallSheetMetal],
+                item 2 [Base.MetalBar],
+                item 2 [Base.Hinge],
+                item 4 [Base.Screws],
+                item 1 [Base.Doorknob],
+                item 4 [Base.WeldingRods] flags[DontRecordInput],
+            }
+        }
+    }
+
+    entity BlueMetalDoor
+    {
+        component UiConfig
+        {
+            xuiSkin = default,
+            entityStyle = ES_BlueMetalDoor,
+            uiEnabled = false,
+        }
+
+        component CraftRecipe
+        {
+            timedAction = BuildWallMetal,
+            time = 200,
+            category = LMION,
+            SkillRequired = MetalWelding:3,
+            xpAward = MetalWelding:30,
+
+            inputs
+            {
+                item 1 [Base.WeldingMask] mode:keep,
+                item 1 [Base.Screwdriver] mode:keep,
+                item 4 [Base.BlowTorch] flags[DontRecordInput],
+                item 2 [Base.SmallSheetMetal],
+                item 2 [Base.MetalBar],
+                item 2 [Base.Hinge],
+                item 4 [Base.Screws],
+                item 1 [Base.Doorknob],
+                item 4 [Base.WeldingRods] flags[DontRecordInput],
+            }
+        }
+    }
+}
