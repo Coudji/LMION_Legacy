@@ -2,42 +2,50 @@
 
 ## Current modules
 
-The Build 42 project currently contains two internal Mod IDs:
+The Build 42 project currently contains three internal Mod IDs:
 
 - `LMION_Core`
+- `LMION_Build`
 - `LMION_Pickup`
 
-`LMION_Pickup` requires `LMION_Core`.
+`LMION_Build` and `LMION_Pickup` both require `LMION_Core`; they do not depend on each other.
 
-The shared Core/Pickup bootstrap is currently versioned as `0.0.3-dev` in Lua.
+## Current development state
 
-## Current development workflow
+- **Core** provides the shared `LMION` framework, the canonical `LMION.Doors` registry, shared door-model data, and the LMION Inspector/debug tooling.
+- **Build** is the active construction prototype. It currently mirrors the 77-family showroom research set, provides provisional construction recipes/definitions, and uses standalone PNG textures for custom construction-menu icons.
+- **Pickup** has its shared framework/strategy registry in place, but no concrete pickup strategy is implemented yet.
 
 The repository is the source of truth for project structure and committed code. Development is done against the live Project Zomboid Workshop source tree, with VS Code used for direct Lua edits.
 
-Use the in-game `Reload LMION` debug action for Lua-only iteration whenever possible. It reloads every already-loaded Lua file under the shared `LMION/` namespace in load order, so active LMION submods are included automatically. In multiplayer, an authorized debug/admin client also asks the server-side LMION reload endpoint to reload the LMION Lua files loaded in the server Lua environment.
+## Development workflow
 
-A full game/server restart is still required after adding brand-new Lua files, changing load order, changing mod metadata/folder structure, or when engine state cannot be safely reconstructed by Lua reload.
+Use the in-game `Reload LMION` debug action for Lua-only iteration whenever possible. It reloads already-loaded Lua files under the shared `LMION/` namespace in load order, so active LMION submods are included automatically. In multiplayer, an authorized debug/admin client can also request the corresponding server-side reload.
+
+A full game/server restart is still required after adding brand-new Lua files, changing load order, changing mod metadata/folder structure, changing `media/scripts` definitions, or when engine state cannot be safely reconstructed by Lua reload.
 
 Avoid speculative Java method calls in debug code: in Debug Mode, Java/Kahlua runtime exceptions can open the Lua debugger even when Lua code uses `pcall`.
 
 ## LMION Inspector
 
-The current milestone is a reusable in-game inspector in `LMION_Core`.
+The reusable in-game Inspector lives in `LMION_Core`. It currently supports, among other things:
 
-Its responsibilities include:
-
-- inspecting all objects present on selected grid squares;
-- inspecting one or several selected world objects;
-- producing copyable text reports;
-- reporting generic `IsoObject` data;
-- reporting `IsoDoor`-specific runtime data;
-- exposing selected internal fields such as closed/open door sprites through controlled reflection;
-- selecting arbitrary world squares with a picker;
-- keeping selected/active squares highlighted in the world;
-- reloading LMION Lua code without reopening F11 for every edit.
+- inspecting objects on selected grid squares and selected world objects;
+- copyable compact and full-detail reports;
+- generic `IsoObject`, `IsoDoor`, door-like `IsoThumpable`, sprite and property-container inspection;
+- Build 42 entity/script inspection including `GameEntityScript`, `UiConfig`, `SpriteConfig`, and `CraftRecipe` data;
+- controlled access to useful runtime door fields such as closed/open sprites;
+- arbitrary world-square selection, multi-selection and persistent highlights;
+- showroom scanning/spawning for door and gate research;
+- LMION Lua reload actions for development iteration.
 
 The debug code is intentionally modular under `Debug/Inspect`, `Debug/UI`, `Debug/Util`, and `Debug/World`.
+
+## Build prototype notes
+
+The current Build catalog and recipes are development data, not final balance/progression. `Build/Catalog.lua` tracks the showroom families, while `Build/Drafts.lua` contains provisional Build-facing names/classification/recipe choices used to generate the current construction definitions.
+
+Construction icons are standalone PNG files under `LMION_Build/42/media/textures/`. The temporary packed-icon migration workflow used during development has been retired.
 
 ## Pickup research workflow
 

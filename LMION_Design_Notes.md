@@ -5,6 +5,7 @@
 - One Workshop item.
 - Several internal Mod IDs.
 - `LMION_Core` orchestrates shared systems, persistence conventions, optional-module interaction, and developer tooling.
+- `LMION_Build` owns construction/crafting concerns.
 - `LMION_Pickup` is the single user-facing pickup module for passable opening systems.
 - Internal complexity is handled through Pickup strategies, not through separate user-facing pickup mods for each opening family.
 
@@ -18,12 +19,14 @@ Synchronization between world objects does not automatically make them one inven
 
 Pickup is a non-destructive alternative to vanilla dismantling.
 
-For normal hinged doors:
+For normal hinged doors, current intended eligibility is:
 
-- the door should be open before removal;
-- barricades should be removed first;
-- curtains should be removed first;
-- a locked closed door must be opened normally before Pickup can remove it.
+- the door must be unlocked;
+- barricades must be removed first;
+- curtains must be removed first;
+- required tools and skill levels will be defined later.
+
+The door does **not** need to be open before removal. An earlier design tied removal more closely to hinge/frame mechanics, but that approach was abandoned.
 
 The primary physical condition observed so far is `health / maxHealth`. `modData.itemCondition` is not reliable as the authoritative damage state: damaged doors/gates can keep `itemCondition = 10/10`, and some linked pieces have no such modData at all.
 
@@ -115,7 +118,13 @@ The current architecture separates:
 - square scanning and selection state;
 - UI panels.
 
-The target UX is a dedicated inspector window rather than many debug context-menu entries. Selected objects should map directly to the report content. Planned world-picker work will keep selected squares visibly highlighted while the inspector is open, including multi-square selection.
+The Inspector is implemented as a dedicated window. Object selection drives the report content directly, and the world picker supports persistent selected/active-square highlights and multi-square selection.
+
+## Build prototype
+
+Build currently mirrors the researched showroom opening set with provisional construction data. The current recipes, names, and classifications are development scaffolding and can be cleaned up independently from the canonical `LMION.Doors` registry.
+
+Build presentation currently uses standalone PNG construction icons under the Build module's `media/textures` directory. Multi-tile objects should be represented by icons showing the complete opening rather than a single anchor tile.
 
 ## Future module ideas
 
