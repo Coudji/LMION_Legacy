@@ -1,0 +1,42 @@
+module Base
+{
+    xuiSkin default
+    {
+        entity ES_FossoilDoor
+        {
+            LuaWindowClass = ISEntityWindow,
+            DisplayName = Fossoil Door,
+            Icon = Build_DoorWood,
+        }
+    }
+
+    entity FossoilDoor
+    {
+        component UiConfig
+        {
+            xuiSkin = default,
+            entityStyle = ES_FossoilDoor,
+            uiEnabled = false,
+        }
+
+        component CraftRecipe
+        {
+            timedAction = BuildWallHammer,
+            time = 120,
+            category = LMION,
+            SkillRequired = Woodwork:3,
+            xpAward = Woodwork:30,
+
+            inputs
+            {
+                item 1 tags[base:hammer] mode:keep flags[Prop1;MayDegradeVeryLight],
+                item 1 [Base.Screwdriver] mode:keep,
+                item 2 [Base.Plank],
+                item 1 [Base.GlassPanel],
+                item 2 [Base.Hinge],
+                item 1 [Base.Doorknob],
+                item 4 [Base.Screws],
+            }
+        }
+    }
+}
