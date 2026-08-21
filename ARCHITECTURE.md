@@ -8,7 +8,6 @@ LMION_Workshop/
 ├── README_DEV.md
 ├── ARCHITECTURE.md
 ├── LMION_Design_Notes.md
-├── CHANGELOG.md
 ├── Research/
 ├── workshop.txt
 └── Contents/
@@ -26,10 +25,14 @@ LMION_Workshop/
         ├── LMION_Build/
         │   └── 42/
         │       ├── mod.info
-        │       ├── media/lua/shared/LMION/
-        │       │   ├── Build.lua
-        │       │   └── Build/Catalog.lua
-        │       └── media/scripts/
+        │       └── media/
+        │           ├── lua/shared/LMION/
+        │           │   ├── Build.lua
+        │           │   └── Build/
+        │           │       ├── Catalog.lua
+        │           │       └── Drafts.lua
+        │           ├── scripts/
+        │           └── textures/
         │
         └── LMION_Pickup/
             └── 42/
@@ -63,7 +66,9 @@ Build owns the player-facing construction side:
 - dismantle and destruction salvage rules;
 - Build-specific validation and UX around creating a door.
 
-The current `Build/Catalog.lua` is a **research/menu snapshot** of the showroom door set. It is not the canonical `DoorModel` registry.
+The current `Build/Catalog.lua` is a **research/menu snapshot** of the showroom door set. It is not the canonical `DoorModel` registry. `Build/Drafts.lua` contains provisional Build-facing names, classifications, and recipe choices used while the construction system is still being developed.
+
+Build-specific construction icons currently live as standalone PNG files under `media/textures/`; they are presentation assets, not canonical door-model data.
 
 Build depends on Core, not Pickup.
 
@@ -110,3 +115,4 @@ Core does not currently need to model open-state sprites, hinge/sliding mechanis
 - New code should be reload-friendly whenever practical: replace registrations by ID and remove/re-add event handlers instead of stacking duplicates.
 - Runtime classification must not rely on sprite names alone.
 - `media/scripts` changes require a real game restart; LMION Lua reload cannot reparse script definitions.
+- Development-only migration tooling should not remain in the repository after the migration it served is complete.
