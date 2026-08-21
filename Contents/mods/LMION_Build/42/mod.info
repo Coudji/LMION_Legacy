@@ -4,3 +4,4 @@ description=Craft and construct doors, gates and other opening families.
 tags=Build 42
 versionMin=42.0
 require=\LMION_Core
+pack=LMIONBuildIcons
