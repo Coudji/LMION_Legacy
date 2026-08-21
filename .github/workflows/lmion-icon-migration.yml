@@ -1,0 +1,149 @@
+name: LMION icon migration
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/lmion-icon-migration.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install Pillow
+        run: python -m pip install --disable-pip-version-check pillow
+
+      - name: Extract standalone PNG icons
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          import io
+
+          root = Path("Contents/mods/LMION_Build/42")
+          pack = root / "media/texturepacks/LMIONBuildIcons.pack"
+          textures = root / "media/textures"
+          mod_info = root / "mod.info"
+
+          if not pack.exists():
+              print("LMIONBuildIcons.pack is already absent; nothing to migrate.")
+              raise SystemExit(0)
+
+          names = [
+              "LMION_IndustrialGarageDoor",
+              "LMION_GreenGarageDoor",
+              "LMION_WhiteGarageDoor",
+              "LMION_GreyGarageDoor",
+              "LMION_RollingGarageDoor",
+              "LMION_RedWindowGarageDoor",
+              "LMION_RollingWindowGarageDoor",
+              "LMION_FarmDoubleGate",
+              "LMION_WroughtIronDoubleGate",
+              "LMION_WoodenFenceDoubleGate",
+              "LMION_BlackGlassDoubleDoorLeft",
+              "LMION_BlackGlassDoubleDoorRight",
+              "LMION_GreyMetalDoubleDoorLeft",
+              "LMION_GreyMetalDoubleDoorRight",
+              "LMION_YellowMetalDoubleDoorLeft",
+              "LMION_YellowMetalDoubleDoorRight",
+              "LMION_BlueChurchDoubleDoorLeft",
+              "LMION_BlueChurchDoubleDoorRight",
+              "LMION_BrownChurchDoubleDoorLeft",
+              "LMION_BrownChurchDoubleDoorRight",
+              "LMION_BrownSlidingGlassDoor",
+              "LMION_WhiteSlidingGlassDoor",
+              "LMION_TallWoodenFenceGate",
+              "LMION_TallWroughtIronGate",
+              "LMION_SmallMetalFenceGate",
+              "LMION_SmallWhiteWoodenFenceGate",
+              "LMION_SmallBlueDoor",
+              "LMION_SmallPinkDoor",
+              "LMION_SmallBrownPanelDoor",
+              "LMION_SmallWhitePanelDoor",
+              "LMION_SmallBlackPanelDoor",
+              "LMION_WhiteWoodenDoor",
+              "LMION_BlueRestroomDoor",
+              "LMION_OuthouseDoor",
+              "LMION_CherryDoor",
+              "LMION_TanDoorWithWindow",
+              "LMION_BlackDoorWithWindow",
+              "LMION_BlueMetalDoor",
+              "LMION_RoughWoodenDoor",
+              "LMION_SecurityDoor",
+              "LMION_ChestnutGlassDoor",
+              "LMION_BlackGlassDoor",
+              "LMION_WhiteDoorWithWindows",
+              "LMION_BlackTwoPaneDoor",
+              "LMION_BrownDoor",
+              "LMION_WhiteMetalDoor",
+              "LMION_WhiteMetalDoorWithWindow",
+              "LMION_TanMetalDoor",
+              "LMION_WoodenDoor",
+              "LMION_BlueDoor",
+              "LMION_BlackMetalDoor",
+              "LMION_BrownDoorWithWindows",
+              "LMION_RedMetalDoor",
+              "LMION_JailDoor",
+              "LMION_PileOCrepeBlueDoorWithWindow",
+              "LMION_PileOCrepeOrangeDoor",
+              "LMION_PizzaWhirledBrownGlassDoor",
+              "LMION_PizzaWhirledGreenMetalDoor",
+              "LMION_SeaHorseGlassDoor",
+              "LMION_SpiffosGlassDoor",
+              "LMION_SpiffosRedMetalDoor",
+              "LMION_FossoilDoor",
+              "LMION_Gas2GoDoor",
+              "LMION_LogDoor",
+          ]
+
+          raw = pack.read_bytes()
+          signature = b"\x89PNG\r\n\x1a\n"
+          png_offset = raw.find(signature)
+          if png_offset < 0:
+              raise RuntimeError("No embedded PNG found in LMIONBuildIcons.pack")
+
+          atlas = Image.open(io.BytesIO(raw[png_offset:])).convert("RGBA")
+          if atlas.size != (1024, 1024):
+              raise RuntimeError(f"Unexpected atlas size: {atlas.size}")
+          if len(names) != 64:
+              raise RuntimeError(f"Unexpected icon name count: {len(names)}")
+
+          textures.mkdir(parents=True, exist_ok=True)
+          for index, name in enumerate(names):
+              x = (index % 8) * 128
+              y = (index // 8) * 128
+              icon = atlas.crop((x, y, x + 128, y + 128))
+              if icon.getbbox() is None:
+                  raise RuntimeError(f"Empty icon cell {index}: {name}")
+              icon.save(textures / f"{name}.png", "PNG", optimize=True)
+
+          info_lines = mod_info.read_text(encoding="utf-8").splitlines()
+          info_lines = [line for line in info_lines if line.strip() != "pack=LMIONBuildIcons"]
+          mod_info.write_text("\n".join(info_lines) + "\n", encoding="utf-8")
+
+          pack.unlink()
+          print(f"Created {len(names)} standalone PNG icons in {textures}")
+          PY
+
+      - name: Commit migration
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No migration changes to commit."
+            exit 0
+          fi
+          git commit -m "refactor: use standalone PNG build icons"
+          git push origin HEAD:main
