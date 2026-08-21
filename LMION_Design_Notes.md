@@ -19,12 +19,14 @@ Synchronization between world objects does not automatically make them one inven
 
 Pickup is a non-destructive alternative to vanilla dismantling.
 
-For normal hinged doors:
+For normal hinged doors, current intended eligibility is:
 
-- the door should be open before removal;
-- barricades should be removed first;
-- curtains should be removed first;
-- a locked closed door must be opened normally before Pickup can remove it.
+- the door must be unlocked;
+- barricades must be removed first;
+- curtains must be removed first;
+- required tools and skill levels will be defined later.
+
+The door does **not** need to be open before removal. An earlier design tied removal more closely to hinge/frame mechanics, but that approach was abandoned.
 
 The primary physical condition observed so far is `health / maxHealth`. `modData.itemCondition` is not reliable as the authoritative damage state: damaged doors/gates can keep `itemCondition = 10/10`, and some linked pieces have no such modData at all.
 
