@@ -1,0 +1,422 @@
+module Base
+{
+    entity WhiteDoorWithWindows
+    {
+        component SpriteConfig
+        {
+            health = 500,
+            skillBaseHealth = 50,
+            BreakSound = BreakDoor,
+
+            face W
+            {
+                layer
+                {
+                    row = fixtures_doors_01_44,
+                }
+            }
+
+            face N
+            {
+                layer
+                {
+                    row = fixtures_doors_01_45,
+                }
+            }
+
+            face W_OPEN
+            {
+                layer
+                {
+                    row = fixtures_doors_01_46,
+                }
+            }
+
+            face N_OPEN
+            {
+                layer
+                {
+                    row = fixtures_doors_01_47,
+                }
+            }
+        }
+    }
+
+    entity SeaHorseGlassDoor
+    {
+        component SpriteConfig
+        {
+            health = 500,
+            skillBaseHealth = 50,
+            BreakSound = BreakDoor,
+
+            face W
+            {
+                layer
+                {
+                    row = location_restaurant_seahorse_01_48,
+                }
+            }
+
+            face N
+            {
+                layer
+                {
+                    row = location_restaurant_seahorse_01_49,
+                }
+            }
+
+            face W_OPEN
+            {
+                layer
+                {
+                    row = location_restaurant_seahorse_01_50,
+                }
+            }
+
+            face N_OPEN
+            {
+                layer
+                {
+                    row = location_restaurant_seahorse_01_51,
+                }
+            }
+        }
+    }
+
+    entity BlackTwoPaneDoor
+    {
+        component SpriteConfig
+        {
+            health = 500,
+            skillBaseHealth = 50,
+            BreakSound = BreakDoor,
+
+            face W
+            {
+                layer
+                {
+                    row = fixtures_doors_01_48,
+                }
+            }
+
+            face N
+            {
+                layer
+                {
+                    row = fixtures_doors_01_49,
+                }
+            }
+
+            face W_OPEN
+            {
+                layer
+                {
+                    row = fixtures_doors_01_50,
+                }
+            }
+
+            face N_OPEN
+            {
+                layer
+                {
+                    row = fixtures_doors_01_51,
+                }
+            }
+        }
+    }
+
+    entity SpiffosGlassDoor
+    {
+        component SpriteConfig
+        {
+            health = 500,
+            skillBaseHealth = 50,
+            BreakSound = BreakDoor,
+
+            face W
+            {
+                layer
+                {
+                    row = location_restaurant_spiffos_01_48,
+                }
+            }
+
+            face N
+            {
+                layer
+                {
+                    row = location_restaurant_spiffos_01_49,
+                }
+            }
+
+            face W_OPEN
+            {
+                layer
+                {
+                    row = location_restaurant_spiffos_01_50,
+                }
+            }
+
+            face N_OPEN
+            {
+                layer
+                {
+                    row = location_restaurant_spiffos_01_51,
+                }
+            }
+        }
+    }
+
+    entity BrownDoor
+    {
+        component SpriteConfig
+        {
+            health = 500,
+            skillBaseHealth = 50,
+            BreakSound = BreakDoor,
+
+            face W
+            {
+                layer
+                {
+                    row = fixtures_doors_01_4,
+                }
+            }
+
+            face N
+            {
+                layer
+                {
+                    row = fixtures_doors_01_5,
+                }
+            }
+
+            face W_OPEN
+            {
+                layer
+                {
+                    row = fixtures_doors_01_6,
+                }
+            }
+
+            face N_OPEN
+            {
+                layer
+                {
+                    row = fixtures_doors_01_7,
+                }
+            }
+        }
+    }
+
+    entity SpiffosRedMetalDoor
+    {
+        component SpriteConfig
+        {
+            health = 500,
+            skillBaseHealth = 50,
+            BreakSound = BreakDoor,
+
+            face W
+            {
+                layer
+                {
+                    row = location_restaurant_spiffos_01_52,
+                }
+            }
+
+            face N
+            {
+                layer
+                {
+                    row = location_restaurant_spiffos_01_53,
+                }
+            }
+
+            face W_OPEN
+            {
+                layer
+                {
+                    row = location_restaurant_spiffos_01_54,
+                }
+            }
+
+            face N_OPEN
+            {
+                layer
+                {
+                    row = location_restaurant_spiffos_01_55,
+                }
+            }
+        }
+    }
+
+    entity WhiteMetalDoor
+    {
+        component SpriteConfig
+        {
+            health = 500,
+            skillBaseHealth = 50,
+            BreakSound = BreakDoor,
+
+            face W
+            {
+                layer
+                {
+                    row = fixtures_doors_01_56,
+                }
+            }
+
+            face N
+            {
+                layer
+                {
+                    row = fixtures_doors_01_57,
+                }
+            }
+
+            face W_OPEN
+            {
+                layer
+                {
+                    row = fixtures_doors_01_58,
+                }
+            }
+
+            face N_OPEN
+            {
+                layer
+                {
+                    row = fixtures_doors_01_59,
+                }
+            }
+        }
+    }
+
+    entity WhiteMetalDoorWithWindow
+    {
+        component SpriteConfig
+        {
+            health = 500,
+            skillBaseHealth = 50,
+            BreakSound = BreakDoor,
+
+            face W
+            {
+                layer
+                {
+                    row = fixtures_doors_01_60,
+                }
+            }
+
+            face N
+            {
+                layer
+                {
+                    row = fixtures_doors_01_61,
+                }
+            }
+
+            face W_OPEN
+            {
+                layer
+                {
+                    row = fixtures_doors_01_62,
+                }
+            }
+
+            face N_OPEN
+            {
+                layer
+                {
+                    row = fixtures_doors_01_63,
+                }
+            }
+        }
+    }
+
+    entity TanMetalDoor
+    {
+        component SpriteConfig
+        {
+            health = 500,
+            skillBaseHealth = 50,
+            BreakSound = BreakDoor,
+
+            face W
+            {
+                layer
+                {
+                    row = fixtures_doors_01_64,
+                }
+            }
+
+            face N
+            {
+                layer
+                {
+                    row = fixtures_doors_01_65,
+                }
+            }
+
+            face W_OPEN
+            {
+                layer
+                {
+                    row = fixtures_doors_01_66,
+                }
+            }
+
+            face N_OPEN
+            {
+                layer
+                {
+                    row = fixtures_doors_01_67,
+                }
+            }
+        }
+    }
+
+    entity BlueRestroomDoor
+    {
+        component SpriteConfig
+        {
+            health = 500,
+            skillBaseHealth = 50,
+            BreakSound = BreakDoor,
+
+            face W
+            {
+                layer
+                {
+                    row = fixtures_bathroom_02_16,
+                }
+            }
+
+            face N
+            {
+                layer
+                {
+                    row = fixtures_bathroom_02_17,
+                }
+            }
+
+            face W_OPEN
+            {
+                layer
+                {
+                    row = fixtures_bathroom_02_18,
+                }
+            }
+
+            face N_OPEN
+            {
+                layer
+                {
+                    row = fixtures_bathroom_02_19,
+                }
+            }
+        }
+    }
+}
