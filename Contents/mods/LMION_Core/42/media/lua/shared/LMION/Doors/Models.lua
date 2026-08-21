@@ -23,4 +23,20 @@ LMION.Doors.register("Base.LogDoor", {
     },
 })
 
+LMION.Doors.register("Base.FossoilDoor", {
+    sourceEntity = "Base.FossoilDoor",
+    closedSprites = {
+        north = "location_shop_fossoil_01_61",
+        west = "location_shop_fossoil_01_60",
+    },
+})
+
+LMION.Doors.register("Base.Gas2GoDoor", {
+    sourceEntity = "Base.Gas2GoDoor",
+    closedSprites = {
+        north = "location_shop_gas2go_01_61",
+        west = "location_shop_gas2go_01_60",
+    },
+})
+
 LMION.log("Doors", "registered door models: " .. tostring(LMION.Doors.getCount()))
