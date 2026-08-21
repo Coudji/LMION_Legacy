@@ -15,8 +15,8 @@ LMION.Doors.register("Base.WoodenDoorLvl3", {
     },
 })
 
-LMION.Doors.register("Base.LMIONLogDoor", {
-    sourceEntity = "Base.LMIONLogDoor",
+LMION.Doors.register("Base.LogDoor", {
+    sourceEntity = "Base.LogDoor",
     closedSprites = {
         north = "walls_logs_41",
         west = "walls_logs_40",
