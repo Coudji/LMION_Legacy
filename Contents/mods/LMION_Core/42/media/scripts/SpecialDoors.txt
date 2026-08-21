@@ -1,0 +1,470 @@
+module Base
+{
+    entity BrownSlidingGlassDoor
+    {
+        component SpriteConfig
+        {
+            health = 500,
+            skillBaseHealth = 50,
+            BreakSound = BreakDoor,
+            dontNeedFrame = true,
+
+            face W
+            {
+                layer
+                {
+                    row = fixtures_doors_01_108,
+                }
+            }
+
+            face N
+            {
+                layer
+                {
+                    row = fixtures_doors_01_109,
+                }
+            }
+
+            face W_OPEN
+            {
+                layer
+                {
+                    row = fixtures_doors_01_110,
+                }
+            }
+
+            face N_OPEN
+            {
+                layer
+                {
+                    row = fixtures_doors_01_111,
+                }
+            }
+        }
+    }
+
+    entity WhiteSlidingGlassDoor
+    {
+        component SpriteConfig
+        {
+            health = 500,
+            skillBaseHealth = 50,
+            BreakSound = BreakDoor,
+            dontNeedFrame = true,
+
+            face W
+            {
+                layer
+                {
+                    row = fixtures_doors_01_116,
+                }
+            }
+
+            face N
+            {
+                layer
+                {
+                    row = fixtures_doors_01_117,
+                }
+            }
+
+            face W_OPEN
+            {
+                layer
+                {
+                    row = fixtures_doors_01_118,
+                }
+            }
+
+            face N_OPEN
+            {
+                layer
+                {
+                    row = fixtures_doors_01_119,
+                }
+            }
+        }
+    }
+
+    entity TallWoodenFenceGate
+    {
+        component SpriteConfig
+        {
+            health = 500,
+            skillBaseHealth = 50,
+            BreakSound = BreakDoor,
+            dontNeedFrame = true,
+
+            face W
+            {
+                layer
+                {
+                    row = fixtures_doors_fences_01_12,
+                }
+            }
+
+            face N
+            {
+                layer
+                {
+                    row = fixtures_doors_fences_01_13,
+                }
+            }
+
+            face W_OPEN
+            {
+                layer
+                {
+                    row = fixtures_doors_fences_01_14,
+                }
+            }
+
+            face N_OPEN
+            {
+                layer
+                {
+                    row = fixtures_doors_fences_01_15,
+                }
+            }
+        }
+    }
+
+    entity TallWroughtIronGate
+    {
+        component SpriteConfig
+        {
+            health = 500,
+            skillBaseHealth = 50,
+            BreakSound = BreakDoor,
+            dontNeedFrame = true,
+
+            face W
+            {
+                layer
+                {
+                    row = fixtures_doors_fences_01_20,
+                }
+            }
+
+            face N
+            {
+                layer
+                {
+                    row = fixtures_doors_fences_01_21,
+                }
+            }
+
+            face W_OPEN
+            {
+                layer
+                {
+                    row = fixtures_doors_fences_01_22,
+                }
+            }
+
+            face N_OPEN
+            {
+                layer
+                {
+                    row = fixtures_doors_fences_01_23,
+                }
+            }
+        }
+    }
+
+    entity SmallMetalFenceGate
+    {
+        component SpriteConfig
+        {
+            health = 500,
+            skillBaseHealth = 50,
+            BreakSound = BreakDoor,
+            dontNeedFrame = true,
+
+            face W
+            {
+                layer
+                {
+                    row = fixtures_doors_fences_01_0,
+                }
+            }
+
+            face N
+            {
+                layer
+                {
+                    row = fixtures_doors_fences_01_1,
+                }
+            }
+
+            face W_OPEN
+            {
+                layer
+                {
+                    row = fixtures_doors_fences_01_2,
+                }
+            }
+
+            face N_OPEN
+            {
+                layer
+                {
+                    row = fixtures_doors_fences_01_3,
+                }
+            }
+        }
+    }
+
+    entity SmallWhiteWoodenFenceGate
+    {
+        component SpriteConfig
+        {
+            health = 500,
+            skillBaseHealth = 50,
+            BreakSound = BreakDoor,
+            dontNeedFrame = true,
+
+            face W
+            {
+                layer
+                {
+                    row = fixtures_doors_fences_01_8,
+                }
+            }
+
+            face N
+            {
+                layer
+                {
+                    row = fixtures_doors_fences_01_9,
+                }
+            }
+
+            face W_OPEN
+            {
+                layer
+                {
+                    row = fixtures_doors_fences_01_10,
+                }
+            }
+
+            face N_OPEN
+            {
+                layer
+                {
+                    row = fixtures_doors_fences_01_11,
+                }
+            }
+        }
+    }
+
+    entity SmallBlueDoor
+    {
+        component SpriteConfig
+        {
+            health = 500,
+            skillBaseHealth = 50,
+            BreakSound = BreakDoor,
+
+            face W
+            {
+                layer
+                {
+                    row = fixtures_bathroom_01_48,
+                }
+            }
+
+            face N
+            {
+                layer
+                {
+                    row = fixtures_bathroom_01_49,
+                }
+            }
+
+            face W_OPEN
+            {
+                layer
+                {
+                    row = fixtures_bathroom_01_50,
+                }
+            }
+
+            face N_OPEN
+            {
+                layer
+                {
+                    row = fixtures_bathroom_01_51,
+                }
+            }
+        }
+    }
+
+    entity SmallPinkDoor
+    {
+        component SpriteConfig
+        {
+            health = 500,
+            skillBaseHealth = 50,
+            BreakSound = BreakDoor,
+
+            face W
+            {
+                layer
+                {
+                    row = fixtures_bathroom_01_64,
+                }
+            }
+
+            face N
+            {
+                layer
+                {
+                    row = fixtures_bathroom_01_65,
+                }
+            }
+
+            face W_OPEN
+            {
+                layer
+                {
+                    row = fixtures_bathroom_01_66,
+                }
+            }
+
+            face N_OPEN
+            {
+                layer
+                {
+                    row = fixtures_bathroom_01_67,
+                }
+            }
+        }
+    }
+
+    entity SmallBrownPanelDoor
+    {
+        component SpriteConfig
+        {
+            health = 500,
+            skillBaseHealth = 50,
+            BreakSound = BreakDoor,
+
+            face W
+            {
+                layer
+                {
+                    row = fixtures_doors_02_16,
+                }
+            }
+
+            face N
+            {
+                layer
+                {
+                    row = fixtures_doors_02_17,
+                }
+            }
+
+            face W_OPEN
+            {
+                layer
+                {
+                    row = fixtures_doors_02_18,
+                }
+            }
+
+            face N_OPEN
+            {
+                layer
+                {
+                    row = fixtures_doors_02_19,
+                }
+            }
+        }
+    }
+
+    entity SmallWhitePanelDoor
+    {
+        component SpriteConfig
+        {
+            health = 500,
+            skillBaseHealth = 50,
+            BreakSound = BreakDoor,
+
+            face W
+            {
+                layer
+                {
+                    row = fixtures_doors_02_20,
+                }
+            }
+
+            face N
+            {
+                layer
+                {
+                    row = fixtures_doors_02_21,
+                }
+            }
+
+            face W_OPEN
+            {
+                layer
+                {
+                    row = fixtures_doors_02_22,
+                }
+            }
+
+            face N_OPEN
+            {
+                layer
+                {
+                    row = fixtures_doors_02_23,
+                }
+            }
+        }
+    }
+
+    entity SmallBlackPanelDoor
+    {
+        component SpriteConfig
+        {
+            health = 500,
+            skillBaseHealth = 50,
+            BreakSound = BreakDoor,
+
+            face W
+            {
+                layer
+                {
+                    row = fixtures_doors_02_24,
+                }
+            }
+
+            face N
+            {
+                layer
+                {
+                    row = fixtures_doors_02_25,
+                }
+            }
+
+            face W_OPEN
+            {
+                layer
+                {
+                    row = fixtures_doors_02_26,
+                }
+            }
+
+            face N_OPEN
+            {
+                layer
+                {
+                    row = fixtures_doors_02_27,
+                }
+            }
+        }
+    }
+}
