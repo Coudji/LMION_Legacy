@@ -30,6 +30,20 @@ local function propertyValue(object, name)
     return properties:get(name)
 end
 
+local function spriteHasProperty(object, name)
+    if object == nil then
+        return false
+    end
+
+    local sprite = object:getSprite()
+    if sprite == nil then
+        return false
+    end
+
+    local properties = sprite:getProperties()
+    return properties ~= nil and properties:has(name)
+end
+
 local function isIsoDoor(object)
     return object ~= nil
         and instanceof ~= nil
@@ -147,6 +161,7 @@ Debug.registerInspector("door.runtime", 10, function(object, report)
     report:field("class", Safe.shortClassName(object))
     report:field("square", Safe.squareString(object:getSquare()))
     report:field("sprite", Safe.spriteName(object))
+    report:field("IsMoveAble", spriteHasProperty(object, "IsMoveAble"))
 
     if entityName ~= nil then
         report:field("entity", entityName)
