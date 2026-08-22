@@ -1,0 +1,103 @@
+require "LMION/Debug/Registry"
+
+LMION.Debug.TestZone = LMION.Debug.TestZone or {}
+
+local Manifest = LMION.Debug.TestZone.Manifest or {}
+LMION.Debug.TestZone.Manifest = Manifest
+
+Manifest.origin = {
+    x = 15660,
+    y = 600,
+    z = 0,
+    width = 31,
+    height = 25,
+    teleportX = 15658,
+    teleportY = 598,
+}
+
+Manifest.entries = {
+    { id = "Base.IndustrialGarageDoor", kind = "garage", frame = "none", x = 0, y = 2 },
+    { id = "Base.GreenGarageDoor", kind = "garage", frame = "none", x = 4, y = 2 },
+    { id = "Base.WhiteGarageDoor", kind = "garage", frame = "none", x = 8, y = 2 },
+    { id = "Base.GreyGarageDoor", kind = "garage", frame = "none", x = 12, y = 2 },
+    { id = "Base.RollingGarageDoor", kind = "garage", frame = "none", x = 16, y = 2 },
+    { id = "Base.RedWindowGarageDoor", kind = "garage", frame = "none", x = 20, y = 2 },
+    { id = "Base.RollingWindowGarageDoor", kind = "garage", frame = "none", x = 24, y = 2 },
+
+    { id = "Base.FarmDoubleGate", kind = "portal", frame = "none", x = 0, y = 7 },
+    { id = "Base.WroughtIronDoubleGate", kind = "portal", frame = "none", x = 5, y = 7 },
+    { id = "Base.WoodenFenceDoubleGate", kind = "portal", frame = "none", x = 10, y = 7 },
+    { id = "Base.DoubleWireGate", kind = "portal", frame = "none", x = 15, y = 7 },
+    { id = "Base.DoubleFenceGate", kind = "portal", frame = "none", x = 20, y = 7 },
+    { id = "Base.DoubleDoor", kind = "portal", frame = "none", x = 25, y = 7 },
+
+    { id = "Base.BlackGlassDoubleDoorLeft", kind = "paired", frame = "paired-left", x = 0, y = 12 },
+    { id = "Base.BlackGlassDoubleDoorRight", kind = "paired", frame = "paired-right", x = 1, y = 12 },
+    { id = "Base.GreyMetalDoubleDoorLeft", kind = "paired", frame = "paired-left", x = 3, y = 12 },
+    { id = "Base.GreyMetalDoubleDoorRight", kind = "paired", frame = "paired-right", x = 4, y = 12 },
+    { id = "Base.YellowMetalDoubleDoorLeft", kind = "paired", frame = "paired-left", x = 6, y = 12 },
+    { id = "Base.YellowMetalDoubleDoorRight", kind = "paired", frame = "paired-right", x = 7, y = 12 },
+    { id = "Base.BlueChurchDoubleDoorLeft", kind = "paired", frame = "paired-left", x = 9, y = 12 },
+    { id = "Base.BlueChurchDoubleDoorRight", kind = "paired", frame = "paired-right", x = 10, y = 12 },
+    { id = "Base.BrownChurchDoubleDoorLeft", kind = "paired", frame = "paired-left", x = 12, y = 12 },
+    { id = "Base.BrownChurchDoubleDoorRight", kind = "paired", frame = "paired-right", x = 13, y = 12 },
+
+    { id = "Base.WoodenDoorLvl1", kind = "single", frame = "standard", x = 0, y = 16 },
+    { id = "Base.WoodenDoorLvl2", kind = "single", frame = "standard", x = 1, y = 16 },
+    { id = "Base.WoodenDoorLvl3", kind = "single", frame = "standard", x = 2, y = 16 },
+    { id = "Base.WhiteWoodenDoor", kind = "single", frame = "standard", x = 3, y = 16 },
+    { id = "Base.MetalDoorLvl2", kind = "single", frame = "standard", x = 4, y = 16 },
+    { id = "Base.MetalDoorLvl1", kind = "single", frame = "standard", x = 5, y = 16 },
+    { id = "Base.MetalWireFenceGate", kind = "single", frame = "none", x = 6, y = 16 },
+    { id = "Base.MetalWireFenceGateSmall", kind = "single", frame = "none", x = 7, y = 16 },
+    { id = "Base.MetalPoleFenceGate", kind = "single", frame = "none", x = 8, y = 16 },
+    { id = "Base.MetalPoleFenceGateSmall", kind = "single", frame = "none", x = 9, y = 16 },
+    { id = "Base.WoodFenceGate", kind = "single", frame = "none", x = 10, y = 16 },
+    { id = "Base.SmallBlueDoor", kind = "single", frame = "standard", x = 11, y = 16 },
+    { id = "Base.SmallPinkDoor", kind = "single", frame = "standard", x = 12, y = 16 },
+    { id = "Base.BlueRestroomDoor", kind = "single", frame = "standard", x = 13, y = 16 },
+    { id = "Base.OuthouseDoor", kind = "single", frame = "standard", x = 14, y = 16 },
+    { id = "Base.BrownSlidingGlassDoor", kind = "single", frame = "none", x = 15, y = 16 },
+    { id = "Base.WhiteSlidingGlassDoor", kind = "single", frame = "none", x = 16, y = 16 },
+    { id = "Base.CherryDoor", kind = "single", frame = "standard", x = 17, y = 16 },
+
+    { id = "Base.TanDoorWithWindow", kind = "single", frame = "standard", x = 0, y = 19 },
+    { id = "Base.BlackDoorWithWindow", kind = "single", frame = "standard", x = 1, y = 19 },
+    { id = "Base.BlueMetalDoor", kind = "single", frame = "standard", x = 2, y = 19 },
+    { id = "Base.RoughWoodenDoor", kind = "single", frame = "standard", x = 3, y = 19 },
+    { id = "Base.SecurityDoor", kind = "single", frame = "standard", x = 4, y = 19 },
+    { id = "Base.ChestnutGlassDoor", kind = "single", frame = "standard", x = 5, y = 19 },
+    { id = "Base.BlackGlassDoor", kind = "single", frame = "standard", x = 6, y = 19 },
+    { id = "Base.WhiteDoorWithWindows", kind = "single", frame = "standard", x = 7, y = 19 },
+    { id = "Base.BlackTwoPaneDoor", kind = "single", frame = "standard", x = 8, y = 19 },
+    { id = "Base.BrownDoor", kind = "single", frame = "standard", x = 9, y = 19 },
+    { id = "Base.WhiteMetalDoor", kind = "single", frame = "standard", x = 10, y = 19 },
+    { id = "Base.WhiteMetalDoorWithWindow", kind = "single", frame = "standard", x = 11, y = 19 },
+    { id = "Base.TanMetalDoor", kind = "single", frame = "standard", x = 12, y = 19 },
+    { id = "Base.WoodenDoor", kind = "single", frame = "standard", x = 13, y = 19 },
+    { id = "Base.BlueDoor", kind = "single", frame = "standard", x = 14, y = 19 },
+    { id = "Base.BlackMetalDoor", kind = "single", frame = "standard", x = 15, y = 19 },
+    { id = "Base.SmallBrownPanelDoor", kind = "single", frame = "standard", x = 16, y = 19 },
+    { id = "Base.SmallWhitePanelDoor", kind = "single", frame = "standard", x = 17, y = 19 },
+
+    { id = "Base.SmallBlackPanelDoor", kind = "single", frame = "standard", x = 0, y = 22 },
+    { id = "Base.BrownDoorWithWindows", kind = "single", frame = "standard", x = 1, y = 22 },
+    { id = "Base.RedMetalDoor", kind = "single", frame = "standard", x = 2, y = 22 },
+    { id = "Base.SmallMetalFenceGate", kind = "single", frame = "none", x = 3, y = 22 },
+    { id = "Base.TallWoodenFenceGate", kind = "single", frame = "none", x = 4, y = 22 },
+    { id = "Base.TallWroughtIronGate", kind = "single", frame = "none", x = 5, y = 22 },
+    { id = "Base.SmallWhiteWoodenFenceGate", kind = "single", frame = "none", x = 6, y = 22 },
+    { id = "Base.JailDoor", kind = "single", frame = "standard", x = 7, y = 22 },
+    { id = "Base.PileOCrepeBlueDoorWithWindow", kind = "single", frame = "standard", x = 8, y = 22 },
+    { id = "Base.PileOCrepeOrangeDoor", kind = "single", frame = "standard", x = 9, y = 22 },
+    { id = "Base.PizzaWhirledBrownGlassDoor", kind = "single", frame = "standard", x = 10, y = 22 },
+    { id = "Base.PizzaWhirledGreenMetalDoor", kind = "single", frame = "standard", x = 11, y = 22 },
+    { id = "Base.SeaHorseGlassDoor", kind = "single", frame = "standard", x = 12, y = 22 },
+    { id = "Base.SpiffosGlassDoor", kind = "single", frame = "standard", x = 13, y = 22 },
+    { id = "Base.SpiffosRedMetalDoor", kind = "single", frame = "standard", x = 14, y = 22 },
+    { id = "Base.FossoilDoor", kind = "single", frame = "standard", x = 15, y = 22 },
+    { id = "Base.Gas2GoDoor", kind = "single", frame = "standard", x = 16, y = 22 },
+    { id = "Base.LogDoor", kind = "single", frame = "standard", x = 17, y = 22 },
+}
+
+return Manifest
