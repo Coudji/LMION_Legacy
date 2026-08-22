@@ -4,13 +4,15 @@
 
 - One Workshop item.
 - Several internal Mod IDs.
-- `LMION_Core` orchestrates shared systems and persistence conventions needed by gameplay modules.
+- `LMION_Core` orchestrates only shared systems and persistence conventions that are proven necessary by gameplay modules.
 - `LMION_Build` owns construction/crafting concerns.
 - `LMION_Pickup` is the single user-facing pickup module for passable opening systems.
 - `LMION_Debug` owns development-only tooling such as the Inspector, Test Zone and Lua reload helpers.
 - Internal complexity is handled through Pickup strategies, not through separate user-facing pickup mods for each opening family.
 
 `LMION_Debug` depends on Core, but Core, Build and Pickup do not depend on Debug.
+
+Core deliberately avoids speculative abstractions. The old generic event bus and parallel `LMION.Doors` model registry were removed because there was no concrete consumer and the model duplicated information already available from Project Zomboid runtime objects and `GameEntityScript` / `SpriteConfig` data. If future modules such as Locksmith need to exchange additional door state with Pickup, define a focused contract for that real requirement rather than restoring a generic bus pre-emptively.
 
 ## Pickup rule
 
@@ -129,7 +131,7 @@ The old dynamic showroom/research scanner has been retired. Runtime checks now u
 
 Build currently covers the researched opening set through `media/scripts` construction definitions. Those scripts are the source of truth for current Build entities, recipes and progression; the old Lua catalog and draft recipe generator have been removed.
 
-The recipes and balance are still provisional and can evolve independently from the canonical `LMION.Doors` registry.
+The recipes and balance are still provisional and can evolve independently from Core's shared engine adapters.
 
 Build presentation currently uses standalone PNG construction icons under the Build module's `media/textures` directory. Multi-tile objects should be represented by icons showing the complete opening rather than a single anchor tile.
 

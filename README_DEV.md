@@ -13,10 +13,12 @@ The Build 42 project currently contains four internal Mod IDs:
 
 ## Current development state
 
-- **Core** provides the shared `LMION` framework, the canonical `LMION.Doors` registry, shared door-model data, and shared opening definitions needed by feature modules.
+- **Core** provides the minimal shared `LMION` framework, module registration, shared opening engine adapters, and the entity definitions needed by the project.
 - **Build** is the active construction prototype. It currently covers the researched opening set through `media/scripts` definitions and standalone PNG construction-menu icons.
 - **Pickup** has its shared framework/strategy registry in place, but no concrete pickup strategy is implemented yet.
 - **Debug** contains the LMION Inspector, deterministic Test Zone, reflection helpers and Lua reload tooling used during development.
+
+Core intentionally does not maintain a parallel Lua door catalog or a generic cross-module event bus. When Project Zomboid already exposes the needed facts through runtime objects or `GameEntityScript` / `SpriteConfig`, those are preferred over duplicated model data. New shared contracts are added only when a concrete feature needs them.
 
 The repository is the source of truth for project structure and committed code. Development is done against the live Project Zomboid Workshop source tree, with VS Code used for direct Lua edits.
 

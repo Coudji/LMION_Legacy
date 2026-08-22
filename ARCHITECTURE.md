@@ -18,8 +18,7 @@ LMION_Workshop/
         │       ├── media/scripts/
         │       └── media/lua/shared/LMION/
         │           ├── Core.lua
-        │           ├── Doors.lua
-        │           └── Doors/Models.lua
+        │           └── Doors.lua
         │
         ├── LMION_Build/
         │   └── 42/
@@ -57,16 +56,16 @@ LMION_Workshop/
 
 ### `LMION_Core`
 
-Core owns functionality that must stay neutral and reusable across feature modules:
+Core owns only shared functionality that is proven necessary across gameplay modules:
 
-- module registration and cross-module hooks;
-- the shared `LMION.Doors` registry and canonical `DoorModel` data;
-- shared low-level placement primitives when both Build and Pickup need the same implementation;
-- persistence/world integration that genuinely crosses module boundaries.
+- the `LMION` namespace, logging helpers and module registration;
+- shared opening-specific engine adapters such as garage-door creation;
+- shared low-level placement or persistence primitives only when real Build/Pickup use cases require them;
+- `media/scripts` entity definitions needed by the project.
 
-A `DoorModel` describes only shared facts about a door that multiple modules need. The current model intentionally stays minimal: a stable `doorId`, optional source identity, and the closed sprites needed for placement by orientation. Do not add mechanism/gameplay classifications merely because they might be useful later.
+Core intentionally has no generic event bus, no speculative cross-module hook system, and no parallel Lua door-model registry. Runtime objects and their `GameEntityScript` / `SpriteConfig` data are preferred as the authoritative source when the engine already exposes the needed facts.
 
-Core should not become a pile of hard-coded `if Build`, `if Pickup`, `if Locksmith` branches. Feature modules register what they add through Core APIs.
+Future cross-module contracts should be added only for concrete requirements. Core should not accumulate generic abstractions merely because a later module might need them.
 
 ### `LMION_Build`
 
@@ -111,22 +110,11 @@ Debug depends on Core. Core, Build and Pickup do not depend on Debug. The namesp
 
 The Test Zone is intentionally a deterministic fixture. Its manifest explicitly defines which opening is spawned at each coordinate. It must not grow back into a runtime discovery scanner.
 
-### Shared door-model rule
+## Shared-system rule
 
-Build and Pickup must not grow separate definitions or placement engines for the same door.
+Build and Pickup must not duplicate genuinely shared placement or persistence logic. Shared abstractions belong in Core only after a real use case proves that both modules need them.
 
-The intended direction is:
-
-```text
-Core / LMION.Doors / DoorModel + neutral placement primitives
-               ↑                              ↑
-             Build                          Pickup
-      construction/economy            recovery/transport
-```
-
-Build and Pickup know only Core contracts plus their own data. They do not depend on each other. Module-specific data stays owned by that module and may be attached to a `doorId` through `LMION.Doors.extend(...)` when cross-module lookup is useful.
-
-Core does not currently need to model open-state sprites, hinge/sliding mechanisms, double-door classifications, garage-door classifications, or runtime grouping. Multi-sprite placement data will be added only when a real placement/pickup case proves what structure is required.
+Do not maintain a speculative parallel model of doors when equivalent runtime or script data is already available from Project Zomboid. If a future module such as Locksmith needs to attach additional state to a picked-up door, define a focused contract for that concrete requirement at that time.
 
 ## Folder rules
 
