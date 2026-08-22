@@ -3,41 +3,43 @@ require "LMION/Core"
 LMION.Doors = LMION.Doors or {}
 local Doors = LMION.Doors
 
-function Doors.onCreateGarage(params)
+function Doors.onCreateDoor(params)
     local thumpable = params and params.thumpable or nil
     if thumpable == nil then
         return nil
     end
 
     local square = thumpable:getSquare()
-    local garageDoor = IsoDoor.new(
+    local door = IsoDoor.new(
         getCell(),
         square,
         thumpable:getSprite(),
         thumpable:getNorth()
     )
 
-    garageDoor:setName(thumpable:getName())
-    garageDoor:setModData(copyTable(thumpable:getModData()))
-    garageDoor:setKeyId(thumpable:getKeyId())
-    garageDoor:setIsLocked(false)
-    garageDoor:setLockedByKey(false)
-    garageDoor:setHealth(thumpable:getHealth())
+    door:setName(thumpable:getName())
+    door:setModData(copyTable(thumpable:getModData()))
+    door:setKeyId(thumpable:getKeyId())
+    door:setIsLocked(false)
+    door:setLockedByKey(false)
+    door:setHealth(thumpable:getHealth())
 
     if GameEntityFactory ~= nil then
-        local properties = garageDoor:getProperties()
+        local properties = door:getProperties()
         if properties ~= nil and properties:has(IsoFlagType.EntityScript) then
-            GameEntityFactory.CreateIsoEntityFromCellLoading(garageDoor)
+            GameEntityFactory.CreateIsoEntityFromCellLoading(door)
         end
     end
 
-    square:AddSpecialObject(garageDoor)
+    square:AddSpecialObject(door)
     square:transmitRemoveItemFromSquare(thumpable)
 
     return {
         replaceObject = true,
-        object = garageDoor,
+        object = door,
     }
 end
+
+Doors.onCreateGarage = Doors.onCreateDoor
 
 return Doors
