@@ -4,10 +4,13 @@
 
 - One Workshop item.
 - Several internal Mod IDs.
-- `LMION_Core` orchestrates shared systems, persistence conventions, optional-module interaction, and developer tooling.
+- `LMION_Core` orchestrates shared systems and persistence conventions needed by gameplay modules.
 - `LMION_Build` owns construction/crafting concerns.
 - `LMION_Pickup` is the single user-facing pickup module for passable opening systems.
+- `LMION_Debug` owns development-only tooling such as the Inspector, Test Zone and Lua reload helpers.
 - Internal complexity is handled through Pickup strategies, not through separate user-facing pickup mods for each opening family.
+
+`LMION_Debug` depends on Core, but Core, Build and Pickup do not depend on Debug.
 
 ## Pickup rule
 
@@ -107,9 +110,9 @@ This matches earlier gameplay tests where arbitrarily long contiguous garage doo
 
 Although vanilla stores separate `IsoDoor` components, LMION should treat a functioning garage door as one transportable opening rather than exposing individual garage segments as inventory items.
 
-## Debug inspector design
+## Debug tooling
 
-The LMION Inspector belongs to Core because it is a general developer tool, not Pickup gameplay.
+The LMION Inspector belongs to the dedicated `LMION_Debug` module because it is a general developer tool, not gameplay runtime.
 
 The current architecture separates:
 

@@ -2,25 +2,27 @@
 
 ## Current modules
 
-The Build 42 project currently contains three internal Mod IDs:
+The Build 42 project currently contains four internal Mod IDs:
 
 - `LMION_Core`
 - `LMION_Build`
 - `LMION_Pickup`
+- `LMION_Debug`
 
-`LMION_Build` and `LMION_Pickup` both require `LMION_Core`; they do not depend on each other.
+`LMION_Build`, `LMION_Pickup` and `LMION_Debug` require `LMION_Core`. Build and Pickup do not depend on each other, and normal gameplay modules do not depend on Debug.
 
 ## Current development state
 
-- **Core** provides the shared `LMION` framework, the canonical `LMION.Doors` registry, shared door-model data, and the LMION Inspector/debug tooling.
+- **Core** provides the shared `LMION` framework, the canonical `LMION.Doors` registry, shared door-model data, and shared opening definitions needed by feature modules.
 - **Build** is the active construction prototype. It currently covers the researched opening set through `media/scripts` definitions and standalone PNG construction-menu icons.
 - **Pickup** has its shared framework/strategy registry in place, but no concrete pickup strategy is implemented yet.
+- **Debug** contains the LMION Inspector, deterministic Test Zone, reflection helpers and Lua reload tooling used during development.
 
 The repository is the source of truth for project structure and committed code. Development is done against the live Project Zomboid Workshop source tree, with VS Code used for direct Lua edits.
 
 ## Development workflow
 
-Use the in-game `Reload LMION` debug action for Lua-only iteration whenever possible. It reloads already-loaded Lua files under the shared `LMION/` namespace in load order, so active LMION submods are included automatically. In multiplayer, an authorized debug/admin client can also request the corresponding server-side reload.
+Enable `LMION_Debug` when developing. Use the in-game `Reload LMION` debug action for Lua-only iteration whenever possible. It reloads already-loaded Lua files under the shared `LMION/` namespace in load order, so active LMION submods are included automatically. In multiplayer, an authorized debug/admin client can also request the corresponding server-side reload.
 
 A full game/server restart is still required after adding brand-new Lua files, changing load order, changing mod metadata/folder structure, changing `media/scripts` definitions, or when engine state cannot be safely reconstructed by Lua reload.
 
@@ -28,7 +30,7 @@ Avoid speculative Java method calls in debug code: in Debug Mode, Java/Kahlua ru
 
 ## LMION Inspector
 
-The reusable in-game Inspector lives in `LMION_Core`. It currently supports, among other things:
+The reusable in-game Inspector lives in `LMION_Debug`. It currently supports, among other things:
 
 - inspecting objects on selected grid squares and selected world objects;
 - copyable compact and full-detail reports;
@@ -43,7 +45,7 @@ The debug code is intentionally modular under `Debug/Inspect`, `Debug/UI`, `Debu
 
 ## Test Zone
 
-The old dynamic showroom scanner has been retired. The current Test Zone is intentionally explicit and deterministic: `Debug/TestZone/Manifest.lua` defines which opening spawns at each position, while `Debug/TestZone/Spawner.lua` handles world preparation and object creation.
+The old dynamic showroom scanner has been retired. The current Test Zone is intentionally explicit and deterministic: `LMION_Debug/42/media/lua/client/LMION/Debug/TestZone/Manifest.lua` defines which opening spawns at each position, while `Spawner.lua` handles world preparation and object creation.
 
 The Test Zone is a development fixture, not a door-discovery system. If its composition changes, update the manifest deliberately rather than adding runtime scanning or classification heuristics.
 

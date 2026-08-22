@@ -16,20 +16,10 @@ LMION_Workshop/
         │   └── 42/
         │       ├── mod.info
         │       ├── media/scripts/
-        │       └── media/lua/
-        │           ├── shared/LMION/
-        │           │   ├── Core.lua
-        │           │   ├── Doors.lua
-        │           │   └── Doors/Models.lua
-        │           └── client/LMION/Debug/
-        │               ├── Inspect/
-        │               ├── UI/
-        │               ├── Util/
-        │               ├── World/
-        │               ├── TestZone.lua
-        │               └── TestZone/
-        │                   ├── Manifest.lua
-        │                   └── Spawner.lua
+        │       └── media/lua/shared/LMION/
+        │           ├── Core.lua
+        │           ├── Doors.lua
+        │           └── Doors/Models.lua
         │
         ├── LMION_Build/
         │   └── 42/
@@ -40,11 +30,27 @@ LMION_Workshop/
         │           ├── scripts/
         │           └── textures/
         │
-        └── LMION_Pickup/
+        ├── LMION_Pickup/
+        │   └── 42/
+        │       ├── mod.info
+        │       └── media/lua/shared/LMION/
+        │           └── Pickup.lua
+        │
+        └── LMION_Debug/
             └── 42/
                 ├── mod.info
-                └── media/lua/shared/LMION/
-                    └── Pickup.lua
+                └── media/lua/
+                    ├── client/LMION/Debug/
+                    │   ├── Inspect/
+                    │   ├── UI/
+                    │   ├── Util/
+                    │   ├── World/
+                    │   ├── TestZone.lua
+                    │   └── TestZone/
+                    │       ├── Manifest.lua
+                    │       └── Spawner.lua
+                    └── server/LMION/Debug/
+                        └── ReloadServer.lua
 ```
 
 ## Module responsibilities
@@ -56,14 +62,11 @@ Core owns functionality that must stay neutral and reusable across feature modul
 - module registration and cross-module hooks;
 - the shared `LMION.Doors` registry and canonical `DoorModel` data;
 - shared low-level placement primitives when both Build and Pickup need the same implementation;
-- persistence/world integration that genuinely crosses module boundaries;
-- developer/debug tooling.
+- persistence/world integration that genuinely crosses module boundaries.
 
 A `DoorModel` describes only shared facts about a door that multiple modules need. The current model intentionally stays minimal: a stable `doorId`, optional source identity, and the closed sprites needed for placement by orientation. Do not add mechanism/gameplay classifications merely because they might be useful later.
 
 Core should not become a pile of hard-coded `if Build`, `if Pickup`, `if Locksmith` branches. Feature modules register what they add through Core APIs.
-
-The debug Test Zone is intentionally a deterministic fixture. Its manifest explicitly defines which opening is spawned at each coordinate. It must not grow back into a runtime discovery scanner.
 
 ### `LMION_Build`
 
@@ -94,6 +97,20 @@ Pickup owns the player-facing recovery/transport side:
 
 Pickup depends on Core, not Build.
 
+### `LMION_Debug`
+
+Debug owns development-only tooling:
+
+- the LMION Inspector and its reports;
+- world-square selection, highlighting and picker UI;
+- controlled runtime reflection helpers used by inspection;
+- the deterministic Test Zone;
+- client/server LMION Lua reload helpers.
+
+Debug depends on Core. Core, Build and Pickup do not depend on Debug. The namespace remains `LMION.Debug` so the debug code can stay modular without leaking developer tooling into Core.
+
+The Test Zone is intentionally a deterministic fixture. Its manifest explicitly defines which opening is spawned at each coordinate. It must not grow back into a runtime discovery scanner.
+
 ### Shared door-model rule
 
 Build and Pickup must not grow separate definitions or placement engines for the same door.
@@ -114,14 +131,14 @@ Core does not currently need to model open-state sprites, hinge/sliding mechanis
 ## Folder rules
 
 - `shared/LMION/` contains APIs and data structures usable by client/server code.
-- `client/LMION/` contains UI, context menus, debug tools, and other client-only behavior.
-- `server/LMION/` is created only when authoritative MP/server logic actually exists.
+- `client/LMION/` contains UI, context menus and other client-only behavior.
+- `server/LMION/` contains authoritative server behavior when it genuinely exists.
 - The `LMION/` namespace folder is intentional; it avoids generic Lua require paths colliding with other mods.
-- Debug tooling belongs to `LMION_Core` and is split by responsibility rather than kept in one monolithic file.
-- Feature modules may register extra inspector sections from their own client code.
+- Developer/debug tooling belongs to `LMION_Debug`, not Core.
+- Feature modules may register extra inspector sections from their own client code when Debug is present, but they must not require Debug for gameplay.
 - Pickup strategies will live under `shared/LMION/Pickup/Strategies/` when the first real strategy is implemented.
 - New code should be reload-friendly whenever practical: replace registrations by ID and remove/re-add event handlers instead of stacking duplicates.
 - Runtime classification must not rely on sprite names alone.
 - Game-loaded Lua and script files intentionally avoid source comments; important rationale and implementation constraints belong in project documentation such as this file or `LMION_Design_Notes.md`.
 - `media/scripts` changes require a real game restart; LMION Lua reload cannot reparse script definitions.
-- Development-only migration or research tooling should not remain in the repository after the task it served is complete.
+- Development-only migration or research tooling should not remain in gameplay modules after the task it served is complete.
