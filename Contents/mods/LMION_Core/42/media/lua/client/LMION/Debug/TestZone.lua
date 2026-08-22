@@ -1,4 +1,5 @@
 require "LMION/Debug/Registry"
+require "LMION/Doors/Models"
 require "LMION/Debug/TestZone/Spawner"
 
 LMION.Debug.TestZone = LMION.Debug.TestZone or {}
@@ -48,52 +49,55 @@ end
 
 local function addScript(scripts, seen, script)
     if script == nil or script.getFullName == nil then
-        return
+        return false
     end
 
     local id = tostring(script:getFullName())
     if id == "" or seen[id] then
-        return
-    end
-
-    if ComponentType == nil or ComponentType.SpriteConfig == nil
-        or script.containsComponent == nil
-        or not script:containsComponent(ComponentType.SpriteConfig) then
-        return
+        return false
     end
 
     seen[id] = true
     scripts[#scripts + 1] = script
+    return true
 end
 
 function TestZone.collectEntityScripts()
     local scripts = {}
     local seen = {}
+    local unresolved = {}
 
     if ScriptManager == nil or ScriptManager.instance == nil then
-        return scripts
+        return scripts, { "ScriptManager" }
     end
 
-    local all = ScriptManager.instance:getAllGameEntities()
-    if all ~= nil then
-        for i = 0, all:size() - 1 do
-            local script = all:get(i)
-            if script ~= nil and script.getModID ~= nil
-                and tostring(script:getModID()) == "LMION_Core" then
-                addScript(scripts, seen, script)
+    local models = LMION.Doors ~= nil and LMION.Doors.getAll ~= nil
+        and LMION.Doors.getAll() or {}
+
+    for doorId, model in pairs(models) do
+        local entityId = model ~= nil and model.sourceEntity or doorId
+        local script = ScriptManager.instance:getGameEntityScript(entityId)
+
+        if not addScript(scripts, seen, script) then
+            if script == nil then
+                unresolved[#unresolved + 1] = tostring(entityId)
             end
         end
     end
 
     for _, id in ipairs(EXTRA_VANILLA_ENTITIES) do
-        addScript(scripts, seen, ScriptManager.instance:getGameEntityScript(id))
+        local script = ScriptManager.instance:getGameEntityScript(id)
+        if not addScript(scripts, seen, script) and script == nil then
+            unresolved[#unresolved + 1] = tostring(id)
+        end
     end
 
     table.sort(scripts, function(a, b)
         return tostring(a:getFullName()) < tostring(b:getFullName())
     end)
+    table.sort(unresolved)
 
-    return scripts
+    return scripts, unresolved
 end
 
 local function formatSkipReasons(reasons)
@@ -107,7 +111,7 @@ local function formatSkipReasons(reasons)
     return #parts > 0 and table.concat(parts, ", ") or "none"
 end
 
-local function logSpawnResult(result)
+local function logSpawnResult(result, unresolved)
     if result.error ~= nil then
         if LMION.error ~= nil then
             LMION.error("Debug", "test zone: " .. tostring(result.error))
@@ -145,6 +149,13 @@ local function logSpawnResult(result)
                 .. tostring(EXPECTED_ENTITY_COUNT)
                 .. " entities but found "
                 .. tostring(result.entitiesFound)
+        )
+    end
+
+    if unresolved ~= nil and #unresolved > 0 and LMION.warn ~= nil then
+        LMION.warn(
+            "Debug",
+            "test zone unresolved entities: " .. table.concat(unresolved, ", ")
         )
     end
 
@@ -193,7 +204,7 @@ local function finishFixedRebuild()
         return
     end
 
-    local scripts = TestZone.collectEntityScripts()
+    local scripts, unresolved = TestZone.collectEntityScripts()
     local result = Spawner.spawn(scripts, fixedOriginSquare())
     TestZone._fixedRebuild = nil
 
@@ -213,7 +224,7 @@ local function finishFixedRebuild()
         )
     end
 
-    logSpawnResult(result)
+    logSpawnResult(result, unresolved)
 end
 
 function TestZone.onFixedRebuildTick()
