@@ -47,57 +47,95 @@ local function fixedOriginSquare()
     return getCell():getGridSquare(FIXED_ORIGIN_X, FIXED_ORIGIN_Y, FIXED_Z)
 end
 
-local function addScript(scripts, seen, script)
-    if script == nil or script.getFullName == nil then
-        return false
-    end
+local function collectWantedEntityIds()
+    local wanted = {}
 
-    local id = tostring(script:getFullName())
-    if id == "" or seen[id] then
-        return false
-    end
-
-    seen[id] = true
-    scripts[#scripts + 1] = script
-    return true
-end
-
-function TestZone.collectEntityScripts()
-    local scripts = {}
-    local seen = {}
-    local unresolved = {}
-
-    if ScriptManager == nil or ScriptManager.instance == nil then
-        return scripts, { "ScriptManager" }
-    end
-
-    local models = LMION.Doors ~= nil and LMION.Doors.getAll ~= nil
-        and LMION.Doors.getAll() or {}
-
-    for doorId, model in pairs(models) do
-        local entityId = model ~= nil and model.sourceEntity or doorId
-        local script = ScriptManager.instance:getGameEntityScript(entityId)
-
-        if not addScript(scripts, seen, script) then
-            if script == nil then
-                unresolved[#unresolved + 1] = tostring(entityId)
+    if LMION.Doors ~= nil and LMION.Doors.getAll ~= nil then
+        for doorId, model in pairs(LMION.Doors.getAll()) do
+            local entityId = model ~= nil and model.sourceEntity or doorId
+            if entityId ~= nil and tostring(entityId) ~= "" then
+                wanted[tostring(entityId)] = true
             end
         end
     end
 
-    for _, id in ipairs(EXTRA_VANILLA_ENTITIES) do
-        local script = ScriptManager.instance:getGameEntityScript(id)
-        if not addScript(scripts, seen, script) and script == nil then
-            unresolved[#unresolved + 1] = tostring(id)
+    for _, entityId in ipairs(EXTRA_VANILLA_ENTITIES) do
+        wanted[entityId] = true
+    end
+
+    local ids = {}
+    for entityId in pairs(wanted) do
+        ids[#ids + 1] = entityId
+    end
+    table.sort(ids)
+
+    return ids
+end
+
+local function resolveObjectInfo(spriteScript, objectInfos)
+    if spriteScript == nil or objectInfos == nil then
+        return nil
+    end
+
+    for i = 0, objectInfos:size() - 1 do
+        local info = objectInfos:get(i)
+        if info ~= nil and info:getScript() == spriteScript then
+            return info
         end
     end
 
-    table.sort(scripts, function(a, b)
-        return tostring(a:getFullName()) < tostring(b:getFullName())
-    end)
-    table.sort(unresolved)
+    return nil
+end
 
-    return scripts, unresolved
+function TestZone.collectEntries()
+    local entries = {}
+    local unresolved = {}
+
+    if ScriptManager == nil or ScriptManager.instance == nil then
+        return entries, { "ScriptManager unavailable" }
+    end
+
+    if SpriteConfigManager == nil or SpriteConfigManager.GetObjectInfoList == nil then
+        return entries, { "SpriteConfigManager unavailable" }
+    end
+
+    if ComponentType == nil or ComponentType.SpriteConfig == nil then
+        return entries, { "ComponentType.SpriteConfig unavailable" }
+    end
+
+    local objectInfos = SpriteConfigManager.GetObjectInfoList()
+    if objectInfos == nil then
+        return entries, { "SpriteConfigManager object list unavailable" }
+    end
+
+    for _, entityId in ipairs(collectWantedEntityIds()) do
+        local gameScript = ScriptManager.instance:getGameEntityScript(entityId)
+
+        if gameScript == nil then
+            unresolved[#unresolved + 1] = entityId .. " [entity]"
+        else
+            local spriteScript = gameScript:getComponentScriptFor(ComponentType.SpriteConfig)
+
+            if spriteScript == nil then
+                unresolved[#unresolved + 1] = entityId .. " [SpriteConfig]"
+            else
+                local objectInfo = resolveObjectInfo(spriteScript, objectInfos)
+
+                if objectInfo == nil then
+                    unresolved[#unresolved + 1] = entityId .. " [ObjectInfo]"
+                else
+                    entries[#entries + 1] = {
+                        id = entityId,
+                        gameScript = gameScript,
+                        spriteScript = spriteScript,
+                        objectInfo = objectInfo,
+                    }
+                end
+            end
+        end
+    end
+
+    return entries, unresolved
 end
 
 local function formatSkipReasons(reasons)
@@ -147,7 +185,7 @@ local function logSpawnResult(result, unresolved)
             "Debug",
             "test zone expected "
                 .. tostring(EXPECTED_ENTITY_COUNT)
-                .. " entities but found "
+                .. " entities but resolved "
                 .. tostring(result.entitiesFound)
         )
     end
@@ -155,11 +193,11 @@ local function logSpawnResult(result, unresolved)
     if unresolved ~= nil and #unresolved > 0 and LMION.warn ~= nil then
         LMION.warn(
             "Debug",
-            "test zone unresolved entities: " .. table.concat(unresolved, ", ")
+            "test zone unresolved: " .. table.concat(unresolved, ", ")
         )
     end
 
-    if #result.rejected > 0 and LMION.warn ~= nil then
+    if result.rejected ~= nil and #result.rejected > 0 and LMION.warn ~= nil then
         for _, entry in ipairs(result.rejected) do
             LMION.warn(
                 "Debug",
@@ -204,8 +242,8 @@ local function finishFixedRebuild()
         return
     end
 
-    local scripts, unresolved = TestZone.collectEntityScripts()
-    local result = Spawner.spawn(scripts, fixedOriginSquare())
+    local entries, unresolved = TestZone.collectEntries()
+    local result = Spawner.spawn(entries, fixedOriginSquare())
     TestZone._fixedRebuild = nil
 
     if LMION.log ~= nil then
