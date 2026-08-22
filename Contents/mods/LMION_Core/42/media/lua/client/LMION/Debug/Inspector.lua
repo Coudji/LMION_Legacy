@@ -14,6 +14,7 @@ require "LMION/Debug/World/SquareScanner"
 require "LMION/Debug/World/Selection"
 require "LMION/Debug/UI/InspectorWindow"
 require "LMION/Debug/Showroom"
+require "LMION/Debug/TestZone"
 
 local Debug = LMION.Debug
 
