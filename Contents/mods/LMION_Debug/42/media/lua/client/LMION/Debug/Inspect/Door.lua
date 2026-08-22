@@ -161,7 +161,10 @@ Debug.registerInspector("door.runtime", 10, function(object, report)
     report:field("class", Safe.shortClassName(object))
     report:field("square", Safe.squareString(object:getSquare()))
     report:field("sprite", Safe.spriteName(object))
-    report:field("IsMoveAble", spriteHasProperty(object, "IsMoveAble"))
+
+    if spriteHasProperty(object, "IsMoveAble") then
+        report:line("IsMoveAble")
+    end
 
     if entityName ~= nil then
         report:field("entity", entityName)
