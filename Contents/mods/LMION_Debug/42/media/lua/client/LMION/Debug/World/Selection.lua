@@ -1,19 +1,15 @@
 require "LMION/Debug/Util/Safe"
-require "LMION/Debug/World/SquareScanner"
 
 LMION.Debug.World = LMION.Debug.World or {}
 LMION.Debug.World.Selection = LMION.Debug.World.Selection or {}
 
 local Safe = LMION.Debug.Util.Safe
-local SquareScanner = LMION.Debug.World.SquareScanner
 local Selection = LMION.Debug.World.Selection
 
 Selection.squares = Selection.squares or {}
 Selection.squareByKey = Selection.squareByKey or {}
 Selection.activeKey = Selection.activeKey or nil
-Selection.originKey = Selection.originKey or nil
 Selection.selectedObjectByKey = Selection.selectedObjectByKey or {}
-Selection.activeObjectKey = Selection.activeObjectKey or nil
 
 local function rebuildSquareMap()
     Selection.squareByKey = {}
@@ -40,10 +36,6 @@ function Selection.addSquare(square, makeActive)
 
         Selection.squares[#Selection.squares + 1] = entry
         Selection.squareByKey[key] = entry
-
-        if Selection.originKey == nil then
-            Selection.originKey = key
-        end
     else
         existing.square = square
         existing.text = Safe.squareString(square)
@@ -108,11 +100,6 @@ function Selection.removeActiveSquare()
 
     Selection.squares = kept
     rebuildSquareMap()
-
-    if Selection.originKey == removedKey then
-        Selection.originKey = Selection.squares[1] ~= nil and Selection.squares[1].key or nil
-    end
-
     Selection.activeKey = Selection.squares[1] ~= nil and Selection.squares[1].key or nil
 
     for key, selected in pairs(Selection.selectedObjectByKey) do
@@ -126,9 +113,7 @@ function Selection.clearSquares()
     Selection.squares = {}
     Selection.squareByKey = {}
     Selection.activeKey = nil
-    Selection.originKey = nil
     Selection.selectedObjectByKey = {}
-    Selection.activeObjectKey = nil
 end
 
 function Selection.addAdjacent(dx, dy, dz)
@@ -212,12 +197,6 @@ function Selection.selectObjectEntries(entries)
             end
         end
     end
-end
-
-function Selection.selectAllObjects()
-    Selection.selectObjectEntries(
-        SquareScanner.flattenObjects(Selection.getSquares())
-    )
 end
 
 function Selection.getSelectedObjects()

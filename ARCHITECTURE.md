@@ -41,8 +41,11 @@ LMION_Workshop/
                 └── media/lua/
                     ├── client/LMION/Debug/
                     │   ├── Inspect/
+                    │   │   ├── Door.lua
+                    │   │   └── ObjectInspector.lua
                     │   ├── UI/
                     │   ├── Util/
+                    │   │   └── Safe.lua
                     │   ├── World/
                     │   ├── TestZone.lua
                     │   └── TestZone/
@@ -100,11 +103,12 @@ Pickup depends on Core, not Build.
 
 Debug owns development-only tooling:
 
-- the LMION Inspector and its reports;
+- the door-focused LMION Inspector and its extensible report registry;
 - world-square selection, highlighting and picker UI;
-- controlled runtime reflection helpers used by inspection;
 - the deterministic Test Zone;
 - client/server LMION Lua reload helpers.
+
+The Inspector intentionally reports only runtime facts useful to LMION door systems. Static configuration such as closed/open sprite pairs belongs to `GameEntityScript` / `SpriteConfig` and the source scripts rather than a private-field reflection dump. Future feature modules may add their own focused report sections when Debug is present.
 
 Debug depends on Core. Core, Build and Pickup do not depend on Debug. The namespace remains `LMION.Debug` so the debug code can stay modular without leaking developer tooling into Core.
 

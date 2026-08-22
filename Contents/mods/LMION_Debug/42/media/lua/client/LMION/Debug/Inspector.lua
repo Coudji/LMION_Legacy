@@ -1,15 +1,7 @@
 require "ISUI/ISContextMenu"
 require "LMION/Debug/Registry"
-require "LMION/Debug/Inspect/Options"
-require "LMION/Debug/Inspect/PropertyReaders"
-require "LMION/Debug/Inspect/DefaultPropertyReaders"
-require "LMION/Debug/Inspect/PropertyContainer"
+require "LMION/Debug/Inspect/Door"
 require "LMION/Debug/Inspect/ObjectInspector"
-require "LMION/Debug/Inspect/CoreObject"
-require "LMION/Debug/Inspect/IsoSprite"
-require "LMION/Debug/Inspect/EntityScript"
-require "LMION/Debug/Inspect/IsoDoor"
-require "LMION/Debug/Inspect/IsoThumpable"
 require "LMION/Debug/World/SquareScanner"
 require "LMION/Debug/World/Selection"
 require "LMION/Debug/UI/InspectorWindow"
@@ -74,5 +66,5 @@ Inspector._contextHandler = Inspector.onFillWorldObjectContextMenu
 Events.OnFillWorldObjectContextMenu.Add(Inspector._contextHandler)
 
 if LMION.log ~= nil then
-    LMION.log("Debug", "modular inspector ready")
+    LMION.log("Debug", "door inspector ready")
 end

@@ -16,7 +16,7 @@ The Build 42 project currently contains four internal Mod IDs:
 - **Core** provides the minimal shared `LMION` framework, module registration, shared opening engine adapters, and the entity definitions needed by the project.
 - **Build** is the active construction prototype. It currently covers the researched opening set through `media/scripts` definitions and standalone PNG construction-menu icons.
 - **Pickup** has its shared framework/strategy registry in place, but no concrete pickup strategy is implemented yet.
-- **Debug** contains the LMION Inspector, deterministic Test Zone, reflection helpers and Lua reload tooling used during development.
+- **Debug** contains the door-focused LMION Inspector, deterministic Test Zone and Lua reload tooling used during development.
 
 Core intentionally does not maintain a parallel Lua door catalog or a generic cross-module event bus. When Project Zomboid already exposes the needed facts through runtime objects or `GameEntityScript` / `SpriteConfig`, those are preferred over duplicated model data. New shared contracts are added only when a concrete feature needs them.
 
@@ -32,18 +32,19 @@ Avoid speculative Java method calls in debug code: in Debug Mode, Java/Kahlua ru
 
 ## LMION Inspector
 
-The reusable in-game Inspector lives in `LMION_Debug`. It currently supports, among other things:
+The reusable in-game Inspector lives in `LMION_Debug` and is deliberately limited to openings relevant to LMION. It currently supports:
 
-- inspecting objects on selected grid squares and selected world objects;
-- copyable compact and full-detail reports;
-- generic `IsoObject`, `IsoDoor`, door-like `IsoThumpable`, sprite and property-container inspection;
-- Build 42 entity/script inspection including `GameEntityScript`, `UiConfig`, `SpriteConfig`, and `CraftRecipe` data;
-- controlled access to useful runtime door fields such as closed/open sprites;
-- arbitrary world-square selection, multi-selection and persistent highlights;
-- rebuilding the deterministic door Test Zone used for runtime checks;
+- selecting arbitrary world squares, multi-selection and persistent highlights;
+- listing only door/gate objects from the selected squares;
+- concise reports for `IsoDoor` and door-like `IsoThumpable` objects;
+- runtime state needed for Pickup work: orientation, open state, health, locks, key ID, barricades and curtains where applicable;
+- double-door and garage-door grouping/link information;
+- the attached `EntityScriptName` when the runtime object exposes one;
+- copyable reports and an extension registry for future module-specific sections;
+- rebuilding the deterministic door Test Zone;
 - LMION Lua reload actions for development iteration.
 
-The debug code is intentionally modular under `Debug/Inspect`, `Debug/UI`, `Debug/Util`, `Debug/World`, and `Debug/TestZone`.
+The Inspector no longer dumps generic object internals, property containers, private sprite fields, `UiConfig`, `CraftRecipe` or complete `GameEntityScript` structures. Static opening configuration such as closed/open sprite pairs should be taken from the source scripts / `SpriteConfig` when a gameplay implementation needs it.
 
 ## Test Zone
 

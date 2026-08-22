@@ -3,11 +3,9 @@ require "ISUI/ISLabel"
 require "ISUI/ISRichTextPanel"
 require "ISUI/ISButton"
 require "LMION/Debug/Registry"
-require "LMION/Debug/Inspect/Options"
 
 LMION.Debug.UI = LMION.Debug.UI or {}
 
-local Options = LMION.Debug.Inspect.Options
 local ReportPanel = ISPanel:derive("LMIONDebugReportPanel")
 LMION.Debug.UI.ReportPanel = ReportPanel
 
@@ -32,15 +30,13 @@ function ReportPanel:createChildren()
     local titleH = 20
     local buttonH = 24
     local copyW = 90
-    local detailsW = 132
     local actionW = 132
-    local actionGap = 6
 
     self.titleLabel = ISLabel:new(
         pad,
         pad,
         titleH,
-        "Inspection report",
+        "Door report",
         1, 1, 1, 1,
         UIFont.Small,
         true
@@ -67,24 +63,8 @@ function ReportPanel:createChildren()
     self.output:paginate()
     self:addChild(self.output)
 
-    self.detailsButton = ISButton:new(
-        pad,
-        self.height - pad - buttonH,
-        detailsW,
-        buttonH,
-        "",
-        self,
-        ReportPanel.onToggleDetails
-    )
-    self.detailsButton:initialise()
-    self.detailsButton.anchorTop = false
-    self.detailsButton.anchorBottom = true
-    self.detailsButton.anchorLeft = true
-    self.detailsButton.anchorRight = false
-    self:addChild(self.detailsButton)
-
     self.rebuildTestZoneButton = ISButton:new(
-        pad + detailsW + actionGap,
+        pad,
         self.height - pad - buttonH,
         actionW,
         buttonH,
@@ -115,18 +95,7 @@ function ReportPanel:createChildren()
     self.copyButton.anchorRight = true
     self:addChild(self.copyButton)
 
-    self:updateDetailsButton()
     self:layout()
-end
-
-function ReportPanel:updateDetailsButton()
-    if self.detailsButton == nil then
-        return
-    end
-
-    self.detailsButton:setTitle(
-        Options.isFullDetails() and "Full details: ON" or "Full details: OFF"
-    )
 end
 
 function ReportPanel:layout()
@@ -134,9 +103,6 @@ function ReportPanel:layout()
     local titleH = 20
     local buttonH = 24
     local copyW = 90
-    local detailsW = 132
-    local actionW = 132
-    local actionGap = 6
 
     if self.output ~= nil then
         self.output:setWidth(self.width - pad * 2)
@@ -155,13 +121,8 @@ function ReportPanel:layout()
 
     local buttonY = self.height - pad - buttonH
 
-    if self.detailsButton ~= nil then
-        self.detailsButton:setX(pad)
-        self.detailsButton:setY(buttonY)
-    end
-
     if self.rebuildTestZoneButton ~= nil then
-        self.rebuildTestZoneButton:setX(pad + detailsW + actionGap)
+        self.rebuildTestZoneButton:setX(pad)
         self.rebuildTestZoneButton:setY(buttonY)
     end
 
@@ -184,35 +145,6 @@ function ReportPanel:setText(text)
 
     if self.copyButton ~= nil then
         self.copyButton:setTitle("Copy")
-    end
-
-    self:updateDetailsButton()
-end
-
-function ReportPanel:appendText(text)
-    text = tostring(text or "")
-
-    if self.plainText ~= "" and text ~= "" then
-        self.plainText = self.plainText .. "\n\n" .. text
-    else
-        self.plainText = self.plainText .. text
-    end
-
-    self.output.text = self.plainText
-    self.output.textDirty = true
-    self.output:paginate()
-
-    if self.copyButton ~= nil then
-        self.copyButton:setTitle("Copy")
-    end
-end
-
-function ReportPanel:onToggleDetails()
-    Options.toggleFullDetails()
-    self:updateDetailsButton()
-
-    if self.controller ~= nil and self.controller.refreshReportFromSelection ~= nil then
-        self.controller:refreshReportFromSelection()
     end
 end
 

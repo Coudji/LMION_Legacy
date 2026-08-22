@@ -41,7 +41,7 @@ The primary physical condition observed so far is `health / maxHealth`. `modData
 
 Multiple visually and behaviorally different opening families use `zombie.iso.objects.IsoDoor`. Runtime class alone is therefore not enough to classify an opening.
 
-For tested doors, internal `closedSprite` and `openSprite` remain available regardless of the current open/closed state. The debug inspector retrieves them through controlled reflection. This avoids guessing sprite-number relationships or toggling the door just to serialize it.
+Closed/open sprite pairs are static opening configuration. The focused Debug inspector no longer reads private `closedSprite` / `openSprite` fields; when gameplay code needs those pairs, use the corresponding `GameEntityScript` / `SpriteConfig` or source script data instead.
 
 For `IsoDoor` orientation, prefer door-specific orientation data such as `north` / `doorN` / `doorW` over generic `dir`; garage tests showed `dir = N` while the actual door orientation was west-facing.
 
@@ -114,18 +114,19 @@ Although vanilla stores separate `IsoDoor` components, LMION should treat a func
 
 ## Debug tooling
 
-The LMION Inspector belongs to the dedicated `LMION_Debug` module because it is a general developer tool, not gameplay runtime.
+The LMION Inspector belongs to the dedicated `LMION_Debug` module because it is a developer tool, not gameplay runtime.
 
-The current architecture separates:
+The Inspector is intentionally door-focused. It keeps only:
 
-- generic/specialized object inspection;
-- safe utility/reflection helpers;
-- square scanning and selection state;
-- UI panels.
+- square and object selection;
+- concise runtime state for door/gate objects;
+- grouping/link information for multi-part openings;
+- a small report registry so future modules can append focused sections;
+- the Test Zone and Lua reload workflow around it.
 
-The Inspector is implemented as a dedicated window. Object selection drives the report content directly, and the world picker supports persistent selected/active-square highlights and multi-square selection.
+Generic object dumps, property dumps, script-component dumps and private-field reflection were research scaffolding and have been removed. Static configuration such as sprite pairs belongs to the source scripts / `SpriteConfig`, not the runtime report.
 
-The old dynamic showroom/research scanner has been retired. Runtime checks now use a deterministic Test Zone whose manifest explicitly defines every placed opening and its coordinates. The Test Zone is a fixture, not a discovery mechanism.
+The old dynamic showroom/research scanner has been retired. Runtime checks use a deterministic Test Zone whose manifest explicitly defines every placed opening and its coordinates. The Test Zone is a fixture, not a discovery mechanism.
 
 ## Build prototype
 
