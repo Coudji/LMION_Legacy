@@ -1,32 +1,19 @@
 require "LMION/Debug/Registry"
-require "LMION/Doors/Models"
+require "LMION/Debug/TestZone/Manifest"
 require "LMION/Debug/TestZone/Spawner"
 
 LMION.Debug.TestZone = LMION.Debug.TestZone or {}
 
 local TestZone = LMION.Debug.TestZone
+local Manifest = TestZone.Manifest
 local Spawner = TestZone.Spawner
 
-local FIXED_ORIGIN_X = 15660
-local FIXED_ORIGIN_Y = 600
-local FIXED_Z = 0
-local FIXED_WIDTH = 34
-local FIXED_HEIGHT = 28
-local FIXED_TELEPORT_X = FIXED_ORIGIN_X - 2
-local FIXED_TELEPORT_Y = FIXED_ORIGIN_Y - 2
 local FIXED_LOAD_TIMEOUT_TICKS = 600
-local EXPECTED_ENTITY_COUNT = 77
 
 local FIXED_FLOOR_CANDIDATES = {
     "blends_street_01_0",
     "blends_street_01_1",
     "blends_natural_01_64",
-}
-
-local EXTRA_VANILLA_ENTITIES = {
-    "Base.DoubleWireGate",
-    "Base.DoubleFenceGate",
-    "Base.DoubleDoor",
 }
 
 local function chooseFixedFloorSprite()
@@ -44,174 +31,25 @@ local function chooseFixedFloorSprite()
 end
 
 local function fixedOriginSquare()
-    return getCell():getGridSquare(FIXED_ORIGIN_X, FIXED_ORIGIN_Y, FIXED_Z)
+    local origin = Manifest.origin
+    return getCell():getGridSquare(origin.x, origin.y, origin.z)
 end
 
-local function collectWantedEntityIds()
-    local wanted = {}
-
-    if LMION.Doors ~= nil and LMION.Doors.getAll ~= nil then
-        for doorId, model in pairs(LMION.Doors.getAll()) do
-            local entityId = model ~= nil and model.sourceEntity or doorId
-            if entityId ~= nil and tostring(entityId) ~= "" then
-                wanted[tostring(entityId)] = true
-            end
-        end
+local function formatFailures(failures)
+    if failures == nil or #failures == 0 then
+        return "none"
     end
 
-    for _, entityId in ipairs(EXTRA_VANILLA_ENTITIES) do
-        wanted[entityId] = true
-    end
-
-    local ids = {}
-    for entityId in pairs(wanted) do
-        ids[#ids + 1] = entityId
-    end
-    table.sort(ids)
-
-    return ids
-end
-
-local function resolveObjectInfo(spriteScript, objectInfos)
-    if spriteScript == nil or objectInfos == nil then
-        return nil
-    end
-
-    for i = 0, objectInfos:size() - 1 do
-        local info = objectInfos:get(i)
-        if info ~= nil and info:getScript() == spriteScript then
-            return info
-        end
-    end
-
-    return nil
-end
-
-function TestZone.collectEntries()
-    local entries = {}
-    local unresolved = {}
-
-    if ScriptManager == nil or ScriptManager.instance == nil then
-        return entries, { "ScriptManager unavailable" }
-    end
-
-    if SpriteConfigManager == nil or SpriteConfigManager.GetObjectInfoList == nil then
-        return entries, { "SpriteConfigManager unavailable" }
-    end
-
-    if ComponentType == nil or ComponentType.SpriteConfig == nil then
-        return entries, { "ComponentType.SpriteConfig unavailable" }
-    end
-
-    local objectInfos = SpriteConfigManager.GetObjectInfoList()
-    if objectInfos == nil then
-        return entries, { "SpriteConfigManager object list unavailable" }
-    end
-
-    for _, entityId in ipairs(collectWantedEntityIds()) do
-        local gameScript = ScriptManager.instance:getGameEntityScript(entityId)
-
-        if gameScript == nil then
-            unresolved[#unresolved + 1] = entityId .. " [entity]"
-        else
-            local spriteScript = gameScript:getComponentScriptFor(ComponentType.SpriteConfig)
-
-            if spriteScript == nil then
-                unresolved[#unresolved + 1] = entityId .. " [SpriteConfig]"
-            else
-                local objectInfo = resolveObjectInfo(spriteScript, objectInfos)
-
-                if objectInfo == nil then
-                    unresolved[#unresolved + 1] = entityId .. " [ObjectInfo]"
-                else
-                    entries[#entries + 1] = {
-                        id = entityId,
-                        gameScript = gameScript,
-                        spriteScript = spriteScript,
-                        objectInfo = objectInfo,
-                    }
-                end
-            end
-        end
-    end
-
-    return entries, unresolved
-end
-
-local function formatSkipReasons(reasons)
     local parts = {}
-
-    for name, count in pairs(reasons or {}) do
-        parts[#parts + 1] = tostring(name) .. "=" .. tostring(count)
+    for _, failure in ipairs(failures) do
+        parts[#parts + 1] = tostring(failure.id) .. "=" .. tostring(failure.reason)
     end
-
-    table.sort(parts)
-    return #parts > 0 and table.concat(parts, ", ") or "none"
-end
-
-local function logSpawnResult(result, unresolved)
-    if result.error ~= nil then
-        if LMION.error ~= nil then
-            LMION.error("Debug", "test zone: " .. tostring(result.error))
-        end
-        return
-    end
-
-    if LMION.log ~= nil then
-        LMION.log(
-            "Debug",
-            "test zone spawned "
-                .. tostring(result.entitiesSpawned)
-                .. "/"
-                .. tostring(result.entitiesFound)
-                .. " entities in "
-                .. tostring(result.familiesSpawned)
-                .. "/"
-                .. tostring(result.familiesFound)
-                .. " groups; objects="
-                .. tostring(result.objectsSpawned)
-                .. ", frames="
-                .. tostring(result.framesSpawned)
-                .. ", skipped="
-                .. tostring(result.skipped)
-                .. " ["
-                .. formatSkipReasons(result.skipReasons)
-                .. "]"
-        )
-    end
-
-    if result.entitiesFound ~= EXPECTED_ENTITY_COUNT and LMION.warn ~= nil then
-        LMION.warn(
-            "Debug",
-            "test zone expected "
-                .. tostring(EXPECTED_ENTITY_COUNT)
-                .. " entities but resolved "
-                .. tostring(result.entitiesFound)
-        )
-    end
-
-    if unresolved ~= nil and #unresolved > 0 and LMION.warn ~= nil then
-        LMION.warn(
-            "Debug",
-            "test zone unresolved: " .. table.concat(unresolved, ", ")
-        )
-    end
-
-    if result.rejected ~= nil and #result.rejected > 0 and LMION.warn ~= nil then
-        for _, entry in ipairs(result.rejected) do
-            LMION.warn(
-                "Debug",
-                "test zone rejected "
-                    .. tostring(entry.id)
-                    .. ": "
-                    .. tostring(entry.reason)
-            )
-        end
-    end
+    return table.concat(parts, ", ")
 end
 
 local function finishFixedRebuild()
     local floorSprite = chooseFixedFloorSprite()
+    local origin = Manifest.origin
 
     if floorSprite == nil then
         TestZone._fixedRebuild = nil
@@ -222,11 +60,11 @@ local function finishFixedRebuild()
     end
 
     local ok, reason, prep = Spawner.prepareArea(
-        FIXED_ORIGIN_X,
-        FIXED_ORIGIN_Y,
-        FIXED_Z,
-        FIXED_WIDTH,
-        FIXED_HEIGHT,
+        origin.x,
+        origin.y,
+        origin.z,
+        origin.width,
+        origin.height,
         floorSprite
     )
 
@@ -242,8 +80,7 @@ local function finishFixedRebuild()
         return
     end
 
-    local entries, unresolved = TestZone.collectEntries()
-    local result = Spawner.spawn(entries, fixedOriginSquare())
+    local result = Spawner.spawn(Manifest.entries, fixedOriginSquare())
     TestZone._fixedRebuild = nil
 
     if LMION.log ~= nil then
@@ -252,21 +89,46 @@ local function finishFixedRebuild()
             "test zone prepared "
                 .. tostring(prep.squares)
                 .. " squares at "
-                .. tostring(FIXED_ORIGIN_X)
+                .. tostring(origin.x)
                 .. ","
-                .. tostring(FIXED_ORIGIN_Y)
+                .. tostring(origin.y)
                 .. ","
-                .. tostring(FIXED_Z)
+                .. tostring(origin.z)
                 .. "; removed="
                 .. tostring(prep.removedObjects)
         )
+
+        LMION.log(
+            "Debug",
+            "test zone spawned "
+                .. tostring(result.spawned)
+                .. "/"
+                .. tostring(#Manifest.entries)
+                .. " manifest entries; objects="
+                .. tostring(result.objectsSpawned)
+                .. ", frames="
+                .. tostring(result.framesSpawned)
+                .. ", failures="
+                .. tostring(#result.failures)
+                .. " ["
+                .. formatFailures(result.failures)
+                .. "]"
+        )
     end
 
-    logSpawnResult(result, unresolved)
+    if #result.failures > 0 and LMION.warn ~= nil then
+        for _, failure in ipairs(result.failures) do
+            LMION.warn(
+                "Debug",
+                "test zone failed " .. tostring(failure.id) .. ": " .. tostring(failure.reason)
+            )
+        end
+    end
 end
 
 function TestZone.onFixedRebuildTick()
     local state = TestZone._fixedRebuild
+    local origin = Manifest.origin
 
     if state == nil then
         Events.OnTick.Remove(TestZone.onFixedRebuildTick)
@@ -276,11 +138,11 @@ function TestZone.onFixedRebuildTick()
     state.ticks = state.ticks + 1
 
     local loaded = Spawner.isAreaLoaded(
-        FIXED_ORIGIN_X,
-        FIXED_ORIGIN_Y,
-        FIXED_Z,
-        FIXED_WIDTH,
-        FIXED_HEIGHT
+        origin.x,
+        origin.y,
+        origin.z,
+        origin.width,
+        origin.height
     )
 
     if loaded then
@@ -314,7 +176,8 @@ function TestZone.rebuildFixed()
         return false
     end
 
-    player:teleportTo(FIXED_TELEPORT_X, FIXED_TELEPORT_Y, FIXED_Z)
+    local origin = Manifest.origin
+    player:teleportTo(origin.teleportX, origin.teleportY, origin.z)
     TestZone._fixedRebuild = { ticks = 0 }
 
     Events.OnTick.Remove(TestZone.onFixedRebuildTick)
@@ -323,22 +186,13 @@ function TestZone.rebuildFixed()
     if LMION.log ~= nil then
         LMION.log(
             "Debug",
-            "test zone requested near "
-                .. tostring(FIXED_ORIGIN_X)
-                .. ","
-                .. tostring(FIXED_ORIGIN_Y)
+            "test zone requested near " .. tostring(origin.x) .. "," .. tostring(origin.y)
         )
     end
 
     return true
 end
 
-TestZone.fixed = {
-    x = FIXED_ORIGIN_X,
-    y = FIXED_ORIGIN_Y,
-    z = FIXED_Z,
-    width = FIXED_WIDTH,
-    height = FIXED_HEIGHT,
-}
+TestZone.fixed = Manifest.origin
 
 return TestZone
