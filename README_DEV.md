@@ -13,7 +13,7 @@ The Build 42 project currently contains three internal Mod IDs:
 ## Current development state
 
 - **Core** provides the shared `LMION` framework, the canonical `LMION.Doors` registry, shared door-model data, and the LMION Inspector/debug tooling.
-- **Build** is the active construction prototype. It currently covers the researched opening set, provides provisional construction recipes/definitions, and uses standalone PNG textures for custom construction-menu icons.
+- **Build** is the active construction prototype. It currently covers the researched opening set through `media/scripts` definitions and standalone PNG construction-menu icons.
 - **Pickup** has its shared framework/strategy registry in place, but no concrete pickup strategy is implemented yet.
 
 The repository is the source of truth for project structure and committed code. Development is done against the live Project Zomboid Workshop source tree, with VS Code used for direct Lua edits.
@@ -49,7 +49,7 @@ The Test Zone is a development fixture, not a door-discovery system. If its comp
 
 ## Build prototype notes
 
-The current Build catalog and recipes are development data, not final balance/progression. `Build/Catalog.lua` and `Build/Drafts.lua` are legacy/provisional Build-side data and are being audited separately from the Test Zone.
+Build no longer keeps a parallel Lua catalog or provisional recipe generator. The active construction definitions live in `LMION_Build/42/media/scripts/`; those script files are the source of truth for current Build entities, recipes and progression data.
 
 Construction icons are standalone PNG files under `LMION_Build/42/media/textures/`. The temporary packed-icon migration workflow used during development has been retired.
 
