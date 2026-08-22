@@ -187,6 +187,12 @@ function InspectorWindow:rebuildDoorShowroom()
     end
 end
 
+function InspectorWindow:rebuildTestZone()
+    if Debug.TestZone ~= nil and Debug.TestZone.rebuildFixed ~= nil then
+        Debug.TestZone.rebuildFixed()
+    end
+end
+
 function InspectorWindow:copyDoorShowroomReport()
     if Debug.Showroom ~= nil and Debug.Showroom.copyReport ~= nil then
         Debug.Showroom.copyReport()
