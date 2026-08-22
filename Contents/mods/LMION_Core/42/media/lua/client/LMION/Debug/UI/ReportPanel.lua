@@ -33,8 +33,8 @@ function ReportPanel:createChildren()
     local buttonH = 24
     local copyW = 90
     local detailsW = 132
-    local showroomW = 132
-    local showroomGap = 6
+    local actionW = 132
+    local actionGap = 6
 
     self.titleLabel = ISLabel:new(
         pad,
@@ -84,9 +84,9 @@ function ReportPanel:createChildren()
     self:addChild(self.detailsButton)
 
     self.rebuildShowroomButton = ISButton:new(
-        pad + detailsW + showroomGap,
+        pad + detailsW + actionGap,
         self.height - pad - buttonH,
-        showroomW,
+        actionW,
         buttonH,
         "Rebuild showroom",
         self,
@@ -99,21 +99,21 @@ function ReportPanel:createChildren()
     self.rebuildShowroomButton.anchorRight = false
     self:addChild(self.rebuildShowroomButton)
 
-    self.copyShowroomButton = ISButton:new(
-        pad + detailsW + showroomGap + showroomW + showroomGap,
+    self.rebuildTestZoneButton = ISButton:new(
+        pad + detailsW + actionGap + actionW + actionGap,
         self.height - pad - buttonH,
-        showroomW,
+        actionW,
         buttonH,
-        "Copy showroom report",
+        "Rebuild test zone",
         self,
-        ReportPanel.onCopyShowroom
+        ReportPanel.onRebuildTestZone
     )
-    self.copyShowroomButton:initialise()
-    self.copyShowroomButton.anchorTop = false
-    self.copyShowroomButton.anchorBottom = true
-    self.copyShowroomButton.anchorLeft = true
-    self.copyShowroomButton.anchorRight = false
-    self:addChild(self.copyShowroomButton)
+    self.rebuildTestZoneButton:initialise()
+    self.rebuildTestZoneButton.anchorTop = false
+    self.rebuildTestZoneButton.anchorBottom = true
+    self.rebuildTestZoneButton.anchorLeft = true
+    self.rebuildTestZoneButton.anchorRight = false
+    self:addChild(self.rebuildTestZoneButton)
 
     self.copyButton = ISButton:new(
         self.width - pad - copyW,
@@ -151,8 +151,8 @@ function ReportPanel:layout()
     local buttonH = 24
     local copyW = 90
     local detailsW = 132
-    local showroomW = 132
-    local showroomGap = 6
+    local actionW = 132
+    local actionGap = 6
 
     if self.output ~= nil then
         self.output:setWidth(self.width - pad * 2)
@@ -178,13 +178,13 @@ function ReportPanel:layout()
     end
 
     if self.rebuildShowroomButton ~= nil then
-        self.rebuildShowroomButton:setX(pad + detailsW + showroomGap)
+        self.rebuildShowroomButton:setX(pad + detailsW + actionGap)
         self.rebuildShowroomButton:setY(buttonY)
     end
 
-    if self.copyShowroomButton ~= nil then
-        self.copyShowroomButton:setX(pad + detailsW + showroomGap + showroomW + showroomGap)
-        self.copyShowroomButton:setY(buttonY)
+    if self.rebuildTestZoneButton ~= nil then
+        self.rebuildTestZoneButton:setX(pad + detailsW + actionGap + actionW + actionGap)
+        self.rebuildTestZoneButton:setY(buttonY)
     end
 
     if self.copyButton ~= nil then
@@ -244,9 +244,9 @@ function ReportPanel:onRebuildShowroom()
     end
 end
 
-function ReportPanel:onCopyShowroom()
-    if self.controller ~= nil and self.controller.copyDoorShowroomReport ~= nil then
-        self.controller:copyDoorShowroomReport()
+function ReportPanel:onRebuildTestZone()
+    if self.controller ~= nil and self.controller.rebuildTestZone ~= nil then
+        self.controller:rebuildTestZone()
     end
 end
 
