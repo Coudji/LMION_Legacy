@@ -124,7 +124,9 @@ The old dynamic showroom/research scanner has been retired. Runtime checks now u
 
 ## Build prototype
 
-Build currently covers the researched opening set with provisional construction data. The current recipes, names, and classifications are development scaffolding and can be cleaned up independently from the canonical `LMION.Doors` registry.
+Build currently covers the researched opening set through `media/scripts` construction definitions. Those scripts are the source of truth for current Build entities, recipes and progression; the old Lua catalog and draft recipe generator have been removed.
+
+The recipes and balance are still provisional and can evolve independently from the canonical `LMION.Doors` registry.
 
 Build presentation currently uses standalone PNG construction icons under the Build module's `media/textures` directory. Multi-tile objects should be represented by icons showing the complete opening rather than a single anchor tile.
 
