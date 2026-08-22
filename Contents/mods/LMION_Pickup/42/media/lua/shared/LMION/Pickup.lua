@@ -72,35 +72,5 @@ function Pickup.getRegisteredStrategyCount()
     return #Pickup.Strategies
 end
 
-function Pickup.enableLogDoorMoveable()
-    if getSprite == nil then
-        return false
-    end
-
-    local sprite = getSprite("walls_logs_41")
-    if sprite == nil then
-        return false
-    end
-
-    local properties = sprite:getProperties()
-    if properties == nil then
-        return false
-    end
-
-    properties:set("IsMoveAble", "true")
-    return true
-end
-
-Pickup.enableLogDoorMoveable()
-
-if Events ~= nil and Events.OnGameStart ~= nil then
-    if Pickup._onGameStart ~= nil then
-        Events.OnGameStart.Remove(Pickup._onGameStart)
-    end
-
-    Pickup._onGameStart = Pickup.enableLogDoorMoveable
-    Events.OnGameStart.Add(Pickup._onGameStart)
-end
-
 LMION.registerModule(Pickup.ID, Pickup)
 LMION.log("Pickup", "loaded " .. Pickup.VERSION)

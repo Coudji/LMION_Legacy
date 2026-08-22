@@ -4,3 +4,4 @@ description=Pick up and replace doors, gates and other passable opening systems.
 tags=Build 42
 versionMin=42.0
 require=\LMION_Core
+tiledef=LMION_Pickup_LogDoor.patch 5419

@@ -1,0 +1,29 @@
+version = 1
+tileset
+{
+    file = walls_logs
+    size = 8,6
+    id = 1
+
+    tile
+    {
+        xy = 0,5
+        CustomName = Door
+        Facing = W
+        GroupName = Log
+        IsMoveAble =
+        Noffset = 1
+        PickUpWeight = 360
+    }
+
+    tile
+    {
+        xy = 1,5
+        CustomName = Door
+        Facing = N
+        GroupName = Log
+        IsMoveAble =
+        PickUpWeight = 360
+        Woffset = -1
+    }
+}
