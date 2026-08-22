@@ -36,10 +36,7 @@ LMION_Workshop/
         │       ├── mod.info
         │       └── media/
         │           ├── lua/shared/LMION/
-        │           │   ├── Build.lua
-        │           │   └── Build/
-        │           │       ├── Catalog.lua
-        │           │       └── Drafts.lua
+        │           │   └── Build.lua
         │           ├── scripts/
         │           └── textures/
         │
@@ -77,7 +74,7 @@ Build owns the player-facing construction side:
 - dismantle and destruction salvage rules;
 - Build-specific validation and UX around creating a door.
 
-`Build/Catalog.lua` and `Build/Drafts.lua` are legacy/provisional Build-side data currently being audited. They are not the canonical `DoorModel` registry and they do not define the Test Zone.
+Build does not maintain a parallel Lua catalog of opening families. The active Build entities, recipes and progression definitions live in `media/scripts/`; those script files are the source of truth for the construction prototype.
 
 Build-specific construction icons currently live as standalone PNG files under `media/textures/`; they are presentation assets, not canonical door-model data.
 
