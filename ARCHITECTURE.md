@@ -15,12 +15,21 @@ LMION_Workshop/
         ├── LMION_Core/
         │   └── 42/
         │       ├── mod.info
+        │       ├── media/scripts/
         │       └── media/lua/
         │           ├── shared/LMION/
         │           │   ├── Core.lua
         │           │   ├── Doors.lua
         │           │   └── Doors/Models.lua
         │           └── client/LMION/Debug/
+        │               ├── Inspect/
+        │               ├── UI/
+        │               ├── Util/
+        │               ├── World/
+        │               ├── TestZone.lua
+        │               └── TestZone/
+        │                   ├── Manifest.lua
+        │                   └── Spawner.lua
         │
         ├── LMION_Build/
         │   └── 42/
@@ -57,6 +66,8 @@ A `DoorModel` describes only shared facts about a door that multiple modules nee
 
 Core should not become a pile of hard-coded `if Build`, `if Pickup`, `if Locksmith` branches. Feature modules register what they add through Core APIs.
 
+The debug Test Zone is intentionally a deterministic fixture. Its manifest explicitly defines which opening is spawned at each coordinate. It must not grow back into a runtime discovery scanner.
+
 ### `LMION_Build`
 
 Build owns the player-facing construction side:
@@ -66,7 +77,7 @@ Build owns the player-facing construction side:
 - dismantle and destruction salvage rules;
 - Build-specific validation and UX around creating a door.
 
-The current `Build/Catalog.lua` is a **research/menu snapshot** of the showroom door set. It is not the canonical `DoorModel` registry. `Build/Drafts.lua` contains provisional Build-facing names, classifications, and recipe choices used while the construction system is still being developed.
+`Build/Catalog.lua` and `Build/Drafts.lua` are legacy/provisional Build-side data currently being audited. They are not the canonical `DoorModel` registry and they do not define the Test Zone.
 
 Build-specific construction icons currently live as standalone PNG files under `media/textures/`; they are presentation assets, not canonical door-model data.
 
@@ -116,4 +127,4 @@ Core does not currently need to model open-state sprites, hinge/sliding mechanis
 - Runtime classification must not rely on sprite names alone.
 - Game-loaded Lua and script files intentionally avoid source comments; important rationale and implementation constraints belong in project documentation such as this file or `LMION_Design_Notes.md`.
 - `media/scripts` changes require a real game restart; LMION Lua reload cannot reparse script definitions.
-- Development-only migration tooling should not remain in the repository after the migration it served is complete.
+- Development-only migration or research tooling should not remain in the repository after the task it served is complete.

@@ -50,13 +50,7 @@ function InspectorWindow:createChildren()
     local contentH = self.height - top - pad
     local squareH = 285
 
-    self.squarePanel = SquarePanel:new(
-        pad,
-        top,
-        leftW,
-        squareH,
-        self
-    )
+    self.squarePanel = SquarePanel:new(pad, top, leftW, squareH, self)
     self.squarePanel:initialise()
     self.squarePanel:instantiate()
     self:addChild(self.squarePanel)
@@ -94,17 +88,12 @@ function InspectorWindow:layout()
     local top = 28
     local leftW = 320
     local gap = 8
-
     local contentH = self.height - top - pad
 
     if self.reportPanel ~= nil then
         self.reportPanel:setX(pad + leftW + gap)
         self.reportPanel:setY(top)
-
-        self.reportPanel:setWidth(
-            self.width - (pad * 2 + leftW + gap)
-        )
-
+        self.reportPanel:setWidth(self.width - (pad * 2 + leftW + gap))
         self.reportPanel:setHeight(contentH)
 
         if self.reportPanel.layout ~= nil then
@@ -144,9 +133,7 @@ function InspectorWindow:refreshReportFromSelection()
         return
     end
 
-    self.reportPanel:setText(
-        ObjectInspector.inspectMany(objects)
-    )
+    self.reportPanel:setText(ObjectInspector.inspectMany(objects))
 end
 
 function InspectorWindow:refreshObjectSelection()
@@ -172,7 +159,6 @@ function InspectorWindow:startWorldPicker()
 
     local picker = WorldPicker:new(self)
     self.worldPicker = picker
-
     self:setVisible(false)
     picker:start()
 end
@@ -181,21 +167,9 @@ function InspectorWindow:reloadLMION()
     Reload.reloadAll({ reloadServer = true })
 end
 
-function InspectorWindow:rebuildDoorShowroom()
-    if Debug.Showroom ~= nil and Debug.Showroom.rebuildFixed ~= nil then
-        Debug.Showroom.rebuildFixed()
-    end
-end
-
 function InspectorWindow:rebuildTestZone()
     if Debug.TestZone ~= nil and Debug.TestZone.rebuildFixed ~= nil then
         Debug.TestZone.rebuildFixed()
-    end
-end
-
-function InspectorWindow:copyDoorShowroomReport()
-    if Debug.Showroom ~= nil and Debug.Showroom.copyReport ~= nil then
-        Debug.Showroom.copyReport()
     end
 end
 
@@ -219,12 +193,7 @@ function Debug.Window.ensure()
         return Debug.Window.instance
     end
 
-    local width = 1100
-    local height = 680
-    local x = 70
-    local y = 60
-
-    local window = InspectorWindow:new(x, y, width, height)
+    local window = InspectorWindow:new(70, 60, 1100, 680)
     window:initialise()
     window:addToUIManager()
     window:setVisible(true)

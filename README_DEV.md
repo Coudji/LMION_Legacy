@@ -13,7 +13,7 @@ The Build 42 project currently contains three internal Mod IDs:
 ## Current development state
 
 - **Core** provides the shared `LMION` framework, the canonical `LMION.Doors` registry, shared door-model data, and the LMION Inspector/debug tooling.
-- **Build** is the active construction prototype. It currently mirrors the 77-family showroom research set, provides provisional construction recipes/definitions, and uses standalone PNG textures for custom construction-menu icons.
+- **Build** is the active construction prototype. It currently covers the researched opening set, provides provisional construction recipes/definitions, and uses standalone PNG textures for custom construction-menu icons.
 - **Pickup** has its shared framework/strategy registry in place, but no concrete pickup strategy is implemented yet.
 
 The repository is the source of truth for project structure and committed code. Development is done against the live Project Zomboid Workshop source tree, with VS Code used for direct Lua edits.
@@ -36,14 +36,20 @@ The reusable in-game Inspector lives in `LMION_Core`. It currently supports, amo
 - Build 42 entity/script inspection including `GameEntityScript`, `UiConfig`, `SpriteConfig`, and `CraftRecipe` data;
 - controlled access to useful runtime door fields such as closed/open sprites;
 - arbitrary world-square selection, multi-selection and persistent highlights;
-- showroom scanning/spawning for door and gate research;
+- rebuilding the deterministic door Test Zone used for runtime checks;
 - LMION Lua reload actions for development iteration.
 
-The debug code is intentionally modular under `Debug/Inspect`, `Debug/UI`, `Debug/Util`, and `Debug/World`.
+The debug code is intentionally modular under `Debug/Inspect`, `Debug/UI`, `Debug/Util`, `Debug/World`, and `Debug/TestZone`.
+
+## Test Zone
+
+The old dynamic showroom scanner has been retired. The current Test Zone is intentionally explicit and deterministic: `Debug/TestZone/Manifest.lua` defines which opening spawns at each position, while `Debug/TestZone/Spawner.lua` handles world preparation and object creation.
+
+The Test Zone is a development fixture, not a door-discovery system. If its composition changes, update the manifest deliberately rather than adding runtime scanning or classification heuristics.
 
 ## Build prototype notes
 
-The current Build catalog and recipes are development data, not final balance/progression. `Build/Catalog.lua` tracks the showroom families, while `Build/Drafts.lua` contains provisional Build-facing names/classification/recipe choices used to generate the current construction definitions.
+The current Build catalog and recipes are development data, not final balance/progression. `Build/Catalog.lua` and `Build/Drafts.lua` are legacy/provisional Build-side data and are being audited separately from the Test Zone.
 
 Construction icons are standalone PNG files under `LMION_Build/42/media/textures/`. The temporary packed-icon migration workflow used during development has been retired.
 

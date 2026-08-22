@@ -83,24 +83,8 @@ function ReportPanel:createChildren()
     self.detailsButton.anchorRight = false
     self:addChild(self.detailsButton)
 
-    self.rebuildShowroomButton = ISButton:new(
-        pad + detailsW + actionGap,
-        self.height - pad - buttonH,
-        actionW,
-        buttonH,
-        "Rebuild showroom",
-        self,
-        ReportPanel.onRebuildShowroom
-    )
-    self.rebuildShowroomButton:initialise()
-    self.rebuildShowroomButton.anchorTop = false
-    self.rebuildShowroomButton.anchorBottom = true
-    self.rebuildShowroomButton.anchorLeft = true
-    self.rebuildShowroomButton.anchorRight = false
-    self:addChild(self.rebuildShowroomButton)
-
     self.rebuildTestZoneButton = ISButton:new(
-        pad + detailsW + actionGap + actionW + actionGap,
+        pad + detailsW + actionGap,
         self.height - pad - buttonH,
         actionW,
         buttonH,
@@ -157,8 +141,7 @@ function ReportPanel:layout()
     if self.output ~= nil then
         self.output:setWidth(self.width - pad * 2)
         self.output:setHeight(
-            self.height
-            - (pad * 3 + titleH + buttonH + 4)
+            self.height - (pad * 3 + titleH + buttonH + 4)
         )
 
         if self.output.vscroll ~= nil then
@@ -177,13 +160,8 @@ function ReportPanel:layout()
         self.detailsButton:setY(buttonY)
     end
 
-    if self.rebuildShowroomButton ~= nil then
-        self.rebuildShowroomButton:setX(pad + detailsW + actionGap)
-        self.rebuildShowroomButton:setY(buttonY)
-    end
-
     if self.rebuildTestZoneButton ~= nil then
-        self.rebuildTestZoneButton:setX(pad + detailsW + actionGap + actionW + actionGap)
+        self.rebuildTestZoneButton:setX(pad + detailsW + actionGap)
         self.rebuildTestZoneButton:setY(buttonY)
     end
 
@@ -235,12 +213,6 @@ function ReportPanel:onToggleDetails()
 
     if self.controller ~= nil and self.controller.refreshReportFromSelection ~= nil then
         self.controller:refreshReportFromSelection()
-    end
-end
-
-function ReportPanel:onRebuildShowroom()
-    if self.controller ~= nil and self.controller.rebuildDoorShowroom ~= nil then
-        self.controller:rebuildDoorShowroom()
     end
 end
 
