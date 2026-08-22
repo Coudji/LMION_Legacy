@@ -97,109 +97,66 @@ function Spawner.prepareArea(originX, originY, z, width, height, floorSprite)
     return true, nil, result
 end
 
-local function getSpriteConfig(script)
-    if script == nil or ComponentType == nil or ComponentType.SpriteConfig == nil then
+local function getOpenFace(entry)
+    if entry == nil or entry.objectInfo == nil then
         return nil
     end
-    if script.getComponentScriptFor == nil then
-        return nil
-    end
-    return script:getComponentScriptFor(ComponentType.SpriteConfig)
+    return entry.objectInfo:getFace("n_open")
 end
 
-local function findFace(spriteConfig, faceName)
-    if spriteConfig == nil or spriteConfig.getFace == nil then
-        return nil
+local function buildFamily(entry)
+    if entry == nil or entry.objectInfo == nil then
+        return nil, "missing ObjectInfo"
     end
 
-    for i = 0, 6 do
-        local face = spriteConfig:getFace(i)
-        if face ~= nil and face.getFaceName ~= nil and face:getFaceName() == faceName then
-            return face
-        end
+    local closedFace = entry.objectInfo:getFace("n")
+    if closedFace == nil then
+        return nil, "missing north ObjectInfo face"
     end
 
-    return nil
-end
-
-local function faceTileMap(face)
-    local map = {}
-
-    if face == nil then
-        return map
+    local openFace = getOpenFace(entry)
+    if openFace ~= nil
+        and (openFace:getWidth() ~= closedFace:getWidth()
+        or openFace:getHeight() ~= closedFace:getHeight()) then
+        openFace = nil
     end
 
-    for z = 0, face:getZLayers() - 1 do
-        local layer = face:getLayer(z)
-        if layer ~= nil then
-            for y = 0, layer:getHeight() - 1 do
-                local row = layer:getRow(y)
-                if row ~= nil then
-                    for x = 0, row:getWidth() - 1 do
-                        local tile = row:getTile(x)
-                        if tile ~= nil and not tile:isEmptySpace() then
-                            local name = tile:getTileName()
-                            if name ~= nil and tostring(name) ~= "" then
-                                local key = tostring(x) .. ":" .. tostring(y) .. ":" .. tostring(z)
-                                map[key] = tostring(name)
-                            end
-                        end
-                    end
-                end
-            end
-        end
-    end
-
-    return map
-end
-
-local function buildFamily(script)
-    local spriteConfig = getSpriteConfig(script)
-    local closedFace = findFace(spriteConfig, "N")
-
-    if spriteConfig == nil or closedFace == nil then
-        return nil, "missing N SpriteConfig face"
-    end
-
-    local openMap = faceTileMap(findFace(spriteConfig, "N_OPEN"))
     local parts = {}
 
-    for z = 0, closedFace:getZLayers() - 1 do
-        local layer = closedFace:getLayer(z)
-        if layer ~= nil then
-            for y = 0, layer:getHeight() - 1 do
-                local row = layer:getRow(y)
-                if row ~= nil then
-                    for x = 0, row:getWidth() - 1 do
-                        local tile = row:getTile(x)
-                        if tile ~= nil and not tile:isEmptySpace() then
-                            local name = tile:getTileName()
-                            if name ~= nil and tostring(name) ~= "" then
-                                local key = tostring(x) .. ":" .. tostring(y) .. ":" .. tostring(z)
-                                parts[#parts + 1] = {
-                                    script = script,
-                                    spriteConfig = spriteConfig,
-                                    sprite = tostring(name),
-                                    openSprite = openMap[key],
-                                    x = x,
-                                    y = y,
-                                    z = z,
-                                }
-                            end
+    for z = 0, closedFace:getzLayers() - 1 do
+        for x = 0, closedFace:getWidth() - 1 do
+            for y = 0, closedFace:getHeight() - 1 do
+                local tileInfo = closedFace:getTileInfo(x, y, z)
+                if tileInfo ~= nil and tileInfo:getSpriteName() ~= nil then
+                    local openSprite = nil
+                    if openFace ~= nil then
+                        local openTileInfo = openFace:getTileInfo(x, y, z)
+                        if openTileInfo ~= nil then
+                            openSprite = openTileInfo:getSpriteName()
                         end
                     end
+
+                    parts[#parts + 1] = {
+                        gameScript = entry.gameScript,
+                        spriteScript = entry.spriteScript,
+                        sprite = tostring(tileInfo:getSpriteName()),
+                        openSprite = openSprite ~= nil and tostring(openSprite) or nil,
+                        x = x,
+                        y = y,
+                        z = z,
+                    }
                 end
             end
         end
     end
 
     if #parts == 0 then
-        return nil, "empty N SpriteConfig face"
+        return nil, "empty north ObjectInfo face"
     end
 
-    local width = closedFace:getTotalWidth()
-    local height = closedFace:getTotalHeight()
-    local onCreate = spriteConfig.getOnCreate ~= nil and spriteConfig:getOnCreate() or nil
+    local width = closedFace:getWidth()
+    local height = closedFace:getHeight()
+    local onCreate = entry.spriteScript ~= nil and entry.spriteScript:getOnCreate() or nil
     local kind = "single"
 
     if onCreate == "LMION.Doors.onCreateGarage" then
@@ -209,8 +166,8 @@ local function buildFamily(script)
     end
 
     return {
-        id = tostring(script:getFullName()),
-        name = tostring(script:getName()),
+        id = entry.id,
+        name = entry.gameScript ~= nil and tostring(entry.gameScript:getName()) or entry.id,
         kind = kind,
         width = width,
         height = height,
@@ -224,8 +181,8 @@ local function shiftParts(parts, offsetX, offsetY)
 
     for _, part in ipairs(parts) do
         shifted[#shifted + 1] = {
-            script = part.script,
-            spriteConfig = part.spriteConfig,
+            gameScript = part.gameScript,
+            spriteScript = part.spriteScript,
             sprite = part.sprite,
             openSprite = part.openSprite,
             x = part.x + offsetX,
@@ -256,19 +213,19 @@ local function mergePaired(left, right)
     }
 end
 
-local function prepareFamilies(scripts)
+local function prepareFamilies(entries)
     local raw = {}
     local byId = {}
     local rejected = {}
 
-    for _, script in ipairs(scripts or {}) do
-        local family, reason = buildFamily(script)
+    for _, entry in ipairs(entries or {}) do
+        local family, reason = buildFamily(entry)
         if family ~= nil then
             raw[#raw + 1] = family
             byId[family.id] = family
         else
             rejected[#rejected + 1] = {
-                id = script ~= nil and tostring(script:getFullName()) or "<nil>",
+                id = entry ~= nil and tostring(entry.id) or "<nil>",
                 reason = reason or "unknown",
             }
         end
@@ -365,9 +322,7 @@ local function frameSpriteFor(family, partIndex, part)
         return PAIRED_FRAME_RIGHT_N
     end
 
-    local spriteConfig = part.spriteConfig
-    if spriteConfig ~= nil and spriteConfig.getDontNeedFrame ~= nil
-        and not spriteConfig:getDontNeedFrame() then
+    if part.spriteScript ~= nil and not part.spriteScript:getDontNeedFrame() then
         return STANDARD_FRAME_N
     end
 
@@ -422,7 +377,7 @@ local function tagObject(object, family, part, partIndex)
     data.lmionTestZone = true
     data.lmionTestZoneKind = family.kind
     data.lmionTestZoneFamily = family.id
-    data.lmionTestZoneEntity = part.script ~= nil and tostring(part.script:getFullName()) or nil
+    data.lmionTestZoneEntity = part.gameScript ~= nil and tostring(part.gameScript:getFullName()) or nil
     data.lmionTestZonePart = partIndex
 end
 
@@ -453,9 +408,7 @@ local function spawnPart(family, part, square, partIndex, result)
     if grouped then
         object = IsoDoor.new(getCell(), square, part.sprite, true)
     elseif part.openSprite ~= nil then
-        object = IsoThumpable.new(
-            getCell(), square, part.sprite, part.openSprite, true, {}
-        )
+        object = IsoThumpable.new(getCell(), square, part.sprite, part.openSprite, true, {})
     else
         object = IsoThumpable.new(getCell(), square, part.sprite, true, {})
     end
@@ -473,8 +426,8 @@ local function spawnPart(family, part, square, partIndex, result)
 
     if not grouped and GameEntityFactory ~= nil
         and GameEntityFactory.CreateIsoObjectEntity ~= nil
-        and part.script ~= nil then
-        GameEntityFactory.CreateIsoObjectEntity(object, part.script, true)
+        and part.gameScript ~= nil then
+        GameEntityFactory.CreateIsoObjectEntity(object, part.gameScript, true)
     end
 
     result.objectsSpawned = result.objectsSpawned + 1
@@ -539,10 +492,10 @@ local function spawnSection(families, layout, originX, originY, z, result)
     return rows * cellY - layout.gapY
 end
 
-function Spawner.spawn(scripts, originSquare)
-    local sections, rejected = prepareFamilies(scripts)
+function Spawner.spawn(entries, originSquare)
+    local sections, rejected = prepareFamilies(entries)
     local result = {
-        entitiesFound = #(scripts or {}),
+        entitiesFound = #(entries or {}),
         entitiesSpawned = 0,
         familiesFound = 0,
         familiesSpawned = 0,
