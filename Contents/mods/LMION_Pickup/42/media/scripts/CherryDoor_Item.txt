@@ -1,0 +1,12 @@
+module Base
+{
+    item LMION_CherryDoor
+    {
+        DisplayCategory = Furniture,
+        DisplayName = Cherry Door,
+        ItemType = base:moveable,
+        Icon = default,
+        Weight = 20.0,
+        Tags = base:usedisplayname,
+    }
+}
