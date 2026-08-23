@@ -4,27 +4,57 @@ require "LMION/Core"
 local Pickup = LMION.Pickup
 local Doors = LMION.Doors
 
-local function setProperty(properties, name, value)
-    if value ~= nil then
-        properties:set(name, tostring(value))
+local function getProfileForMoveProps(moveProps, sprite)
+    if moveProps == nil then
+        return nil
     end
+
+    local resolvedSprite = sprite or moveProps.sprite
+    if type(resolvedSprite) == "string" then
+        resolvedSprite = getSprite(resolvedSprite)
+    end
+
+    local profile = resolvedSprite and Doors.getProfileForSprite(resolvedSprite) or nil
+    if profile == nil or profile.pickup == nil or profile.pickup.allowed ~= true then
+        return nil
+    end
+
+    return profile
 end
 
-local function applyBoolean(properties, name, value)
-    if value == true then
-        properties:set(name)
-    elseif value == false then
-        properties:unset(name)
-    end
-end
-
-local function applyProfileToSprite(sprite, profile)
-    if sprite == nil or profile == nil or profile.pickup == nil then
-        return false
+local function applyProfileToMoveProps(moveProps, sprite)
+    local profile = getProfileForMoveProps(moveProps, sprite)
+    if profile == nil then
+        return nil
     end
 
     local pickup = profile.pickup
-    if pickup.allowed ~= true then
+
+    -- Keep the TileDef property container almost untouched.  Its string values
+    -- are alias-table backed in B42, so writing arbitrary values at runtime can
+    -- silently resolve to the first registered alias.  LMION policy belongs on
+    -- this transient Moveables descriptor instead.
+    moveProps.name = profile.name or moveProps.name
+    moveProps.type = pickup.moveType or "Object"
+    moveProps.pickUpTool = pickup.pickUpTool
+    moveProps.placeTool = pickup.placeTool
+    moveProps.pickUpLevel = pickup.pickUpLevel or 0
+    moveProps.rawWeight = pickup.pickUpWeight or moveProps.rawWeight
+    moveProps.weight = moveProps.rawWeight and (moveProps.rawWeight / 10) or moveProps.weight
+    moveProps.canBreak = pickup.pickUpTool ~= nil and pickup.canBreak == true
+
+    if profile.materials ~= nil then
+        moveProps.material = profile.materials.primary or moveProps.material
+        moveProps.material2 = profile.materials.secondary or moveProps.material2
+        moveProps.materialType = profile.materials.materialType or moveProps.materialType
+    end
+
+    moveProps.lmionDoorProfile = profile
+    return profile
+end
+
+local function markDoorSpriteMoveable(sprite, profile)
+    if sprite == nil or profile == nil or profile.pickup == nil or profile.pickup.allowed ~= true then
         return false
     end
 
@@ -33,21 +63,10 @@ local function applyProfileToSprite(sprite, profile)
         return false
     end
 
+    -- The vanilla cursor only needs this flag to consider the world object.
+    -- All configurable LMION values are applied to ISMoveableSpriteProps after
+    -- vanilla has parsed the sprite.
     properties:set("IsMoveAble")
-    setProperty(properties, "MoveType", pickup.moveType or "Object")
-    setProperty(properties, "CustomName", profile.name)
-    setProperty(properties, "PickUpTool", pickup.pickUpTool)
-    setProperty(properties, "PlaceTool", pickup.placeTool)
-    setProperty(properties, "PickUpLevel", pickup.pickUpLevel)
-    setProperty(properties, "PickUpWeight", pickup.pickUpWeight)
-    applyBoolean(properties, "CanBreak", pickup.canBreak)
-
-    if profile.materials ~= nil then
-        setProperty(properties, "Material", profile.materials.primary)
-        setProperty(properties, "Material2", profile.materials.secondary)
-        setProperty(properties, "MaterialType", profile.materials.materialType)
-    end
-
     return true
 end
 
@@ -67,7 +86,7 @@ local function configureKnownDoorSprites()
                 local tileNames = spriteConfig:getAllTileNames()
                 for j = 0, tileNames:size() - 1 do
                     local sprite = getSprite(tileNames:get(j))
-                    if applyProfileToSprite(sprite, profile) then
+                    if markDoorSpriteMoveable(sprite, profile) then
                         configured = configured + 1
                     end
                 end
@@ -78,17 +97,52 @@ local function configureKnownDoorSprites()
     LMION.log("Pickup", "configured " .. tostring(configured) .. " LMION door sprites for Moveables")
 end
 
--- Configure the known LMION doors once the game's tile definitions exist.
--- This deliberately avoids overriding ISMoveableSpriteProps.new globally.
 Events.OnLoadedTileDefinitions.Add(configureKnownDoorSprites)
+
+-- Parse everything with vanilla first, then overlay LMION policy only for a
+-- profiled door.  This keeps ordinary Moveables untouched and avoids mutating
+-- shared TileDef string properties such as CustomName or MoveType.
+if Pickup._originalMoveableSpritePropsNew == nil then
+    Pickup._originalMoveableSpritePropsNew = ISMoveableSpriteProps.new
+end
+
+ISMoveableSpriteProps.new = function(sprite)
+    local moveProps = Pickup._originalMoveableSpritePropsNew(sprite)
+
+    local resolvedSprite = sprite
+    if type(resolvedSprite) == "string" then
+        resolvedSprite = getSprite(resolvedSprite)
+    end
+
+    applyProfileToMoveProps(moveProps, resolvedSprite)
+    return moveProps
+end
+
+-- ReadFromWorldSprite still gives the generic Moveable item its vanilla name.
+-- Rename only items produced for an LMION door after vanilla has initialized
+-- the world-sprite linkage and weight.
+if Pickup._originalMoveableInstanceItem == nil then
+    Pickup._originalMoveableInstanceItem = ISMoveableSpriteProps.instanceItem
+end
+
+ISMoveableSpriteProps.instanceItem = function(self, spriteNameOverride)
+    local item = Pickup._originalMoveableInstanceItem(self, spriteNameOverride)
+    local profile = self and (self.lmionDoorProfile or getProfileForMoveProps(self)) or nil
+
+    if item ~= nil and profile ~= nil and profile.name ~= nil and item.setName ~= nil then
+        item:setName(profile.name)
+    end
+
+    return item
+end
 
 if Pickup._originalCanPlaceMoveableInternal == nil then
     Pickup._originalCanPlaceMoveableInternal = ISMoveableSpriteProps.canPlaceMoveableInternal
 end
 
 ISMoveableSpriteProps.canPlaceMoveableInternal = function(self, character, square, item, forceTypeObject)
-    local profile = self and self.sprite and Doors.getProfileForSprite(self.sprite) or nil
-    if profile == nil or profile.pickup == nil or profile.pickup.allowed ~= true then
+    local profile = self and (self.lmionDoorProfile or getProfileForMoveProps(self)) or nil
+    if profile == nil then
         return Pickup._originalCanPlaceMoveableInternal(self, character, square, item, forceTypeObject)
     end
 
