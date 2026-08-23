@@ -18,26 +18,20 @@ local function applyBoolean(properties, name, value)
     end
 end
 
-local function configureDoorSprite(sprite)
-    if sprite == nil then
-        return nil
+local function applyProfileToSprite(sprite, profile)
+    if sprite == nil or profile == nil or profile.pickup == nil then
+        return false
+    end
+
+    local pickup = profile.pickup
+    if pickup.allowed ~= true then
+        return false
     end
 
     local properties = sprite:getProperties()
     if properties == nil then
-        return nil
+        return false
     end
-
-    if not properties:has(IsoFlagType.doorN) and not properties:has(IsoFlagType.doorW) then
-        return nil
-    end
-
-    local profile = Doors.getProfileForSprite(sprite)
-    if profile == nil or profile.pickup == nil or profile.pickup.allowed ~= true then
-        return nil
-    end
-
-    local pickup = profile.pickup
 
     properties:set("IsMoveAble")
     setProperty(properties, "MoveType", pickup.moveType or "Object")
@@ -54,36 +48,45 @@ local function configureDoorSprite(sprite)
         setProperty(properties, "MaterialType", profile.materials.materialType)
     end
 
-    return profile
+    return true
 end
 
-if Pickup._originalMoveableSpritePropsNew == nil then
-    Pickup._originalMoveableSpritePropsNew = ISMoveableSpriteProps.new
-end
+local function configureKnownDoorSprites()
+    local scripts = ScriptManager.instance:getAllGameEntities()
+    local configured = 0
 
-ISMoveableSpriteProps.new = function(sprite)
-    local resolvedSprite = sprite
-    if type(resolvedSprite) == "string" then
-        resolvedSprite = getSprite(resolvedSprite)
+    for i = 0, scripts:size() - 1 do
+        local script = scripts:get(i)
+        local profile = Doors.getProfile(script:getName())
+
+        if script:getModID() == "LMION_Core" and profile ~= nil then
+            local spriteConfig = script:getComponentScriptFor(ComponentType.SpriteConfig)
+            if spriteConfig ~= nil then
+                local tileNames = spriteConfig:getAllTileNames()
+                for j = 0, tileNames:size() - 1 do
+                    local sprite = getSprite(tileNames:get(j))
+                    if applyProfileToSprite(sprite, profile) then
+                        configured = configured + 1
+                    end
+                end
+            end
+        end
     end
 
-    configureDoorSprite(resolvedSprite)
-
-    local props = Pickup._originalMoveableSpritePropsNew(sprite)
-    if props ~= nil and resolvedSprite ~= nil then
-        props.lmionDoorProfile = Doors.getProfileForSprite(resolvedSprite)
-    end
-
-    return props
+    LMION.log("Pickup", "configured " .. tostring(configured) .. " LMION door sprites for Moveables")
 end
+
+-- Configure the known LMION doors once the game's tile definitions exist.
+-- This deliberately avoids overriding ISMoveableSpriteProps.new globally.
+Events.OnLoadedTileDefinitions.Add(configureKnownDoorSprites)
 
 if Pickup._originalCanPlaceMoveableInternal == nil then
     Pickup._originalCanPlaceMoveableInternal = ISMoveableSpriteProps.canPlaceMoveableInternal
 end
 
 ISMoveableSpriteProps.canPlaceMoveableInternal = function(self, character, square, item, forceTypeObject)
-    local profile = self and self.lmionDoorProfile or nil
-    if profile == nil then
+    local profile = self and self.sprite and Doors.getProfileForSprite(self.sprite) or nil
+    if profile == nil or profile.pickup == nil or profile.pickup.allowed ~= true then
         return Pickup._originalCanPlaceMoveableInternal(self, character, square, item, forceTypeObject)
     end
 
