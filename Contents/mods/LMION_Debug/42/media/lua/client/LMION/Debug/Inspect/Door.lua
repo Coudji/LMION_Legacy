@@ -262,6 +262,7 @@ Debug.registerInspector("door.runtime", 10, function(object, report)
     local doubleDoorIndex = getDoubleDoorIndex(object)
     local garageDoorIndex = getGarageDoorIndex(object)
     local entityName = entityScriptName(object)
+    local effectiveMaxHealth = LMION.Doors and LMION.Doors.getEffectiveMaxHealth and LMION.Doors.getEffectiveMaxHealth(object) or nil
 
     report:section("Object")
     report:field("class", Safe.shortClassName(object))
@@ -279,7 +280,12 @@ Debug.registerInspector("door.runtime", 10, function(object, report)
     report:section("Door")
     report:field("orientation", object:getNorth() and "N" or "W")
     report:field("open", object:IsOpen())
-    report:field("health", tostring(object:getHealth()) .. " / " .. tostring(object:getMaxHealth()))
+    report:field("health", object:getHealth())
+    report:field("lmionMaxHealth", effectiveMaxHealth)
+    report:field("engineMaxHealth", object:getMaxHealth())
+    if effectiveMaxHealth ~= nil and effectiveMaxHealth > 0 then
+        report:field("condition", string.format("%.1f%%", math.max(0, object:getHealth()) * 100 / effectiveMaxHealth))
+    end
     report:field("locked", object:isLocked())
     report:field("lockedByKey", object:isLockedByKey())
     report:field("keyId", object:getKeyId())
