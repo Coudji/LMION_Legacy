@@ -201,6 +201,22 @@ local function reportMoveables(object, report)
     report:field("parsed.pickUpLevel", moveProps.pickUpLevel)
     report:field("parsed.weight", moveProps.weight)
 
+    local expectedItemType = "Moveables." .. tostring(moveProps.spriteName)
+    report:field("parsed.expectedItemType", expectedItemType)
+
+    local item = Safe.value("ISMoveableSpriteProps.instanceItem", function()
+        return moveProps:instanceItem()
+    end, nil)
+    report:field("parsed.itemExists", item ~= nil)
+    if item ~= nil then
+        report:field("parsed.itemFullType", Safe.value("InventoryItem.getFullType", function()
+            return item:getFullType()
+        end, nil))
+        report:field("parsed.itemName", Safe.value("InventoryItem.getName", function()
+            return item:getName()
+        end, nil))
+    end
+
     local player = getPlayer and getPlayer() or nil
     if player ~= nil and moveProps.canPickUpMoveable ~= nil then
         local canPickUp = Safe.value("ISMoveableSpriteProps.canPickUpMoveable", function()
