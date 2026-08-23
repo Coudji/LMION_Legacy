@@ -144,6 +144,10 @@ ISMoveableSpriteProps.instanceItem = function(self, spriteNameOverride)
         if item.setName ~= nil and displayName ~= nil then
             item:setName(displayName)
         end
+
+        if self.lmionPendingHealth ~= nil then
+            item:getModData().lmionDoorHealth = self.lmionPendingHealth
+        end
     end
 
     return item
@@ -155,22 +159,14 @@ end
 
 ISMoveableSpriteProps.pickUpMoveableInternal = function(self, character, square, object, sprInstance, spriteName, createItem, rotating)
     local profile = self and (self.lmionDoorProfile or getProfileForMoveProps(self)) or nil
-    local health = nil
-    local maxHealth = nil
 
+    self.lmionPendingHealth = nil
     if profile ~= nil and object ~= nil and instanceof(object, "IsoDoor") then
-        health = object:getHealth()
-        maxHealth = object:getMaxHealth()
+        self.lmionPendingHealth = object:getHealth()
     end
 
     local item = Pickup._originalPickUpMoveableInternal(self, character, square, object, sprInstance, spriteName, createItem, rotating)
-
-    if item ~= nil and health ~= nil and maxHealth ~= nil then
-        local modData = item:getModData()
-        modData.lmionDoorHealth = health
-        modData.lmionDoorMaxHealth = maxHealth
-    end
-
+    self.lmionPendingHealth = nil
     return item
 end
 
@@ -213,24 +209,19 @@ end
 ISMoveableSpriteProps.placeMoveableInternal = function(self, square, item, spriteName)
     local profile = self and (self.lmionDoorProfile or getProfileForMoveProps(self)) or nil
     local north = profile and Doors.getNorthFromSprite(self.sprite) or nil
-    local result = Pickup._originalPlaceMoveableInternal(self, square, item, spriteName)
+    local savedHealth = nil
 
     if profile ~= nil and item ~= nil and item:hasModData() then
-        local modData = item:getModData()
-        local savedHealth = tonumber(modData.lmionDoorHealth)
-        local savedMaxHealth = tonumber(modData.lmionDoorMaxHealth)
+        savedHealth = tonumber(item:getModData().lmionDoorHealth)
+    end
+
+    local result = Pickup._originalPlaceMoveableInternal(self, square, item, spriteName)
+
+    if profile ~= nil and savedHealth ~= nil then
         local door = findPlacedDoor(square, profile, north)
-
-        if door ~= nil and savedHealth ~= nil and savedMaxHealth ~= nil and savedMaxHealth > 0 then
-            local targetMaxHealth = door:getMaxHealth()
-            local targetHealth = savedHealth
-
-            if targetMaxHealth ~= savedMaxHealth then
-                targetHealth = math.floor((savedHealth / savedMaxHealth) * targetMaxHealth + 0.5)
-            end
-
-            targetHealth = math.max(0, math.min(targetMaxHealth, targetHealth))
-            door:setHealth(targetHealth)
+        if door ~= nil then
+            local maxHealth = door:getMaxHealth()
+            door:setHealth(math.max(0, math.min(maxHealth, savedHealth)))
 
             if isServer() then
                 door:transmitCompleteItemToClients()
