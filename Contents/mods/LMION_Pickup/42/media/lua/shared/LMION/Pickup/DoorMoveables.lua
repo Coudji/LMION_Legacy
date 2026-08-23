@@ -220,8 +220,7 @@ ISMoveableSpriteProps.placeMoveableInternal = function(self, square, item, sprit
     if profile ~= nil and savedHealth ~= nil then
         local door = findPlacedDoor(square, profile, north)
         if door ~= nil then
-            local maxHealth = door:getMaxHealth()
-            door:setHealth(math.max(0, math.min(maxHealth, savedHealth)))
+            door:setHealth(math.max(0, savedHealth))
 
             if isServer() then
                 door:transmitCompleteItemToClients()
