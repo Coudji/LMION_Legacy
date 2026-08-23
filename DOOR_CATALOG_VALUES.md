@@ -6,7 +6,7 @@ Use `TBD` whenever a value has not been decided or verified yet. A `?` suffix me
 
 ## Class
 
-Project-defined LMION durability classes:
+Project-defined LMION material/durability classes:
 
 ```text
 wood
@@ -20,7 +20,25 @@ security
 unknown
 ```
 
-Current provisional HP baseline by class:
+`Class` is only one axis of durability. The final HP also depends on the kind/size of opening. A small door should not automatically have the same HP as a normal door made from the same material, and a garage door should not use the normal 1x1 baseline.
+
+## Durability by opening type
+
+### Small 1x1 doors
+
+Use for clearly undersized doors/panels compared with a normal exterior/interior door.
+
+```text
+wood          = 425
+wood_glazed   = 350
+metal         = 550
+metal_glazed  = 475
+glass         = 300
+```
+
+This is intentionally a little below normal 1x1 durability at equivalent material.
+
+### Normal 1x1 doors
 
 ```text
 wood          = 500
@@ -29,30 +47,61 @@ heavy_wood    = 600
 metal         = 650
 metal_glazed  = 550
 glass         = 350
-jail          = 1000
-security      = 1200
-unknown       = TBD
 ```
 
-These are balance values, not engine enums. Individual doors can override them later.
+### Large / double doors and portals
+
+These are per segment/battant, not the HP of the whole opening.
+
+```text
+wood          = 600
+wood_glazed   = 500
+metal         = 800
+metal_glazed  = 650
+glass         = 425
+```
+
+These are starting points only. Structure matters a lot for gates: a light tube gate can stay around 650–800, while a heavy wrought-iron gate can override upward to 1200 or more.
+
+### Garage doors
+
+Garage doors use their own baseline because each segment belongs to a large reinforced opening:
+
+```text
+metal         = 1200
+metal_glazed  = 1000
+```
+
+The value is still per segment. Group destruction is handled separately: if one garage segment reaches zero, the whole garage door is destroyed.
+
+### Special exceptions
+
+```text
+jail          = 2000
+security      = 3000
+```
+
+These are explicit design exceptions rather than ordinary material baselines.
+
+### Overrides
+
+Individual models may override the table when their construction clearly justifies it. Examples already accepted in the catalog:
+
+```text
+FarmDoubleGate          = 800
+WroughtIronDoubleGate   = 1200
+WoodenFenceDoubleGate   = 600
+DoubleWireGate          = 650
+LogDoor                 = 600
+```
+
+The row's explicit HP value is authoritative once reviewed.
 
 ## HP
 
 Use a positive integer or `TBD`.
 
-Current normal values to prefer while the catalog is being drafted:
-
-```text
-350
-425
-500
-550
-600
-650
-1000
-1200
-TBD
-```
+Do not force every member of a class to the same HP. Use the opening-type baseline above, then adjust for visible construction, thickness, reinforcement and special gameplay role.
 
 For multi-tile openings the HP value is per segment.
 
@@ -196,14 +245,14 @@ These prefixes are used by the door sound logic for events such as open, close, 
 Practical intended mapping:
 
 ```text
-normal wood door      -> WoodDoor
-normal metal door     -> MetalDoor
-jail/security metal   -> PrisonMetalDoor when appropriate
-glass sliding door    -> SlidingGlassDoor
-garage door           -> GarageDoor
-chain/wire gate       -> MetalGate
-metal pole gate       -> MetalPoleGate
-large/double pole gate-> MetalPoleGateDouble
+normal wood door       -> WoodDoor
+normal metal door      -> MetalDoor
+jail/security metal    -> PrisonMetalDoor when appropriate
+glass sliding door     -> SlidingGlassDoor
+garage door            -> GarageDoor
+chain/wire gate        -> MetalGate
+metal pole gate        -> MetalPoleGate
+large/double pole gate -> MetalPoleGateDouble
 ```
 
 Do not use `FarmGate` or another guessed prefix until it is explicitly verified.
@@ -249,9 +298,9 @@ FR name = natural French display name
 
 Avoid encoding engine/internal terminology in the visible name unless the player actually needs it.
 
-## Quick template
+## Quick examples
 
-When filling a row manually, this is a safe pattern:
+Normal metal 1x1:
 
 ```text
 Class        = metal
@@ -262,6 +311,27 @@ Material(s)  = M1=MetalPlates; M2=Door
 MaterialType = Metal_Solid
 DoorSound    = MetalDoor
 BreakSound   = BreakDoor
+```
+
+Small metal 1x1:
+
+```text
+Class        = metal
+HP           = 550
+```
+
+Large metal portal segment:
+
+```text
+Class        = metal
+HP           = 800
+```
+
+Metal garage segment:
+
+```text
+Class        = metal
+HP           = 1200
 ```
 
 If any field is uncertain, leave it as `TBD` instead of guessing.
