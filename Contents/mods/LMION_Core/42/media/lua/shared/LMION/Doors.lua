@@ -10,7 +10,7 @@ Doors.Profiles.CherryDoor = {
 
     materials = {
         primary = "Door",
-        secondary = "Wood",
+        secondary = "MetalPlates",
         materialType = "Wood_Solid",
     },
 
