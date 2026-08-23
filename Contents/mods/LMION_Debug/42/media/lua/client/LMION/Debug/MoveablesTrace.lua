@@ -30,8 +30,19 @@ local function inventoryCount(character)
     return character:getInventory():getItems():size()
 end
 
+local function isInventoryItem(item)
+    return item ~= nil and instanceof ~= nil and instanceof(item, "InventoryItem") == true
+end
+
+local function itemFullType(item)
+    if not isInventoryItem(item) then
+        return "<not InventoryItem>"
+    end
+    return item:getFullType()
+end
+
 local function itemModDataValue(item, key)
-    if item == nil or instanceof == nil or not instanceof(item, "InventoryItem") then
+    if not isInventoryItem(item) then
         return nil
     end
     if not item:hasModData() then
@@ -106,6 +117,7 @@ if Trace._originalPickUpMoveable == nil then
         local result = Trace._originalPickUpMoveable(self, character, square, createItem, forceAllow)
         trace("pickup END sprite=" .. spriteName(self)
             .. " result=" .. tostring(result)
+            .. " resultType=" .. itemFullType(result)
             .. " resultSavedHealth=" .. tostring(itemSavedHealth(result))
             .. " resultSavedMaxHealth=" .. tostring(itemSavedMaxHealth(result))
             .. " inventory=" .. tostring(inventoryCount(character)))
@@ -116,22 +128,18 @@ end
 if Trace._originalPickUpMoveableInternal == nil then
     Trace._originalPickUpMoveableInternal = ISMoveableSpriteProps.pickUpMoveableInternal
     ISMoveableSpriteProps.pickUpMoveableInternal = function(self, character, square, object, sprInstance, targetSpriteName, createItem, rotating)
-        local testItem = self:instanceItem(targetSpriteName)
         trace("internal BEGIN sprite=" .. spriteName(self)
             .. " target=" .. tostring(targetSpriteName)
             .. " object=" .. objectLabel(object)
             .. " objectHealth=" .. tostring(object and object:getHealth() or "<nil>")
             .. " objectMaxHealth=" .. tostring(object and LMION.Doors and LMION.Doors.getEffectiveMaxHealth and LMION.Doors.getEffectiveMaxHealth(object) or "<nil>")
-            .. " item=" .. tostring(testItem)
-            .. " itemType=" .. tostring(testItem and testItem:getFullType() or "<nil>")
-            .. " testItemSavedHealth=" .. tostring(itemSavedHealth(testItem))
-            .. " testItemSavedMaxHealth=" .. tostring(itemSavedMaxHealth(testItem))
             .. " createItem=" .. tostring(createItem)
             .. " rotating=" .. tostring(rotating)
             .. " inventory=" .. tostring(inventoryCount(character)))
         local result = Trace._originalPickUpMoveableInternal(self, character, square, object, sprInstance, targetSpriteName, createItem, rotating)
         trace("internal END sprite=" .. spriteName(self)
             .. " result=" .. tostring(result)
+            .. " resultType=" .. itemFullType(result)
             .. " resultSavedHealth=" .. tostring(itemSavedHealth(result))
             .. " resultSavedMaxHealth=" .. tostring(itemSavedMaxHealth(result))
             .. " inventory=" .. tostring(inventoryCount(character)))
@@ -145,7 +153,7 @@ if Trace._originalPlaceMoveableInternal == nil then
         trace("placeInternal BEGIN sprite=" .. spriteName(self)
             .. " target=" .. tostring(targetSpriteName)
             .. " item=" .. tostring(item)
-            .. " itemType=" .. tostring(item and item:getFullType() or "<nil>")
+            .. " itemType=" .. itemFullType(item)
             .. " savedHealth=" .. tostring(itemSavedHealth(item))
             .. " savedMaxHealth=" .. tostring(itemSavedMaxHealth(item))
             .. " doorBefore=" .. doorHealthOnSquare(square))
