@@ -89,6 +89,24 @@ local function configureKnownDoorSprites()
     LMION.log("Pickup", "configured " .. tostring(configured) .. " LMION door sprites for Moveables")
 end
 
+local function findPlacedDoor(square, profile, north)
+    if square == nil or profile == nil or north == nil then
+        return nil
+    end
+
+    local objects = square:getSpecialObjects()
+    for i = objects:size() - 1, 0, -1 do
+        local object = objects:get(i)
+        if instanceof(object, "IsoDoor")
+            and object:getNorth() == north
+            and Doors.getProfileForSprite(object:getSprite()) == profile then
+            return object
+        end
+    end
+
+    return nil
+end
+
 Events.OnLoadedTileDefinitions.Add(configureKnownDoorSprites)
 
 if Pickup._originalMoveableSpritePropsNew == nil then
@@ -131,6 +149,31 @@ ISMoveableSpriteProps.instanceItem = function(self, spriteNameOverride)
     return item
 end
 
+if Pickup._originalPickUpMoveableInternal == nil then
+    Pickup._originalPickUpMoveableInternal = ISMoveableSpriteProps.pickUpMoveableInternal
+end
+
+ISMoveableSpriteProps.pickUpMoveableInternal = function(self, character, square, object, sprInstance, spriteName, createItem, rotating)
+    local profile = self and (self.lmionDoorProfile or getProfileForMoveProps(self)) or nil
+    local health = nil
+    local maxHealth = nil
+
+    if profile ~= nil and object ~= nil and instanceof(object, "IsoDoor") then
+        health = object:getHealth()
+        maxHealth = object:getMaxHealth()
+    end
+
+    local item = Pickup._originalPickUpMoveableInternal(self, character, square, object, sprInstance, spriteName, createItem, rotating)
+
+    if item ~= nil and health ~= nil and maxHealth ~= nil then
+        local modData = item:getModData()
+        modData.lmionDoorHealth = health
+        modData.lmionDoorMaxHealth = maxHealth
+    end
+
+    return item
+end
+
 if Pickup._originalCanPlaceMoveableInternal == nil then
     Pickup._originalCanPlaceMoveableInternal = ISMoveableSpriteProps.canPlaceMoveableInternal
 end
@@ -161,6 +204,41 @@ ISMoveableSpriteProps.canPlaceMoveableInternal = function(self, character, squar
     end
 
     return true
+end
+
+if Pickup._originalPlaceMoveableInternal == nil then
+    Pickup._originalPlaceMoveableInternal = ISMoveableSpriteProps.placeMoveableInternal
+end
+
+ISMoveableSpriteProps.placeMoveableInternal = function(self, square, item, spriteName)
+    local profile = self and (self.lmionDoorProfile or getProfileForMoveProps(self)) or nil
+    local north = profile and Doors.getNorthFromSprite(self.sprite) or nil
+    local result = Pickup._originalPlaceMoveableInternal(self, square, item, spriteName)
+
+    if profile ~= nil and item ~= nil and item:hasModData() then
+        local modData = item:getModData()
+        local savedHealth = tonumber(modData.lmionDoorHealth)
+        local savedMaxHealth = tonumber(modData.lmionDoorMaxHealth)
+        local door = findPlacedDoor(square, profile, north)
+
+        if door ~= nil and savedHealth ~= nil and savedMaxHealth ~= nil and savedMaxHealth > 0 then
+            local targetMaxHealth = door:getMaxHealth()
+            local targetHealth = savedHealth
+
+            if targetMaxHealth ~= savedMaxHealth then
+                targetHealth = math.floor((savedHealth / savedMaxHealth) * targetMaxHealth + 0.5)
+            end
+
+            targetHealth = math.max(0, math.min(targetMaxHealth, targetHealth))
+            door:setHealth(targetHealth)
+
+            if isServer() then
+                door:transmitCompleteItemToClients()
+            end
+        end
+    end
+
+    return result
 end
 
 return Pickup
