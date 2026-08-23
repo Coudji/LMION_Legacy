@@ -72,5 +72,7 @@ function Pickup.getRegisteredStrategyCount()
     return #Pickup.Strategies
 end
 
+require "LMION/Pickup/DoorMoveables"
+
 LMION.registerModule(Pickup.ID, Pickup)
 LMION.log("Pickup", "loaded " .. Pickup.VERSION)
