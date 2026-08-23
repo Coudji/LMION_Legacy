@@ -24,7 +24,7 @@ JailDoor     = 2000
 SecurityDoor = 3000
 ```
 
-For multi-tile openings, HP is per segment. Group destruction remains separate: a garage segment reaching zero destroys the full garage door, while a portal segment reaching zero destroys the affected leaf/side.
+For multi-tile openings, HP is per segment. Linked/group destruction behavior is left to the game's native opening logic unless a future LMION profile explicitly needs to override it.
 
 The row's explicit HP value is authoritative once reviewed. Construction skill bonuses remain a separate Build system.
 
@@ -34,7 +34,80 @@ The catalog only uses engine property values from the safe reference in `DOOR_CA
 
 ## Garage doors
 
-| Preview | Model / entity | EN name | FR name | Class | HP | Glazed | Frame | Material(s) | MaterialType | DoorSound | BreakSound |
+Status: **validated family specification**. All garage-door models currently listed here use the same gameplay rules. LMION does not make rolling, sectional or industrial-looking variants inherently stronger or weaker just because of their visual mechanism. The only balance split is **solid metal** versus **glazed metal**.
+
+### Shared physical profile
+
+- Solid garage doors: class `metal`, world max health **1200 HP per segment**.
+- Glazed garage doors: class `metal_glazed`, world max health **1000 HP per segment**.
+- Primary material: `MetalPlates`.
+- Secondary material: `MetalBars`.
+- `MaterialType = Metal_Large`.
+- `DoorSound = GarageDoor`.
+- `BreakSound = BreakDoor` for the construction/thumpable stage unless a better verified value is adopted later.
+- Frame requirement: none.
+
+### Player construction
+
+All garage doors require **MetalWelding 6**, grant **50 XP**, and use `time = 200` for now. The construction time is intentionally a temporary common value to be adjusted after in-game testing.
+
+Constructed durability is driven by MetalWelding rather than Woodwork.
+
+| Variant | `health` | `skillBaseHealth` | HP at MetalWelding 6 | HP at MetalWelding 10 |
+|---|---:|---:|---:|---:|
+| Solid metal | 600 | 400 | 3000 | 4600 |
+| Glazed metal | 500 | 350 | 2600 | 4000 |
+
+#### Solid-metal craft
+
+- Welding Mask x1 — kept.
+- Blow Torch — **6 uses**.
+- Small Sheet Metal x9.
+- Metal Bar x3.
+- Door Hinge x6.
+- Welding Rods — **3 uses**.
+- No Screwdriver.
+- No Screws.
+
+#### Glazed-metal craft
+
+Same recipe as the solid version except three metal sheets are replaced by glass:
+
+- Welding Mask x1 — kept.
+- Blow Torch — **6 uses**.
+- Small Sheet Metal x6.
+- Glass Panel (`Base.GlassPanel`) x3.
+- Metal Bar x3.
+- Door Hinge x6.
+- Welding Rods — **3 uses**.
+- No Screwdriver.
+- No Screws.
+
+### Pickup and replacement
+
+Garage-door pickup is intended as a controlled removal operation, not as risky salvage.
+
+- Pickup allowed: yes.
+- Required skill follows the family rule `floor(construction requirement / 2)`: MetalWelding 6 therefore gives **MetalWelding 3** for pickup.
+- Required pickup tools: **Blow Torch + Welding Mask**.
+- Break chance during pickup: **none**.
+- Pickup output: **3 garage-door packages, 20 kg each** (60 kg total).
+- Replacement requires all three packages.
+- Replacement uses **Blow Torch + Welding Mask**.
+- Welding Rods must also be consumed when replacing the door **if the placement flow can support that requirement cleanly**. Exact placement consumption can be finalized during implementation.
+
+The pickup skill must be tied to the door's construction skill, not inferred from the vanilla Moveables perk associated with a particular tool.
+
+### Dismantling scope
+
+- Deliberate dismantling requires **Blow Torch + Welding Mask**.
+- The exact materials returned by dismantling are intentionally left to the implementation pass, which should choose sensible returns from the door's construction/material profile.
+- Destruction behavior and destruction loot are not defined by this catalog entry.
+- Repair rules are handled elsewhere and are not part of this catalog pass.
+
+### Models
+
+| Preview | Model / entity | EN name | FR name | Class | World HP / segment | Glazed | Frame | Material(s) | MaterialType | DoorSound | BreakSound |
 |---|---|---|---|---|---:|---|---|---|---|---|---|
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_IndustrialGarageDoor.png" width="120"> | `Base.IndustrialGarageDoor` | Industrial Garage Door | Porte de garage industrielle | `metal` | 1200 | no | none | M1=MetalPlates; M2=MetalBars | Metal_Large | GarageDoor | BreakDoor |
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_GreenGarageDoor.png" width="120"> | `Base.GreenGarageDoor` | Green Garage Door | Porte de garage verte | `metal` | 1200 | no | none | M1=MetalPlates; M2=MetalBars | Metal_Large | GarageDoor | BreakDoor |
@@ -43,6 +116,18 @@ The catalog only uses engine property values from the safe reference in `DOOR_CA
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_RollingGarageDoor.png" width="120"> | `Base.RollingGarageDoor` | Rolling Garage Door | Porte de garage à enroulement | `metal` | 1200 | no | none | M1=MetalPlates; M2=MetalBars | Metal_Large | GarageDoor | BreakDoor |
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_RedWindowGarageDoor.png" width="120"> | `Base.RedWindowGarageDoor` | Red Window Garage Door | Porte de garage rouge vitrée | `metal_glazed` | 1000 | yes | none | M1=MetalPlates; M2=MetalBars | Metal_Large | GarageDoor | BreakDoor |
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_RollingWindowGarageDoor.png" width="120"> | `Base.RollingWindowGarageDoor` | Rolling Window Garage Door | Porte de garage à enroulement vitrée | `metal_glazed` | 1000 | yes | none | M1=MetalPlates; M2=MetalBars | Metal_Large | GarageDoor | BreakDoor |
+
+### Internal model descriptions
+
+These descriptions are documentation only. They are not intended for player-facing strings; their purpose is to tell the implementation pass what visual object each catalog entry refers to and why it belongs to this profile.
+
+- `IndustrialGarageDoor`: large solid industrial-style metal garage door with no glazing. Visually heavier/industrial, but intentionally balanced like every other solid garage model.
+- `GreenGarageDoor`: large solid green metal garage door with no glazing.
+- `WhiteGarageDoor`: large solid white sectional metal garage door made of multiple horizontal embossed panels, with no glazing; residential/light-workshop appearance.
+- `GreyGarageDoor`: large solid grey metal garage door with no glazing.
+- `RollingGarageDoor`: large solid rolling/shutter-style metal garage door with no glazing. Its rolling appearance does not change the family durability or craft.
+- `RedWindowGarageDoor`: large red sectional metal garage door with substantial glazed upper sections. The metal frame remains structurally dominant, but the glazing justifies the lower `metal_glazed` durability and replacement of three metal sheets by three glass panels in the craft.
+- `RollingWindowGarageDoor`: large rolling/shutter-style metal garage door with glazing. It uses the same `metal_glazed` profile as the red glazed garage door; the rolling mechanism does not receive separate balance rules.
 
 ## Portals and large gates
 
