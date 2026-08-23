@@ -27,6 +27,13 @@ Doors.Profiles.CherryDoor = {
     },
 }
 
+Doors.Profiles.BlueMetalDoor = {
+    id = "BlueMetalDoor",
+    durability = {
+        worldMaxHealth = 600,
+    },
+}
+
 local spriteProfiles = nil
 
 local function buildSpriteProfiles()
@@ -122,7 +129,7 @@ function Doors.applyEngineProfiles()
         local script = scripts:get(i)
         local profile = Doors.Profiles[script:getName()]
 
-        if profile ~= nil then
+        if profile ~= nil and profile.materials ~= nil then
             local spriteConfig = script:getComponentScriptFor(ComponentType.SpriteConfig)
             if spriteConfig ~= nil then
                 local tileNames = spriteConfig:getAllTileNames()
@@ -216,6 +223,51 @@ function Doors.getProfileForSprite(sprite)
 
     buildSpriteProfiles()
     return spriteProfiles[sprite:getName()]
+end
+
+function Doors.adoptWorldDoor(object)
+    if object == nil or instanceof(object, "IsoDoor") == false then
+        return false
+    end
+
+    local profile = Doors.getProfileForSprite(object:getSprite())
+    local durability = profile and profile.durability or nil
+    local worldMaxHealth = durability and tonumber(durability.worldMaxHealth) or nil
+    if worldMaxHealth == nil or worldMaxHealth <= 0 then
+        return false
+    end
+
+    local modData = object:getModData()
+    if modData ~= nil and tonumber(modData[Doors.MaxHealthModDataKey]) ~= nil then
+        return false
+    end
+
+    local currentHealth = object:getHealth()
+    local engineMaxHealth = object:getMaxHealth()
+
+    Doors.setEffectiveMaxHealth(object, worldMaxHealth)
+
+    if currentHealth == engineMaxHealth then
+        object:setHealth(worldMaxHealth)
+    end
+
+    return true
+end
+
+function Doors.adoptWorldDoorsOnSquare(square)
+    if square == nil then
+        return 0
+    end
+
+    local adopted = 0
+    local objects = square:getObjects()
+    for i = 0, objects:size() - 1 do
+        if Doors.adoptWorldDoor(objects:get(i)) then
+            adopted = adopted + 1
+        end
+    end
+
+    return adopted
 end
 
 function Doors.getNorthFromSprite(sprite)
@@ -343,6 +395,10 @@ Doors.onCreateGarage = Doors.onCreateDoor
 
 if Events ~= nil and Events.OnLoadedTileDefinitions ~= nil then
     Events.OnLoadedTileDefinitions.Add(Doors.applyEngineProfiles)
+end
+
+if Events ~= nil and Events.LoadGridsquare ~= nil then
+    Events.LoadGridsquare.Add(Doors.adoptWorldDoorsOnSquare)
 end
 
 Doors.applyEngineProfiles()
