@@ -30,11 +30,22 @@ local function inventoryCount(character)
     return character:getInventory():getItems():size()
 end
 
-local function itemSavedHealth(item)
-    if item == nil or not item:hasModData() then
+local function itemModDataValue(item, key)
+    if item == nil or instanceof == nil or not instanceof(item, "InventoryItem") then
         return nil
     end
-    return item:getModData().lmionDoorHealth
+    if not item:hasModData() then
+        return nil
+    end
+    return item:getModData()[key]
+end
+
+local function itemSavedHealth(item)
+    return itemModDataValue(item, "lmionDoorHealth")
+end
+
+local function itemSavedMaxHealth(item)
+    return itemModDataValue(item, "lmionDoorMaxHealth")
 end
 
 local function doorHealthOnSquare(square)
@@ -46,7 +57,13 @@ local function doorHealthOnSquare(square)
     for i = objects:size() - 1, 0, -1 do
         local object = objects:get(i)
         if instanceof(object, "IsoDoor") then
-            return tostring(object:getHealth()) .. "/" .. tostring(object:getMaxHealth())
+            local lmionMaxHealth = nil
+            if LMION.Doors ~= nil and LMION.Doors.getEffectiveMaxHealth ~= nil then
+                lmionMaxHealth = LMION.Doors.getEffectiveMaxHealth(object)
+            end
+            return tostring(object:getHealth())
+                .. "/engine=" .. tostring(object:getMaxHealth())
+                .. "/lmion=" .. tostring(lmionMaxHealth)
         end
     end
 
@@ -82,6 +99,7 @@ if Trace._originalPickUpMoveable == nil then
         trace("pickup BEGIN sprite=" .. spriteName(self)
             .. " found=" .. objectLabel(foundObject)
             .. " foundHealth=" .. tostring(foundObject and foundObject:getHealth() or "<nil>")
+            .. " foundMaxHealth=" .. tostring(foundObject and LMION.Doors and LMION.Doors.getEffectiveMaxHealth and LMION.Doors.getEffectiveMaxHealth(foundObject) or "<nil>")
             .. " createItem=" .. tostring(createItem)
             .. " forceAllow=" .. tostring(forceAllow)
             .. " inventory=" .. tostring(inventoryCount(character)))
@@ -89,6 +107,7 @@ if Trace._originalPickUpMoveable == nil then
         trace("pickup END sprite=" .. spriteName(self)
             .. " result=" .. tostring(result)
             .. " resultSavedHealth=" .. tostring(itemSavedHealth(result))
+            .. " resultSavedMaxHealth=" .. tostring(itemSavedMaxHealth(result))
             .. " inventory=" .. tostring(inventoryCount(character)))
         return result
     end
@@ -102,9 +121,11 @@ if Trace._originalPickUpMoveableInternal == nil then
             .. " target=" .. tostring(targetSpriteName)
             .. " object=" .. objectLabel(object)
             .. " objectHealth=" .. tostring(object and object:getHealth() or "<nil>")
+            .. " objectMaxHealth=" .. tostring(object and LMION.Doors and LMION.Doors.getEffectiveMaxHealth and LMION.Doors.getEffectiveMaxHealth(object) or "<nil>")
             .. " item=" .. tostring(testItem)
             .. " itemType=" .. tostring(testItem and testItem:getFullType() or "<nil>")
             .. " testItemSavedHealth=" .. tostring(itemSavedHealth(testItem))
+            .. " testItemSavedMaxHealth=" .. tostring(itemSavedMaxHealth(testItem))
             .. " createItem=" .. tostring(createItem)
             .. " rotating=" .. tostring(rotating)
             .. " inventory=" .. tostring(inventoryCount(character)))
@@ -112,6 +133,7 @@ if Trace._originalPickUpMoveableInternal == nil then
         trace("internal END sprite=" .. spriteName(self)
             .. " result=" .. tostring(result)
             .. " resultSavedHealth=" .. tostring(itemSavedHealth(result))
+            .. " resultSavedMaxHealth=" .. tostring(itemSavedMaxHealth(result))
             .. " inventory=" .. tostring(inventoryCount(character)))
         return result
     end
@@ -125,11 +147,13 @@ if Trace._originalPlaceMoveableInternal == nil then
             .. " item=" .. tostring(item)
             .. " itemType=" .. tostring(item and item:getFullType() or "<nil>")
             .. " savedHealth=" .. tostring(itemSavedHealth(item))
+            .. " savedMaxHealth=" .. tostring(itemSavedMaxHealth(item))
             .. " doorBefore=" .. doorHealthOnSquare(square))
         local result = Trace._originalPlaceMoveableInternal(self, square, item, targetSpriteName)
         trace("placeInternal END sprite=" .. spriteName(self)
             .. " result=" .. tostring(result)
             .. " savedHealth=" .. tostring(itemSavedHealth(item))
+            .. " savedMaxHealth=" .. tostring(itemSavedMaxHealth(item))
             .. " doorAfter=" .. doorHealthOnSquare(square))
         return result
     end
