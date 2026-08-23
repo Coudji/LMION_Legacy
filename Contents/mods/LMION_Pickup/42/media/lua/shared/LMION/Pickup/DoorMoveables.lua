@@ -90,35 +90,18 @@ local function configureKnownDoorSprites()
 end
 
 local function findPlacedDoor(square, spriteName)
-    if square == nil then
+    if square == nil or spriteName == nil then
         return nil
     end
 
-    local fallback = nil
-    local specialObjects = square:getSpecialObjects()
-    for i = specialObjects:size() - 1, 0, -1 do
-        local object = specialObjects:get(i)
-        if instanceof(object, "IsoDoor") then
-            fallback = fallback or object
-            local sprite = object:getSprite()
-            if spriteName ~= nil and sprite ~= nil and sprite:getName() == spriteName then
-                return object
-            end
-        end
-    end
-
-    if fallback ~= nil then
-        return fallback
-    end
-
-    local objects = square:getObjects()
+    local objects = square:getSpecialObjects()
     for i = objects:size() - 1, 0, -1 do
         local object = objects:get(i)
-        if instanceof(object, "IsoDoor") then
-            local sprite = object:getSprite()
-            if spriteName == nil or (sprite ~= nil and sprite:getName() == spriteName) then
-                return object
-            end
+        local sprite = object and object:getSprite() or nil
+        if instanceof(object, "IsoDoor")
+            and sprite ~= nil
+            and sprite:getName() == spriteName then
+            return object
         end
     end
 
@@ -225,25 +208,22 @@ if Pickup._originalPlaceMoveableInternal == nil then
 end
 
 ISMoveableSpriteProps.placeMoveableInternal = function(self, square, item, spriteName)
+    local profile = self and (self.lmionDoorProfile or getProfileForMoveProps(self)) or nil
     local savedHealth = nil
 
-    if item ~= nil and item:hasModData() then
+    if profile ~= nil and item ~= nil and item:hasModData() then
         savedHealth = tonumber(item:getModData().lmionDoorHealth)
     end
 
     local result = Pickup._originalPlaceMoveableInternal(self, square, item, spriteName)
 
-    if savedHealth ~= nil then
-        local targetSpriteName = spriteName
-        if targetSpriteName == nil and item ~= nil and item.getWorldSprite ~= nil then
-            targetSpriteName = item:getWorldSprite()
-        end
-
+    if profile ~= nil and savedHealth ~= nil then
         local door = nil
+
         if result ~= nil and instanceof(result, "IsoDoor") then
             door = result
         else
-            door = findPlacedDoor(square, targetSpriteName)
+            door = findPlacedDoor(square, spriteName)
         end
 
         if door ~= nil then
