@@ -38,7 +38,9 @@ local function buildSpriteProfiles()
         local script = scripts:get(i)
         local profile = Doors.Profiles[script:getName()]
 
-        if script:getModID() == "LMION_Core" and profile ~= nil then
+        -- Profiles are authoritative here.  Do not filter by script:getModID():
+        -- LMION intentionally targets Base entities that may originate from vanilla.
+        if profile ~= nil then
             local spriteConfig = script:getComponentScriptFor(ComponentType.SpriteConfig)
             if spriteConfig ~= nil then
                 local tileNames = spriteConfig:getAllTileNames()
