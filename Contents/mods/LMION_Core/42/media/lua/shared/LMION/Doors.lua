@@ -172,7 +172,6 @@ function Doors.onCreateDoor(params)
     door:setKeyId(thumpable:getKeyId())
     door:setIsLocked(false)
     door:setLockedByKey(false)
-    door:setMaxHealth(thumpable:getMaxHealth())
     door:setHealth(thumpable:getHealth())
 
     if GameEntityFactory ~= nil then
