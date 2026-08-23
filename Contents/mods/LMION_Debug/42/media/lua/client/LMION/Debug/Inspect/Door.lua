@@ -1,5 +1,6 @@
 require "LMION/Debug/Registry"
 require "LMION/Debug/Util/Safe"
+require "Moveables/ISMoveableSpriteProps"
 
 LMION.Debug.Inspect = LMION.Debug.Inspect or {}
 
@@ -30,18 +31,32 @@ local function propertyValue(object, name)
     return properties:get(name)
 end
 
-local function spriteHasProperty(object, name)
+local function spriteProperties(object)
     if object == nil then
-        return false
+        return nil
     end
 
     local sprite = object:getSprite()
-    if sprite == nil then
-        return false
+    return sprite ~= nil and sprite:getProperties() or nil
+end
+
+local function spriteHasProperty(object, name)
+    local properties = spriteProperties(object)
+    return properties ~= nil and properties:has(name)
+end
+
+local function spritePropertyValue(object, name)
+    local properties = spriteProperties(object)
+    if properties == nil or not properties:has(name) then
+        return nil
     end
 
-    local properties = sprite:getProperties()
-    return properties ~= nil and properties:has(name)
+    return properties:get(name)
+end
+
+local function spriteHasFlag(object, flag)
+    local properties = spriteProperties(object)
+    return properties ~= nil and properties:has(flag)
 end
 
 local function isIsoDoor(object)
@@ -148,6 +163,53 @@ local function garageLinks(object)
         .. ", next=" .. tostring(memberLabel(next) or "<nil>")
 end
 
+local function reportMoveables(object, report)
+    local sprite = object and object:getSprite() or nil
+    if sprite == nil then
+        return
+    end
+
+    local moveProps = Safe.value("ISMoveableSpriteProps.new", function()
+        return ISMoveableSpriteProps.new(sprite)
+    end, nil)
+
+    report:section("Moveables")
+    report:field("raw.IsMoveAble", spriteHasProperty(object, "IsMoveAble"))
+    report:field("raw.MoveType", spritePropertyValue(object, "MoveType"))
+    report:field("raw.IsoType", spritePropertyValue(object, "IsoType"))
+    report:field("raw.CustomName", spritePropertyValue(object, "CustomName"))
+    report:field("raw.GroupName", spritePropertyValue(object, "GroupName"))
+    report:field("raw.Facing", spritePropertyValue(object, "Facing"))
+    report:field("raw.WallOverlay", spriteHasFlag(object, IsoFlagType.WallOverlay))
+
+    if moveProps == nil then
+        report:field("parsed", "<nil>")
+        return
+    end
+
+    report:field("parsed.isMoveable", moveProps.isMoveable)
+    report:field("parsed.name", moveProps.name)
+    report:field("parsed.type", moveProps.type)
+    report:field("parsed.isoType", moveProps.isoType)
+    report:field("parsed.facing", moveProps.facing)
+    report:field("parsed.offsets", "N=" .. tostring(moveProps.Noffset)
+        .. ", W=" .. tostring(moveProps.Woffset)
+        .. ", S=" .. tostring(moveProps.Soffset)
+        .. ", E=" .. tostring(moveProps.Eoffset))
+    report:field("parsed.pickUpTool", moveProps.pickUpTool)
+    report:field("parsed.placeTool", moveProps.placeTool)
+    report:field("parsed.pickUpLevel", moveProps.pickUpLevel)
+    report:field("parsed.weight", moveProps.weight)
+
+    local player = getPlayer and getPlayer() or nil
+    if player ~= nil and moveProps.canPickUpMoveable ~= nil then
+        local canPickUp = Safe.value("ISMoveableSpriteProps.canPickUpMoveable", function()
+            return moveProps:canPickUpMoveable(player, object:getSquare(), object)
+        end, false)
+        report:field("parsed.canPickUp", canPickUp)
+    end
+end
+
 Debug.registerInspector("door.runtime", 10, function(object, report)
     if not Door.isDoorLike(object) then
         return
@@ -194,6 +256,8 @@ Debug.registerInspector("door.runtime", 10, function(object, report)
     else
         report:field("group", "single")
     end
+
+    reportMoveables(object, report)
 end)
 
 return Door
