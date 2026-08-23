@@ -262,7 +262,13 @@ Debug.registerInspector("door.runtime", 10, function(object, report)
     local doubleDoorIndex = getDoubleDoorIndex(object)
     local garageDoorIndex = getGarageDoorIndex(object)
     local entityName = entityScriptName(object)
-    local effectiveMaxHealth = LMION.Doors and LMION.Doors.getEffectiveMaxHealth and LMION.Doors.getEffectiveMaxHealth(object) or nil
+    local lmionMaxHealth = nil
+
+    if LMION.Doors ~= nil and object.getModData ~= nil then
+        local modData = object:getModData()
+        local key = LMION.Doors.MaxHealthModDataKey or "lmionDoorMaxHealth"
+        lmionMaxHealth = modData and tonumber(modData[key]) or nil
+    end
 
     report:section("Object")
     report:field("class", Safe.shortClassName(object))
@@ -281,10 +287,12 @@ Debug.registerInspector("door.runtime", 10, function(object, report)
     report:field("orientation", object:getNorth() and "N" or "W")
     report:field("open", object:IsOpen())
     report:field("health", object:getHealth())
-    report:field("lmionMaxHealth", effectiveMaxHealth)
+    report:field("lmionMaxHealth", lmionMaxHealth ~= nil and lmionMaxHealth or "<unset>")
     report:field("engineMaxHealth", object:getMaxHealth())
-    if effectiveMaxHealth ~= nil and effectiveMaxHealth > 0 then
-        report:field("condition", string.format("%.1f%%", math.max(0, object:getHealth()) * 100 / effectiveMaxHealth))
+    if lmionMaxHealth ~= nil and lmionMaxHealth > 0 then
+        report:field("condition", string.format("%.1f%%", math.max(0, object:getHealth()) * 100 / lmionMaxHealth))
+    else
+        report:field("condition", "<unset>")
     end
     report:field("locked", object:isLocked())
     report:field("lockedByKey", object:isLockedByKey())
