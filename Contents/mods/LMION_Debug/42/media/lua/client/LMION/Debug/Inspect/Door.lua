@@ -163,6 +163,34 @@ local function garageLinks(object)
         .. ", next=" .. tostring(memberLabel(next) or "<nil>")
 end
 
+local function reportMaterials(object, report)
+    local profile = LMION.Doors and LMION.Doors.getProfileForSprite and LMION.Doors.getProfileForSprite(object:getSprite()) or nil
+    local profileMaterials = profile and profile.materials or nil
+    local moveProps = Safe.value("ISMoveableSpriteProps.new", function()
+        return ISMoveableSpriteProps.new(object:getSprite())
+    end, nil)
+
+    report:section("Materials")
+    report:field("world.Material", spritePropertyValue(object, "Material"))
+    report:field("world.Material2", spritePropertyValue(object, "Material2"))
+    report:field("world.Material3", spritePropertyValue(object, "Material3"))
+    report:field("world.MaterialType", spritePropertyValue(object, "MaterialType"))
+
+    if profileMaterials ~= nil then
+        report:field("profile.Material", profileMaterials.primary)
+        report:field("profile.Material2", profileMaterials.secondary)
+        report:field("profile.Material3", profileMaterials.tertiary)
+        report:field("profile.MaterialType", profileMaterials.materialType)
+    end
+
+    if moveProps ~= nil then
+        report:field("parsed.Material", moveProps.material)
+        report:field("parsed.Material2", moveProps.material2)
+        report:field("parsed.Material3", moveProps.material3)
+        report:field("parsed.MaterialType", moveProps.materialType)
+    end
+end
+
 local function reportMoveables(object, report)
     local sprite = object and object:getSprite() or nil
     if sprite == nil then
@@ -273,6 +301,7 @@ Debug.registerInspector("door.runtime", 10, function(object, report)
         report:field("group", "single")
     end
 
+    reportMaterials(object, report)
     reportMoveables(object, report)
 end)
 
