@@ -131,6 +131,7 @@ Do not maintain a speculative parallel model of doors when equivalent runtime or
 - Pickup strategies will live under `shared/LMION/Pickup/Strategies/` when the first real strategy is implemented.
 - New code should be reload-friendly whenever practical: replace registrations by ID and remove/re-add event handlers instead of stacking duplicates.
 - Runtime classification must not rely on sprite names alone.
-- Game-loaded Lua and script files intentionally avoid source comments; important rationale and implementation constraints belong in project documentation such as this file or `LMION_Design_Notes.md`.
+- Game-loaded Lua and script files intentionally avoid source comments. Important rationale and implementation constraints belong in project documentation such as this file or `LMION_Design_Notes.md`.
+- `--` line comments are forbidden in LMION game-loaded source. In `media/scripts`, if a comment is ever unavoidable, use only the Project Zomboid parser-supported multiline comment form. Lua gameplay/debug source should remain comment-free rather than introducing parser/style exceptions.
 - `media/scripts` changes require a real game restart; LMION Lua reload cannot reparse script definitions.
 - Development-only migration or research tooling should not remain in gameplay modules after the task it served is complete.
