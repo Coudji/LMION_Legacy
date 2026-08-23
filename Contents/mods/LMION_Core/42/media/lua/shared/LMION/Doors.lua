@@ -1,5 +1,3 @@
-require "LMION/Core"
-
 LMION.Doors = LMION.Doors or {}
 local Doors = LMION.Doors
 
