@@ -2,6 +2,7 @@ LMION.Doors = LMION.Doors or {}
 local Doors = LMION.Doors
 
 Doors.Profiles = Doors.Profiles or {}
+Doors.MaxHealthModDataKey = "lmionDoorMaxHealth"
 Doors.Profiles.CherryDoor = {
     id = "CherryDoor",
     nameKey = "EC_LMION_CherryDoor",
@@ -165,6 +166,41 @@ function Doors.getDisplayName(profile)
     return profile.fallbackName or profile.id
 end
 
+function Doors.setEffectiveMaxHealth(object, value)
+    if object == nil or object.getModData == nil then
+        return nil
+    end
+
+    local maxHealth = tonumber(value)
+    if maxHealth == nil then
+        return nil
+    end
+
+    maxHealth = math.max(0, math.floor(maxHealth))
+    object:getModData()[Doors.MaxHealthModDataKey] = maxHealth
+    return maxHealth
+end
+
+function Doors.getEffectiveMaxHealth(object)
+    if object == nil then
+        return nil
+    end
+
+    if object.getModData ~= nil then
+        local modData = object:getModData()
+        local maxHealth = modData and tonumber(modData[Doors.MaxHealthModDataKey]) or nil
+        if maxHealth ~= nil then
+            return maxHealth
+        end
+    end
+
+    if object.getMaxHealth ~= nil then
+        return object:getMaxHealth()
+    end
+
+    return nil
+end
+
 function Doors.getProfileForSprite(sprite)
     if sprite == nil then
         return nil
@@ -271,6 +307,7 @@ function Doors.onCreateDoor(params)
 
     local square = thumpable:getSquare()
     local profile = Doors.getProfileForSprite(thumpable:getSprite())
+    local maxHealth = thumpable:getMaxHealth()
     local door = IsoDoor.new(
         getCell(),
         square,
@@ -280,6 +317,7 @@ function Doors.onCreateDoor(params)
 
     door:setName(profile and (profile.fallbackName or profile.id) or thumpable:getName())
     door:setModData(copyTable(thumpable:getModData()))
+    Doors.setEffectiveMaxHealth(door, maxHealth)
     door:setKeyId(thumpable:getKeyId())
     door:setIsLocked(false)
     door:setLockedByKey(false)
