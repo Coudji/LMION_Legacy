@@ -2,9 +2,10 @@ LMION.Doors = LMION.Doors or {}
 local Doors = LMION.Doors
 
 Doors.Profiles = Doors.Profiles or {}
-Doors.Profiles.CherryDoor = Doors.Profiles.CherryDoor or {
+Doors.Profiles.CherryDoor = {
     id = "CherryDoor",
-    name = "Cherry Door",
+    nameKey = "EC_LMION_CherryDoor",
+    fallbackName = "Cherry Door",
     requiresFrame = true,
 
     materials = {
@@ -15,6 +16,7 @@ Doors.Profiles.CherryDoor = Doors.Profiles.CherryDoor or {
 
     pickup = {
         allowed = true,
+        itemType = "Base.LMION_CherryDoor",
         moveType = "Object",
         pickUpTool = "Hammer",
         placeTool = "Hammer",
@@ -52,6 +54,21 @@ end
 
 function Doors.getProfile(entityName)
     return entityName and Doors.Profiles[entityName] or nil
+end
+
+function Doors.getDisplayName(profile)
+    if profile == nil then
+        return nil
+    end
+
+    if profile.nameKey ~= nil then
+        local translated = getText(profile.nameKey)
+        if translated ~= nil and translated ~= profile.nameKey then
+            return translated
+        end
+    end
+
+    return profile.fallbackName or profile.id
 end
 
 function Doors.getProfileForSprite(sprite)
@@ -167,7 +184,7 @@ function Doors.onCreateDoor(params)
         thumpable:getNorth()
     )
 
-    door:setName(profile and profile.name or thumpable:getName())
+    door:setName(profile and (profile.fallbackName or profile.id) or thumpable:getName())
     door:setModData(copyTable(thumpable:getModData()))
     door:setKeyId(thumpable:getKeyId())
     door:setIsLocked(false)
