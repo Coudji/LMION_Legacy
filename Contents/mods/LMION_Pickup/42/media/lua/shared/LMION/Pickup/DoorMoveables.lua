@@ -30,7 +30,8 @@ local function applyProfileToMoveProps(moveProps, sprite)
 
     local pickup = profile.pickup
 
-    moveProps.name = profile.name or moveProps.name
+    moveProps.name = Doors.getDisplayName(profile) or moveProps.name
+    moveProps.customItem = pickup.itemType or moveProps.customItem
     moveProps.type = pickup.moveType or "Object"
     moveProps.pickUpTool = pickup.pickUpTool
     moveProps.placeTool = pickup.placeTool
@@ -114,8 +115,17 @@ ISMoveableSpriteProps.instanceItem = function(self, spriteNameOverride)
     local item = Pickup._originalMoveableInstanceItem(self, spriteNameOverride)
     local profile = self and (self.lmionDoorProfile or getProfileForMoveProps(self)) or nil
 
-    if item ~= nil and profile ~= nil and profile.name ~= nil and item.setName ~= nil then
-        item:setName(profile.name)
+    if item ~= nil and profile ~= nil then
+        local displayName = Doors.getDisplayName(profile)
+        local scriptItem = item.getScriptItem and item:getScriptItem() or nil
+
+        if scriptItem ~= nil and scriptItem.setDisplayName ~= nil and displayName ~= nil then
+            scriptItem:setDisplayName(displayName)
+        end
+
+        if item.setName ~= nil and displayName ~= nil then
+            item:setName(displayName)
+        end
     end
 
     return item
