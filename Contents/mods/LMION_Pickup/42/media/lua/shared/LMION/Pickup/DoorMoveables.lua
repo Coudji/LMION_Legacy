@@ -30,10 +30,6 @@ local function applyProfileToMoveProps(moveProps, sprite)
 
     local pickup = profile.pickup
 
-    -- Keep the TileDef property container almost untouched.  Its string values
-    -- are alias-table backed in B42, so writing arbitrary values at runtime can
-    -- silently resolve to the first registered alias.  LMION policy belongs on
-    -- this transient Moveables descriptor instead.
     moveProps.name = profile.name or moveProps.name
     moveProps.type = pickup.moveType or "Object"
     moveProps.pickUpTool = pickup.pickUpTool
@@ -63,9 +59,6 @@ local function markDoorSpriteMoveable(sprite, profile)
         return false
     end
 
-    -- The vanilla cursor only needs this flag to consider the world object.
-    -- All configurable LMION values are applied to ISMoveableSpriteProps after
-    -- vanilla has parsed the sprite.
     properties:set("IsMoveAble")
     return true
 end
@@ -78,8 +71,6 @@ local function configureKnownDoorSprites()
         local script = scripts:get(i)
         local profile = Doors.getProfile(script:getName())
 
-        -- Profile membership is the authority.  A Base entity can originate
-        -- from vanilla and still be deliberately managed by LMION.
         if profile ~= nil then
             local spriteConfig = script:getComponentScriptFor(ComponentType.SpriteConfig)
             if spriteConfig ~= nil then
@@ -99,9 +90,6 @@ end
 
 Events.OnLoadedTileDefinitions.Add(configureKnownDoorSprites)
 
--- Parse everything with vanilla first, then overlay LMION policy only for a
--- profiled door.  This keeps ordinary Moveables untouched and avoids mutating
--- shared TileDef string properties such as CustomName or MoveType.
 if Pickup._originalMoveableSpritePropsNew == nil then
     Pickup._originalMoveableSpritePropsNew = ISMoveableSpriteProps.new
 end
@@ -118,9 +106,6 @@ ISMoveableSpriteProps.new = function(sprite)
     return moveProps
 end
 
--- ReadFromWorldSprite still gives the generic Moveable item its vanilla name.
--- Rename only items produced for an LMION door after vanilla has initialized
--- the world-sprite linkage and weight.
 if Pickup._originalMoveableInstanceItem == nil then
     Pickup._originalMoveableInstanceItem = ISMoveableSpriteProps.instanceItem
 end
