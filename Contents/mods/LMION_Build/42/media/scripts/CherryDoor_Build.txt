@@ -5,7 +5,7 @@ module Base
         entity ES_CherryDoor
         {
             LuaWindowClass = ISEntityWindow,
-            DisplayName = Cherry Door,
+            DisplayName = EC_LMION_CherryDoor,
             Icon = fixtures_doors_01_13,
         }
     }
