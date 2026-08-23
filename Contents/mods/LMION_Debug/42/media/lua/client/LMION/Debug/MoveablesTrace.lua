@@ -30,6 +30,29 @@ local function inventoryCount(character)
     return character:getInventory():getItems():size()
 end
 
+local function itemSavedHealth(item)
+    if item == nil or not item:hasModData() then
+        return nil
+    end
+    return item:getModData().lmionDoorHealth
+end
+
+local function doorHealthOnSquare(square)
+    if square == nil then
+        return "<nil>"
+    end
+
+    local objects = square:getSpecialObjects()
+    for i = objects:size() - 1, 0, -1 do
+        local object = objects:get(i)
+        if instanceof(object, "IsoDoor") then
+            return tostring(object:getHealth()) .. "/" .. tostring(object:getMaxHealth())
+        end
+    end
+
+    return "<none>"
+end
+
 local function trace(message)
     print("[LMION:Debug:Moveables] " .. tostring(message))
 end
@@ -58,12 +81,14 @@ if Trace._originalPickUpMoveable == nil then
 
         trace("pickup BEGIN sprite=" .. spriteName(self)
             .. " found=" .. objectLabel(foundObject)
+            .. " foundHealth=" .. tostring(foundObject and foundObject:getHealth() or "<nil>")
             .. " createItem=" .. tostring(createItem)
             .. " forceAllow=" .. tostring(forceAllow)
             .. " inventory=" .. tostring(inventoryCount(character)))
         local result = Trace._originalPickUpMoveable(self, character, square, createItem, forceAllow)
         trace("pickup END sprite=" .. spriteName(self)
             .. " result=" .. tostring(result)
+            .. " resultSavedHealth=" .. tostring(itemSavedHealth(result))
             .. " inventory=" .. tostring(inventoryCount(character)))
         return result
     end
@@ -76,15 +101,36 @@ if Trace._originalPickUpMoveableInternal == nil then
         trace("internal BEGIN sprite=" .. spriteName(self)
             .. " target=" .. tostring(targetSpriteName)
             .. " object=" .. objectLabel(object)
+            .. " objectHealth=" .. tostring(object and object:getHealth() or "<nil>")
             .. " item=" .. tostring(testItem)
             .. " itemType=" .. tostring(testItem and testItem:getFullType() or "<nil>")
+            .. " testItemSavedHealth=" .. tostring(itemSavedHealth(testItem))
             .. " createItem=" .. tostring(createItem)
             .. " rotating=" .. tostring(rotating)
             .. " inventory=" .. tostring(inventoryCount(character)))
         local result = Trace._originalPickUpMoveableInternal(self, character, square, object, sprInstance, targetSpriteName, createItem, rotating)
         trace("internal END sprite=" .. spriteName(self)
             .. " result=" .. tostring(result)
+            .. " resultSavedHealth=" .. tostring(itemSavedHealth(result))
             .. " inventory=" .. tostring(inventoryCount(character)))
+        return result
+    end
+end
+
+if Trace._originalPlaceMoveableInternal == nil then
+    Trace._originalPlaceMoveableInternal = ISMoveableSpriteProps.placeMoveableInternal
+    ISMoveableSpriteProps.placeMoveableInternal = function(self, square, item, targetSpriteName)
+        trace("placeInternal BEGIN sprite=" .. spriteName(self)
+            .. " target=" .. tostring(targetSpriteName)
+            .. " item=" .. tostring(item)
+            .. " itemType=" .. tostring(item and item:getFullType() or "<nil>")
+            .. " savedHealth=" .. tostring(itemSavedHealth(item))
+            .. " doorBefore=" .. doorHealthOnSquare(square))
+        local result = Trace._originalPlaceMoveableInternal(self, square, item, targetSpriteName)
+        trace("placeInternal END sprite=" .. spriteName(self)
+            .. " result=" .. tostring(result)
+            .. " savedHealth=" .. tostring(itemSavedHealth(item))
+            .. " doorAfter=" .. doorHealthOnSquare(square))
         return result
     end
 end
