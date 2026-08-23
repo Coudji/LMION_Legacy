@@ -178,24 +178,6 @@ local function spawnFrame(square, spriteName)
     return true
 end
 
-local function isNativeGroupedDoor(spriteName)
-    if getSprite == nil then
-        return false
-    end
-
-    local sprite = getSprite(spriteName)
-    if sprite == nil then
-        return false
-    end
-
-    local properties = sprite:getProperties()
-    if properties == nil then
-        return false
-    end
-
-    return properties:has("DoubleDoor") or properties:has("GarageDoor")
-end
-
 local function addSpecialObject(square, object)
     local insertIndex = square:getObjects():size()
     square:AddSpecialObject(object, insertIndex)
@@ -217,7 +199,7 @@ local function tagObject(object, entry, partIndex)
     data.lmionTestZonePart = partIndex
 end
 
-local function spawnPart(entry, resolved, square, spriteName, openSpriteName, partIndex, result)
+local function spawnPart(entry, resolved, square, spriteName, partIndex, result)
     local wantedFrame = frameSprite(entry.frame)
     if wantedFrame ~= nil then
         if not spawnFrame(square, wantedFrame) then
@@ -227,32 +209,18 @@ local function spawnPart(entry, resolved, square, spriteName, openSpriteName, pa
         result.objectsSpawned = result.objectsSpawned + 1
     end
 
-    local object
-    local grouped = isNativeGroupedDoor(spriteName)
-
-    if grouped then
-        object = IsoDoor.new(getCell(), square, spriteName, true)
-    elseif openSpriteName ~= nil then
-        object = IsoThumpable.new(getCell(), square, spriteName, openSpriteName, true, {})
-    else
-        object = IsoThumpable.new(getCell(), square, spriteName, true, {})
-    end
-
+    local object = IsoDoor.new(getCell(), square, spriteName, true)
     if object == nil then
         return false, "door spawn failed"
     end
 
-    if not grouped and object.setIsDoor ~= nil then
-        object:setIsDoor(true)
-    end
-
     tagObject(object, entry, partIndex)
-    addSpecialObject(square, object)
 
-    if not grouped and GameEntityFactory ~= nil
-        and GameEntityFactory.CreateIsoObjectEntity ~= nil then
+    if GameEntityFactory ~= nil and GameEntityFactory.CreateIsoObjectEntity ~= nil then
         GameEntityFactory.CreateIsoObjectEntity(object, resolved.gameScript, true)
     end
+
+    addSpecialObject(square, object)
 
     result.objectsSpawned = result.objectsSpawned + 1
     return true, nil
@@ -268,7 +236,6 @@ local function spawnEntry(entry, originSquare, result)
     local originY = originSquare:getY()
     local originZ = originSquare:getZ()
     local closedFace = resolved.closedFace
-    local openFace = resolved.openFace
     local partIndex = 0
 
     for z = 0, closedFace:getzLayers() - 1 do
@@ -288,20 +255,11 @@ local function spawnEntry(entry, originSquare, result)
                         return false, "target square unloaded"
                     end
 
-                    local openSpriteName = nil
-                    if openFace ~= nil then
-                        local openTileInfo = openFace:getTileInfo(x, y, z)
-                        if openTileInfo ~= nil and openTileInfo:getSpriteName() ~= nil then
-                            openSpriteName = tostring(openTileInfo:getSpriteName())
-                        end
-                    end
-
                     local ok, partReason = spawnPart(
                         entry,
                         resolved,
                         square,
                         tostring(tileInfo:getSpriteName()),
-                        openSpriteName,
                         partIndex,
                         result
                     )
