@@ -1,50 +1,8 @@
 require "Moveables/ISMoveableSpriteProps"
-require "LMION/Pickup/DoorProfiles"
+require "LMION/Core"
 
 local Pickup = LMION.Pickup
-local Profiles = Pickup.DoorProfiles
-
-local knownSprites = {}
-local knownSpritesReady = false
-
-local function buildKnownSprites()
-    if knownSpritesReady then
-        return
-    end
-
-    knownSpritesReady = true
-
-    local scripts = ScriptManager.instance:getAllGameEntities()
-    for i = 0, scripts:size() - 1 do
-        local script = scripts:get(i)
-        if script:getModID() == "LMION_Core" then
-            local spriteConfig = script:getComponentScriptFor(ComponentType.SpriteConfig)
-            if spriteConfig ~= nil then
-                local tileNames = spriteConfig:getAllTileNames()
-                for j = 0, tileNames:size() - 1 do
-                    knownSprites[tileNames:get(j)] = script:getName()
-                end
-            end
-        end
-    end
-end
-
-local function getKnownProfile(entityName)
-    local profile = {}
-
-    for key, value in pairs(Profiles.knownDefault) do
-        profile[key] = value
-    end
-
-    local entityProfile = Profiles.entities[entityName]
-    if entityProfile ~= nil then
-        for key, value in pairs(entityProfile) do
-            profile[key] = value
-        end
-    end
-
-    return profile
-end
+local Doors = LMION.Doors
 
 local function setProperty(properties, name, value)
     if value ~= nil then
@@ -52,55 +10,51 @@ local function setProperty(properties, name, value)
     end
 end
 
-local function applyProfile(properties, profile, overwrite)
-    if overwrite or not properties:has("IsMoveAble") then
-        properties:set("IsMoveAble")
-    end
-
-    local function apply(name, value)
-        if value ~= nil and (overwrite or not properties:has(name)) then
-            setProperty(properties, name, value)
-        end
-    end
-
-    apply("PickUpTool", profile.pickUpTool)
-    apply("PlaceTool", profile.placeTool)
-    apply("PickUpLevel", profile.pickUpLevel)
-    apply("PickUpWeight", profile.pickUpWeight)
-
-    if overwrite then
-        if profile.canBreak then
-            properties:set("CanBreak")
-        else
-            properties:unset("CanBreak")
-        end
-    elseif profile.canBreak and not properties:has("CanBreak") then
-        properties:set("CanBreak")
+local function applyBoolean(properties, name, value)
+    if value == true then
+        properties:set(name)
+    elseif value == false then
+        properties:unset(name)
     end
 end
 
 local function configureDoorSprite(sprite)
     if sprite == nil then
-        return
+        return nil
     end
 
     local properties = sprite:getProperties()
     if properties == nil then
-        return
+        return nil
     end
 
     if not properties:has(IsoFlagType.doorN) and not properties:has(IsoFlagType.doorW) then
-        return
+        return nil
     end
 
-    buildKnownSprites()
-
-    local entityName = knownSprites[sprite:getName()]
-    if entityName ~= nil then
-        applyProfile(properties, getKnownProfile(entityName), true)
-    elseif not properties:has("IsMoveAble") then
-        applyProfile(properties, Profiles.unknownDefault, false)
+    local profile = Doors.getProfileForSprite(sprite)
+    if profile == nil or profile.pickup == nil or profile.pickup.allowed ~= true then
+        return nil
     end
+
+    local pickup = profile.pickup
+
+    properties:set("IsMoveAble")
+    setProperty(properties, "MoveType", pickup.moveType or "Object")
+    setProperty(properties, "CustomName", profile.name)
+    setProperty(properties, "PickUpTool", pickup.pickUpTool)
+    setProperty(properties, "PlaceTool", pickup.placeTool)
+    setProperty(properties, "PickUpLevel", pickup.pickUpLevel)
+    setProperty(properties, "PickUpWeight", pickup.pickUpWeight)
+    applyBoolean(properties, "CanBreak", pickup.canBreak)
+
+    if profile.materials ~= nil then
+        setProperty(properties, "Material", profile.materials.primary)
+        setProperty(properties, "Material2", profile.materials.secondary)
+        setProperty(properties, "MaterialType", profile.materials.materialType)
+    end
+
+    return profile
 end
 
 if Pickup._originalMoveableSpritePropsNew == nil then
@@ -115,7 +69,44 @@ ISMoveableSpriteProps.new = function(sprite)
 
     configureDoorSprite(resolvedSprite)
 
-    return Pickup._originalMoveableSpritePropsNew(sprite)
+    local props = Pickup._originalMoveableSpritePropsNew(sprite)
+    if props ~= nil and resolvedSprite ~= nil then
+        props.lmionDoorProfile = Doors.getProfileForSprite(resolvedSprite)
+    end
+
+    return props
+end
+
+if Pickup._originalCanPlaceMoveableInternal == nil then
+    Pickup._originalCanPlaceMoveableInternal = ISMoveableSpriteProps.canPlaceMoveableInternal
+end
+
+ISMoveableSpriteProps.canPlaceMoveableInternal = function(self, character, square, item, forceTypeObject)
+    local profile = self and self.lmionDoorProfile or nil
+    if profile == nil then
+        return Pickup._originalCanPlaceMoveableInternal(self, character, square, item, forceTypeObject)
+    end
+
+    if square == nil or square:isVehicleIntersecting() then
+        return false
+    end
+
+    local north = Doors.getNorthFromSprite(self.sprite)
+    if not Doors.canPlaceDoorAt(square, north, profile.requiresFrame) then
+        return false
+    end
+
+    if character ~= nil and instanceof(character, "IsoPlayer") then
+        if not ISMoveableDefinitions.cheat and not character:isMovablesCheat() then
+            local hasSkill = self:hasRequiredSkill(character, "place")
+            local hasTool = not self.placeTool or self:hasTool(character, "place")
+            if not hasSkill or not hasTool then
+                return false
+            end
+        end
+    end
+
+    return true
 end
 
 return Pickup
