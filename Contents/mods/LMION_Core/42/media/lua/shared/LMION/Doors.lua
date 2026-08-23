@@ -208,6 +208,28 @@ function Doors.getEffectiveMaxHealth(object)
     return nil
 end
 
+function Doors.repairHealth(object, amount)
+    if object == nil or object.getHealth == nil or object.setHealth == nil then
+        return nil, 0
+    end
+
+    local maxHealth = Doors.getEffectiveMaxHealth(object)
+    local repairAmount = tonumber(amount)
+    if maxHealth == nil or repairAmount == nil or repairAmount <= 0 then
+        return object:getHealth(), 0
+    end
+
+    repairAmount = math.floor(repairAmount)
+    local currentHealth = object:getHealth()
+    if currentHealth >= maxHealth then
+        return currentHealth, 0
+    end
+
+    local newHealth = math.min(maxHealth, currentHealth + repairAmount)
+    object:setHealth(newHealth)
+    return newHealth, newHealth - currentHealth
+end
+
 function Doors.getProfileForSprite(sprite)
     if sprite == nil then
         return nil
