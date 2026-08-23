@@ -59,7 +59,9 @@ local function configureKnownDoorSprites()
         local script = scripts:get(i)
         local profile = Doors.getProfile(script:getName())
 
-        if script:getModID() == "LMION_Core" and profile ~= nil then
+        -- Profile membership is the authority.  A Base entity can originate
+        -- from vanilla and still be deliberately managed by LMION.
+        if profile ~= nil then
             local spriteConfig = script:getComponentScriptFor(ComponentType.SpriteConfig)
             if spriteConfig ~= nil then
                 local tileNames = spriteConfig:getAllTileNames()
