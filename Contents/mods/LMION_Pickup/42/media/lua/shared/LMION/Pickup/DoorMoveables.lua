@@ -89,17 +89,18 @@ local function configureKnownDoorSprites()
     LMION.log("Pickup", "configured " .. tostring(configured) .. " LMION door sprites for Moveables")
 end
 
-local function findPlacedDoor(square, profile, north)
-    if square == nil or profile == nil or north == nil then
+local function findPlacedDoor(square, spriteName)
+    if square == nil or spriteName == nil then
         return nil
     end
 
     local objects = square:getSpecialObjects()
     for i = objects:size() - 1, 0, -1 do
         local object = objects:get(i)
+        local sprite = object and object:getSprite() or nil
         if instanceof(object, "IsoDoor")
-            and object:getNorth() == north
-            and Doors.getProfileForSprite(object:getSprite()) == profile then
+            and sprite ~= nil
+            and sprite:getName() == spriteName then
             return object
         end
     end
@@ -208,7 +209,6 @@ end
 
 ISMoveableSpriteProps.placeMoveableInternal = function(self, square, item, spriteName)
     local profile = self and (self.lmionDoorProfile or getProfileForMoveProps(self)) or nil
-    local north = profile and Doors.getNorthFromSprite(self.sprite) or nil
     local savedHealth = nil
 
     if profile ~= nil and item ~= nil and item:hasModData() then
@@ -218,7 +218,14 @@ ISMoveableSpriteProps.placeMoveableInternal = function(self, square, item, sprit
     local result = Pickup._originalPlaceMoveableInternal(self, square, item, spriteName)
 
     if profile ~= nil and savedHealth ~= nil then
-        local door = findPlacedDoor(square, profile, north)
+        local door = nil
+
+        if result ~= nil and instanceof(result, "IsoDoor") then
+            door = result
+        else
+            door = findPlacedDoor(square, spriteName)
+        end
+
         if door ~= nil then
             door:setHealth(math.max(0, savedHealth))
 
