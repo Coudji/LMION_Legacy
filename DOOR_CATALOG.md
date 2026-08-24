@@ -38,270 +38,91 @@ The catalog does **not** track or choose construction `BuildBreakSound` / Sprite
 
 ## Garage doors
 
-Status: **validated family specification**. All garage-door models currently listed here use the same gameplay rules. LMION does not make rolling, sectional or industrial-looking variants inherently stronger or weaker just because of their visual mechanism. The only balance split is **solid metal** versus **glazed metal**.
+Status: **validated family specification**. All garage-door models use the same gameplay rules; rolling, sectional and industrial-looking variants are not balanced separately. The only split is solid metal versus glazed metal. The internal visual notes exist only to identify the models and justify that split.
 
-### Shared physical profile
+### Profiles and construction
 
-- Solid garage doors: class `metal`, world max health **1200 HP per segment**.
-- Glazed garage doors: class `metal_glazed`, world max health **1000 HP per segment**.
-- Primary material: `MetalPlates`.
-- Secondary material: `MetalBars`.
-- `MaterialType = Metal_Light`. For this family, `MaterialType` is selected for the impact sound produced when the door is struck; garage doors should use the lighter sheet-metal impact rather than `Metal_Large`.
-- `DoorSound = GarageDoor`.
-- Frame requirement: none.
+| Variant | Class | World HP / segment | `health` | `skillBaseHealth` | Build skill | HP at required level | HP at lvl 10 | Time | XP | Craft |
+|---|---|---:|---:|---:|---|---:|---:|---:|---:|---|
+| Solid metal | `metal` | 1200 | 600 | 400 | MetalWelding 6 | 3000 | 4600 | 200 | 50 | Welding Mask x1 kept; Blow Torch 6 uses; Small Sheet Metal x9; Metal Bar x3; Door Hinge x6; Welding Rods 3 uses; no Screwdriver; no Screws |
+| Glazed metal | `metal_glazed` | 1000 | 500 | 350 | MetalWelding 6 | 2600 | 4000 | 200 | 50 | Welding Mask x1 kept; Blow Torch 6 uses; Small Sheet Metal x6; Glass Panel (`Base.GlassPanel`) x3; Metal Bar x3; Door Hinge x6; Welding Rods 3 uses; no Screwdriver; no Screws |
 
-### Player construction
+### Physical properties and handling
 
-All garage doors require **MetalWelding 6**, grant **50 XP**, and use `time = 200` for now. The construction time is intentionally a temporary common value to be adjusted after in-game testing.
+| Property | Garage family value |
+|---|---|
+| `Material` | `MetalPlates` |
+| `Material2` | `MetalBars` |
+| `MaterialType` | `Metal_Light` — chosen for the lighter sheet-metal impact response |
+| `DoorSound` | `GarageDoor` |
+| Frame | none |
+| Pickup skill | MetalWelding 3 (`floor(build level / 2)`) |
+| Pickup tools | Blow Torch + Welding Mask |
+| Pickup break chance | none |
+| Pickup output | 3 packages x 20 kg = 60 kg total |
+| Replacement | all 3 packages; Blow Torch + Welding Mask |
+| Replacement consumable | Welding Rods if placement can support consumption cleanly; exact quantity TBD during implementation |
+| Dismantling tools | Blow Torch + Welding Mask |
+| Dismantling returns | delegated to implementation from the construction/material profile |
+| Repair / destruction behavior | out of scope for this catalog pass |
 
-Constructed durability is driven by MetalWelding rather than Woodwork.
-
-| Variant | `health` | `skillBaseHealth` | HP at MetalWelding 6 | HP at MetalWelding 10 |
-|---|---:|---:|---:|---:|
-| Solid metal | 600 | 400 | 3000 | 4600 |
-| Glazed metal | 500 | 350 | 2600 | 4000 |
-
-#### Solid-metal craft
-
-- Welding Mask x1 — kept.
-- Blow Torch — **6 uses**.
-- Small Sheet Metal x9.
-- Metal Bar x3.
-- Door Hinge x6.
-- Welding Rods — **3 uses**.
-- No Screwdriver.
-- No Screws.
-
-#### Glazed-metal craft
-
-Same recipe as the solid version except three metal sheets are replaced by glass:
-
-- Welding Mask x1 — kept.
-- Blow Torch — **6 uses**.
-- Small Sheet Metal x6.
-- Glass Panel (`Base.GlassPanel`) x3.
-- Metal Bar x3.
-- Door Hinge x6.
-- Welding Rods — **3 uses**.
-- No Screwdriver.
-- No Screws.
-
-### Pickup and replacement
-
-Garage-door pickup is intended as a controlled removal operation, not as risky salvage.
-
-- Pickup allowed: yes.
-- Required skill follows the family rule `floor(construction requirement / 2)`: MetalWelding 6 therefore gives **MetalWelding 3** for pickup.
-- Required pickup tools: **Blow Torch + Welding Mask**.
-- Break chance during pickup: **none**.
-- Pickup output: **3 garage-door packages, 20 kg each** (60 kg total).
-- Replacement requires all three packages.
-- Replacement uses **Blow Torch + Welding Mask**.
-- Welding Rods must also be consumed when replacing the door **if the placement flow can support that requirement cleanly**. Exact placement consumption can be finalized during implementation.
-
-The pickup skill must be tied to the door's construction skill, not inferred from the vanilla Moveables perk associated with a particular tool.
-
-### Dismantling scope
-
-- Deliberate dismantling requires **Blow Torch + Welding Mask**.
-- The exact materials returned by dismantling are intentionally left to the implementation pass, which should choose sensible returns from the door's construction/material profile.
-- Destruction behavior and destruction loot are not defined by this catalog entry.
-- Repair rules are handled elsewhere and are not part of this catalog pass.
+The pickup skill must be tied to the construction skill, not inferred from the vanilla Moveables perk associated with a particular tool.
 
 ### Models
 
-| Preview | Model / entity | EN name | FR name | Class | World HP / segment | Glazed | Frame | Material(s) | MaterialType | DoorSound |
-|---|---|---|---|---|---:|---|---|---|---|---|
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_IndustrialGarageDoor.png" width="120"> | `Base.IndustrialGarageDoor` | Industrial Garage Door | Porte de garage industrielle | `metal` | 1200 | no | none | M1=MetalPlates; M2=MetalBars | Metal_Light | GarageDoor |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_GreenGarageDoor.png" width="120"> | `Base.GreenGarageDoor` | Green Garage Door | Porte de garage verte | `metal` | 1200 | no | none | M1=MetalPlates; M2=MetalBars | Metal_Light | GarageDoor |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_WhiteGarageDoor.png" width="120"> | `Base.WhiteGarageDoor` | White Garage Door | Porte de garage blanche | `metal` | 1200 | no | none | M1=MetalPlates; M2=MetalBars | Metal_Light | GarageDoor |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_GreyGarageDoor.png" width="120"> | `Base.GreyGarageDoor` | Grey Garage Door | Porte de garage grise | `metal` | 1200 | no | none | M1=MetalPlates; M2=MetalBars | Metal_Light | GarageDoor |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_RollingGarageDoor.png" width="120"> | `Base.RollingGarageDoor` | Rolling Garage Door | Porte de garage à enroulement | `metal` | 1200 | no | none | M1=MetalPlates; M2=MetalBars | Metal_Light | GarageDoor |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_RedWindowGarageDoor.png" width="120"> | `Base.RedWindowGarageDoor` | Red Window Garage Door | Porte de garage rouge vitrée | `metal_glazed` | 1000 | yes | none | M1=MetalPlates; M2=MetalBars | Metal_Light | GarageDoor |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_RollingWindowGarageDoor.png" width="120"> | `Base.RollingWindowGarageDoor` | Rolling Window Garage Door | Porte de garage à enroulement vitrée | `metal_glazed` | 1000 | yes | none | M1=MetalPlates; M2=MetalBars | Metal_Light | GarageDoor |
-
-### Internal model descriptions
-
-These descriptions are documentation only. They are not intended for player-facing strings; their purpose is to tell the implementation pass what visual object each catalog entry refers to and why it belongs to this profile.
-
-- `IndustrialGarageDoor`: large solid industrial-style metal garage door with no glazing. Visually heavier/industrial, but intentionally balanced like every other solid garage model.
-- `GreenGarageDoor`: large solid green metal garage door with no glazing.
-- `WhiteGarageDoor`: large solid white sectional metal garage door made of multiple horizontal embossed panels, with no glazing; residential/light-workshop appearance.
-- `GreyGarageDoor`: large solid grey metal garage door with no glazing.
-- `RollingGarageDoor`: large solid rolling/shutter-style metal garage door with no glazing. Its rolling appearance does not change the family durability or craft.
-- `RedWindowGarageDoor`: large red sectional metal garage door with substantial glazed upper sections. The metal frame remains structurally dominant, but the glazing justifies the lower `metal_glazed` durability and replacement of three metal sheets by three glass panels in the craft.
-- `RollingWindowGarageDoor`: large rolling/shutter-style metal garage door with glazing. It uses the same `metal_glazed` profile as the red glazed garage door; the rolling mechanism does not receive separate balance rules.
+| Preview | Entity | EN name | FR name | Variant | Visual note |
+|---|---|---|---|---|---|
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_IndustrialGarageDoor.png" width="120"> | `Base.IndustrialGarageDoor` | Industrial Garage Door | Porte de garage industrielle | solid | large solid industrial-style metal door; no glazing |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_GreenGarageDoor.png" width="120"> | `Base.GreenGarageDoor` | Green Garage Door | Porte de garage verte | solid | large solid green metal door |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_WhiteGarageDoor.png" width="120"> | `Base.WhiteGarageDoor` | White Garage Door | Porte de garage blanche | solid | white sectional/paneled metal door; residential/light-workshop look |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_GreyGarageDoor.png" width="120"> | `Base.GreyGarageDoor` | Grey Garage Door | Porte de garage grise | solid | large solid grey metal door |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_RollingGarageDoor.png" width="120"> | `Base.RollingGarageDoor` | Rolling Garage Door | Porte de garage à enroulement | solid | rolling/shutter appearance does not change balance |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_RedWindowGarageDoor.png" width="120"> | `Base.RedWindowGarageDoor` | Red Window Garage Door | Porte de garage rouge vitrée | glazed | sectional metal door with substantial glazed upper sections |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_RollingWindowGarageDoor.png" width="120"> | `Base.RollingWindowGarageDoor` | Rolling Window Garage Door | Porte de garage à enroulement vitrée | glazed | rolling/shutter model with glazing; same glazed profile |
 
 ## Portals and large gates
 
 ### Large wooden gates
 
-Status: **validated design specification** for the two large wooden gate constructions.
+Status: **validated design specification**. The vanilla model is the normal large wooden gate; the LMION model is deliberately a higher-level hardened version with extra timber, nails and screw fasteners. Display names may override vanilla localization without changing technical entity IDs.
 
-The vanilla and LMION models are treated as two quality tiers of the same general object rather than unrelated duplicate recipes. The vanilla gate remains the normal large wooden gate. The LMION model is deliberately a higher-level, more heavily fastened **hardened** version.
+#### Profiles
 
-#### Shared physical profile
+| Preview | Entity | EN name | FR name | World HP / segment | Build skill | `health` | `skillBaseHealth` | HP at required level | HP lvl 10 | Class | Glazed | Frame | Materials | MaterialType | DoorSound | ThumpSound |
+|---|---|---|---|---:|---|---:|---:|---:|---:|---|---|---|---|---|---|---|
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_DoubleDoor.png" width="120"> | `Base.DoubleDoor` | Large Wooden Gate | Grand portail en bois | 650 | Woodwork 4 | 400 | 300 | 1600 | 3400 | `wood` | no | none | M1=Wood; M2=Nails | Wood_Solid | WoodGate | ZombieThumpWood |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_WoodenFenceDoubleGate.png" width="120"> | `Base.WoodenFenceDoubleGate` | Hardened Wooden Gate | Grand portail en bois durci | 750 | Woodwork 7 | 500 | 350 | 2950 | 4000 | `wood` | no | none | M1=Wood; M2=Nails; M3=Screws | Wood_Solid | WoodGate | ZombieThumpWood |
 
-- Class: `wood`.
-- Glazing: none.
-- Frame: `none`.
-- `MaterialType = Wood_Solid` because both are large rigid wooden structures and should produce a solid-wood impact response.
-- `DoorSound = WoodGate`.
-- `ThumpSound = ZombieThumpWood` explicitly. `WoodGate` otherwise falls back to the generic zombie-thump family, which is not the desired impact for these large wooden gates.
+#### Craft
 
-#### Durability
-
-| Model | World HP / segment | Build skill | `health` | `skillBaseHealth` | HP at required level | HP at Woodwork 10 |
-|---|---:|---|---:|---:|---:|---:|
-| Large Wooden Gate | 650 | Woodwork 4 | 400 | 300 | 1600 | 3400 |
-| Hardened Wooden Gate | 750 | Woodwork 7 | 500 | 350 | 2950 | 4000 |
-
-The world values intentionally remain below the metal large-gate family while staying stronger than an ordinary wooden 1x1 door. These numbers can be revisited during the final cross-family balance pass.
-
-#### `Base.DoubleDoor` — Large Wooden Gate / Grand portail en bois
-
-This is the existing vanilla construction and remains the standard tier.
-
-- EN display name: `Large Wooden Gate`.
-- FR display name: `Grand portail en bois`.
-- Required skill: **Woodwork 4**.
-- Vanilla craft remains unchanged: Hammer, 8 Planks, 8 Nails, 4 Door Hinges, 2 Doorknobs.
-- `Material = Wood`.
-- `Material2 = Nails`.
-- No `Material3`.
-
-Internal description: large double-leaf wooden gate intended as the normal carpentry option for closing a wide opening. Its construction is substantial compared with a normal door, but it remains the standard version without the additional screw reinforcement used by the LMION hardened model.
-
-#### `Base.WoodenFenceDoubleGate` — Hardened Wooden Gate / Grand portail en bois durci
-
-This LMION construction is intentionally the higher-tier version. The screwdriver and screws are part of that identity and must **not** be removed when harmonizing the two recipes.
-
-- EN display name: `Hardened Wooden Gate`.
-- FR display name: `Grand portail en bois durci`.
-- Required skill: **Woodwork 7**, aligning it with high-level vanilla wooden-door construction.
-- Build time: **200** for now.
-- Tools: Hammer + Screwdriver; both kept.
-- Planks x10.
-- Nails x10.
-- Screws x8.
-- Door Hinges x4.
-- Doorknobs x2.
-- Relative to the vanilla large gate, the hardened version adds **2 Planks + 2 Nails** while preserving its deliberate screwdriver/screw requirement.
-- `Material = Wood`.
-- `Material2 = Nails`.
-- `Material3 = Screws`.
-
-Internal description: large double wooden gate visually serving the same broad role as the vanilla large wooden gate, but treated by LMION as a more carefully assembled and hardened construction. The extra timber, nails and screw fasteners justify the higher carpentry requirement and higher durability without pushing it into metal-gate territory.
+| Entity | Source | Time | Tools | Inputs | Design note |
+|---|---|---|---|---|---|
+| `Base.DoubleDoor` | vanilla | unchanged | Hammer | Plank x8; Nails x8; Door Hinge x4; Doorknob x2 | standard large wooden gate |
+| `Base.WoodenFenceDoubleGate` | LMION | 200 | Hammer + Screwdriver, kept | Plank x10; Nails x10; Screws x8; Door Hinge x4; Doorknob x2 | hardened tier; +2 Planks and +2 Nails versus vanilla while intentionally keeping screws |
 
 ### Large metal gates
 
-Status: **validated three-tier design specification** for the four large metal gate models reviewed in game.
+Status: **validated three-tier design specification**. The farm gate is intentionally weak because it is a low livestock barrier made from light tubing and can be vaulted. `DoubleWireGate` and `DoubleFenceGate` share the same middle tier: the first is light but regular, while the second contains more metal but is visibly an improvised bric-a-brac assembly. The wrought-iron gate is the clear heavy-duty tier. Display names are player-facing only; technical vanilla IDs remain unchanged.
 
-The family deliberately uses only three durability tiers. Amount of metal alone is not treated as proof of structural strength: geometry, construction quality and intended use matter more.
+#### Profiles
 
-#### Tier structure and durability
+| Preview | Entity | EN name | FR name | Tier | World HP / segment | Build skill | `health` | `skillBaseHealth` | HP at required level | HP lvl 10 | Materials | MaterialType | DoorSound | ThumpSound / effective family |
+|---|---|---|---|---|---:|---|---:|---:|---:|---:|---|---|---|---|
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_FarmDoubleGate.png" width="120"> | `Base.FarmDoubleGate` | Farm Gate | Portail de ferme | 1 — light farm | 500 | MetalWelding 4 | 300 | 200 | 1100 | 2300 | M1=MetalPipe; M2=MetalBars | Metal_Light | FarmGate | ZombieThumpMetalPoleGate |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_DoubleWireGate.png" width="120"> | `Base.DoubleWireGate` | Large Chain-Link Gate | Grand portail grillagé | 2 — cheap metal | 850 | MetalWelding 5 | 400 | 275 | 1775 | 3150 | M1=MetalPipe; M2=MetalWire | Metal_Light | MetalGate | MetalGate default → ZombieThumpChainlinkFence |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_DoubleFenceGate.png" width="120"> | `Base.DoubleFenceGate` | Large Scrap Metal Gate | Grand portail en ferraille | 2 — cheap metal | 850 | MetalWelding 5 | 400 | 275 | 1775 | 3150 | M1=MetalPipe; M2=MetalScrap | Metal_Light | MetalGate | MetalGate default → ZombieThumpChainlinkFence |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_WroughtIronDoubleGate.png" width="120"> | `Base.WroughtIronDoubleGate` | Wrought Iron Gate | Portail en fer forgé | 3 — wrought iron | 1200 | MetalWelding 6 | 500 | 375 | 2750 | 4250 | M1=MetalBars; M2=MetalPipe | Metal_Solid | MetalPoleGateDouble | ZombieThumpMetalPoleGate |
 
-| Tier | Models | Design role | World HP / segment | Build skill | `health` | `skillBaseHealth` | HP at required level | HP at MetalWelding 10 |
-|---|---|---|---:|---|---:|---:|---:|---:|
-| 1 — light farm | `FarmDoubleGate` | low livestock barrier; thin tubes on a wheel; can be vaulted | **500** | MetalWelding 4 | 300 | 200 | 1100 | 2300 |
-| 2 — cheap metal | `DoubleWireGate`, `DoubleFenceGate` | large but inexpensive / improvised metal barriers | **850** | MetalWelding 5 | 400 | 275 | 1775 | 3150 |
-| 3 — wrought iron | `WroughtIronDoubleGate` | tall, heavy, properly built wrought-iron gate | **1200** | MetalWelding 6 | 500 | 375 | 2750 | 4250 |
+#### Craft
 
-The farm gate is intentionally weak despite being metal. It is a livestock barrier rather than a serious defensive structure, its tube frame is visually light, it rests on a wheel, and zombies can pass over it; high structural HP would therefore be misleading.
+| Entity | Source | Time | Tools | Inputs | Notes |
+|---|---|---|---|---|---|
+| `Base.FarmDoubleGate` | LMION | 200 | Welding Mask kept | Blow Torch 8 uses; Metal Bar x8; Metal Pipe x4; Door Hinge x4; Welding Rods 6 uses | no Screwdriver; no Screws; low/vaultable livestock barrier |
+| `Base.DoubleWireGate` | vanilla | unchanged | vanilla | Blow Torch 10 uses; Metal Pipe x8; Wire 4 uses; Door Hinge x4; Scrap Metal x2; Welding Rods 10 uses | vanilla craft otherwise unchanged |
+| `Base.DoubleFenceGate` | vanilla | unchanged | vanilla | Blow Torch 10 uses; Metal Pipe x10; Door Hinge x4; Scrap Metal x4; Welding Rods 10 uses | vanilla craft otherwise unchanged |
+| `Base.WroughtIronDoubleGate` | LMION | 200 | Welding Mask kept | Blow Torch 8 uses; Metal Bar x8; Metal Pipe x4; Door Hinge x4; Welding Rods 6 uses | no Screwdriver; no Screws; strongest gate of this family |
 
-`DoubleWireGate` and `DoubleFenceGate` deliberately share the same durability. The wire gate is regular but lightweight; the large metal barrier uses more material but is visibly a rough, improvised bric-a-brac assembly. LMION treats those strengths and weaknesses as balancing out into the same middle tier.
-
-The wrought-iron gate is the clear top tier of this family and should remain stronger than the wooden large gates and the two cheap metal variants.
-
-#### Shared construction rules
-
-- LMION metal-gate constructions use `time = 200` for now.
-- Where an LMION recipe currently contains Screwdriver + Screws, both are removed: these gates are welded metal structures, not screw-fastened assemblies.
-- The two vanilla large metal gate recipes remain otherwise unchanged.
-- Pickup, replacement packaging and dismantling rules for this family have not yet been reviewed and should not be inferred from the garage-door rules.
-
-#### `Base.FarmDoubleGate` — Farm Double Gate / Double portail de ferme
-
-LMION tier-1 metal gate. Low tubular livestock barrier, visibly much lighter and less defensive than the other large metal gates.
-
-- Required skill: **MetalWelding 4**.
-- Build time: **200**.
-- Welding Mask x1 — kept.
-- Blow Torch — **8 uses**.
-- Metal Bar x8.
-- Metal Pipe x4.
-- Door Hinge x4.
-- Welding Rods — **6 uses**.
-- **No Screwdriver.**
-- **No Screws.**
-- `Material = MetalPipe`.
-- `Material2 = MetalBars`.
-- `MaterialType = Metal_Light`.
-- `DoorSound = FarmGate`.
-- `ThumpSound = ZombieThumpMetalPoleGate`.
-
-Internal description: low green farm/livestock double gate made from relatively thin horizontal metal tubes, supported by a simple post and wheel. It is designed to contain animals rather than resist a determined attack and can be vaulted in gameplay. Its low 500 HP world durability is therefore intentional rather than an indication that all metal gates should be weak.
-
-#### `Base.DoubleWireGate` — Double Wire Gate / Double portail grillagé
-
-Vanilla tier-2 metal gate. Large chain-link/wire gate with a regular frame but comparatively lightweight construction.
-
-- Required skill: **MetalWelding 5**.
-- Vanilla craft remains unchanged: Blow Torch 10 uses, Metal Pipe x8, Wire 4 uses, Door Hinge x4, Scrap Metal x2, Welding Rods 10 uses.
-- `Material = MetalPipe`.
-- `Material2 = MetalWire`.
-- `MaterialType = Metal_Light`.
-- `DoorSound = MetalGate`.
-- Effective zombie thump family: `ZombieThumpChainlinkFence` (the normal `MetalGate` mapping; no special override is required).
-
-Internal description: large vanilla wire/chain-link double gate. It uses relatively little solid metal compared with a heavy gate, but its construction is regular and purposeful. LMION places it in the middle 850 HP tier.
-
-#### `Base.DoubleFenceGate` — Double Fence Gate / Double portail de clôture
-
-Vanilla tier-2 metal gate. Large rough metal barrier assembled from mismatched pieces rather than a clean engineered gate.
-
-- Required skill: **MetalWelding 5**.
-- Vanilla craft remains unchanged: Blow Torch 10 uses, Metal Pipe x10, Door Hinge x4, Scrap Metal x4, Welding Rods 10 uses.
-- `Material = MetalPipe`.
-- `Material2 = MetalScrap`.
-- `MaterialType = Metal_Light`.
-- `DoorSound = MetalGate`, matching the vanilla wire gate.
-- Effective zombie thump family: `ZombieThumpChainlinkFence` (the normal `MetalGate` mapping; no special override is required).
-
-Internal description: large vanilla metal barrier/gate made from a visually crude bric-a-brac assembly of metal pieces. Although it contains a lot of metal, the construction looks improvised and structurally dubious, so LMION intentionally gives it the same 850 HP tier and the same gate sound family as the cleaner wire gate.
-
-#### `Base.WroughtIronDoubleGate` — Wrought Iron Double Gate / Double portail en fer forgé
-
-LMION tier-3 metal gate and the strongest reviewed metal portal in this group.
-
-- Required skill: **MetalWelding 6**.
-- Build time: **200**.
-- Welding Mask x1 — kept.
-- Blow Torch — **8 uses**.
-- Metal Bar x8.
-- Metal Pipe x4.
-- Door Hinge x4.
-- Welding Rods — **6 uses**.
-- **No Screwdriver.**
-- **No Screws.**
-- `Material = MetalBars`.
-- `Material2 = MetalPipe`.
-- `MaterialType = Metal_Solid`.
-- `DoorSound = MetalPoleGateDouble`.
-- `ThumpSound = ZombieThumpMetalPoleGate`.
-
-Internal description: tall black wrought-iron double gate with dense vertical bars, substantial posts and a much more rigid, deliberate construction than the other metal gates. It is the clear heavy-duty tier of the family and keeps the existing 1200 HP world target while moving to MetalWelding 6 for player construction.
-
-### Portal / large-gate inventory
-
-| Preview | Model / entity | EN name | FR name | Class | HP / segment | Glazed | Frame | Material(s) | MaterialType | DoorSound |
-|---|---|---|---|---|---:|---|---|---|---|---|
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_DoubleDoor.png" width="120"> | `Base.DoubleDoor` | Large Wooden Gate | Grand portail en bois | `wood` | 650 | no | none | M1=Wood; M2=Nails | Wood_Solid | WoodGate |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_WoodenFenceDoubleGate.png" width="120"> | `Base.WoodenFenceDoubleGate` | Hardened Wooden Gate | Grand portail en bois durci | `wood` | 750 | no | none | M1=Wood; M2=Nails; M3=Screws | Wood_Solid | WoodGate |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_FarmDoubleGate.png" width="120"> | `Base.FarmDoubleGate` | Farm Double Gate | Double portail de ferme | `metal` | 500 | no | none | M1=MetalPipe; M2=MetalBars | Metal_Light | FarmGate |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_DoubleWireGate.png" width="120"> | `Base.DoubleWireGate` | Double Wire Gate | Double portail grillagé | `metal` | 850 | no | none | M1=MetalPipe; M2=MetalWire | Metal_Light | MetalGate |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_DoubleFenceGate.png" width="120"> | `Base.DoubleFenceGate` | Double Fence Gate | Double portail de clôture | `metal` | 850 | no | none | M1=MetalPipe; M2=MetalScrap | Metal_Light | MetalGate |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_WroughtIronDoubleGate.png" width="120"> | `Base.WroughtIronDoubleGate` | Wrought Iron Double Gate | Double portail en fer forgé | `metal` | 1200 | no | none | M1=MetalBars; M2=MetalPipe | Metal_Solid | MetalPoleGateDouble |
+Pickup, replacement packaging and dismantling rules for large metal gates have not yet been reviewed and must not be inferred from the garage-door rules.
 
 ## Paired double doors
 
@@ -389,8 +210,6 @@ These stay separate from normal 1x1 doors because their material, pickup, placem
 - `BlueMetalDoor` currently uses `worldMaxHealth = 600` only as a runtime durability canary. The catalog target is 650.
 - `LogDoor` keeps `M1=Log` for semantic fidelity. Vanilla's generic salvage path does not recognize `Log` as a wood salvage tag, and `IsoDoor.destroy()` would still add knob/hinge hardware. LMION should therefore give LogDoor custom destruction loot: `1 x Base.Log`, no doorknob, no hinges, and no additional vanilla door loot.
 - Jail and Security doors deliberately override normal material-class durability at 2000 and 3000 HP.
-- `DoubleDoor` and `WoodenFenceDoubleGate` deliberately override the generic large-wood value at 650 and 750 HP respectively.
-- Large metal gates deliberately use three explicit tiers: `FarmDoubleGate = 500`, `DoubleWireGate = 850`, `DoubleFenceGate = 850`, `WroughtIronDoubleGate = 1200` HP per segment.
 - Single fence gates/wickets are kept separate from normal 1x1 doors even if they share `IsoDoor`, so their gameplay profile can diverge later without reclassifying the catalog.
 
 ## Remaining ambiguous cases
