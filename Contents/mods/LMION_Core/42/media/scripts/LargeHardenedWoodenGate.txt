@@ -7,7 +7,7 @@ module Base
             health = 500,
             skillBaseHealth = 50,
             dontNeedFrame = true,
-            BreakSound = BreakDoor,
+            
 
             face W
             {

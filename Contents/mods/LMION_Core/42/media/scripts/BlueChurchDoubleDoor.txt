@@ -6,7 +6,7 @@ module Base
         {
             health = 500,
             skillBaseHealth = 50,
-            BreakSound = BreakDoor,
+            
 
             face W
             {
@@ -48,7 +48,7 @@ module Base
         {
             health = 500,
             skillBaseHealth = 50,
-            BreakSound = BreakDoor,
+            
 
             face W
             {

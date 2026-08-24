@@ -5,7 +5,7 @@ module Base
         component SpriteConfig
         {
             skillBaseHealth = 300,
-            BreakSound = BreakDoor,
+            
 
             face W
             {

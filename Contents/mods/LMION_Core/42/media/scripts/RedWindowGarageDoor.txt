@@ -7,7 +7,7 @@ module Base
             health = 500,
             skillBaseHealth = 50,
             dontNeedFrame = true,
-            BreakSound = BreakDoor,
+            
             OnCreate = LMION.Doors.onCreateGarage,
 
             face W
