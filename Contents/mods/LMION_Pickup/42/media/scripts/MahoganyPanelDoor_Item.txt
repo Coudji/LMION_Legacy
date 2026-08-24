@@ -1,0 +1,12 @@
+module Base
+{
+    item LMION_MahoganyPanelDoor
+    {
+        DisplayCategory = Furniture,
+        DisplayName = Mahogany Panel Door,
+        ItemType = base:moveable,
+        Icon = default,
+        Weight = 20.0,
+        Tags = base:usedisplayname,
+    }
+}
