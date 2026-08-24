@@ -1,6 +1,6 @@
 module Base
 {
-    item LMION_MahoganyPanelDoor
+    item LMION_WhitePanelDoor
     {
         DisplayCategory = Furniture,
         ItemType = base:moveable,

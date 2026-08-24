@@ -1,25 +1,73 @@
 require "Moveables/ISMoveableSpriteProps"
 require "LMION/Core"
+require "LMION/Pickup/DoorProfiles"
 
 local Pickup = LMION.Pickup
 local Doors = LMION.Doors
+local Profiles = Pickup.DoorProfiles
+
+local spriteProfiles = nil
+
+local function buildSpriteProfiles()
+    if spriteProfiles ~= nil then
+        return
+    end
+
+    spriteProfiles = {}
+
+    local scripts = ScriptManager.instance:getAllGameEntities()
+    for i = 0, scripts:size() - 1 do
+        local script = scripts:get(i)
+        local profile = Profiles.entities[script:getName()]
+
+        if profile ~= nil then
+            local spriteConfig = script:getComponentScriptFor(ComponentType.SpriteConfig)
+            if spriteConfig ~= nil then
+                local tileNames = spriteConfig:getAllTileNames()
+                for j = 0, tileNames:size() - 1 do
+                    spriteProfiles[tileNames:get(j)] = profile
+                end
+            end
+        end
+    end
+end
+
+local function getProfileForSprite(sprite)
+    if sprite == nil then
+        return nil
+    end
+
+    if type(sprite) == "string" then
+        sprite = getSprite(sprite)
+    end
+
+    if sprite == nil or sprite:getName() == nil then
+        return nil
+    end
+
+    buildSpriteProfiles()
+    return spriteProfiles[sprite:getName()]
+end
 
 local function getProfileForMoveProps(moveProps, sprite)
     if moveProps == nil then
         return nil
     end
 
-    local resolvedSprite = sprite or moveProps.sprite
-    if type(resolvedSprite) == "string" then
-        resolvedSprite = getSprite(resolvedSprite)
+    return getProfileForSprite(sprite or moveProps.sprite)
+end
+
+local function getProfileDisplayName(profile)
+    if profile == nil or profile.itemType == nil then
+        return profile and profile.id or nil
     end
 
-    local profile = resolvedSprite and Doors.getProfileForSprite(resolvedSprite) or nil
-    if profile == nil or profile.pickup == nil or profile.pickup.allowed ~= true then
-        return nil
+    local scriptItem = ScriptManager.instance:FindItem(profile.itemType)
+    if scriptItem ~= nil then
+        return scriptItem:getDisplayName()
     end
 
-    return profile
+    return profile.id
 end
 
 local function applyProfileToMoveProps(moveProps, sprite)
@@ -28,30 +76,22 @@ local function applyProfileToMoveProps(moveProps, sprite)
         return nil
     end
 
-    local pickup = profile.pickup
-
-    moveProps.name = Doors.getDisplayName(profile) or moveProps.name
-    moveProps.customItem = pickup.itemType or moveProps.customItem
-    moveProps.type = pickup.moveType or "Object"
-    moveProps.pickUpTool = pickup.pickUpTool
-    moveProps.placeTool = pickup.placeTool
-    moveProps.pickUpLevel = pickup.pickUpLevel or 0
-    moveProps.rawWeight = pickup.pickUpWeight or moveProps.rawWeight
+    moveProps.name = getProfileDisplayName(profile) or moveProps.name
+    moveProps.customItem = profile.itemType or moveProps.customItem
+    moveProps.type = profile.moveType or "Object"
+    moveProps.pickUpTool = profile.pickUpTool
+    moveProps.placeTool = profile.placeTool
+    moveProps.pickUpLevel = profile.pickUpLevel or 0
+    moveProps.rawWeight = profile.pickUpWeight or moveProps.rawWeight
     moveProps.weight = moveProps.rawWeight and (moveProps.rawWeight / 10) or moveProps.weight
-    moveProps.canBreak = pickup.pickUpTool ~= nil and pickup.canBreak == true
-
-    if profile.materials ~= nil then
-        moveProps.material = profile.materials.primary or moveProps.material
-        moveProps.material2 = profile.materials.secondary or moveProps.material2
-        moveProps.materialType = profile.materials.materialType or moveProps.materialType
-    end
-
+    moveProps.canBreak = profile.pickUpTool ~= nil and profile.canBreak == true
     moveProps.lmionDoorProfile = profile
+
     return profile
 end
 
-local function markDoorSpriteMoveable(sprite, profile)
-    if sprite == nil or profile == nil or profile.pickup == nil or profile.pickup.allowed ~= true then
+local function markDoorSpriteMoveable(sprite)
+    if sprite == nil then
         return false
     end
 
@@ -65,28 +105,18 @@ local function markDoorSpriteMoveable(sprite, profile)
 end
 
 local function configureKnownDoorSprites()
-    local scripts = ScriptManager.instance:getAllGameEntities()
+    spriteProfiles = nil
+    buildSpriteProfiles()
+
     local configured = 0
-
-    for i = 0, scripts:size() - 1 do
-        local script = scripts:get(i)
-        local profile = Doors.getProfile(script:getName())
-
-        if profile ~= nil then
-            local spriteConfig = script:getComponentScriptFor(ComponentType.SpriteConfig)
-            if spriteConfig ~= nil then
-                local tileNames = spriteConfig:getAllTileNames()
-                for j = 0, tileNames:size() - 1 do
-                    local sprite = getSprite(tileNames:get(j))
-                    if markDoorSpriteMoveable(sprite, profile) then
-                        configured = configured + 1
-                    end
-                end
-            end
+    for spriteName, _ in pairs(spriteProfiles) do
+        local sprite = getSprite(spriteName)
+        if markDoorSpriteMoveable(sprite) then
+            configured = configured + 1
         end
     end
 
-    LMION.log("Pickup", "configured " .. tostring(configured) .. " LMION door sprites for Moveables")
+    LMION.log("Pickup", "configured " .. tostring(configured) .. " framed 1x1 door sprites for Moveables")
 end
 
 local function findPlacedDoor(square, spriteName)
@@ -108,7 +138,12 @@ local function findPlacedDoor(square, spriteName)
     return nil
 end
 
-Events.OnLoadedTileDefinitions.Add(configureKnownDoorSprites)
+if Pickup._doorMoveablesConfigureHandler ~= nil then
+    Events.OnLoadedTileDefinitions.Remove(Pickup._doorMoveablesConfigureHandler)
+end
+
+Pickup._doorMoveablesConfigureHandler = configureKnownDoorSprites
+Events.OnLoadedTileDefinitions.Add(Pickup._doorMoveablesConfigureHandler)
 
 if Pickup._originalMoveableSpritePropsNew == nil then
     Pickup._originalMoveableSpritePropsNew = ISMoveableSpriteProps.new
@@ -135,17 +170,6 @@ ISMoveableSpriteProps.instanceItem = function(self, spriteNameOverride)
     local profile = self and (self.lmionDoorProfile or getProfileForMoveProps(self)) or nil
 
     if item ~= nil and profile ~= nil then
-        local displayName = Doors.getDisplayName(profile)
-        local scriptItem = item.getScriptItem and item:getScriptItem() or nil
-
-        if scriptItem ~= nil and scriptItem.setDisplayName ~= nil and displayName ~= nil then
-            scriptItem:setDisplayName(displayName)
-        end
-
-        if item.setName ~= nil and displayName ~= nil then
-            item:setName(displayName)
-        end
-
         if self.lmionPendingHealth ~= nil then
             item:getModData().lmionDoorHealth = self.lmionPendingHealth
         end
@@ -167,9 +191,14 @@ ISMoveableSpriteProps.pickUpMoveableInternal = function(self, character, square,
 
     self.lmionPendingHealth = nil
     self.lmionPendingMaxHealth = nil
+
     if profile ~= nil and object ~= nil and instanceof(object, "IsoDoor") then
         self.lmionPendingHealth = object:getHealth()
-        self.lmionPendingMaxHealth = Doors.getEffectiveMaxHealth(object)
+
+        local modData = object:getModData()
+        if modData ~= nil then
+            self.lmionPendingMaxHealth = tonumber(modData[Doors.MaxHealthModDataKey])
+        end
     end
 
     local item = Pickup._originalPickUpMoveableInternal(self, character, square, object, sprInstance, spriteName, createItem, rotating)

@@ -1,11 +1,11 @@
 module Base
 {
-    item LMION_MahoganyPanelDoor
+    item LMION_WhiteDoorWithWindows
     {
         DisplayCategory = Furniture,
         ItemType = base:moveable,
         Icon = default,
-        Weight = 17.0,
+        Weight = 16.0,
         Tags = base:usedisplayname,
     }
 }

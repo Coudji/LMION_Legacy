@@ -4,7 +4,7 @@ LMION.Pickup = LMION.Pickup or {}
 local Pickup = LMION.Pickup
 
 Pickup.ID = "LMION_Pickup"
-Pickup.VERSION = "0.0.3-dev"
+Pickup.VERSION = "0.0.4-dev"
 Pickup.Strategies = Pickup.Strategies or {}
 
 function Pickup.registerStrategy(id, strategy, priority)
@@ -72,7 +72,10 @@ function Pickup.getRegisteredStrategyCount()
     return #Pickup.Strategies
 end
 
+require "LMION/Pickup/DoorProfiles"
 require "LMION/Pickup/DoorMoveables"
 
 LMION.registerModule(Pickup.ID, Pickup)
 LMION.log("Pickup", "loaded " .. Pickup.VERSION)
+
+return Pickup
