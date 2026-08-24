@@ -193,16 +193,115 @@ This LMION construction is intentionally the higher-tier version. The screwdrive
 
 Internal description: large double wooden gate visually serving the same broad role as the vanilla large wooden gate, but treated by LMION as a more carefully assembled and hardened construction. The extra timber, nails and screw fasteners justify the higher carpentry requirement and higher durability without pushing it into metal-gate territory.
 
+### Large metal gates
+
+Status: **validated three-tier design specification** for the four large metal gate models reviewed in game.
+
+The family deliberately uses only three durability tiers. Amount of metal alone is not treated as proof of structural strength: geometry, construction quality and intended use matter more.
+
+#### Tier structure and durability
+
+| Tier | Models | Design role | World HP / segment | Build skill | `health` | `skillBaseHealth` | HP at required level | HP at MetalWelding 10 |
+|---|---|---|---:|---|---:|---:|---:|---:|
+| 1 — light farm | `FarmDoubleGate` | low livestock barrier; thin tubes on a wheel; can be vaulted | **500** | MetalWelding 4 | 300 | 200 | 1100 | 2300 |
+| 2 — cheap metal | `DoubleWireGate`, `DoubleFenceGate` | large but inexpensive / improvised metal barriers | **850** | MetalWelding 5 | 400 | 275 | 1775 | 3150 |
+| 3 — wrought iron | `WroughtIronDoubleGate` | tall, heavy, properly built wrought-iron gate | **1200** | MetalWelding 6 | 500 | 375 | 2750 | 4250 |
+
+The farm gate is intentionally weak despite being metal. It is a livestock barrier rather than a serious defensive structure, its tube frame is visually light, it rests on a wheel, and zombies can pass over it; high structural HP would therefore be misleading.
+
+`DoubleWireGate` and `DoubleFenceGate` deliberately share the same durability. The wire gate is regular but lightweight; the large metal barrier uses more material but is visibly a rough, improvised bric-a-brac assembly. LMION treats those strengths and weaknesses as balancing out into the same middle tier.
+
+The wrought-iron gate is the clear top tier of this family and should remain stronger than the wooden large gates and the two cheap metal variants.
+
+#### Shared construction rules
+
+- LMION metal-gate constructions use `time = 200` for now.
+- Where an LMION recipe currently contains Screwdriver + Screws, both are removed: these gates are welded metal structures, not screw-fastened assemblies.
+- The two vanilla large metal gate recipes remain otherwise unchanged.
+- Pickup, replacement packaging and dismantling rules for this family have not yet been reviewed and should not be inferred from the garage-door rules.
+
+#### `Base.FarmDoubleGate` — Farm Double Gate / Double portail de ferme
+
+LMION tier-1 metal gate. Low tubular livestock barrier, visibly much lighter and less defensive than the other large metal gates.
+
+- Required skill: **MetalWelding 4**.
+- Build time: **200**.
+- Welding Mask x1 — kept.
+- Blow Torch — **8 uses**.
+- Metal Bar x8.
+- Metal Pipe x4.
+- Door Hinge x4.
+- Welding Rods — **6 uses**.
+- **No Screwdriver.**
+- **No Screws.**
+- `Material = MetalPipe`.
+- `Material2 = MetalBars`.
+- `MaterialType = Metal_Light`.
+- `DoorSound = FarmGate`.
+- `ThumpSound = ZombieThumpMetalPoleGate`.
+
+Internal description: low green farm/livestock double gate made from relatively thin horizontal metal tubes, supported by a simple post and wheel. It is designed to contain animals rather than resist a determined attack and can be vaulted in gameplay. Its low 500 HP world durability is therefore intentional rather than an indication that all metal gates should be weak.
+
+#### `Base.DoubleWireGate` — Double Wire Gate / Double portail grillagé
+
+Vanilla tier-2 metal gate. Large chain-link/wire gate with a regular frame but comparatively lightweight construction.
+
+- Required skill: **MetalWelding 5**.
+- Vanilla craft remains unchanged: Blow Torch 10 uses, Metal Pipe x8, Wire 4 uses, Door Hinge x4, Scrap Metal x2, Welding Rods 10 uses.
+- `Material = MetalPipe`.
+- `Material2 = MetalWire`.
+- `MaterialType = Metal_Light`.
+- `DoorSound = MetalGate`.
+- Effective zombie thump family: `ZombieThumpChainlinkFence` (the normal `MetalGate` mapping; no special override is required).
+
+Internal description: large vanilla wire/chain-link double gate. It uses relatively little solid metal compared with a heavy gate, but its construction is regular and purposeful. LMION places it in the middle 850 HP tier.
+
+#### `Base.DoubleFenceGate` — Double Fence Gate / Double portail de clôture
+
+Vanilla tier-2 metal gate. Large rough metal barrier assembled from mismatched pieces rather than a clean engineered gate.
+
+- Required skill: **MetalWelding 5**.
+- Vanilla craft remains unchanged: Blow Torch 10 uses, Metal Pipe x10, Door Hinge x4, Scrap Metal x4, Welding Rods 10 uses.
+- `Material = MetalPipe`.
+- `Material2 = MetalScrap`.
+- `MaterialType = Metal_Light`.
+- `DoorSound = MetalGate`, matching the vanilla wire gate.
+- Effective zombie thump family: `ZombieThumpChainlinkFence` (the normal `MetalGate` mapping; no special override is required).
+
+Internal description: large vanilla metal barrier/gate made from a visually crude bric-a-brac assembly of metal pieces. Although it contains a lot of metal, the construction looks improvised and structurally dubious, so LMION intentionally gives it the same 850 HP tier and the same gate sound family as the cleaner wire gate.
+
+#### `Base.WroughtIronDoubleGate` — Wrought Iron Double Gate / Double portail en fer forgé
+
+LMION tier-3 metal gate and the strongest reviewed metal portal in this group.
+
+- Required skill: **MetalWelding 6**.
+- Build time: **200**.
+- Welding Mask x1 — kept.
+- Blow Torch — **8 uses**.
+- Metal Bar x8.
+- Metal Pipe x4.
+- Door Hinge x4.
+- Welding Rods — **6 uses**.
+- **No Screwdriver.**
+- **No Screws.**
+- `Material = MetalBars`.
+- `Material2 = MetalPipe`.
+- `MaterialType = Metal_Solid`.
+- `DoorSound = MetalPoleGateDouble`.
+- `ThumpSound = ZombieThumpMetalPoleGate`.
+
+Internal description: tall black wrought-iron double gate with dense vertical bars, substantial posts and a much more rigid, deliberate construction than the other metal gates. It is the clear heavy-duty tier of the family and keeps the existing 1200 HP world target while moving to MetalWelding 6 for player construction.
+
 ### Portal / large-gate inventory
 
 | Preview | Model / entity | EN name | FR name | Class | HP / segment | Glazed | Frame | Material(s) | MaterialType | DoorSound |
 |---|---|---|---|---|---:|---|---|---|---|---|
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_DoubleDoor.png" width="120"> | `Base.DoubleDoor` | Large Wooden Gate | Grand portail en bois | `wood` | 650 | no | none | M1=Wood; M2=Nails | Wood_Solid | WoodGate |
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_WoodenFenceDoubleGate.png" width="120"> | `Base.WoodenFenceDoubleGate` | Hardened Wooden Gate | Grand portail en bois durci | `wood` | 750 | no | none | M1=Wood; M2=Nails; M3=Screws | Wood_Solid | WoodGate |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_FarmDoubleGate.png" width="120"> | `Base.FarmDoubleGate` | Farm Double Gate | Double portail de ferme | `metal` | 800 | no | none | M1=MetalPipe; M2=Wood | Metal_Light | MetalPoleGateDouble |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_WroughtIronDoubleGate.png" width="120"> | `Base.WroughtIronDoubleGate` | Wrought Iron Double Gate | Double portail en fer forgé | `metal` | 1200 | no | none | M1=MetalBars | Metal_Solid | MetalPoleGateDouble |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_DoubleWireGate.png" width="120"> | `Base.DoubleWireGate` | Double Wire Gate | Double portail grillagé | `metal` | 650 | no | none | M1=MetalPipe; M2=MetalWire | Metal_Light | MetalGate |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_DoubleFenceGate.png" width="120"> | `Base.DoubleFenceGate` | Double Fence Gate | Double portail de clôture | `unknown` | TBD | no | none | TBD | TBD | TBD |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_FarmDoubleGate.png" width="120"> | `Base.FarmDoubleGate` | Farm Double Gate | Double portail de ferme | `metal` | 500 | no | none | M1=MetalPipe; M2=MetalBars | Metal_Light | FarmGate |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_DoubleWireGate.png" width="120"> | `Base.DoubleWireGate` | Double Wire Gate | Double portail grillagé | `metal` | 850 | no | none | M1=MetalPipe; M2=MetalWire | Metal_Light | MetalGate |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_DoubleFenceGate.png" width="120"> | `Base.DoubleFenceGate` | Double Fence Gate | Double portail de clôture | `metal` | 850 | no | none | M1=MetalPipe; M2=MetalScrap | Metal_Light | MetalGate |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_WroughtIronDoubleGate.png" width="120"> | `Base.WroughtIronDoubleGate` | Wrought Iron Double Gate | Double portail en fer forgé | `metal` | 1200 | no | none | M1=MetalBars; M2=MetalPipe | Metal_Solid | MetalPoleGateDouble |
 
 ## Paired double doors
 
@@ -291,6 +390,7 @@ These stay separate from normal 1x1 doors because their material, pickup, placem
 - `LogDoor` keeps `M1=Log` for semantic fidelity. Vanilla's generic salvage path does not recognize `Log` as a wood salvage tag, and `IsoDoor.destroy()` would still add knob/hinge hardware. LMION should therefore give LogDoor custom destruction loot: `1 x Base.Log`, no doorknob, no hinges, and no additional vanilla door loot.
 - Jail and Security doors deliberately override normal material-class durability at 2000 and 3000 HP.
 - `DoubleDoor` and `WoodenFenceDoubleGate` deliberately override the generic large-wood value at 650 and 750 HP respectively.
+- Large metal gates deliberately use three explicit tiers: `FarmDoubleGate = 500`, `DoubleWireGate = 850`, `DoubleFenceGate = 850`, `WroughtIronDoubleGate = 1200` HP per segment.
 - Single fence gates/wickets are kept separate from normal 1x1 doors even if they share `IsoDoor`, so their gameplay profile can diverge later without reclassifying the catalog.
 
 ## Remaining ambiguous cases
@@ -298,7 +398,6 @@ These stay separate from normal 1x1 doors because their material, pickup, placem
 The bulk pass intentionally leaves these rows partially unresolved because their visible construction/material cannot be determined safely from the entity name alone:
 
 ```text
-DoubleFenceGate
 BlackGlassDoubleDoor
 SmallBlueDoor
 SmallPinkDoor
