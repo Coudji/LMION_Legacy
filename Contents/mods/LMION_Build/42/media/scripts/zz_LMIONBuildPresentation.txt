@@ -2,34 +2,34 @@ module Base
 {
     xuiSkin default
     {
-        entity ES_BlackDoorWithWindow
+        entity ES_BlackMetalDoorWithWindow
         {
-            Icon = LMION_BlackDoorWithWindow,
+            Icon = LMION_BlackMetalDoorWithWindow,
         }
 
-        entity ES_BlackGlassDoor
+        entity ES_BlackFullGlassDoor
         {
-            Icon = LMION_BlackGlassDoor,
+            Icon = LMION_BlackFullGlassDoor,
         }
 
-        entity ES_BlackGlassDoubleDoorLeft
+        entity ES_BlackTwoPaneDoubleDoorLeft
         {
-            Icon = LMION_BlackGlassDoubleDoorLeft,
+            Icon = LMION_BlackTwoPaneDoubleDoorLeft,
         }
 
-        entity ES_BlackGlassDoubleDoorRight
+        entity ES_BlackTwoPaneDoubleDoorRight
         {
-            Icon = LMION_BlackGlassDoubleDoorRight,
+            Icon = LMION_BlackTwoPaneDoubleDoorRight,
         }
 
-        entity ES_BlackMetalDoor
+        entity ES_BlackServiceDoor
         {
-            Icon = LMION_BlackMetalDoor,
+            Icon = LMION_BlackServiceDoor,
         }
 
-        entity ES_BlackTwoPaneDoor
+        entity ES_BlackTwoPaneMetalDoor
         {
-            Icon = LMION_BlackTwoPaneDoor,
+            Icon = LMION_BlackTwoPaneMetalDoor,
         }
 
         entity ES_BlueChurchDoubleDoorLeft
@@ -42,14 +42,14 @@ module Base
             Icon = LMION_BlueChurchDoubleDoorRight,
         }
 
-        entity ES_BlueDoor
+        entity ES_BluePanelDoor
         {
-            Icon = LMION_BlueDoor,
+            Icon = LMION_BluePanelDoor,
         }
 
-        entity ES_BlueMetalDoor
+        entity ES_BlueServiceDoor
         {
-            Icon = LMION_BlueMetalDoor,
+            Icon = LMION_BlueServiceDoor,
         }
 
         entity ES_BlueRestroomDoor
@@ -67,9 +67,9 @@ module Base
             Icon = LMION_BrownChurchDoubleDoorRight,
         }
 
-        entity ES_BrownDoor
+        entity ES_BrownPanelDoor
         {
-            Icon = LMION_BrownDoor,
+            Icon = LMION_BrownPanelDoor,
         }
 
         entity ES_BrownDoorWithWindows
@@ -82,29 +82,29 @@ module Base
             Icon = LMION_BrownSlidingGlassDoor,
         }
 
-        entity ES_CherryDoor
+        entity ES_MahoganyPanelDoor
         {
-            Icon = LMION_CherryDoor,
+            Icon = LMION_MahoganyPanelDoor,
         }
 
-        entity ES_ChestnutGlassDoor
+        entity ES_BrownFullGlassDoor
         {
-            Icon = LMION_ChestnutGlassDoor,
+            Icon = LMION_BrownFullGlassDoor,
         }
 
-        entity ES_FarmDoubleGate
+        entity ES_LargeFarmGate
         {
-            Icon = LMION_FarmDoubleGate,
+            Icon = LMION_LargeFarmGate,
         }
 
-        entity ES_FossoilDoor
+        entity ES_BlueTwoPaneDoor
         {
-            Icon = LMION_FossoilDoor,
+            Icon = LMION_BlueTwoPaneDoor,
         }
 
-        entity ES_Gas2GoDoor
+        entity ES_RedTwoPaneDoor
         {
-            Icon = LMION_Gas2GoDoor,
+            Icon = LMION_RedTwoPaneDoor,
         }
 
         entity ES_GreenGarageDoor
@@ -147,29 +147,29 @@ module Base
             Icon = LMION_OuthouseDoor,
         }
 
-        entity ES_PileOCrepeBlueDoorWithWindow
+        entity ES_BlueDoorWithWindow
         {
-            Icon = LMION_PileOCrepeBlueDoorWithWindow,
+            Icon = LMION_BlueDoorWithWindow,
         }
 
-        entity ES_PileOCrepeOrangeDoor
+        entity ES_OrangeServiceDoor
         {
-            Icon = LMION_PileOCrepeOrangeDoor,
+            Icon = LMION_OrangeServiceDoor,
         }
 
-        entity ES_PizzaWhirledBrownGlassDoor
+        entity ES_BrownTwoPaneDoor
         {
-            Icon = LMION_PizzaWhirledBrownGlassDoor,
+            Icon = LMION_BrownTwoPaneDoor,
         }
 
-        entity ES_PizzaWhirledGreenMetalDoor
+        entity ES_GreenServiceDoor
         {
-            Icon = LMION_PizzaWhirledGreenMetalDoor,
+            Icon = LMION_GreenServiceDoor,
         }
 
-        entity ES_RedMetalDoor
+        entity ES_LightRedServiceDoor
         {
-            Icon = LMION_RedMetalDoor,
+            Icon = LMION_LightRedServiceDoor,
         }
 
         entity ES_RedWindowGarageDoor
@@ -192,9 +192,9 @@ module Base
             Icon = LMION_RoughWoodenDoor,
         }
 
-        entity ES_SeaHorseGlassDoor
+        entity ES_DarkBrownTwoPaneDoor
         {
-            Icon = LMION_SeaHorseGlassDoor,
+            Icon = LMION_DarkBrownTwoPaneDoor,
         }
 
         entity ES_SecurityDoor
@@ -202,64 +202,64 @@ module Base
             Icon = LMION_SecurityDoor,
         }
 
-        entity ES_SmallBlackPanelDoor
+        entity ES_BlackRestroomStallDoor
         {
-            Icon = LMION_SmallBlackPanelDoor,
+            Icon = LMION_BlackRestroomStallDoor,
         }
 
-        entity ES_SmallBlueDoor
+        entity ES_BlueRestroomStallDoor
         {
-            Icon = LMION_SmallBlueDoor,
+            Icon = LMION_BlueRestroomStallDoor,
         }
 
-        entity ES_SmallBrownPanelDoor
+        entity ES_BrownRestroomStallDoor
         {
-            Icon = LMION_SmallBrownPanelDoor,
+            Icon = LMION_BrownRestroomStallDoor,
         }
 
-        entity ES_SmallMetalFenceGate
+        entity ES_SmallWroughtIronGate
         {
-            Icon = LMION_SmallMetalFenceGate,
+            Icon = LMION_SmallWroughtIronGate,
         }
 
-        entity ES_SmallPinkDoor
+        entity ES_PinkRestroomStallDoor
         {
-            Icon = LMION_SmallPinkDoor,
+            Icon = LMION_PinkRestroomStallDoor,
         }
 
-        entity ES_SmallWhitePanelDoor
+        entity ES_WhiteRestroomStallDoor
         {
-            Icon = LMION_SmallWhitePanelDoor,
+            Icon = LMION_WhiteRestroomStallDoor,
         }
 
-        entity ES_SmallWhiteWoodenFenceGate
+        entity ES_SmallWhiteWoodenGate
         {
-            Icon = LMION_SmallWhiteWoodenFenceGate,
+            Icon = LMION_SmallWhiteWoodenGate,
         }
 
-        entity ES_SpiffosGlassDoor
+        entity ES_GreenStripedTwoPaneDoor
         {
-            Icon = LMION_SpiffosGlassDoor,
+            Icon = LMION_GreenStripedTwoPaneDoor,
         }
 
-        entity ES_SpiffosRedMetalDoor
+        entity ES_RedServiceDoor
         {
-            Icon = LMION_SpiffosRedMetalDoor,
+            Icon = LMION_RedServiceDoor,
         }
 
-        entity ES_TallWoodenFenceGate
+        entity ES_HardenedWoodenGate
         {
-            Icon = LMION_TallWoodenFenceGate,
+            Icon = LMION_HardenedWoodenGate,
         }
 
-        entity ES_TallWroughtIronGate
+        entity ES_WroughtIronGate
         {
-            Icon = LMION_TallWroughtIronGate,
+            Icon = LMION_WroughtIronGate,
         }
 
-        entity ES_TanDoorWithWindow
+        entity ES_TanMetalDoorWithWindow
         {
-            Icon = LMION_TanDoorWithWindow,
+            Icon = LMION_TanMetalDoorWithWindow,
         }
 
         entity ES_TanMetalDoor
@@ -282,9 +282,9 @@ module Base
             Icon = LMION_WhiteMetalDoor,
         }
 
-        entity ES_WhiteMetalDoorWithWindow
+        entity ES_WhiteServiceDoorWithPorthole
         {
-            Icon = LMION_WhiteMetalDoorWithWindow,
+            Icon = LMION_WhiteServiceDoorWithPorthole,
         }
 
         entity ES_WhiteSlidingGlassDoor
@@ -292,34 +292,34 @@ module Base
             Icon = LMION_WhiteSlidingGlassDoor,
         }
 
-        entity ES_WhiteWoodenDoor
+        entity ES_WhitePanelDoor
         {
-            Icon = LMION_WhiteWoodenDoor,
+            Icon = LMION_WhitePanelDoor,
         }
 
-        entity ES_WoodenDoor
+        entity ES_RusticWoodenDoor
         {
-            Icon = LMION_WoodenDoor,
+            Icon = LMION_RusticWoodenDoor,
         }
 
-        entity ES_WoodenFenceDoubleGate
+        entity ES_LargeHardenedWoodenGate
         {
-            Icon = LMION_WoodenFenceDoubleGate,
+            Icon = LMION_LargeHardenedWoodenGate,
         }
 
-        entity ES_WroughtIronDoubleGate
+        entity ES_LargeWroughtIronGate
         {
-            Icon = LMION_WroughtIronDoubleGate,
+            Icon = LMION_LargeWroughtIronGate,
         }
 
-        entity ES_YellowMetalDoubleDoorLeft
+        entity ES_YellowServiceDoubleDoorLeft
         {
-            Icon = LMION_YellowMetalDoubleDoorLeft,
+            Icon = LMION_YellowServiceDoubleDoorLeft,
         }
 
-        entity ES_YellowMetalDoubleDoorRight
+        entity ES_YellowServiceDoubleDoorRight
         {
-            Icon = LMION_YellowMetalDoubleDoorRight,
+            Icon = LMION_YellowServiceDoubleDoorRight,
         }
     }
 }
