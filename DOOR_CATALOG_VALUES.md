@@ -1,12 +1,18 @@
-# LMION — Door catalog value reference
+# LMION — Tile and door property reference
 
-Compact reference for editing `DOOR_CATALOG.md` without inventing unsupported values.
+Reference for `DOOR_CATALOG.md` and for TileZed/PZ door properties. The goal is to record what each parameter actually means before LMION writes it back into the game.
 
-Use `TBD` whenever a value has not been decided or verified yet. A `?` suffix means the current catalog entry is only a provisional classification, for example `metal?`.
+Verification tags used in this document:
 
-## Class
+```text
+[TileZed] = visible directly in the TileZed dropdown/screenshots
+[JAR]     = verified in Project Zomboid B42.20.3 bytecode
+[LMION]   = project balance/design choice
+```
 
-Project-defined LMION material/durability classes:
+Use `TBD` whenever a gameplay value has not been decided or verified yet.
+
+## LMION durability classes
 
 ```text
 wood
@@ -20,13 +26,9 @@ security
 unknown
 ```
 
-`Class` is only one axis of durability. The final HP also depends on the kind/size of opening. A small door should not automatically have the same HP as a normal door made from the same material, and a garage door should not use the normal 1x1 baseline.
-
-## Durability by opening type
+`Class` is only one axis. Final HP depends on material plus size/type of opening and may then be overridden per model.
 
 ### Small 1x1 doors
-
-Use for clearly undersized doors/panels compared with a normal exterior/interior door.
 
 ```text
 wood          = 425
@@ -35,8 +37,6 @@ metal         = 550
 metal_glazed  = 475
 glass         = 300
 ```
-
-This is intentionally a little below normal 1x1 durability at equivalent material.
 
 ### Normal 1x1 doors
 
@@ -49,9 +49,7 @@ metal_glazed  = 550
 glass         = 350
 ```
 
-### Large / double doors and portals
-
-These are per segment/battant, not the HP of the whole opening.
+### Large / double / portal, per segment
 
 ```text
 wood          = 600
@@ -61,18 +59,12 @@ metal_glazed  = 650
 glass         = 425
 ```
 
-These are starting points only. Structure matters a lot for gates: a light tube gate can stay around 650–800, while a heavy wrought-iron gate can override upward to 1200 or more.
-
-### Garage doors
-
-Garage doors use their own baseline because each segment belongs to a large reinforced opening:
+### Garage, per segment
 
 ```text
 metal         = 1200
 metal_glazed  = 1000
 ```
-
-The value is still per segment. Group destruction is handled separately: if one garage segment reaches zero, the whole garage door is destroyed.
 
 ### Special exceptions
 
@@ -81,42 +73,21 @@ jail          = 2000
 security      = 3000
 ```
 
-These are explicit design exceptions rather than ordinary material baselines.
-
-### Overrides
-
-Individual models may override the table when their construction clearly justifies it. Examples already accepted in the catalog:
+### Current explicit overrides
 
 ```text
-FarmDoubleGate          = 800
+FarmDoubleGate          = 700
 WroughtIronDoubleGate   = 1200
 WoodenFenceDoubleGate   = 600
 DoubleWireGate          = 650
 LogDoor                 = 600
 ```
 
-The row's explicit HP value is authoritative once reviewed.
-
-## HP
-
-Use a positive integer or `TBD`.
-
-Do not force every member of a class to the same HP. Use the opening-type baseline above, then adjust for visible construction, thickness, reinforcement and special gameplay role.
-
-For multi-tile openings the HP value is per segment.
-
-## Glazed
-
-```text
-yes
-no
-```
-
-Use `yes` when glass is a meaningful structural weak point, not merely a tiny decorative detail.
+The row's explicit HP is authoritative once reviewed.
 
 ## Frame
 
-Current catalog values:
+Current LMION catalog values:
 
 ```text
 standard
@@ -124,56 +95,147 @@ paired
 none
 ```
 
-Meaning:
-
 ```text
 standard = normal 1x1 door frame required
-paired   = left/right paired double-door frame logic
+paired   = left/right paired double-door logic
 none     = freestanding gate, sliding door, garage, etc.
 ```
 
-Do not add another frame value until an actual opening requires one.
+## Material / Material2 / Material3
 
-## Material(s)
+These are TileDef sprite properties. All three slots use the same value family.
 
-This column represents the engine `Material`, `Material2` and `Material3` properties.
+### TileZed values visible in the Material dropdown
 
-Preferred notation in the catalog when order matters:
-
-```text
-M1=Wood; M2=Door
-M1=MetalPlates; M2=Door
-M1=Wood; M2=Nails; M3=Screws
-```
-
-Use `TBD` if not decided.
-
-### Safe current LMION whitelist
-
-Values already observed in vanilla data or verified in the `IsoDoor` / `IsoObject` salvage path:
+[TileZed]
 
 ```text
+Undefined
+AluminumScrap
+Brick
 Door
-Wood
+Electric
+Fabric
+Foam
+Fridge
+Glass
+GoldBar
+Leather
 Log
+Mechanical
 MetalBars
-MetalPlates
 MetalPipe
+MetalPlates
+SmallMetalPlates
+MetalScrap
 MetalWire
 Nails
+Natural
+Paper
+Pipes
+Plastic
+PlasticBag
+PlasticHard
+Plumbing
+RailroadTie
+RailroadTrack
+Rubber
+Sandbag
 Screws
+Sink
+Steel
+Stone
+Transmission
+WaterContainer
+Wood
 ```
 
-Important distinctions:
+`Undefined` is visible as a TileZed selector value, but its runtime meaning has not been investigated. LMION should not assign it deliberately for now.
 
-- `Door` is a vanilla tag/property value, not a physical material.
-- `Log` has been observed on the vanilla LogDoor TileDef, but it is not one of the exact salvage tags already verified in `IsoObject.addItemsFromProperties()`.
-- Verified salvage-producing values are `Wood`, `MetalBars`, `MetalPlates`, `MetalPipe`, `MetalWire`, `Nails`, and `Screws`.
-- Do not invent values such as `Steel`, `CherryWood`, etc. without first checking the engine alias map/runtime behavior.
+### What these values drop through generic IsoObject salvage
+
+[JAR] `IsoObject.addItemsFromProperties()` checks `Material`, `Material2` and `Material3`. Only the values below have a generic salvage effect in B42.20.3.
+
+| Material value | Generic drop | Chance / amount |
+|---|---|---|
+| `Wood` | `Base.UnusableWood` | 1 guaranteed, plus 20% chance of a second |
+| `MetalBars` | `Base.MetalBar` | 50% |
+| `MetalPlates` | `Base.SheetMetal` | 50% |
+| `MetalPipe` | `Base.MetalPipe` | 50% |
+| `MetalWire` | `Base.Wire` | 33.3% |
+| `Nails` | `Base.Nails` | 50% |
+| `Screws` | `Base.Screws` | 50% |
+
+Every other TileZed Material value currently has **no branch in this generic salvage method**, including:
+
+```text
+Undefined
+AluminumScrap
+Brick
+Door
+Electric
+Fabric
+Foam
+Fridge
+Glass
+GoldBar
+Leather
+Log
+Mechanical
+SmallMetalPlates
+MetalScrap
+Natural
+Paper
+Pipes
+Plastic
+PlasticBag
+PlasticHard
+Plumbing
+RailroadTie
+RailroadTrack
+Rubber
+Sandbag
+Sink
+Steel
+Stone
+Transmission
+WaterContainer
+```
+
+This does not mean those values are useless elsewhere. It only means they do not create an item through `IsoObject.addItemsFromProperties()`.
+
+### Important IsoDoor destruction behavior
+
+[JAR] For a normal non-garage `IsoDoor.destroy()`:
+
+1. If at least one of `Material`, `Material2`, `Material3` exists, `addItemsFromProperties()` is called.
+2. If all three are absent, the fallback is `1–2 x Base.Plank`.
+3. After that, vanilla adds `1 x Base.Doorknob` unconditionally.
+4. Vanilla then adds `0–2 x Base.Hinge`.
+5. A curtain, if present, returns `1 x Base.Sheet`.
+
+Therefore an unsupported material such as `Door` or `Log` can suppress the plank fallback while producing no generic material drop of its own.
+
+The direct `IsoDoor.destroy()` garage branch returns before this generic loot/hardware path, so garage-door destruction is a separate case.
+
+### LMION LogDoor consequence
+
+[LMION] `LogDoor` should keep semantic `M1=Log`, but use custom destruction loot:
+
+```text
+1 x Base.Log
+no Base.Doorknob
+no Base.Hinge
+no additional vanilla door salvage
+```
 
 ## MaterialType
 
-`MaterialType` is a closed Build 42 enum. Exact values verified from the B42.20.3 JAR:
+`MaterialType` is **not** the same thing as `Material`.
+
+[JAR] It is a closed enum in B42.20.3. Custom names cannot be invented.
+
+### Complete MaterialType enum
 
 ```text
 Default
@@ -205,7 +267,34 @@ Sand
 Snow
 ```
 
-For LMION doors, the values most likely to be useful are:
+Grouped for easier reading:
+
+| Family | Values |
+|---|---|
+| Generic | `Default` |
+| Flesh | `Flesh`, `Flesh_Hollow` |
+| Masonry | `Concrete`, `Plaster`, `Stone`, `Brick`, `Cinderblock`, `Ceramic` |
+| Wood | `Wood`, `Wood_Solid` |
+| Metal | `Metal`, `Metal_Large`, `Metal_Light`, `Metal_Solid` |
+| Glass | `Glass`, `Glass_Light`, `Glass_Solid` |
+| Soft / synthetic | `Plastic`, `Rubber`, `Fabric`, `Carpet` |
+| Ground | `Dirt`, `Grass`, `Gravel`, `Sand`, `Snow` |
+
+### Does MaterialType determine salvage loot?
+
+No. [JAR]
+
+`IsoObject.addItemsFromProperties()` reads `Material`, `Material2` and `Material3`; it does not read `MaterialType` for the generic salvage drops listed above.
+
+So, for example:
+
+```text
+MaterialType = Metal_Light
+```
+
+does **not** mean a metal pipe will drop. If LMION wants pipe salvage, one of the `Material*` properties must contain `MetalPipe`.
+
+For doors, the useful MaterialType choices will usually be:
 
 ```text
 Wood
@@ -221,49 +310,142 @@ Plastic
 Default
 ```
 
-Do not create custom `MaterialType` names.
-
 ## DoorSound
 
-`IsoDoor` reads the closed sprite's `DoorSound` property as a sound prefix. If absent, it falls back to `WoodDoor`.
+`DoorSound` is a TileDef property on the closed sprite. [TileZed/JAR]
 
-The following prefixes are confirmed in the B42.20.3 `IsoDoor` code and are the safe current LMION whitelist:
+`IsoDoor.getSoundPrefix()` returns the `DoorSound` value. If the property is absent, vanilla falls back to:
 
 ```text
 WoodDoor
-MetalDoor
-PrisonMetalDoor
-SlidingGlassDoor
-GarageDoor
-MetalGate
-MetalPoleGate
-MetalPoleGateDouble
 ```
 
-These prefixes are used by the door sound logic for events such as open, close, lock, blocked and break.
+So TileZed `None` does **not** mean silent for an `IsoDoor`; it effectively becomes the vanilla `WoodDoor` family unless another path overrides it.
 
-Practical intended mapping:
+### TileZed DoorSound choices and internal prefixes
+
+The TileZed labels below are visible in the provided dropdown. The internal prefix is confirmed by matching registered B42.20.3 GameSound families.
+
+| TileZed label | Prefix used by IsoDoor | Registered GameSound family to search |
+|---|---|---|
+| `None` | property absent → `WoodDoor` fallback | `WoodDoor*` |
+| `Farm Gate` | `FarmGate` | `FarmGateOpen`, `FarmGateClose`, `FarmGateBreak`, `FarmGateLocked`, `FarmGateBlocked`, `FarmGateLock`, `FarmGateUnlock` |
+| `Garage Door` | `GarageDoor` | `GarageDoorOpen`, `GarageDoorClose`, `GarageDoorBreak`, `GarageDoorLocked`, `GarageDoorBlocked`, `GarageDoorLock`, `GarageDoorUnlock` |
+| `Metal Door` | `MetalDoor` | `MetalDoorOpen`, `MetalDoorClose`, `MetalDoorBreak`, `MetalDoorLocked`, `MetalDoorBlocked`, `MetalDoorLock`, `MetalDoorUnlock` |
+| `Metal Gate` | `MetalGate` | `MetalGateOpen`, `MetalGateClose`, `MetalGateBreak`, `MetalGateLocked`, `MetalGateBlocked`, `MetalGateLock`, `MetalGateUnlock` |
+| `Metal Pole Gate` | `MetalPoleGate` | `MetalPoleGateOpen`, `MetalPoleGateClose`, `MetalPoleGateBreak`, `MetalPoleGateLocked`, `MetalPoleGateBlocked`, `MetalPoleGateLock`, `MetalPoleGateUnlock` |
+| `Metal Pole Gate (Double)` | `MetalPoleGateDouble` | `MetalPoleGateDoubleOpen`, `MetalPoleGateDoubleClose`, `MetalPoleGateDoubleBreak`, `MetalPoleGateDoubleLocked`, `MetalPoleGateDoubleBlocked`, `MetalPoleGateDoubleLock`, `MetalPoleGateDoubleUnlock` |
+| `Metal Pole Gate (Small)` | `MetalPoleGateSmall` | `MetalPoleGateSmallOpen`, `MetalPoleGateSmallClose`, `MetalPoleGateSmallBreak`, `MetalPoleGateSmallLocked`, `MetalPoleGateSmallBlocked`, `MetalPoleGateSmallLock`, `MetalPoleGateSmallUnlock` |
+| `Prison Metal Door` | `PrisonMetalDoor` | `PrisonMetalDoorOpen`, `PrisonMetalDoorClose`, `PrisonMetalDoorBreak`, `PrisonMetalDoorLocked`, `PrisonMetalDoorBlocked`, `PrisonMetalDoorLock`, `PrisonMetalDoorUnlock` |
+| `Sliding Glass Door` | `SlidingGlassDoor` | `SlidingGlassDoorOpen`, `SlidingGlassDoorClose`, `SlidingGlassDoorBreak`, `SlidingGlassDoorLocked`, `SlidingGlassDoorBlocked`, `SlidingGlassDoorLock`, `SlidingGlassDoorUnlock` |
+| `Small Wood Gate` | `WoodGateSmall` | `WoodGateSmallOpen`, `WoodGateSmallClose`, `WoodGateSmallBreak`, `WoodGateSmallLocked`, `WoodGateSmallBlocked`, `WoodGateSmallLock`, `WoodGateSmallUnlock` |
+| `Wood Door` | `WoodDoor` | `WoodDoorOpen`, `WoodDoorClose`, `WoodDoorBreak`, `WoodDoorLocked`, `WoodDoorBlocked`, `WoodDoorLock`, `WoodDoorUnlock` |
+| `Wood Gate` | `WoodGate` | `WoodGateOpen`, `WoodGateClose`, `WoodGateBreak`, `WoodGateLocked`, `WoodGateBlocked`, `WoodGateLock`, `WoodGateUnlock` |
+| `Wood Log Gate` | `WoodLogGate` | `WoodLogGateOpen`, `WoodLogGateClose`, `WoodLogGateBreak`, `WoodLogGateLocked`, `WoodLogGateBlocked`, `WoodLogGateLock`, `WoodLogGateUnlock` |
+| `Wood Shack Door` | `WoodShackDoor` | `WoodShackDoorOpen`, `WoodShackDoorClose`, `WoodShackDoorBreak`, `WoodShackDoorLocked`, `WoodShackDoorBlocked`, `WoodShackDoorLock`, `WoodShackDoorUnlock` |
+
+`WoodDoor` also has registered `WoodDoorCreak` / `WoodDoorCreaks`, and `WoodShackDoor` has `WoodShackDoorCreak`.
+
+### Where are the actual sound files?
+
+The JAR verifies the GameSound names above, but it does **not** expose a one-to-one `.wav` filename for each door event.
+
+Current PZ audio uses GameSound names and FMOD; at least some audio is packaged in `.bank` files under `media/sound/banks/`. Therefore a door event may not exist as an individually playable `.wav` in the game folder.
+
+For manual investigation, search the installed game files for the exact GameSound name, for example:
 
 ```text
-normal wood door       -> WoodDoor
-normal metal door      -> MetalDoor
-jail/security metal    -> PrisonMetalDoor when appropriate
-glass sliding door     -> SlidingGlassDoor
-garage door            -> GarageDoor
-chain/wire gate        -> MetalGate
-metal pole gate        -> MetalPoleGate
-large/double pole gate -> MetalPoleGateDouble
+FarmGateOpen
+FarmGateBreak
+MetalDoorOpen
+WoodGateSmallClose
+ZombieThumpMetalPoleGate
 ```
 
-Do not use `FarmGate` or another guessed prefix until it is explicitly verified.
+If a sound script resolves to an FMOD event/bank, the event name is the useful identifier even when no standalone WAV exists.
 
-## BreakSound
+## ThumpSound
 
-`BreakSound` in `SpriteConfig` is not the same thing as `DoorSound`.
+`ThumpSound` is a separate TileDef property. [TileZed/JAR]
 
-For the final LMION `IsoDoor`, material-appropriate break behavior should primarily come from `DoorSound + Break`. `BreakSound` matters especially on the temporary/constructed `IsoThumpable` path.
+If it is explicitly present, `IsoDoor.getThumpSound()` returns it directly. If absent, `IsoDoor` derives a default from `DoorSound` for only a small set of known prefixes.
 
-Confirmed relevant registered sound names in the B42.20.3 JAR include:
+### TileZed values visible in the provided dropdown
+
+```text
+None
+ZombieThumpChainlinkFence
+ZombieThumpGarageDoor
+ZombieThumpGeneric
+ZombieThumpMetalPoleFence
+ZombieThumpMetalPoleGate
+ZombieThumpMetal
+ZombieThumpWindow
+ZombieThumpWood
+```
+
+[JAR] `ZombieThumpWindowExtra` is also a registered/handled sound name even though it was not visible in the supplied dropdown crop.
+
+### IsoDoor automatic ThumpSound mapping when ThumpSound is absent
+
+[JAR]
+
+| DoorSound prefix | Automatic thump sound |
+|---|---|
+| `MetalGate` | `ZombieThumpChainlinkFence` |
+| `MetalPoleGate` | `ZombieThumpMetalPoleFence` |
+| `MetalPoleGateDouble` | `ZombieThumpMetalPoleFence` |
+| `GarageDoor` | `ZombieThumpGarageDoor` |
+| `MetalDoor` | `ZombieThumpMetal` |
+| `PrisonMetalDoor` | `ZombieThumpMetal` |
+| `SlidingGlassDoor` | `ZombieThumpWindow` |
+| every other prefix | `ZombieThumpGeneric` |
+
+That means `FarmGate`, `MetalPoleGateSmall`, `WoodDoor`, `WoodGate`, `WoodGateSmall`, `WoodLogGate` and `WoodShackDoor` fall back to `ZombieThumpGeneric` unless the tile explicitly defines `ThumpSound`.
+
+[JAR] `ZombieThumpMetalPoleGate` is explicitly handled by zombie thump logic and is treated as a metal-gate impact family.
+
+### Registered thump GameSound names worth searching
+
+[JAR]
+
+```text
+ZombieThumpChainlinkFence
+ZombieThumpGarageDoor
+ZombieThumpGeneric
+ZombieThumpMetal
+ZombieThumpMetalPoleFence
+ZombieThumpMetalPoleGate
+ZombieThumpWindow
+ZombieThumpWindowExtra
+ZombieThumpWood
+```
+
+Related damage-state sounds registered in B42.20.3 include:
+
+```text
+ZombieThumpChainlinkFenceDamageLow
+ZombieThumpChainlinkFenceDamageHigh
+ZombieThumpChainlinkFenceDamageCollapse
+ZombieThumpMetalPoleFenceDamageLow
+ZombieThumpMetalPoleFenceDamageHigh
+ZombieThumpMetalPoleFenceDamageCollapse
+ZombieThumpWoodCollapse
+```
+
+## BuildBreakSound / SpriteConfig BreakSound
+
+This is deliberately named `BuildBreakSound` in LMION documentation to avoid confusing it with TileZed properties.
+
+`BreakSound` is a `SpriteConfig` / GameEntity construction field, not a `DoorSound` or `ThumpSound` TileDef field. That is why it does not appear in the TileZed door-property dropdown.
+
+Current LMION scripts commonly use:
+
+```text
+BreakDoor
+```
+
+Relevant registered generic break GameSounds in B42.20.3 include:
 
 ```text
 BreakDoor
@@ -277,61 +459,38 @@ BreakBarricadeMetal
 BreakBarricadePlank
 ```
 
-Current LMION entity scripts already use:
+For a final `IsoDoor`, vanilla calls its door-family sound with the suffix `Break`, so for example:
 
 ```text
-BreakDoor
+DoorSound = FarmGate  -> FarmGateBreak
+DoorSound = MetalDoor -> MetalDoorBreak
+DoorSound = WoodDoor  -> WoodDoorBreak
 ```
 
-Until we deliberately audition/test alternatives, `BreakDoor` is the safest default for door entity scripts. Do not assume that a generic `BreakMetalItem` necessarily sounds better for a metal door without testing it in-game.
+This is separate from the `SpriteConfig BreakSound` used by construction/`IsoThumpable` paths.
 
-## Names
+## Example: FarmDoubleGate reference
 
-`EN name` and `FR name` are LMION-localized display text, not engine enums.
-
-Rules:
-
-```text
-EN name = natural English display name
-FR name = natural French display name
-```
-
-Avoid encoding engine/internal terminology in the visible name unless the player actually needs it.
-
-## Quick examples
-
-Normal metal 1x1:
+After visual review:
 
 ```text
 Class        = metal
-HP           = 650
-Glazed       = no
-Frame        = standard
-Material(s)  = M1=MetalPlates; M2=Door
-MaterialType = Metal_Solid
-DoorSound    = MetalDoor
-BreakSound   = BreakDoor
+HP           = 700 per segment
+Material(s)  = M1=MetalPipe
+MaterialType = Metal_Light
+DoorSound    = FarmGate
+ThumpSound   = ZombieThumpMetalPoleGate
+BuildBreakSound = BreakDoor
 ```
 
-Small metal 1x1:
+The wooden post is treated as support scenery rather than salvage material for each moving gate segment.
 
-```text
-Class        = metal
-HP           = 550
-```
+## Editing rule
 
-Large metal portal segment:
+Before assigning a value in LMION:
 
-```text
-Class        = metal
-HP           = 800
-```
-
-Metal garage segment:
-
-```text
-Class        = metal
-HP           = 1200
-```
-
-If any field is uncertain, leave it as `TBD` instead of guessing.
+1. prefer a value visible in TileZed or verified in the B42.20.3 JAR;
+2. distinguish `Material` from `MaterialType`;
+3. distinguish `DoorSound` from `ThumpSound`;
+4. treat `SpriteConfig BreakSound` as a separate construction-layer field;
+5. if behavior is still unknown, write `TBD` rather than inventing a new alias value.
