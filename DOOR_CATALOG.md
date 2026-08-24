@@ -2,157 +2,124 @@
 
 Status: **current door inventory reviewed and classified**. Explicit `TBD` values are intentionally deferred implementation/balance details, not unresolved visual classifications.
 
-The inventory below is based on the openings currently present in the LMION deterministic Test Zone. The goal is to prepare names, physical classes, durability, materials and sounds in one place before profiles are generated in bulk.
+The inventory below covers the door-like openings currently present in the LMION deterministic Test Zone. It is the design reference for names, construction, durability, physical properties, pickup and replacement before implementation work is applied to the mod.
 
-The preview images are the PNG assets already stored in `LMION_Build/42/media/textures`. Raw HTML `<img>` tags are used because Markdown tables otherwise display the source PNGs at their natural size.
+Preview images are the PNG assets stored in `LMION_Build/42/media/textures`.
 
-## Material and sound fields
+## Conventions
 
-The catalog only uses engine property values from the safe reference in `DOOR_CATALOG_VALUES.md`.
+- `Material`, `Material2` and `Material3` describe the engine-facing composition and may affect vanilla generic salvage.
+- `MaterialType` is independent from `Material*` and is chosen for impact/material response.
+- `DoorSound` defines the door-family open/close/final-break sound family.
+- `ThumpSound` defines zombie impact sound when LMION intentionally overrides the engine fallback.
+- `BuildBreakSound` / SpriteConfig `BreakSound` are deliberately out of scope.
+- `World HP` is the durability of the existing world object. For multi-tile openings and paired doors, the displayed value is per segment / leaf.
+- Pickup skill follows `floor(build level / 2)` unless the construction has no skill requirement.
+- `Frame = paired` means the left/right entities form one paired double-door model; it is not a separate durability tier.
 
-`Material`, `Material2` and `Material3` describe the object's material composition and may affect vanilla generic salvage. `MaterialType` is tracked separately and is chosen for the appropriate impact sound/physical response. `DoorSound` defines the door-family open/close/break sound prefix. `ThumpSound` is recorded when LMION deliberately wants a specific zombie-impact family instead of the engine fallback.
-
-The catalog does **not** track or choose construction `BuildBreakSound` / SpriteConfig `BreakSound`. It is not a gameplay/design parameter LMION intends to tune in this pass.
+---
 
 ## Garage doors
 
-Status: **validated family specification**. All garage-door models use the same gameplay rules; rolling, sectional and industrial-looking variants are not balanced separately. The only split is solid metal versus glazed metal. The internal visual notes exist only to identify the models and justify that split.
+All garage models share one gameplay family. Rolling, sectional and industrial appearances do not create different balance tiers; only solid versus glazed matters.
 
-### Profiles and construction
+### Profiles
 
-| Variant | Class | World HP / segment | `health` | `skillBaseHealth` | Build skill | HP at required level | HP at lvl 10 | Time | XP | Craft |
-|---|---:|---:|---:|---:|---|---:|---:|---:|---:|---|
-| Solid metal | `metal` | 1200 | 600 | 400 | MetalWelding 6 | 3000 | 4600 | 200 | 50 | Welding Mask x1 kept; Blow Torch 6 uses; Small Sheet Metal x9; Metal Bar x3; Door Hinge x6; Welding Rods 3 uses; no Screwdriver; no Screws |
-| Glazed metal | `metal_glazed` | 1000 | 500 | 350 | MetalWelding 6 | 2600 | 4000 | 200 | 50 | Welding Mask x1 kept; Blow Torch 6 uses; Small Sheet Metal x6; Glass Panel (`Base.GlassPanel`) x3; Metal Bar x3; Door Hinge x6; Welding Rods 3 uses; no Screwdriver; no Screws |
-
-### Physical properties and handling
-
-| Property | Garage family value |
-|---|---|
-| `Material` | `MetalPlates` |
-| `Material2` | `MetalBars` |
-| `MaterialType` | `Metal_Light` — chosen for the lighter sheet-metal impact response |
-| `DoorSound` | `GarageDoor` |
-| Frame | none |
-| Pickup skill | MetalWelding 3 (`floor(build level / 2)`) |
-| Pickup tools | Blow Torch + Welding Mask |
-| Pickup break chance | none |
-| Pickup output | 3 packages x 20 kg = 60 kg total |
-| Replacement | all 3 packages; Blow Torch + Welding Mask |
-| Replacement consumable | Welding Rods if placement can support consumption cleanly; exact quantity TBD during implementation |
-| Dismantling tools | Blow Torch + Welding Mask |
-| Dismantling returns | delegated to implementation from the construction/material profile |
-| Repair / destruction behavior | out of scope for this catalog pass |
-
-The pickup skill must be tied to the construction skill, not inferred from the vanilla Moveables perk associated with a particular tool.
+| Variant | Class | World HP / segment | Build skill | `health` | `skillBaseHealth` | HP at required level | HP lvl 10 | Materials | MaterialType | DoorSound | Frame |
+|---|---|---:|---|---:|---:|---:|---:|---|---|---|---|
+| Solid | `metal` | 1200 | MetalWelding 6 | 600 | 400 | 3000 | 4600 | M1=MetalPlates; M2=MetalBars | Metal_Light | GarageDoor | none |
+| Glazed | `metal_glazed` | 1000 | MetalWelding 6 | 500 | 350 | 2600 | 4000 | M1=MetalPlates; M2=MetalBars | Metal_Light | GarageDoor | none |
 
 ### Models
 
-| Preview | Entity | EN name | FR name | Variant | Visual note |
-|---|---|---|---|---|---|
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_IndustrialGarageDoor.png" width="120"> | `Base.IndustrialGarageDoor` | Industrial Garage Door | Porte de garage industrielle | solid | large solid industrial-style metal door; no glazing |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_GreenGarageDoor.png" width="120"> | `Base.GreenGarageDoor` | Green Garage Door | Porte de garage verte | solid | large solid green metal door |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_WhiteGarageDoor.png" width="120"> | `Base.WhiteGarageDoor` | White Garage Door | Porte de garage blanche | solid | white sectional/paneled metal door; residential/light-workshop look |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_GreyGarageDoor.png" width="120"> | `Base.GreyGarageDoor` | Grey Garage Door | Porte de garage grise | solid | large solid grey metal door |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_RollingGarageDoor.png" width="120"> | `Base.RollingGarageDoor` | Rolling Garage Door | Porte de garage à enroulement | solid | rolling/shutter appearance does not change balance |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_RedWindowGarageDoor.png" width="120"> | `Base.RedWindowGarageDoor` | Red Window Garage Door | Porte de garage rouge vitrée | glazed | sectional metal door with substantial glazed upper sections |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_RollingWindowGarageDoor.png" width="120"> | `Base.RollingWindowGarageDoor` | Rolling Window Garage Door | Porte de garage à enroulement vitrée | glazed | rolling/shutter model with glazing; same glazed profile |
+| Preview | Entity | EN name | FR name | Variant |
+|---|---|---|---|---|
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_IndustrialGarageDoor.png" width="120"> | `Base.IndustrialGarageDoor` | Industrial Garage Door | Porte de garage industrielle | Solid |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_GreenGarageDoor.png" width="120"> | `Base.GreenGarageDoor` | Green Garage Door | Porte de garage verte | Solid |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_WhiteGarageDoor.png" width="120"> | `Base.WhiteGarageDoor` | White Garage Door | Porte de garage blanche | Solid |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_GreyGarageDoor.png" width="120"> | `Base.GreyGarageDoor` | Grey Garage Door | Porte de garage grise | Solid |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_RollingGarageDoor.png" width="120"> | `Base.RollingGarageDoor` | Rolling Garage Door | Porte de garage à enroulement | Solid |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_RedWindowGarageDoor.png" width="120"> | `Base.RedWindowGarageDoor` | Red Window Garage Door | Porte de garage rouge vitrée | Glazed |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_RollingWindowGarageDoor.png" width="120"> | `Base.RollingWindowGarageDoor` | Rolling Window Garage Door | Porte de garage à enroulement vitrée | Glazed |
+
+### Craft and handling
+
+| Variant | Time | XP | Tools | Inputs | Pickup | Replacement |
+|---|---:|---:|---|---|---|---|
+| Solid | 200 | 50 | Welding Mask kept | Blow Torch 6 uses; Small Sheet Metal x9; Metal Bar x3; Door Hinge x6; Welding Rods 3 uses | MetalWelding 3; Blow Torch + Welding Mask; no break chance; 3 packages x 20 kg | all 3 packages + Blow Torch + Welding Mask; Welding Rods if cleanly consumable, quantity TBD |
+| Glazed | 200 | 50 | Welding Mask kept | Blow Torch 6 uses; Small Sheet Metal x6; Glass Panel x3; Metal Bar x3; Door Hinge x6; Welding Rods 3 uses | MetalWelding 3; Blow Torch + Welding Mask; no break chance; 3 packages x 20 kg | all 3 packages + Blow Torch + Welding Mask; Welding Rods if cleanly consumable, quantity TBD |
+
+---
 
 ## Portals and large gates
 
 ### Large wooden gates
 
-Status: **validated design specification**. The vanilla model is the normal large wooden gate; the LMION model is deliberately a higher-level hardened version with extra timber, nails and screw fasteners. Display names may override vanilla localization without changing technical entity IDs.
+The vanilla gate is the standard large wooden model. The LMION fence gate is the deliberately hardened, higher-skill counterpart.
 
 #### Profiles
 
-| Preview | Entity | EN name | FR name | World HP / segment | Build skill | `health` | `skillBaseHealth` | HP at required level | HP lvl 10 | Class | Glazed | Frame | Materials | MaterialType | DoorSound | ThumpSound |
-|---|---|---|---|---:|---|---:|---:|---:|---:|---|---|---|---|---|---|---|
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_DoubleDoor.png" width="120"> | `Base.DoubleDoor` | Large Wooden Gate | Grand portail en bois | 650 | Woodwork 4 | 400 | 300 | 1600 | 3400 | `wood` | no | none | M1=Wood; M2=Nails | Wood_Solid | WoodGate | ZombieThumpWood |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_WoodenFenceDoubleGate.png" width="120"> | `Base.WoodenFenceDoubleGate` | Large Hardened Wooden Gate | Grand portail en bois durci | 750 | Woodwork 7 | 500 | 350 | 2950 | 4000 | `wood` | no | none | M1=Wood; M2=Nails; M3=Screws | Wood_Solid | WoodGate | ZombieThumpWood |
+| Preview | Entity | EN name | FR name | Class | World HP / segment | Build skill | `health` | `skillBaseHealth` | HP at required level | HP lvl 10 | Materials | MaterialType | DoorSound | ThumpSound | Frame |
+|---|---|---|---|---|---:|---|---:|---:|---:|---:|---|---|---|---|---|
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_DoubleDoor.png" width="120"> | `Base.DoubleDoor` | Large Wooden Gate | Grand portail en bois | `wood` | 650 | Woodwork 4 | 400 | 300 | 1600 | 3400 | M1=Wood; M2=Nails | Wood_Solid | WoodGate | ZombieThumpWood | none |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_WoodenFenceDoubleGate.png" width="120"> | `Base.WoodenFenceDoubleGate` | Large Hardened Wooden Gate | Grand portail en bois durci | `wood` | 750 | Woodwork 7 | 500 | 350 | 2950 | 4000 | M1=Wood; M2=Nails; M3=Screws | Wood_Solid | WoodGate | ZombieThumpWood | none |
 
-#### Craft
+#### Craft and handling
 
-| Entity | Source | Time | Tools | Inputs | Design note |
-|---|---|---|---|---|---|
-| `Base.DoubleDoor` | vanilla | unchanged | Hammer | Plank x8; Nails x8; Door Hinge x4; Doorknob x2 | standard large wooden gate |
-| `Base.WoodenFenceDoubleGate` | LMION | 200 | Hammer + Screwdriver, kept | Plank x10; Nails x10; Screws x8; Door Hinge x4; Doorknob x2 | hardened tier; +2 Planks and +2 Nails versus vanilla while intentionally keeping screws |
-
-#### Pickup and replacement
-
-| Entity | Pickup skill | Pickup tools | Break chance | Pickup output | Total weight | Replacement |
-|---|---|---|---|---|---:|---|
-| `Base.DoubleDoor` | Woodwork 2 | Hammer | none | 2 packages x 18 kg | 36 kg | both packages + Hammer |
-| `Base.WoodenFenceDoubleGate` | Woodwork 3 | Hammer + Screwdriver | none | 2 packages x 22 kg | 44 kg | both packages + Hammer + Screwdriver |
+| Entity | Time | XP | Tools | Inputs | Pickup | Replacement |
+|---|---|---|---|---|---|---|
+| `Base.DoubleDoor` | vanilla | vanilla | Hammer | Plank x8; Nails x8; Door Hinge x4; Doorknob x2 | Woodwork 2; Hammer; no break chance; 2 packages x 18 kg | both packages + Hammer |
+| `Base.WoodenFenceDoubleGate` | 200 | TBD | Hammer + Screwdriver kept | Plank x10; Nails x10; Screws x8; Door Hinge x4; Doorknob x2 | Woodwork 3; Hammer + Screwdriver; no break chance; 2 packages x 22 kg | both packages + Hammer + Screwdriver |
 
 ### Large metal gates
 
-Status: **validated three-tier design specification**. The farm gate is intentionally weak because it is a low livestock barrier made from light tubing and can be vaulted. `DoubleWireGate` and `DoubleFenceGate` share the same middle tier: the first is light but regular, while the second contains more metal but is visibly an improvised bric-a-brac assembly. The wrought-iron gate is the clear heavy-duty tier. Display names are player-facing only; technical vanilla IDs remain unchanged.
+Three tiers are intentional: light farm barrier, regular cheap-metal gate, and wrought-iron heavy-duty gate. The chain-link and improvised scrap-metal models share the middle durability tier.
 
 #### Profiles
 
-| Preview | Entity | EN name | FR name | Tier | World HP / segment | Build skill | `health` | `skillBaseHealth` | HP at required level | HP lvl 10 | Materials | MaterialType | DoorSound | ThumpSound / effective family |
+| Preview | Entity | EN name | FR name | Tier | World HP / segment | Build skill | `health` | `skillBaseHealth` | HP at required level | HP lvl 10 | Materials | MaterialType | DoorSound | ThumpSound |
 |---|---|---|---|---|---:|---|---:|---:|---:|---:|---|---|---|---|
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_FarmDoubleGate.png" width="120"> | `Base.FarmDoubleGate` | Large Farm Gate | Grand portail de ferme | 1 — light farm | 500 | MetalWelding 4 | 300 | 200 | 1100 | 2300 | M1=MetalPipe; M2=MetalBars | Metal_Light | FarmGate | ZombieThumpMetalPoleGate |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_DoubleWireGate.png" width="120"> | `Base.DoubleWireGate` | Large Chain-Link Gate | Grand portail grillagé | 2 — cheap metal | 850 | MetalWelding 5 | 400 | 275 | 1775 | 3150 | M1=MetalPipe; M2=MetalWire | Metal_Light | MetalGate | MetalGate default → ZombieThumpChainlinkFence |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_DoubleFenceGate.png" width="120"> | `Base.DoubleFenceGate` | Large Scrap Metal Gate | Grand portail en ferraille | 2 — cheap metal | 850 | MetalWelding 5 | 400 | 275 | 1775 | 3150 | M1=MetalPipe; M2=MetalScrap | Metal_Light | MetalGate | MetalGate default → ZombieThumpChainlinkFence |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_WroughtIronDoubleGate.png" width="120"> | `Base.WroughtIronDoubleGate` | Large Wrought Iron Gate | Grand portail en fer forgé | 3 — wrought iron | 1200 | MetalWelding 6 | 500 | 375 | 2750 | 4250 | M1=MetalBars; M2=MetalPipe | Metal_Solid | MetalPoleGateDouble | ZombieThumpMetalPoleGate |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_FarmDoubleGate.png" width="120"> | `Base.FarmDoubleGate` | Large Farm Gate | Grand portail de ferme | light farm | 500 | MetalWelding 4 | 300 | 200 | 1100 | 2300 | M1=MetalPipe; M2=MetalBars | Metal_Light | FarmGate | ZombieThumpMetalPoleGate |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_DoubleWireGate.png" width="120"> | `Base.DoubleWireGate` | Large Chain-Link Gate | Grand portail grillagé | cheap metal | 850 | MetalWelding 5 | 400 | 275 | 1775 | 3150 | M1=MetalPipe; M2=MetalWire | Metal_Light | MetalGate | ZombieThumpChainlinkFence |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_DoubleFenceGate.png" width="120"> | `Base.DoubleFenceGate` | Large Scrap Metal Gate | Grand portail en ferraille | cheap metal | 850 | MetalWelding 5 | 400 | 275 | 1775 | 3150 | M1=MetalPipe; M2=MetalScrap | Metal_Light | MetalGate | ZombieThumpChainlinkFence |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_WroughtIronDoubleGate.png" width="120"> | `Base.WroughtIronDoubleGate` | Large Wrought Iron Gate | Grand portail en fer forgé | wrought iron | 1200 | MetalWelding 6 | 500 | 375 | 2750 | 4250 | M1=MetalBars; M2=MetalPipe | Metal_Solid | MetalPoleGateDouble | ZombieThumpMetalPoleGate |
 
-#### Craft
+#### Craft and handling
 
-| Entity | Source | Time | Tools | Inputs | Notes |
-|---|---|---|---|---|---|
-| `Base.FarmDoubleGate` | LMION | 200 | Welding Mask kept | Blow Torch 8 uses; Metal Bar x8; Metal Pipe x4; Door Hinge x4; Welding Rods 6 uses | no Screwdriver; no Screws; low/vaultable livestock barrier |
-| `Base.DoubleWireGate` | vanilla | unchanged | vanilla | Blow Torch 10 uses; Metal Pipe x8; Wire 4 uses; Door Hinge x4; Scrap Metal x2; Welding Rods 10 uses | vanilla craft otherwise unchanged |
-| `Base.DoubleFenceGate` | vanilla | unchanged | vanilla | Blow Torch 10 uses; Metal Pipe x10; Door Hinge x4; Scrap Metal x4; Welding Rods 10 uses | vanilla craft otherwise unchanged |
-| `Base.WroughtIronDoubleGate` | LMION | 200 | Welding Mask kept | Blow Torch 8 uses; Metal Bar x8; Metal Pipe x4; Door Hinge x4; Welding Rods 6 uses | no Screwdriver; no Screws; strongest gate of this family |
+| Entity | Time | XP | Tools | Inputs | Pickup | Replacement |
+|---|---|---|---|---|---|---|
+| `Base.FarmDoubleGate` | 200 | TBD | Welding Mask kept | Blow Torch 8 uses; Metal Bar x8; Metal Pipe x4; Door Hinge x4; Welding Rods 6 uses | MetalWelding 2; Blow Torch + Welding Mask; no break chance; 2 packages x 12 kg | both packages + Blow Torch + Welding Mask |
+| `Base.DoubleWireGate` | vanilla | vanilla | vanilla | Blow Torch 10 uses; Metal Pipe x8; Wire 4 uses; Door Hinge x4; Scrap Metal x2; Welding Rods 10 uses | MetalWelding 2; Blow Torch + Welding Mask; no break chance; 2 packages x 15 kg | both packages + Blow Torch + Welding Mask |
+| `Base.DoubleFenceGate` | vanilla | vanilla | vanilla | Blow Torch 10 uses; Metal Pipe x10; Door Hinge x4; Scrap Metal x4; Welding Rods 10 uses | MetalWelding 2; Blow Torch + Welding Mask; no break chance; 2 packages x 20 kg | both packages + Blow Torch + Welding Mask |
+| `Base.WroughtIronDoubleGate` | 200 | TBD | Welding Mask kept | Blow Torch 8 uses; Metal Bar x8; Metal Pipe x4; Door Hinge x4; Welding Rods 6 uses | MetalWelding 3; Blow Torch + Welding Mask; no break chance; 2 packages x 30 kg | both packages + Blow Torch + Welding Mask |
 
-#### Pickup and replacement
+---
 
-| Entity | Pickup skill | Pickup tools | Break chance | Pickup output | Total weight | Replacement |
-|---|---|---|---|---|---:|---|
-| `Base.FarmDoubleGate` | MetalWelding 2 | Blow Torch + Welding Mask | none | 2 packages x 12 kg | 24 kg | both packages + Blow Torch + Welding Mask |
-| `Base.DoubleWireGate` | MetalWelding 2 | Blow Torch + Welding Mask | none | 2 packages x 15 kg | 30 kg | both packages + Blow Torch + Welding Mask |
-| `Base.DoubleFenceGate` | MetalWelding 2 | Blow Torch + Welding Mask | none | 2 packages x 20 kg | 40 kg | both packages + Blow Torch + Welding Mask |
-| `Base.WroughtIronDoubleGate` | MetalWelding 3 | Blow Torch + Welding Mask | none | 2 packages x 30 kg | 60 kg | both packages + Blow Torch + Welding Mask |
+## Fence gates
 
-Dismantling rules for large metal gates have not yet been reviewed.
-
-## Fence gates and wickets
-
-These are the door-like openings used in fences and barriers. LMION uses a three-size naming hierarchy where applicable: **Large … Gate / Grand portail …** for the double-width models above, **… Gate / Portail …** for normal single-leaf models, and **Small … Gate / Portillon …** for the smallest variants. `Wicket` is avoided in player-facing English because `Small … Gate` is clearer. Naming may later be harmonized with non-door buildables when that wider construction pass happens.
+Naming hierarchy: **Large … Gate / Grand portail …** for double-width models, **… Gate / Portail …** for normal single-leaf models, and **Small … Gate / Portillon …** for the smallest models.
 
 ### Wooden fence gates
 
-The wooden family follows the same standard-versus-hardened logic as the large wooden gates. The tall brown model is treated as the single-leaf hardened counterpart; the small white model is deliberately lighter and simpler.
-
 #### Profiles
 
-| Preview | Entity | EN name | FR name | World HP | Build skill | `health` | `skillBaseHealth` | HP at required level | HP lvl 10 | Class | Frame | Materials | MaterialType | DoorSound | ThumpSound |
-|---|---|---|---|---:|---|---:|---:|---:|---:|---|---|---|---|---|---|
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_SmallWhiteWoodenFenceGate.png" width="96"> | `Base.SmallWhiteWoodenFenceGate` | Small White Wooden Gate | Portillon en bois blanc | 425 | Woodwork 2 | 225 | 175 | 575 | 1975 | `wood` | none | M1=Wood; M2=Nails | Wood | WoodGateSmall | ZombieThumpWood |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_WoodFenceGate.png" width="96"> | `Base.WoodFenceGate` | Wooden Gate | Portail en bois | 500 | Woodwork 3 | 300 | 225 | 975 | 2550 | `wood` | none | M1=Wood; M2=Nails | Wood_Solid | WoodGate | ZombieThumpWood |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_TallWoodenFenceGate.png" width="96"> | `Base.TallWoodenFenceGate` | Hardened Wooden Gate | Portail en bois durci | 600 | Woodwork 5 | 400 | 275 | 1775 | 3150 | `wood` | none | M1=Wood; M2=Nails; M3=Screws | Wood_Solid | WoodGate | ZombieThumpWood |
+| Preview | Entity | EN name | FR name | World HP | Build skill | `health` | `skillBaseHealth` | HP at required level | HP lvl 10 | Materials | MaterialType | DoorSound | ThumpSound | Frame |
+|---|---|---|---|---:|---|---:|---:|---:|---:|---|---|---|---|---|
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_SmallWhiteWoodenFenceGate.png" width="96"> | `Base.SmallWhiteWoodenFenceGate` | Small White Wooden Gate | Portillon en bois blanc | 425 | Woodwork 2 | 225 | 175 | 575 | 1975 | M1=Wood; M2=Nails | Wood | WoodGateSmall | ZombieThumpWood | none |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_WoodFenceGate.png" width="96"> | `Base.WoodFenceGate` | Wooden Gate | Portail en bois | 500 | Woodwork 3 | 300 | 225 | 975 | 2550 | M1=Wood; M2=Nails | Wood_Solid | WoodGate | ZombieThumpWood | none |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_TallWoodenFenceGate.png" width="96"> | `Base.TallWoodenFenceGate` | Hardened Wooden Gate | Portail en bois durci | 600 | Woodwork 5 | 400 | 275 | 1775 | 3150 | M1=Wood; M2=Nails; M3=Screws | Wood_Solid | WoodGate | ZombieThumpWood | none |
 
-#### Craft
+#### Craft and handling
 
-| Entity | Tools | Inputs | Notes |
-|---|---|---|---|
-| `Base.SmallWhiteWoodenFenceGate` | Hammer kept | Plank x2; Nails x2; Door Hinge x2 | no Screwdriver; no Screws; light/simple tier |
-| `Base.WoodFenceGate` | Hammer kept | Plank x4; Nails x4; Door Hinge x2; Doorknob x1 | standard wooden gate |
-| `Base.TallWoodenFenceGate` | Hammer + Screwdriver kept | Plank x5; Nails x5; Screws x4; Door Hinge x2; Doorknob x1 | hardened tier; screw reinforcement intentionally retained |
-
-#### Pickup and replacement
-
-| Entity | Pickup skill | Pickup tools | Break chance | Pickup output / weight | Replacement |
-|---|---|---|---|---|---|
-| `Base.SmallWhiteWoodenFenceGate` | Woodwork 1 | Hammer | none | 1 package — 7 kg | package + Hammer |
-| `Base.WoodFenceGate` | Woodwork 1 | Hammer | none | 1 package — 14 kg | package + Hammer |
-| `Base.TallWoodenFenceGate` | Woodwork 2 | Hammer + Screwdriver | none | 1 package — 18 kg | package + Hammer + Screwdriver |
+| Entity | Time | XP | Tools | Inputs | Pickup | Replacement |
+|---|---|---|---|---|---|---|
+| `Base.SmallWhiteWoodenFenceGate` | TBD | TBD | Hammer kept | Plank x2; Nails x2; Door Hinge x2 | Woodwork 1; Hammer; no break chance; 7 kg | package + Hammer |
+| `Base.WoodFenceGate` | TBD | TBD | Hammer kept | Plank x4; Nails x4; Door Hinge x2; Doorknob x1 | Woodwork 1; Hammer; no break chance; 14 kg | package + Hammer |
+| `Base.TallWoodenFenceGate` | TBD | TBD | Hammer + Screwdriver kept | Plank x5; Nails x5; Screws x4; Door Hinge x2; Doorknob x1 | Woodwork 2; Hammer + Screwdriver; no break chance; 18 kg | package + Hammer + Screwdriver |
 
 ### Metal fence gates
 
-Chain-link and scrap-metal models use the same durability tier at a given size, mirroring the large-gate logic. Chain-link is light but regular; the pole/scrap models use more metal but are visibly rougher assemblies. Wrought iron remains the strongest family at every size. All metal constructions are treated as welded structures, so Screwdriver and Screws are removed where present. Welding Mask is required consistently.
+At equal size, chain-link and rough scrap-metal gates share a durability tier. Wrought iron remains the strongest family.
 
 #### Profiles
 
@@ -165,39 +132,32 @@ Chain-link and scrap-metal models use the same durability tier at a given size, 
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_SmallMetalFenceGate.png" width="96"> | `Base.SmallMetalFenceGate` | Small Wrought Iron Gate | Portillon en fer forgé | wrought iron / small | 650 | MetalWelding 3 | 325 | 250 | 1075 | 2825 | M1=MetalBars; M2=MetalPipe | Metal_Solid | MetalPoleGateSmall | ZombieThumpMetalPoleGate |
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_TallWroughtIronGate.png" width="96"> | `Base.TallWroughtIronGate` | Wrought Iron Gate | Portail en fer forgé | wrought iron / normal | 850 | MetalWelding 4 | 400 | 300 | 1600 | 3400 | M1=MetalBars; M2=MetalPipe | Metal_Solid | MetalPoleGate | ZombieThumpMetalPoleGate |
 
-#### Craft
+#### Craft and handling
 
-| Entity | Tools | Inputs | Notes |
-|---|---|---|---|
-| `Base.MetalWireFenceGateSmall` | Welding Mask kept | Blow Torch 2 uses; Metal Pipe x2; Wire 1 use; Door Hinge x2; Scrap Metal x1; Welding Rods 2 uses | small chain-link tier |
-| `Base.MetalWireFenceGate` | Welding Mask kept | Blow Torch 4 uses; Metal Pipe x4; Wire 2 uses; Door Hinge x2; Scrap Metal x1; Welding Rods 4 uses | normal chain-link tier |
-| `Base.MetalPoleFenceGateSmall` | Welding Mask kept | Blow Torch 3 uses; Metal Pipe x3; Door Hinge x2; Scrap Metal x1; Welding Rods 3 uses | small scrap tier |
-| `Base.MetalPoleFenceGate` | Welding Mask kept | Blow Torch 5 uses; Metal Pipe x5; Door Hinge x2; Scrap Metal x2; Welding Rods 5 uses | normal scrap tier |
-| `Base.SmallMetalFenceGate` | Welding Mask kept | Blow Torch 3 uses; Metal Bar x2; Metal Pipe x1; Door Hinge x2; Welding Rods 2 uses | no Screwdriver; no Screws; no Small Sheet Metal |
-| `Base.TallWroughtIronGate` | Welding Mask kept | Blow Torch 5 uses; Metal Bar x4; Metal Pipe x2; Door Hinge x2; Welding Rods 4 uses | no Screwdriver; no Screws; no Small Sheet Metal |
+| Entity | Time | XP | Tools | Inputs | Pickup | Replacement |
+|---|---|---|---|---|---|---|
+| `Base.MetalWireFenceGateSmall` | TBD | TBD | Welding Mask kept | Blow Torch 2 uses; Metal Pipe x2; Wire 1 use; Door Hinge x2; Scrap Metal x1; Welding Rods 2 uses | MetalWelding 1; Blow Torch + Welding Mask; no break chance; 6 kg | package + Blow Torch + Welding Mask |
+| `Base.MetalWireFenceGate` | TBD | TBD | Welding Mask kept | Blow Torch 4 uses; Metal Pipe x4; Wire 2 uses; Door Hinge x2; Scrap Metal x1; Welding Rods 4 uses | MetalWelding 1; Blow Torch + Welding Mask; no break chance; 12 kg | package + Blow Torch + Welding Mask |
+| `Base.MetalPoleFenceGateSmall` | TBD | TBD | Welding Mask kept | Blow Torch 3 uses; Metal Pipe x3; Door Hinge x2; Scrap Metal x1; Welding Rods 3 uses | MetalWelding 1; Blow Torch + Welding Mask; no break chance; 8 kg | package + Blow Torch + Welding Mask |
+| `Base.MetalPoleFenceGate` | TBD | TBD | Welding Mask kept | Blow Torch 5 uses; Metal Pipe x5; Door Hinge x2; Scrap Metal x2; Welding Rods 5 uses | MetalWelding 1; Blow Torch + Welding Mask; no break chance; 16 kg | package + Blow Torch + Welding Mask |
+| `Base.SmallMetalFenceGate` | TBD | TBD | Welding Mask kept | Blow Torch 3 uses; Metal Bar x2; Metal Pipe x1; Door Hinge x2; Welding Rods 2 uses | MetalWelding 1; Blow Torch + Welding Mask; no break chance; 12 kg | package + Blow Torch + Welding Mask |
+| `Base.TallWroughtIronGate` | TBD | TBD | Welding Mask kept | Blow Torch 5 uses; Metal Bar x4; Metal Pipe x2; Door Hinge x2; Welding Rods 4 uses | MetalWelding 2; Blow Torch + Welding Mask; no break chance; 25 kg | package + Blow Torch + Welding Mask |
 
-#### Pickup and replacement
+---
 
-| Entity | Pickup skill | Pickup tools | Break chance | Pickup output / weight | Replacement |
-|---|---|---|---|---|---|
-| `Base.MetalWireFenceGateSmall` | MetalWelding 1 | Blow Torch + Welding Mask | none | 1 package — 6 kg | package + Blow Torch + Welding Mask |
-| `Base.MetalWireFenceGate` | MetalWelding 1 | Blow Torch + Welding Mask | none | 1 package — 12 kg | package + Blow Torch + Welding Mask |
-| `Base.MetalPoleFenceGateSmall` | MetalWelding 1 | Blow Torch + Welding Mask | none | 1 package — 8 kg | package + Blow Torch + Welding Mask |
-| `Base.MetalPoleFenceGate` | MetalWelding 1 | Blow Torch + Welding Mask | none | 1 package — 16 kg | package + Blow Torch + Welding Mask |
-| `Base.SmallMetalFenceGate` | MetalWelding 1 | Blow Torch + Welding Mask | none | 1 package — 12 kg | package + Blow Torch + Welding Mask |
-| `Base.TallWroughtIronGate` | MetalWelding 2 | Blow Torch + Welding Mask | none | 1 package — 25 kg | package + Blow Torch + Welding Mask |
+## Restroom doors
 
-## Restroom stall doors
+### Stall doors
 
-Status: **validated shared family specification**. These five models are lightweight North-American public-restroom stall doors differentiated only by color/finish. They deliberately remain fragile regardless of carpenter skill: both world and player-built durability are fixed at **150 HP**, with `skillBaseHealth = 0` so higher Woodwork never turns them into defensive doors. Their screw-based recipe also provides an early-game alternative that does not require a Hammer.
+These five lightweight stall doors are cosmetic variants of one fragile profile. Their durability never scales with Woodwork.
 
-### Shared profile, craft and handling
+#### Profiles
 
-| Class | World HP | Build skill | `health` | `skillBaseHealth` | Built HP all levels | XP | Time | Tools | Inputs | Materials | MaterialType | DoorSound | ThumpSound | Frame | Pickup | Replacement |
-|---|---:|---|---:|---:|---:|---:|---:|---|---|---|---|---|---|---|---|---|
-| `wood` | **150** | Woodwork 1 | **150** | **0** | **150** | 5 | 50 | Screwdriver kept | Plank x2; Screws x4; Door Hinge x2; Doorknob x1; no Nails; no Hammer | M1=Wood; M2=Screws | Wood | WoodDoor | ZombieThumpWood | standard | Woodwork 0; Screwdriver; no break chance; 1 package — 8 kg | package + Screwdriver |
+| Class | World HP | Build skill | `health` | `skillBaseHealth` | Built HP | Materials | MaterialType | DoorSound | ThumpSound | Frame |
+|---|---:|---|---:|---:|---:|---|---|---|---|---|
+| `wood` | 150 | Woodwork 1 | 150 | 0 | 150 fixed | M1=Wood; M2=Screws | Wood | WoodDoor | ZombieThumpWood | standard |
 
-### Models
+#### Models
 
 | Preview | Entity | EN name | FR name |
 |---|---|---|---|
@@ -207,23 +167,37 @@ Status: **validated shared family specification**. These five models are lightwe
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_SmallPinkDoor.png" width="96"> | `Base.SmallPinkDoor` | Pink Restroom Stall Door | Porte de cabine sanitaire rose |
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_SmallWhitePanelDoor.png" width="96"> | `Base.SmallWhitePanelDoor` | White Restroom Stall Door | Porte de cabine sanitaire blanche |
 
+#### Craft and handling
+
+| Time | XP | Tools | Inputs | Pickup | Replacement |
+|---:|---:|---|---|---|---|
+| 50 | 5 | Screwdriver kept | Plank x2; Screws x4; Door Hinge x2; Doorknob x1 | Woodwork 0; Screwdriver; no break chance; 8 kg | package + Screwdriver |
+
 ### Full-height restroom door
 
-The blue restroom model uses the same cheap screw-built utility philosophy as the stall doors, but as a full-height door it receives a small durability increase. Durability stays fixed regardless of skill. Its vanilla-like plastic impact character is retained rather than forcing it into a heavy metal sound profile.
+#### Profiles
 
-| Preview | Entity | EN name | FR name | Class | World HP | Build skill | `health` | `skillBaseHealth` | Built HP all levels | XP | Time | Materials | MaterialType | DoorSound | ThumpSound | Frame | Craft | Pickup | Replacement |
-|---|---|---|---|---|---:|---|---:|---:|---:|---:|---:|---|---|---|---|---|---|---|---|
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_BlueRestroomDoor.png" width="96"> | `Base.BlueRestroomDoor` | Blue Restroom Door | Porte de sanitaires bleue | `wood` | **200** | Woodwork 1 | **200** | **0** | **200** | **5** | **50** | M1=Wood; M2=Screws | **Plastic** | **MetalDoor** | **ZombieThumpGeneric** | standard | Screwdriver kept; Plank x2; Screws x4; Door Hinge x2; **no Doorknob**; no Nails; no Hammer; no Blow Torch | Woodwork 0; Screwdriver; no break chance; 1 package — **10 kg** | package + Screwdriver |
+| Preview | Entity | EN name | FR name | Class | World HP | Build skill | `health` | `skillBaseHealth` | Built HP | Materials | MaterialType | DoorSound | ThumpSound | Frame |
+|---|---|---|---|---|---:|---|---:|---:|---:|---|---|---|---|---|
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_BlueRestroomDoor.png" width="96"> | `Base.BlueRestroomDoor` | Blue Restroom Door | Porte de sanitaires bleue | `wood` | 200 | Woodwork 1 | 200 | 0 | 200 fixed | M1=Wood; M2=Screws | Plastic | MetalDoor | ZombieThumpGeneric | standard |
+
+#### Craft and handling
+
+| Time | XP | Tools | Inputs | Pickup | Replacement |
+|---:|---:|---|---|---|---|
+| 50 | 5 | Screwdriver kept | Plank x2; Screws x4; Door Hinge x2; no Doorknob | Woodwork 0; Screwdriver; no break chance; 10 kg | package + Screwdriver |
+
+---
 
 ## Sliding glass doors
 
-Status: **validated shared family specification**. The brown and white models are the same wall-height sliding glass door with different frame finishes. Their large glazed area is intentionally fragile: world and constructed durability are fixed at **250 HP**, with `skillBaseHealth = 0`. They require no separate frame. Pickup and replacement are deliberately asymmetric: a Crowbar is used to unseat the installed unit from the wall, while replacement requires welding the metal frame back into place.
+The brown and white models are the same wall-height sliding glass door with different frame finishes. Durability is fixed and does not scale with skill.
 
-### Shared profile, craft and handling
+### Profiles
 
-| Class | World HP | Build skill | `health` | `skillBaseHealth` | Built HP all levels | XP | Time | Frame | MaterialType | DoorSound | ThumpSound | Craft | Pickup | Replacement |
-|---|---:|---|---:|---:|---:|---:|---:|---|---|---|---|---|---|---|
-| `glass` | **250** | MetalWelding 3 | **250** | **0** | **250** | 15 | 100 | none | Glass_Solid | SlidingGlassDoor | SlidingGlassDoor default → ZombieThumpWindow | Welding Mask kept; Blow Torch 4 uses; Small Sheet Metal x2; Metal Bar x2; Glass Panel x2; Welding Rods 4 uses; no Screwdriver; no Screws | MetalWelding 1; Crowbar; no break chance; 1 package — 20 kg | package + Blow Torch + Welding Mask; Welding Rods if placement can consume them cleanly, exact quantity TBD |
+| Class | World HP | Build skill | `health` | `skillBaseHealth` | Built HP | MaterialType | DoorSound | ThumpSound | Frame |
+|---|---:|---|---:|---:|---:|---|---|---|---|
+| `glass` | 250 | MetalWelding 3 | 250 | 0 | 250 fixed | Glass_Solid | SlidingGlassDoor | ZombieThumpWindow | none |
 
 ### Models
 
@@ -232,230 +206,244 @@ Status: **validated shared family specification**. The brown and white models ar
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_BrownSlidingGlassDoor.png" width="96"> | `Base.BrownSlidingGlassDoor` | Brown Sliding Glass Door | Porte coulissante vitrée brune |
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_WhiteSlidingGlassDoor.png" width="96"> | `Base.WhiteSlidingGlassDoor` | White Sliding Glass Door | Porte coulissante vitrée blanche |
 
-## Solid wooden 1x1 doors
+### Craft and handling
 
-Status: **validated family specification**. Normal solid wooden doors use three quality tiers based on workmanship rather than increasingly expensive recipes: **basic**, **standard** and **artisan**. The three vanilla `WoodenDoorLvl*` constructions define those tiers. Visually similar LMION-buildable variants inherit a tier instead of creating extra durability classes. The outhouse door is a separate deliberately fragile utility door with fixed durability.
+| Time | XP | Tools | Inputs | Pickup | Replacement |
+|---:|---:|---|---|---|---|
+| 100 | 15 | Welding Mask kept | Blow Torch 4 uses; Small Sheet Metal x2; Metal Bar x2; Glass Panel x2; Welding Rods 4 uses | MetalWelding 1; Crowbar; no break chance; 20 kg | package + Blow Torch + Welding Mask; Welding Rods if cleanly consumable, quantity TBD |
 
-### Profiles
+---
+
+## Wooden 1x1 doors
+
+### Solid wooden doors
+
+The normal solid-wood progression is based on workmanship: basic, standard, then artisan. Rough and rustic variants reuse those tiers rather than creating new ones. The outhouse door is a separate fixed-durability utility model.
+
+#### Profiles
 
 | Entity | EN name | FR name | Tier | World HP | Build skill | `health` | `skillBaseHealth` | HP at required level | HP lvl 10 | Materials | MaterialType | DoorSound | ThumpSound | Frame |
 |---|---|---|---|---:|---|---:|---:|---:|---:|---|---|---|---|---|
-| `Base.WoodenDoorLvl1` | Basic Wooden Door | Porte en bois basique | basic | **400** | Woodwork 3 | 250 | 150 | 700 | 1750 | M1=Wood; M2=Nails | Wood_Solid | WoodDoor | ZombieThumpWood | standard |
-| `Base.RoughWoodenDoor` | Rough Wooden Door | Porte en bois brut | basic | **400** | Woodwork 3 | 250 | 150 | 700 | 1750 | M1=Wood; M2=Nails | Wood_Solid | WoodDoor | ZombieThumpWood | standard |
-| `Base.WoodenDoorLvl2` | Sturdy Wooden Door | Porte en bois robuste | standard | **500** | Woodwork 5 | 300 | 200 | 1300 | 2300 | M1=Wood; M2=Nails | Wood_Solid | WoodDoor | ZombieThumpWood | standard |
-| `Base.WoodenDoor` | Rustic Wooden Door | Porte en bois rustique | standard | **500** | Woodwork 5 | 300 | 200 | 1300 | 2300 | M1=Wood; M2=Nails | Wood_Solid | WoodDoor | ZombieThumpWood | standard |
-| `Base.WoodenDoorLvl3` | Artisan Wooden Door | Porte en bois artisanale | artisan | **600** | Woodwork 7 | 350 | 250 | 2100 | 2850 | M1=Wood; M2=Nails | Wood_Solid | WoodDoor | ZombieThumpWood | standard |
-| `Base.OuthouseDoor` | Outhouse Door | Porte de latrines | light utility | **250** | Woodwork 1 | **250** | **0** | **250** | **250** | M1=Wood; M2=Nails | Wood | WoodDoor | ZombieThumpWood | standard |
+| `Base.WoodenDoorLvl1` | Basic Wooden Door | Porte en bois basique | basic | 400 | Woodwork 3 | 250 | 150 | 700 | 1750 | M1=Wood; M2=Nails | Wood_Solid | WoodDoor | ZombieThumpWood | standard |
+| `Base.RoughWoodenDoor` | Rough Wooden Door | Porte en bois brut | basic | 400 | Woodwork 3 | 250 | 150 | 700 | 1750 | M1=Wood; M2=Nails | Wood_Solid | WoodDoor | ZombieThumpWood | standard |
+| `Base.WoodenDoorLvl2` | Sturdy Wooden Door | Porte en bois robuste | standard | 500 | Woodwork 5 | 300 | 200 | 1300 | 2300 | M1=Wood; M2=Nails | Wood_Solid | WoodDoor | ZombieThumpWood | standard |
+| `Base.WoodenDoor` | Rustic Wooden Door | Porte en bois rustique | standard | 500 | Woodwork 5 | 300 | 200 | 1300 | 2300 | M1=Wood; M2=Nails | Wood_Solid | WoodDoor | ZombieThumpWood | standard |
+| `Base.WoodenDoorLvl3` | Artisan Wooden Door | Porte en bois artisanale | artisan | 600 | Woodwork 7 | 350 | 250 | 2100 | 2850 | M1=Wood; M2=Nails | Wood_Solid | WoodDoor | ZombieThumpWood | standard |
+| `Base.OuthouseDoor` | Outhouse Door | Porte de latrines | utility | 250 | Woodwork 1 | 250 | 0 | 250 fixed | 250 | M1=Wood; M2=Nails | Wood | WoodDoor | ZombieThumpWood | standard |
 
-The explicit 400 / 500 / 600 values override the generic 500 HP normal-wood baseline. `RoughWoodenDoor` is an aesthetic alternative to the basic tier and `WoodenDoor` to the standard tier; neither creates a new progression step. `WoodenDoorLvl3` is already the hardened/high-workmanship end of this ordinary wooden-door family, so no extra artificial "hardened" tier is added.
+#### Craft and handling
 
-### Craft
-
-| Entity | Source | Tools | Inputs | Time | XP | Notes |
+| Entity | Time | XP | Tools | Inputs | Pickup | Replacement |
 |---|---|---|---|---|---|---|
-| `Base.WoodenDoorLvl1` | vanilla | Hammer kept | Plank x4; Nails x4; Door Hinge x2; Doorknob x1 | unchanged | unchanged | same resources; quality comes from Woodwork skill |
-| `Base.WoodenDoorLvl2` | vanilla | Hammer kept | Plank x4; Nails x4; Door Hinge x2; Doorknob x1 | unchanged | unchanged | same resources; quality comes from Woodwork skill |
-| `Base.WoodenDoorLvl3` | vanilla | Hammer kept | Plank x4; Nails x4; Door Hinge x2; Doorknob x1 | unchanged | unchanged | same resources; quality comes from Woodwork skill |
-| `Base.RoughWoodenDoor` | LMION build recipe | Hammer kept | Plank x4; Nails x4; Door Hinge x2; Doorknob x1 | TBD | TBD | no Screwdriver; no Screws |
-| `Base.WoodenDoor` | LMION build recipe | Hammer kept | Plank x4; Nails x4; Door Hinge x2; Doorknob x1 | TBD | TBD | no Screwdriver; no Screws |
-| `Base.OuthouseDoor` | LMION build recipe | Hammer kept | Plank x3; Nails x4; Door Hinge x2; Doorknob x1 | **50** | **5** | deliberately cheap/simple utility door |
+| `Base.WoodenDoorLvl1` | vanilla | vanilla | Hammer kept | Plank x4; Nails x4; Door Hinge x2; Doorknob x1 | Woodwork 1; Hammer; no break chance; 15 kg | package + Hammer |
+| `Base.WoodenDoorLvl2` | vanilla | vanilla | Hammer kept | Plank x4; Nails x4; Door Hinge x2; Doorknob x1 | Woodwork 2; Hammer; no break chance; 15 kg | package + Hammer |
+| `Base.WoodenDoorLvl3` | vanilla | vanilla | Hammer kept | Plank x4; Nails x4; Door Hinge x2; Doorknob x1 | Woodwork 3; Hammer; no break chance; 15 kg | package + Hammer |
+| `Base.RoughWoodenDoor` | TBD | TBD | Hammer kept | Plank x4; Nails x4; Door Hinge x2; Doorknob x1 | Woodwork 1; Hammer; no break chance; 14 kg | package + Hammer |
+| `Base.WoodenDoor` | TBD | TBD | Hammer kept | Plank x4; Nails x4; Door Hinge x2; Doorknob x1 | Woodwork 2; Hammer; no break chance; 15 kg | package + Hammer |
+| `Base.OuthouseDoor` | 50 | 5 | Hammer kept | Plank x3; Nails x4; Door Hinge x2; Doorknob x1 | Woodwork 0; Hammer; no break chance; 10 kg | package + Hammer |
 
-### Pickup and replacement
+### Paneled wooden doors
 
-| Entity | Pickup skill | Pickup tools | Break chance | Pickup output / weight | Replacement |
-|---|---|---|---|---|---|
-| `Base.WoodenDoorLvl1` | Woodwork 1 | Hammer | none | 1 package — 15 kg | package + Hammer |
-| `Base.RoughWoodenDoor` | Woodwork 1 | Hammer | none | 1 package — 14 kg | package + Hammer |
-| `Base.WoodenDoorLvl2` | Woodwork 2 | Hammer | none | 1 package — 15 kg | package + Hammer |
-| `Base.WoodenDoor` | Woodwork 2 | Hammer | none | 1 package — 15 kg | package + Hammer |
-| `Base.WoodenDoorLvl3` | Woodwork 3 | Hammer | none | 1 package — 15 kg | package + Hammer |
-| `Base.OuthouseDoor` | Woodwork 0 | Hammer | none | 1 package — 10 kg | package + Hammer |
+These four models are the same high-quality four-panel household door with different finishes.
 
-## Paneled wooden 1x1 doors
-
-Status: **validated shared family specification**. These four doors use the same four-panel household model and differ only by color / finish. They represent a well-finished wooden door: intentionally a little better than the ordinary artisan wooden door, but still a normal household door rather than a defensive or security construction.
-
-### Profiles
+#### Profiles
 
 | Preview | Entity | EN name | FR name | World HP | Build skill | `health` | `skillBaseHealth` | HP at required level | HP lvl 10 | Materials | MaterialType | DoorSound | ThumpSound | Frame |
 |---|---|---|---|---:|---|---:|---:|---:|---:|---|---|---|---|---|
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_WhiteWoodenDoor.png" width="96"> | `Base.WhiteWoodenDoor` | White Panel Door | Porte blanche à panneaux | **625** | Woodwork 6 | 450 | 275 | 2100 | 3200 | M1=Wood; M2=Nails; M3=Screws | Wood_Solid | WoodDoor | ZombieThumpWood | standard |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_BrownDoor.png" width="96"> | `Base.BrownDoor` | Brown Panel Door | Porte brune à panneaux | **625** | Woodwork 6 | 450 | 275 | 2100 | 3200 | M1=Wood; M2=Nails; M3=Screws | Wood_Solid | WoodDoor | ZombieThumpWood | standard |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_CherryDoor.png" width="96"> | `Base.CherryDoor` | Mahogany Panel Door | Porte acajou à panneaux | **625** | Woodwork 6 | 450 | 275 | 2100 | 3200 | M1=Wood; M2=Nails; M3=Screws | Wood_Solid | WoodDoor | ZombieThumpWood | standard |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_BlueDoor.png" width="96"> | `Base.BlueDoor` | Blue Panel Door | Porte bleue à panneaux | **625** | Woodwork 6 | 450 | 275 | 2100 | 3200 | M1=Wood; M2=Nails; M3=Screws | Wood_Solid | WoodDoor | ZombieThumpWood | standard |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_WhiteWoodenDoor.png" width="96"> | `Base.WhiteWoodenDoor` | White Panel Door | Porte blanche à panneaux | 625 | Woodwork 6 | 450 | 275 | 2100 | 3200 | M1=Wood; M2=Nails; M3=Screws | Wood_Solid | WoodDoor | ZombieThumpWood | standard |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_BrownDoor.png" width="96"> | `Base.BrownDoor` | Brown Panel Door | Porte brune à panneaux | 625 | Woodwork 6 | 450 | 275 | 2100 | 3200 | M1=Wood; M2=Nails; M3=Screws | Wood_Solid | WoodDoor | ZombieThumpWood | standard |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_CherryDoor.png" width="96"> | `Base.CherryDoor` | Mahogany Panel Door | Porte acajou à panneaux | 625 | Woodwork 6 | 450 | 275 | 2100 | 3200 | M1=Wood; M2=Nails; M3=Screws | Wood_Solid | WoodDoor | ZombieThumpWood | standard |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_BlueDoor.png" width="96"> | `Base.BlueDoor` | Blue Panel Door | Porte bleue à panneaux | 625 | Woodwork 6 | 450 | 275 | 2100 | 3200 | M1=Wood; M2=Nails; M3=Screws | Wood_Solid | WoodDoor | ZombieThumpWood | standard |
 
-### Shared craft and handling
+#### Craft and handling
 
-| Source | Tools | Inputs | Time | XP | Pickup | Replacement |
-|---|---|---|---|---:|---|---|
-| LMION build recipe; same recipe as the current `Base.CherryDoor` recipe | Hammer + Screwdriver kept | Plank x4; Nails x4; Door Hinge x2; Screws x4; Doorknob x1 | TBD | **20** | Woodwork 3; Hammer + Screwdriver; no break chance; 1 package — **17 kg** | package + Hammer + Screwdriver |
+| Time | XP | Tools | Inputs | Pickup | Replacement |
+|---|---:|---|---|---|---|
+| TBD | 20 | Hammer + Screwdriver kept | Plank x4; Nails x4; Door Hinge x2; Screws x4; Doorknob x1 | Woodwork 3; Hammer + Screwdriver; no break chance; 17 kg | package + Hammer + Screwdriver |
 
-## Wooden doors with one window
+### Wooden doors with one window
 
-Status: **validated composition/durability tier; naming and pickup details still pending**. These models all count as a wooden door with one integrated window even when that window is divided into several panes. The blue Pile O' Crepe model is a commercial door and is deliberately one Woodwork level higher and slightly more durable than the two residential variants. For this quality range, the intended composition ladder is: **solid panel door 625 HP > one-window residential door 550 HP > two-window door 500 HP > mostly/full-glass wooden door 425 HP**. The commercial one-window exception sits at 575 HP.
+All three count as one-window doors even when the pane is divided. The blue Pile O' Crepe model is a slightly stronger commercial exception.
 
-### Profiles and craft
+#### Profiles
 
-| Preview | Entity | Working EN name | Working FR name | Role | Class | World HP | Build skill | `health` | `skillBaseHealth` | HP at required level | HP lvl 10 | Frame | Craft | Time | XP |
-|---|---|---|---|---|---|---:|---|---:|---:|---:|---:|---|---|---|---|
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_WhiteDoorWithWindows.png" width="96"> | `Base.WhiteDoorWithWindows` | White Door with Windows | Porte blanche avec fenêtres | residential / one window | `wood_glazed` | **550** | Woodwork 6 | 400 | 250 | 1900 | 2900 | standard | Hammer + Screwdriver kept; Plank x4; Nails x4; Door Hinge x2; Screws x4; Doorknob x1; Glass Panel x1 | TBD | TBD |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_BrownDoorWithWindows.png" width="96"> | `Base.BrownDoorWithWindows` | Brown Door with Windows | Porte brune avec fenêtres | residential / one window | `wood_glazed` | **550** | Woodwork 6 | 400 | 250 | 1900 | 2900 | standard | Hammer + Screwdriver kept; Plank x4; Nails x4; Door Hinge x2; Screws x4; Doorknob x1; Glass Panel x1 | TBD | TBD |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_PileOCrepeBlueDoorWithWindow.png" width="96"> | `Base.PileOCrepeBlueDoorWithWindow` | Pile O' Crepe Blue Door with Window | Porte bleue vitrée Pile O' Crepe | commercial / one window | `wood_glazed` | **575** | Woodwork 7 | 425 | 250 | 2175 | 2925 | standard | Hammer + Screwdriver kept; Plank x4; Nails x4; Door Hinge x2; Screws x4; Doorknob x1; Glass Panel x1 | TBD | TBD |
+| Preview | Entity | EN name | FR name | Role | World HP | Build skill | `health` | `skillBaseHealth` | HP at required level | HP lvl 10 | Frame |
+|---|---|---|---|---|---:|---|---:|---:|---:|---:|---|
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_WhiteDoorWithWindows.png" width="96"> | `Base.WhiteDoorWithWindows` | White Door with Windows | Porte blanche avec fenêtres | residential | 550 | Woodwork 6 | 400 | 250 | 1900 | 2900 | standard |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_BrownDoorWithWindows.png" width="96"> | `Base.BrownDoorWithWindows` | Brown Door with Windows | Porte brune avec fenêtres | residential | 550 | Woodwork 6 | 400 | 250 | 1900 | 2900 | standard |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_PileOCrepeBlueDoorWithWindow.png" width="96"> | `Base.PileOCrepeBlueDoorWithWindow` | Pile O' Crepe Blue Door with Window | Porte bleue vitrée Pile O' Crepe | commercial | 575 | Woodwork 7 | 425 | 250 | 2175 | 2925 | standard |
 
-## Wooden two-pane doors
+#### Craft and handling
 
-Status: **validated shared family specification**. These five models are the same general commercial-style wooden door construction with two large glazed zones; branding and color are cosmetic only. They deliberately share one gameplay profile. Their open/close sound uses `MetalDoor` rather than `WoodDoor` to avoid the rustic wooden creak, while zombie impacts use the window family because glazing occupies a major part of the door.
+| Variant | Time | XP | Tools | Inputs | Pickup | Replacement |
+|---|---|---|---|---|---|---|
+| Residential | TBD | TBD | Hammer + Screwdriver kept | Plank x4; Nails x4; Door Hinge x2; Screws x4; Doorknob x1; Glass Panel x1 | TBD | TBD |
+| Commercial blue | TBD | TBD | Hammer + Screwdriver kept | Plank x4; Nails x4; Door Hinge x2; Screws x4; Doorknob x1; Glass Panel x1 | TBD | TBD |
 
-### Profiles
+### Wooden two-pane doors
 
-| Preview | Entity | EN name | FR name | Class | World HP | Build skill | `health` | `skillBaseHealth` | HP at required level | HP lvl 10 | Materials | MaterialType | DoorSound | ThumpSound | Frame |
-|---|---|---|---|---|---:|---|---:|---:|---:|---:|---|---|---|---|---|
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_Gas2GoDoor.png" width="96"> | `Base.Gas2GoDoor` | Red Two-Pane Door | Porte rouge à deux vitres | `wood_glazed` | **500** | Woodwork 7 | 350 | 225 | 1925 | 2600 | M1=Wood; M2=Nails; M3=Screws | Wood_Solid | **MetalDoor** | **ZombieThumpWindow** | standard |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_FossoilDoor.png" width="96"> | `Base.FossoilDoor` | Blue Two-Pane Door | Porte bleue à deux vitres | `wood_glazed` | **500** | Woodwork 7 | 350 | 225 | 1925 | 2600 | M1=Wood; M2=Nails; M3=Screws | Wood_Solid | **MetalDoor** | **ZombieThumpWindow** | standard |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_SpiffosGlassDoor.png" width="96"> | `Base.SpiffosGlassDoor` | Green-Striped Two-Pane Door | Porte à deux vitres à bande verte | `wood_glazed` | **500** | Woodwork 7 | 350 | 225 | 1925 | 2600 | M1=Wood; M2=Nails; M3=Screws | Wood_Solid | **MetalDoor** | **ZombieThumpWindow** | standard |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_PizzaWhirledBrownGlassDoor.png" width="96"> | `Base.PizzaWhirledBrownGlassDoor` | Brown Two-Pane Door | Porte brune à deux vitres | `wood_glazed` | **500** | Woodwork 7 | 350 | 225 | 1925 | 2600 | M1=Wood; M2=Nails; M3=Screws | Wood_Solid | **MetalDoor** | **ZombieThumpWindow** | standard |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_SeaHorseGlassDoor.png" width="96"> | `Base.SeaHorseGlassDoor` | Dark Brown Two-Pane Door | Porte brun foncé à deux vitres | `wood_glazed` | **500** | Woodwork 7 | 350 | 225 | 1925 | 2600 | M1=Wood; M2=Nails; M3=Screws | Wood_Solid | **MetalDoor** | **ZombieThumpWindow** | standard |
+These five commercial-style doors share one profile. Branding and color are cosmetic only.
 
-### Shared craft and handling
+#### Profiles
 
-| Tools | Inputs | Time | XP | Pickup | Replacement |
-|---|---|---|---:|---|---|
-| Hammer + Screwdriver kept | Plank x4; Nails x4; Door Hinge x2; Screws x4; Doorknob x1; **Glass Panel x2** | TBD | **20** | Woodwork 3; Hammer + Screwdriver; no break chance; 1 package — **16 kg** | package + Hammer + Screwdriver |
+| Preview | Entity | EN name | FR name | World HP | Build skill | `health` | `skillBaseHealth` | HP at required level | HP lvl 10 | Materials | MaterialType | DoorSound | ThumpSound | Frame |
+|---|---|---|---|---:|---|---:|---:|---:|---:|---|---|---|---|---|
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_Gas2GoDoor.png" width="96"> | `Base.Gas2GoDoor` | Red Two-Pane Door | Porte rouge à deux vitres | 500 | Woodwork 7 | 350 | 225 | 1925 | 2600 | M1=Wood; M2=Nails; M3=Screws | Wood_Solid | MetalDoor | ZombieThumpWindow | standard |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_FossoilDoor.png" width="96"> | `Base.FossoilDoor` | Blue Two-Pane Door | Porte bleue à deux vitres | 500 | Woodwork 7 | 350 | 225 | 1925 | 2600 | M1=Wood; M2=Nails; M3=Screws | Wood_Solid | MetalDoor | ZombieThumpWindow | standard |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_SpiffosGlassDoor.png" width="96"> | `Base.SpiffosGlassDoor` | Green-Striped Two-Pane Door | Porte à deux vitres à bande verte | 500 | Woodwork 7 | 350 | 225 | 1925 | 2600 | M1=Wood; M2=Nails; M3=Screws | Wood_Solid | MetalDoor | ZombieThumpWindow | standard |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_PizzaWhirledBrownGlassDoor.png" width="96"> | `Base.PizzaWhirledBrownGlassDoor` | Brown Two-Pane Door | Porte brune à deux vitres | 500 | Woodwork 7 | 350 | 225 | 1925 | 2600 | M1=Wood; M2=Nails; M3=Screws | Wood_Solid | MetalDoor | ZombieThumpWindow | standard |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_SeaHorseGlassDoor.png" width="96"> | `Base.SeaHorseGlassDoor` | Dark Brown Two-Pane Door | Porte brun foncé à deux vitres | 500 | Woodwork 7 | 350 | 225 | 1925 | 2600 | M1=Wood; M2=Nails; M3=Screws | Wood_Solid | MetalDoor | ZombieThumpWindow | standard |
 
-## Wooden full-glass doors
+#### Craft and handling
 
-Status: **validated shared family specification**. These two models are wooden-framed doors whose surface is dominated by one large glass panel. They form the weakest normal-quality wooden glazed tier in the composition ladder. `Glass_Solid` is used for impact character, `MetalDoor` for clean non-rustic opening/closing, and `ZombieThumpWindow` for zombie impacts.
+| Time | XP | Tools | Inputs | Pickup | Replacement |
+|---|---:|---|---|---|---|
+| TBD | 20 | Hammer + Screwdriver kept | Plank x4; Nails x4; Door Hinge x2; Screws x4; Doorknob x1; Glass Panel x2 | Woodwork 3; Hammer + Screwdriver; no break chance; 16 kg | package + Hammer + Screwdriver |
 
-### Profiles
+### Wooden full-glass doors
 
-| Preview | Entity | EN name | FR name | Class | World HP | Build skill | `health` | `skillBaseHealth` | HP at required level | HP lvl 10 | Materials | MaterialType | DoorSound | ThumpSound | Frame |
-|---|---|---|---|---|---:|---|---:|---:|---:|---:|---|---|---|---|---|
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_BlackGlassDoor.png" width="96"> | `Base.BlackGlassDoor` | Black Full-Glass Door | Porte noire entièrement vitrée | `wood_glazed` | **425** | Woodwork 7 | 300 | 175 | 1525 | 2050 | M1=Wood; M2=Nails; M3=Screws | **Glass_Solid** | **MetalDoor** | **ZombieThumpWindow** | standard |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_ChestnutGlassDoor.png" width="96"> | `Base.ChestnutGlassDoor` | Brown Full-Glass Door | Porte brune entièrement vitrée | `wood_glazed` | **425** | Woodwork 7 | 300 | 175 | 1525 | 2050 | M1=Wood; M2=Nails; M3=Screws | **Glass_Solid** | **MetalDoor** | **ZombieThumpWindow** | standard |
+These are wooden-framed doors dominated by one large glass panel and form the weakest normal-quality glazed wooden tier.
 
-### Shared craft and handling
+#### Profiles
 
-| Tools | Inputs | Time | XP | Pickup | Replacement |
-|---|---|---|---:|---|---|
-| Hammer + Screwdriver kept | Plank x2; Nails x2; Door Hinge x2; Screws x4; Doorknob x1; **Glass Panel x3** | TBD | **20** | Woodwork 3; Hammer + Screwdriver; no break chance; 1 package — **14 kg** | package + Hammer + Screwdriver |
+| Preview | Entity | EN name | FR name | World HP | Build skill | `health` | `skillBaseHealth` | HP at required level | HP lvl 10 | Materials | MaterialType | DoorSound | ThumpSound | Frame |
+|---|---|---|---|---:|---|---:|---:|---:|---:|---|---|---|---|---|
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_BlackGlassDoor.png" width="96"> | `Base.BlackGlassDoor` | Black Full-Glass Door | Porte noire entièrement vitrée | 425 | Woodwork 7 | 300 | 175 | 1525 | 2050 | M1=Wood; M2=Nails; M3=Screws | Glass_Solid | MetalDoor | ZombieThumpWindow | standard |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_ChestnutGlassDoor.png" width="96"> | `Base.ChestnutGlassDoor` | Brown Full-Glass Door | Porte brune entièrement vitrée | 425 | Woodwork 7 | 300 | 175 | 1525 | 2050 | M1=Wood; M2=Nails; M3=Screws | Glass_Solid | MetalDoor | ZombieThumpWindow | standard |
 
-## Metal 1x1 doors — basic and finished
+#### Craft and handling
 
-Status: **validated batch specification**. The progression deliberately separates the ugly patchwork vanilla door, the cleaner but still simple second vanilla metal door, and the finished sheet-metal variants. The glazed finished doors keep the same metal impact identity as their solid counterparts because one window is not enough to switch zombie impacts to the window family. All welded recipes use a Welding Mask and intentionally remove Screwdriver/Screws.
+| Time | XP | Tools | Inputs | Pickup | Replacement |
+|---|---:|---|---|---|---|
+| TBD | 20 | Hammer + Screwdriver kept | Plank x2; Nails x2; Door Hinge x2; Screws x4; Doorknob x1; Glass Panel x3 | Woodwork 3; Hammer + Screwdriver; no break chance; 14 kg | package + Hammer + Screwdriver |
 
-### Profiles
+---
 
-| Preview | Entity | EN name | FR name | Tier / role | Class | World HP | Build skill | `health` | `skillBaseHealth` | HP at required level | HP lvl 10 | Materials | MaterialType | DoorSound | ThumpSound | Frame |
+## Metal 1x1 doors
+
+### Basic and finished metal doors
+
+The progression separates the rough patchwork vanilla door, the cleaner second vanilla tier, and the finished metal variants. One-window finished doors remain metal-impact doors.
+
+#### Profiles
+
+| Preview | Entity | EN name | FR name | Tier | Class | World HP | Build skill | `health` | `skillBaseHealth` | HP at required level | HP lvl 10 | Materials | MaterialType | DoorSound | ThumpSound | Frame |
 |---|---|---|---|---|---|---:|---|---:|---:|---:|---:|---|---|---|---|---|
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_MetalDoorLvl1.png" width="96"> | `Base.MetalDoorLvl1` | Basic Metal Door | Porte en métal basique | patchwork / basic | `metal` | **650** | MetalWelding 3 | 350 | 250 | 1100 | 2850 | M1=MetalPlates; M2=MetalScrap | Metal_Light | MetalDoor | ZombieThumpMetal | standard |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_MetalDoorLvl2.png" width="96"> | `Base.MetalDoorLvl2` | Simple Metal Door | Porte en métal simple | simple / intermediate | `metal` | **750** | MetalWelding 4 | 400 | 275 | 1500 | 3150 | M1=MetalPlates | Metal_Light | MetalDoor | ZombieThumpMetal | standard |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_WhiteMetalDoor.png" width="96"> | `Base.WhiteMetalDoor` | White Metal Door | Porte métallique blanche | finished / solid | `metal` | **800** | MetalWelding 4 | 425 | 275 | 1525 | 3175 | M1=MetalPlates; M2=MetalBars | Metal_Solid | MetalDoor | ZombieThumpMetal | standard |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_TanMetalDoor.png" width="96"> | `Base.TanMetalDoor` | Tan Metal Door | Porte métallique beige | finished / solid | `metal` | **800** | MetalWelding 4 | 425 | 275 | 1525 | 3175 | M1=MetalPlates; M2=MetalBars | Metal_Solid | MetalDoor | ZombieThumpMetal | standard |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_BlackDoorWithWindow.png" width="96"> | `Base.BlackDoorWithWindow` | Black Metal Door with Window | Porte métallique noire vitrée | finished / one window | `metal_glazed` | **700** | MetalWelding 4 | 375 | 225 | 1275 | 2625 | M1=MetalPlates; M2=MetalBars | Metal_Solid | MetalDoor | ZombieThumpMetal | standard |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_TanDoorWithWindow.png" width="96"> | `Base.TanDoorWithWindow` | Tan Metal Door with Window | Porte métallique beige vitrée | finished / one window | `metal_glazed` | **700** | MetalWelding 4 | 375 | 225 | 1275 | 2625 | M1=MetalPlates; M2=MetalBars | Metal_Solid | MetalDoor | ZombieThumpMetal | standard |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_MetalDoorLvl1.png" width="96"> | `Base.MetalDoorLvl1` | Basic Metal Door | Porte en métal basique | patchwork | `metal` | 650 | MetalWelding 3 | 350 | 250 | 1100 | 2850 | M1=MetalPlates; M2=MetalScrap | Metal_Light | MetalDoor | ZombieThumpMetal | standard |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_MetalDoorLvl2.png" width="96"> | `Base.MetalDoorLvl2` | Simple Metal Door | Porte en métal simple | simple | `metal` | 750 | MetalWelding 4 | 400 | 275 | 1500 | 3150 | M1=MetalPlates | Metal_Light | MetalDoor | ZombieThumpMetal | standard |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_WhiteMetalDoor.png" width="96"> | `Base.WhiteMetalDoor` | White Metal Door | Porte métallique blanche | finished solid | `metal` | 800 | MetalWelding 4 | 425 | 275 | 1525 | 3175 | M1=MetalPlates; M2=MetalBars | Metal_Solid | MetalDoor | ZombieThumpMetal | standard |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_TanMetalDoor.png" width="96"> | `Base.TanMetalDoor` | Tan Metal Door | Porte métallique beige | finished solid | `metal` | 800 | MetalWelding 4 | 425 | 275 | 1525 | 3175 | M1=MetalPlates; M2=MetalBars | Metal_Solid | MetalDoor | ZombieThumpMetal | standard |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_BlackDoorWithWindow.png" width="96"> | `Base.BlackDoorWithWindow` | Black Metal Door with Window | Porte métallique noire vitrée | finished one-window | `metal_glazed` | 700 | MetalWelding 4 | 375 | 225 | 1275 | 2625 | M1=MetalPlates; M2=MetalBars | Metal_Solid | MetalDoor | ZombieThumpMetal | standard |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_TanDoorWithWindow.png" width="96"> | `Base.TanDoorWithWindow` | Tan Metal Door with Window | Porte métallique beige vitrée | finished one-window | `metal_glazed` | 700 | MetalWelding 4 | 375 | 225 | 1275 | 2625 | M1=MetalPlates; M2=MetalBars | Metal_Solid | MetalDoor | ZombieThumpMetal | standard |
 
-### Craft
+#### Craft and handling
 
-| Entity / variant | Tools | Inputs | Time | XP | Notes |
-|---|---|---|---|---:|---|
-| `Base.MetalDoorLvl1` | Welding Mask kept | Blow Torch 4 uses; Small Sheet Metal x3; Door Hinge x2; Welding Rods 4 uses; Doorknob x1 | TBD | **20** | deliberately rough patchwork; no Screwdriver; no Screws |
-| `Base.MetalDoorLvl2` | Welding Mask kept | Blow Torch 4 uses; Small Sheet Metal x3; Door Hinge x2; Welding Rods 4 uses; Doorknob x1 | TBD | **25** | quality improvement comes from skill/workmanship; no Screwdriver; no Screws |
-| Finished solid (`WhiteMetalDoor`, `TanMetalDoor`) | Welding Mask kept | Blow Torch 4 uses; **Sheet Metal x1**; Metal Bar x2; Door Hinge x2; Welding Rods 4 uses; Doorknob x1 | TBD | **30** | one full sheet replaces the small-sheet assembly; no Screwdriver; no Screws |
-| Finished one-window (`BlackDoorWithWindow`, `TanDoorWithWindow`) | Welding Mask kept | Blow Torch 4 uses; **Sheet Metal x1**; Metal Bar x2; Door Hinge x2; Welding Rods 4 uses; Doorknob x1; Glass Panel x1 | TBD | **30** | one-window metal variant; no Screwdriver; no Screws |
+| Variant | Time | XP | Tools | Inputs | Pickup | Replacement |
+|---|---|---|---|---|---|---|
+| Patchwork (`MetalDoorLvl1`) | TBD | 20 | Welding Mask kept | Blow Torch 4 uses; Small Sheet Metal x3; Door Hinge x2; Welding Rods 4 uses; Doorknob x1 | MetalWelding 1; Blow Torch + Welding Mask; no break chance; 20 kg | package + Blow Torch + Welding Mask |
+| Simple (`MetalDoorLvl2`) | TBD | 25 | Welding Mask kept | Blow Torch 4 uses; Small Sheet Metal x3; Door Hinge x2; Welding Rods 4 uses; Doorknob x1 | MetalWelding 2; Blow Torch + Welding Mask; no break chance; 22 kg | package + Blow Torch + Welding Mask |
+| Finished solid | TBD | 30 | Welding Mask kept | Blow Torch 4 uses; Sheet Metal x1; Metal Bar x2; Door Hinge x2; Welding Rods 4 uses; Doorknob x1 | MetalWelding 2; Blow Torch + Welding Mask; no break chance; 24 kg | package + Blow Torch + Welding Mask |
+| Finished one-window | TBD | 30 | Welding Mask kept | Blow Torch 4 uses; Sheet Metal x1; Metal Bar x2; Door Hinge x2; Welding Rods 4 uses; Doorknob x1; Glass Panel x1 | MetalWelding 2; Blow Torch + Welding Mask; no break chance; 22 kg | package + Blow Torch + Welding Mask |
 
-### Pickup and replacement
+### Metal two-pane door
 
-| Entity / variant | Pickup skill | Pickup tools | Break chance | Pickup output / weight | Replacement |
-|---|---|---|---|---|---|
-| `Base.MetalDoorLvl1` | MetalWelding 1 | Blow Torch + Welding Mask | none | 1 package — **20 kg** | package + Blow Torch + Welding Mask |
-| `Base.MetalDoorLvl2` | MetalWelding 2 | Blow Torch + Welding Mask | none | 1 package — **22 kg** | package + Blow Torch + Welding Mask |
-| Finished solid | MetalWelding 2 | Blow Torch + Welding Mask | none | 1 package — **24 kg** | package + Blow Torch + Welding Mask |
-| Finished one-window | MetalWelding 2 | Blow Torch + Welding Mask | none | 1 package — **22 kg** | package + Blow Torch + Welding Mask |
+#### Profiles
 
-## Metal two-pane door
+| Preview | Entity | EN name | FR name | Class | World HP | Build skill | `health` | `skillBaseHealth` | HP at required level | HP lvl 10 | Materials | MaterialType | DoorSound | ThumpSound | Frame |
+|---|---|---|---|---|---:|---|---:|---:|---:|---:|---|---|---|---|---|
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_BlackTwoPaneDoor.png" width="96"> | `Base.BlackTwoPaneDoor` | Black Two-Pane Metal Door | Porte métallique noire à deux vitres | `metal_glazed` | 650 | MetalWelding 5 | 350 | 250 | 1600 | 2850 | M1=MetalPlates; M2=MetalBars | Metal_Solid | MetalDoor | ZombieThumpWindow | standard |
 
-Status: **validated single-model specification**. This model is the metal counterpart to the two-pane wooden commercial doors. It follows the finished metal progression: 800 HP solid, 700 HP with one window, and 650 HP with two substantial glazed zones. Because it crosses the agreed two-window threshold, zombie impacts use the window family while normal operation remains `MetalDoor`.
+#### Craft and handling
 
-| Preview | Entity | EN name | FR name | Class | World HP | Build skill | `health` | `skillBaseHealth` | HP at required level | HP lvl 10 | XP | Materials | MaterialType | DoorSound | ThumpSound | Frame | Craft | Pickup | Replacement |
-|---|---|---|---|---|---:|---|---:|---:|---:|---:|---:|---|---|---|---|---|---|---|---|
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_BlackTwoPaneDoor.png" width="96"> | `Base.BlackTwoPaneDoor` | Black Two-Pane Metal Door | Porte métallique noire à deux vitres | `metal_glazed` | **650** | MetalWelding 5 | 350 | 250 | 1600 | 2850 | **30** | M1=MetalPlates; M2=MetalBars | Metal_Solid | MetalDoor | **ZombieThumpWindow** | standard | Welding Mask kept; Blow Torch 4 uses; Sheet Metal x1; Metal Bar x2; Door Hinge x2; Welding Rods 4 uses; Doorknob x1; **Glass Panel x2**; no Screwdriver; no Screws | MetalWelding 2; Blow Torch + Welding Mask; no break chance; 1 package — **21 kg** | package + Blow Torch + Welding Mask |
+| Time | XP | Tools | Inputs | Pickup | Replacement |
+|---|---:|---|---|---|---|
+| TBD | 30 | Welding Mask kept | Blow Torch 4 uses; Sheet Metal x1; Metal Bar x2; Door Hinge x2; Welding Rods 4 uses; Doorknob x1; Glass Panel x2 | MetalWelding 2; Blow Torch + Welding Mask; no break chance; 21 kg | package + Blow Torch + Welding Mask |
 
-## Metal service doors
+### Metal service doors
 
-Status: **validated shared family specification**. These are light swing/service doors used mainly as separation rather than intrusion-resistant construction. The visual logic is a wooden internal frame clad with sheet metal and screwed hardware, so their recipes deliberately use no Blow Torch, no Welding Mask and no separate Doorknob. They sit slightly below the normal finished metal doors in durability. A single porthole does not change the metal zombie-impact family.
+These are light swing/service doors used as separation rather than intrusion-resistant construction. Their wooden internal frame is clad with sheet metal and screwed hardware; no welding equipment or separate doorknob is used in their construction.
 
-### Profiles
+#### Profiles
 
 | Preview | Entity | EN name | FR name | Variant | Class | World HP | Build skill | `health` | `skillBaseHealth` | HP at required level | HP lvl 10 | Materials | MaterialType | DoorSound | ThumpSound | Frame |
 |---|---|---|---|---|---|---:|---|---:|---:|---:|---:|---|---|---|---|---|
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_BlueMetalDoor.png" width="96"> | `Base.BlueMetalDoor` | Blue Service Door | Porte de service bleue | solid | `metal` | **700** | MetalWelding 3 | 375 | 250 | 1125 | 2875 | M1=MetalPlates; M2=Wood; M3=Screws | Metal_Light | MetalDoor | ZombieThumpMetal | standard |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_PileOCrepeOrangeDoor.png" width="96"> | `Base.PileOCrepeOrangeDoor` | Orange Service Door | Porte de service orange | solid | `metal` | **700** | MetalWelding 3 | 375 | 250 | 1125 | 2875 | M1=MetalPlates; M2=Wood; M3=Screws | Metal_Light | MetalDoor | ZombieThumpMetal | standard |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_RedMetalDoor.png" width="96"> | `Base.RedMetalDoor` | Light Red Service Door | Porte de service rouge clair | solid | `metal` | **700** | MetalWelding 3 | 375 | 250 | 1125 | 2875 | M1=MetalPlates; M2=Wood; M3=Screws | Metal_Light | MetalDoor | ZombieThumpMetal | standard |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_BlackMetalDoor.png" width="96"> | `Base.BlackMetalDoor` | Black Service Door | Porte de service noire | solid | `metal` | **700** | MetalWelding 3 | 375 | 250 | 1125 | 2875 | M1=MetalPlates; M2=Wood; M3=Screws | Metal_Light | MetalDoor | ZombieThumpMetal | standard |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_PizzaWhirledGreenMetalDoor.png" width="96"> | `Base.PizzaWhirledGreenMetalDoor` | Green Service Door | Porte de service verte | solid | `metal` | **700** | MetalWelding 3 | 375 | 250 | 1125 | 2875 | M1=MetalPlates; M2=Wood; M3=Screws | Metal_Light | MetalDoor | ZombieThumpMetal | standard |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_SpiffosRedMetalDoor.png" width="96"> | `Base.SpiffosRedMetalDoor` | Red Service Door | Porte de service rouge | solid | `metal` | **700** | MetalWelding 3 | 375 | 250 | 1125 | 2875 | M1=MetalPlates; M2=Wood; M3=Screws | Metal_Light | MetalDoor | ZombieThumpMetal | standard |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_WhiteMetalDoorWithWindow.png" width="96"> | `Base.WhiteMetalDoorWithWindow` | White Service Door with Porthole | Porte de service blanche à hublot | porthole | `metal_glazed` | **650** | MetalWelding 3 | 325 | 225 | 1000 | 2575 | M1=MetalPlates; M2=Wood; M3=Screws | Metal_Light | MetalDoor | ZombieThumpMetal | standard |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_BlueMetalDoor.png" width="96"> | `Base.BlueMetalDoor` | Blue Service Door | Porte de service bleue | solid | `metal` | 700 | MetalWelding 3 | 375 | 250 | 1125 | 2875 | M1=MetalPlates; M2=Wood; M3=Screws | Metal_Light | MetalDoor | ZombieThumpMetal | standard |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_PileOCrepeOrangeDoor.png" width="96"> | `Base.PileOCrepeOrangeDoor` | Orange Service Door | Porte de service orange | solid | `metal` | 700 | MetalWelding 3 | 375 | 250 | 1125 | 2875 | M1=MetalPlates; M2=Wood; M3=Screws | Metal_Light | MetalDoor | ZombieThumpMetal | standard |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_RedMetalDoor.png" width="96"> | `Base.RedMetalDoor` | Light Red Service Door | Porte de service rouge clair | solid | `metal` | 700 | MetalWelding 3 | 375 | 250 | 1125 | 2875 | M1=MetalPlates; M2=Wood; M3=Screws | Metal_Light | MetalDoor | ZombieThumpMetal | standard |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_BlackMetalDoor.png" width="96"> | `Base.BlackMetalDoor` | Black Service Door | Porte de service noire | solid | `metal` | 700 | MetalWelding 3 | 375 | 250 | 1125 | 2875 | M1=MetalPlates; M2=Wood; M3=Screws | Metal_Light | MetalDoor | ZombieThumpMetal | standard |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_PizzaWhirledGreenMetalDoor.png" width="96"> | `Base.PizzaWhirledGreenMetalDoor` | Green Service Door | Porte de service verte | solid | `metal` | 700 | MetalWelding 3 | 375 | 250 | 1125 | 2875 | M1=MetalPlates; M2=Wood; M3=Screws | Metal_Light | MetalDoor | ZombieThumpMetal | standard |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_SpiffosRedMetalDoor.png" width="96"> | `Base.SpiffosRedMetalDoor` | Red Service Door | Porte de service rouge | solid | `metal` | 700 | MetalWelding 3 | 375 | 250 | 1125 | 2875 | M1=MetalPlates; M2=Wood; M3=Screws | Metal_Light | MetalDoor | ZombieThumpMetal | standard |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_WhiteMetalDoorWithWindow.png" width="96"> | `Base.WhiteMetalDoorWithWindow` | White Service Door with Porthole | Porte de service blanche à hublot | porthole | `metal_glazed` | 650 | MetalWelding 3 | 325 | 225 | 1000 | 2575 | M1=MetalPlates; M2=Wood; M3=Screws | Metal_Light | MetalDoor | ZombieThumpMetal | standard |
 
-### Craft and handling
+#### Craft and handling
 
-| Variant | Tools | Inputs | Time | XP | Pickup | Replacement |
-|---|---|---|---:|---:|---|---|
-| Solid | Screwdriver kept | Sheet Metal x1; Small Sheet Metal x1; Plank x2; Screws x6; Door Hinge x2; **no Doorknob**; no Blow Torch; no Welding Mask | **120** | **15** | MetalWelding 1; Screwdriver + Crowbar; no break chance; 1 package — **18 kg** | package + Screwdriver |
-| Porthole | Screwdriver kept | Sheet Metal x1; Small Sheet Metal x1; Plank x2; Screws x6; Door Hinge x2; Glass Panel x1; **no Doorknob**; no Blow Torch; no Welding Mask | **120** | **15** | MetalWelding 1; Screwdriver + Crowbar; no break chance; 1 package — **17 kg** | package + Screwdriver |
+| Variant | Time | XP | Tools | Inputs | Pickup | Replacement |
+|---|---:|---|---|---|---|---|
+| Solid | 120 | 15 | Screwdriver kept | Sheet Metal x1; Small Sheet Metal x1; Plank x2; Screws x6; Door Hinge x2; no Doorknob | MetalWelding 1; Screwdriver + Crowbar; no break chance; 18 kg | package + Screwdriver |
+| Porthole | 120 | 15 | Screwdriver kept | Sheet Metal x1; Small Sheet Metal x1; Plank x2; Screws x6; Door Hinge x2; Glass Panel x1; no Doorknob | MetalWelding 1; Screwdriver + Crowbar; no break chance; 17 kg | package + Screwdriver |
+
+---
 
 ## Special doors
 
-Status: **validated special-model specification**. These three doors intentionally sit outside the normal family progression. The log door is a no-skill improvised heavy-wood construction with fixed durability; the jail door is an endgame heavy steel-bar door; the security door is the ultimate reinforced door. Pickup package weights are deliberately gameplay-compressed below 40 kg so the objects remain practically movable within inventory limits; they are not literal real-world masses.
+These models deliberately sit outside the normal family progression.
 
 ### Profiles
 
-| Preview | Entity | EN name | FR name | Class | World HP | Build skill | `health` | `skillBaseHealth` | HP at required level | XP | Time | Materials | MaterialType | DoorSound | ThumpSound | Frame |
-|---|---|---|---|---|---:|---|---:|---:|---:|---:|---:|---|---|---|---|---|
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_LogDoor.png" width="96"> | `Base.LogDoor` | Log Door | Porte en rondins | `heavy_wood` | **700** | none / Woodwork 0 | **700** | **0** | **700 fixed** | **5** | **80** | M1=Log | Wood_Solid | WoodDoor | ZombieThumpWood | standard |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_JailDoor.png" width="96"> | `Base.JailDoor` | Jail Door | Porte de cellule | `jail` | **2000** | MetalWelding **10** | **1000** | **500** | **6000** | **75** | **300** | M1=MetalBars; M2=MetalPlates; M3=Screws | Metal_Solid | PrisonMetalDoor | ZombieThumpMetal | standard |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_SecurityDoor.png" width="96"> | `Base.SecurityDoor` | Security Door | Porte sécurisée | `security` | **3000** | MetalWelding **10** | **1250** | **650** | **7750** | **100** | **400** | M1=MetalBars; M2=MetalPlates; M3=MetalWire | Metal_Solid | MetalDoor | ZombieThumpMetal | standard |
+| Preview | Entity | EN name | FR name | Class | World HP | Build skill | `health` | `skillBaseHealth` | HP at required level | Materials | MaterialType | DoorSound | ThumpSound | Frame |
+|---|---|---|---|---|---:|---|---:|---:|---:|---|---|---|---|---|
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_LogDoor.png" width="96"> | `Base.LogDoor` | Log Door | Porte en rondins | `heavy_wood` | 700 | Woodwork 0 | 700 | 0 | 700 fixed | M1=Log | Wood_Solid | WoodDoor | ZombieThumpWood | standard |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_JailDoor.png" width="96"> | `Base.JailDoor` | Jail Door | Porte de cellule | `jail` | 2000 | MetalWelding 10 | 1000 | 500 | 6000 | M1=MetalBars; M2=MetalPlates; M3=Screws | Metal_Solid | PrisonMetalDoor | ZombieThumpMetal | standard |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_SecurityDoor.png" width="96"> | `Base.SecurityDoor` | Security Door | Porte sécurisée | `security` | 3000 | MetalWelding 10 | 1250 | 650 | 7750 | M1=MetalBars; M2=MetalPlates; M3=MetalWire | Metal_Solid | MetalDoor | ZombieThumpMetal | standard |
 
 ### Craft and handling
 
-| Entity | Tools | Inputs | Pickup | Replacement | Notes |
-|---|---|---|---|---|---|
-| `Base.LogDoor` | none | Log x4; Ripped Sheets x4 | Woodwork 0; no tools; no break chance; 1 package — **25 kg** | package; no tools | fixed 700 HP regardless of Woodwork level |
-| `Base.JailDoor` | Welding Mask + Screwdriver kept | Blow Torch 10 uses; **Steel Bar x7**; **Small Steel Sheet x2**; Door Hinge x4; Screws x8; Doorknob x1; Welding Rods 8 uses | MetalWelding **5** (`floor(10 / 2)`); Blow Torch + Welding Mask + Screwdriver; no break chance; 1 package — **30 kg** | package + Blow Torch + Welding Mask + Screwdriver | extremely heavy cell-door construction; steel craft components deliberately exceed normal metal-door requirements |
-| `Base.SecurityDoor` | Welding Mask + Screwdriver kept | Blow Torch 12 uses; **Steel Bar x6**; Sheet Metal x2; **Glass Panel x2**; **Wire x4**; Door Hinge x4; Screws x8; Doorknob x1; Electronics Scrap x2; Electric Wire x2; Welding Rods 10 uses | MetalWelding **5** (`floor(10 / 2)`); Blow Torch + Welding Mask + Screwdriver; no break chance; 1 package — **35 kg** | package + Blow Torch + Welding Mask + Screwdriver | ultimate door; Glass Panel x2 + Wire x4 is the temporary reinforced-glass recipe and should be replaced by Armored Glass x2 if/when that component is added |
+| Entity | Time | XP | Tools | Inputs | Pickup | Replacement |
+|---|---:|---:|---|---|---|---|
+| `Base.LogDoor` | 80 | 5 | none | Log x4; Ripped Sheets x4 | Woodwork 0; no tools; no break chance; 25 kg | package; no tools |
+| `Base.JailDoor` | 300 | 75 | Welding Mask + Screwdriver kept | Blow Torch 10 uses; Steel Bar x7; Small Steel Sheet x2; Door Hinge x4; Screws x8; Doorknob x1; Welding Rods 8 uses | MetalWelding 5; Blow Torch + Welding Mask + Screwdriver; no break chance; 30 kg | package + Blow Torch + Welding Mask + Screwdriver |
+| `Base.SecurityDoor` | 400 | 100 | Welding Mask + Screwdriver kept | Blow Torch 12 uses; Steel Bar x6; Sheet Metal x2; Glass Panel x2; Wire x4; Door Hinge x4; Screws x8; Doorknob x1; Electronics Scrap x2; Electric Wire x2; Welding Rods 10 uses | MetalWelding 5; Blow Torch + Welding Mask + Screwdriver; no break chance; 35 kg | package + Blow Torch + Welding Mask + Screwdriver |
+
+For the Security Door, `Glass Panel x2 + Wire x4` is the temporary reinforced-glass solution and should become Armored Glass x2 if that component is added later.
+
+---
 
 ## Paired double doors
 
-Status: **validated inherited-profile specification**. Paired doors do not introduce new balance tiers. Each leaf inherits the complete gameplay profile of the already-reviewed single door that matches its material and construction; only `Frame = paired` and the left/right entity split are specific to this family. Craft, pickup and package weight below are **per leaf**.
+Paired doors introduce no new balance tier. Each leaf inherits the reviewed single-door profile that matches its construction. Only the paired geometry and left/right entity split are specific to this section. Craft, pickup and package weight are **per leaf**.
 
 ### Profiles
 
-| Preview | Model / entities | EN name | FR name | Reference profile | Class | World HP / leaf | Build skill | `health` | `skillBaseHealth` | HP at required level | HP lvl 10 | Materials | MaterialType | DoorSound | ThumpSound | Frame |
-|---|---|---|---|---|---|---|---:|---|---:|---:|---:|---:|---|---|---|---|---|
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_BlackGlassDoubleDoorLeft.png" width="70"><img src="Contents/mods/LMION_Build/42/media/textures/LMION_BlackGlassDoubleDoorRight.png" width="70"> | `Base.BlackGlassDoubleDoorLeft` / `Right` | Black Two-Pane Double Door | Double porte noire à deux vitres | `Base.BlackTwoPaneDoor` | `metal_glazed` | **650** | MetalWelding 5 | 350 | 250 | 1600 | 2850 | M1=MetalPlates; M2=MetalBars | Metal_Solid | MetalDoor | **ZombieThumpWindow** | paired |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_GreyMetalDoubleDoorLeft.png" width="70"><img src="Contents/mods/LMION_Build/42/media/textures/LMION_GreyMetalDoubleDoorRight.png" width="70"> | `Base.GreyMetalDoubleDoorLeft` / `Right` | Grey Simple Metal Double Door | Double porte en métal simple grise | `Base.MetalDoorLvl2` | `metal` | **750** | MetalWelding 4 | 400 | 275 | 1500 | 3150 | M1=MetalPlates | Metal_Light | MetalDoor | ZombieThumpMetal | paired |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_YellowMetalDoubleDoorLeft.png" width="70"><img src="Contents/mods/LMION_Build/42/media/textures/LMION_YellowMetalDoubleDoorRight.png" width="70"> | `Base.YellowMetalDoubleDoorLeft` / `Right` | Yellow Service Double Door | Double porte de service jaune | service porthole profile | `metal_glazed` | **650** | MetalWelding 3 | 325 | 225 | 1000 | 2575 | M1=MetalPlates; M2=Wood; M3=Screws | Metal_Light | MetalDoor | ZombieThumpMetal | paired |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_BlueChurchDoubleDoorLeft.png" width="70"><img src="Contents/mods/LMION_Build/42/media/textures/LMION_BlueChurchDoubleDoorRight.png" width="70"> | `Base.BlueChurchDoubleDoorLeft` / `Right` | Blue Church Double Door | Double porte d'église bleue | paneled wooden door profile | `wood` | **625** | Woodwork 6 | 450 | 275 | 2100 | 3200 | M1=Wood; M2=Nails; M3=Screws | Wood_Solid | WoodDoor | ZombieThumpWood | paired |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_BrownChurchDoubleDoorLeft.png" width="70"><img src="Contents/mods/LMION_Build/42/media/textures/LMION_BrownChurchDoubleDoorRight.png" width="70"> | `Base.BrownChurchDoubleDoorLeft` / `Right` | Brown Church Double Door | Double porte d'église brune | paneled wooden door profile | `wood` | **625** | Woodwork 6 | 450 | 275 | 2100 | 3200 | M1=Wood; M2=Nails; M3=Screws | Wood_Solid | WoodDoor | ZombieThumpWood | paired |
+| Preview | Entities | EN name | FR name | Reference profile | Class | World HP / leaf | Build skill | Frame |
+|---|---|---|---|---|---|---:|---|---|
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_BlackGlassDoubleDoorLeft.png" width="70"><br><img src="Contents/mods/LMION_Build/42/media/textures/LMION_BlackGlassDoubleDoorRight.png" width="70"> | `Base.BlackGlassDoubleDoorLeft`<br>`Base.BlackGlassDoubleDoorRight` | Black Two-Pane Double Door | Double porte noire à deux vitres | `Base.BlackTwoPaneDoor` | `metal_glazed` | 650 | MetalWelding 5 | paired |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_GreyMetalDoubleDoorLeft.png" width="70"><br><img src="Contents/mods/LMION_Build/42/media/textures/LMION_GreyMetalDoubleDoorRight.png" width="70"> | `Base.GreyMetalDoubleDoorLeft`<br>`Base.GreyMetalDoubleDoorRight` | Grey Metal Double Door | Double porte métallique grise | finished solid metal profile | `metal` | **800** | MetalWelding 4 | paired |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_YellowMetalDoubleDoorLeft.png" width="70"><br><img src="Contents/mods/LMION_Build/42/media/textures/LMION_YellowMetalDoubleDoorRight.png" width="70"> | `Base.YellowMetalDoubleDoorLeft`<br>`Base.YellowMetalDoubleDoorRight` | Yellow Service Double Door | Double porte de service jaune | service porthole profile | `metal_glazed` | 650 | MetalWelding 3 | paired |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_BlueChurchDoubleDoorLeft.png" width="70"><br><img src="Contents/mods/LMION_Build/42/media/textures/LMION_BlueChurchDoubleDoorRight.png" width="70"> | `Base.BlueChurchDoubleDoorLeft`<br>`Base.BlueChurchDoubleDoorRight` | Blue Church Double Door | Double porte d'église bleue | paneled wooden profile | `wood` | 625 | Woodwork 6 | paired |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_BrownChurchDoubleDoorLeft.png" width="70"><br><img src="Contents/mods/LMION_Build/42/media/textures/LMION_BrownChurchDoubleDoorRight.png" width="70"> | `Base.BrownChurchDoubleDoorLeft`<br>`Base.BrownChurchDoubleDoorRight` | Brown Church Double Door | Double porte d'église brune | paneled wooden profile | `wood` | 625 | Woodwork 6 | paired |
 
-### Craft, pickup and replacement
+### Physical properties
 
-| Model | Tools / craft per leaf | XP | Pickup per leaf | Replacement per leaf |
-|---|---|---:|---|---|
-| Black two-pane double door | Welding Mask kept; Blow Torch 4 uses; Sheet Metal x1; Metal Bar x2; Door Hinge x2; Welding Rods 4 uses; Doorknob x1; Glass Panel x2; no Screwdriver; no Screws | **30** | MetalWelding 2; Blow Torch + Welding Mask; no break chance; **21 kg** | package + Blow Torch + Welding Mask |
-| Grey simple metal double door | Welding Mask kept; Blow Torch 4 uses; Small Sheet Metal x3; Door Hinge x2; Welding Rods 4 uses; Doorknob x1; no Screwdriver; no Screws | **25** | MetalWelding 2; Blow Torch + Welding Mask; no break chance; **22 kg** | package + Blow Torch + Welding Mask |
-| Yellow service double door | Screwdriver kept; Sheet Metal x1; Small Sheet Metal x1; Plank x2; Screws x6; Door Hinge x2; Glass Panel x1; no Doorknob; no Blow Torch; no Welding Mask | **15** | MetalWelding 1; Screwdriver + Crowbar; no break chance; **17 kg** | package + Screwdriver |
-| Blue church double door | Hammer + Screwdriver kept; Plank x4; Nails x4; Door Hinge x2; Screws x4; Doorknob x1 | **20** | Woodwork 3; Hammer + Screwdriver; no break chance; **17 kg** | package + Hammer + Screwdriver |
-| Brown church double door | Hammer + Screwdriver kept; Plank x4; Nails x4; Door Hinge x2; Screws x4; Doorknob x1 | **20** | Woodwork 3; Hammer + Screwdriver; no break chance; **17 kg** | package + Hammer + Screwdriver |
+| Model | `health` | `skillBaseHealth` | HP at required level | HP lvl 10 | Materials | MaterialType | DoorSound | ThumpSound |
+|---|---:|---:|---:|---:|---|---|---|---|
+| Black two-pane | 350 | 250 | 1600 | 2850 | M1=MetalPlates; M2=MetalBars | Metal_Solid | MetalDoor | ZombieThumpWindow |
+| Grey metal | **425** | **275** | **1525** | **3175** | M1=MetalPlates; M2=MetalBars | **Metal_Solid** | MetalDoor | ZombieThumpMetal |
+| Yellow service | 325 | 225 | 1000 | 2575 | M1=MetalPlates; M2=Wood; M3=Screws | Metal_Light | MetalDoor | ZombieThumpMetal |
+| Blue church | 450 | 275 | 2100 | 3200 | M1=Wood; M2=Nails; M3=Screws | Wood_Solid | WoodDoor | ZombieThumpWood |
+| Brown church | 450 | 275 | 2100 | 3200 | M1=Wood; M2=Nails; M3=Screws | Wood_Solid | WoodDoor | ZombieThumpWood |
 
-## Current known exceptions and validated facts
+### Craft and handling
 
-- `Base.CherryDoor` keeps its technical entity ID but intentionally overrides its old `Cherry Door` / `Porte en cerisier` display localization with **Mahogany Panel Door / Porte acajou à panneaux** so the four identical panel-door sprites use one coherent naming scheme.
-- Cherry's current runtime `MetalPlates` secondary material is a diagnostic canary and must be replaced by the paneled-wood family setup: `M1=Wood; M2=Nails; M3=Screws`.
-- `LogDoor` keeps `M1=Log` for semantic fidelity. Vanilla's generic salvage path does not recognize `Log` as a wood salvage tag, and `IsoDoor.destroy()` would still add knob/hinge hardware. LMION should therefore give LogDoor custom destruction loot: `1 x Base.Log`, no doorknob, no hinges, and no additional vanilla door loot.
-- Jail and Security doors deliberately override normal material-class durability at 2000 and 3000 HP.
-- Single fence gates/wickets are kept separate from normal 1x1 doors even if they share `IsoDoor`, so their gameplay profile can diverge later without reclassifying the catalog.
-- Paired double doors inherit the profile of their single-door reference per leaf; paired geometry is not a separate durability tier.
+| Model | Time | XP | Tools | Inputs per leaf | Pickup per leaf | Replacement per leaf |
+|---|---|---:|---|---|---|---|
+| Black two-pane | TBD | 30 | Welding Mask kept | Blow Torch 4 uses; Sheet Metal x1; Metal Bar x2; Door Hinge x2; Welding Rods 4 uses; Doorknob x1; Glass Panel x2 | MetalWelding 2; Blow Torch + Welding Mask; no break chance; 21 kg | package + Blow Torch + Welding Mask |
+| Grey metal | TBD | **30** | Welding Mask kept | Blow Torch 4 uses; **Sheet Metal x1; Metal Bar x2**; Door Hinge x2; Welding Rods 4 uses; Doorknob x1 | MetalWelding 2; Blow Torch + Welding Mask; no break chance; **24 kg** | package + Blow Torch + Welding Mask |
+| Yellow service | 120 | 15 | Screwdriver kept | Sheet Metal x1; Small Sheet Metal x1; Plank x2; Screws x6; Door Hinge x2; Glass Panel x1; no Doorknob | MetalWelding 1; Screwdriver + Crowbar; no break chance; 17 kg | package + Screwdriver |
+| Blue church | TBD | 20 | Hammer + Screwdriver kept | Plank x4; Nails x4; Door Hinge x2; Screws x4; Doorknob x1 | Woodwork 3; Hammer + Screwdriver; no break chance; 17 kg | package + Hammer + Screwdriver |
+| Brown church | TBD | 20 | Hammer + Screwdriver kept | Plank x4; Nails x4; Door Hinge x2; Screws x4; Doorknob x1 | Woodwork 3; Hammer + Screwdriver; no break chance; 17 kg | package + Hammer + Screwdriver |
+
+---
 
 ## Catalog coverage
 
-All door-like openings currently identified in the LMION Test Zone have now been visually reviewed and assigned to a gameplay family. No model remains in the previous ambiguous/pending bucket. Remaining `TBD` cells elsewhere in the document are deliberate deferred tuning values such as construction time or XP where no exact value has been validated yet.
+All door-like openings currently identified in the LMION Test Zone have been visually reviewed and assigned to a gameplay family. Remaining `TBD` cells are deliberate deferred tuning values such as construction time, XP or handling where no exact value has yet been validated.
