@@ -6,28 +6,6 @@ The inventory below is based on the openings currently present in the LMION dete
 
 The preview images are the PNG assets already stored in `LMION_Build/42/media/textures`. Raw HTML `<img>` tags are used because Markdown tables otherwise display the source PNGs at their natural size.
 
-## Durability model
-
-Durability is not derived from material alone. LMION uses material class plus opening size/type, then allows model-specific overrides.
-
-| Opening type | Wood | Wood glazed | Metal | Metal glazed | Glass |
-|---|---:|---:|---:|---:|---:|
-| Small 1x1 | 425 | 350 | 550 | 475 | 300 |
-| Normal 1x1 | 500 | 425 | 650 | 550 | 350 |
-| Large / double / portal | 600 | 500 | 800 | 650 | 425 |
-| Garage | — | — | 1200 | 1000 | — |
-
-Special explicit exceptions:
-
-```text
-JailDoor     = 2000
-SecurityDoor = 3000
-```
-
-For multi-tile openings, HP is per segment. Linked/group destruction behavior is left to the game's native opening logic unless a future LMION profile explicitly needs to override it.
-
-The row's explicit HP value is authoritative once reviewed. Construction skill bonuses remain a separate Build system.
-
 ## Material and sound fields
 
 The catalog only uses engine property values from the safe reference in `DOOR_CATALOG_VALUES.md`.
