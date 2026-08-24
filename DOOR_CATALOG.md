@@ -241,6 +241,23 @@ Status: **validated shared family specification**. These five models are lightwe
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_SmallPinkDoor.png" width="96"> | `Base.SmallPinkDoor` | Pink Restroom Stall Door | Porte de cabine sanitaire rose |
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_SmallWhitePanelDoor.png" width="96"> | `Base.SmallWhitePanelDoor` | White Restroom Stall Door | Porte de cabine sanitaire blanche |
 
+## Sliding glass doors
+
+Status: **validated shared family specification**. The brown and white models are the same wall-height sliding glass door with different frame finishes. Their large glazed area is intentionally fragile: world and constructed durability are fixed at **250 HP**, with `skillBaseHealth = 0`. They require no separate frame. Pickup and replacement are deliberately asymmetric: a Crowbar is used to unseat the installed unit from the wall, while replacement requires welding the metal frame back into place.
+
+### Shared profile, craft and handling
+
+| Class | World HP | Build skill | `health` | `skillBaseHealth` | Built HP all levels | XP | Time | Frame | MaterialType | DoorSound | ThumpSound | Craft | Pickup | Replacement |
+|---|---:|---|---:|---:|---:|---:|---:|---|---|---|---|---|---|---|
+| `glass` | **250** | MetalWelding 3 | **250** | **0** | **250** | 15 | 100 | none | Glass_Solid | SlidingGlassDoor | SlidingGlassDoor default → ZombieThumpWindow | Welding Mask kept; Blow Torch 4 uses; Small Sheet Metal x2; Metal Bar x2; Glass Panel x2; Welding Rods 4 uses; no Screwdriver; no Screws | MetalWelding 1; Crowbar; no break chance; 1 package — 20 kg | package + Blow Torch + Welding Mask; Welding Rods if placement can consume them cleanly, exact quantity TBD |
+
+### Models
+
+| Preview | Entity | EN name | FR name |
+|---|---|---|---|
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_BrownSlidingGlassDoor.png" width="96"> | `Base.BrownSlidingGlassDoor` | Brown Sliding Glass Door | Porte coulissante vitrée brune |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_WhiteSlidingGlassDoor.png" width="96"> | `Base.WhiteSlidingGlassDoor` | White Sliding Glass Door | Porte coulissante vitrée blanche |
+
 ## Simple 1x1 doors
 
 | Preview | Entity | EN name | FR name | Class | HP | Glazed | Frame | Material(s) | MaterialType | DoorSound |
@@ -253,8 +270,6 @@ Status: **validated shared family specification**. These five models are lightwe
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_MetalDoorLvl1.png" width="96"> | `Base.MetalDoorLvl1` | Metal Door Level 1 | Porte métallique niveau 1 | `metal` | 650 | no | standard | M1=MetalPlates; M2=Door | Metal_Solid | MetalDoor |
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_BlueRestroomDoor.png" width="96"> | `Base.BlueRestroomDoor` | Blue Restroom Door | Porte de sanitaires bleue | `unknown` | TBD | no | standard | TBD | TBD | TBD |
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_OuthouseDoor.png" width="96"> | `Base.OuthouseDoor` | Outhouse Door | Porte de latrines | `wood` | 425 | no | standard | M1=Wood; M2=Door | Wood | WoodDoor |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_BrownSlidingGlassDoor.png" width="96"> | `Base.BrownSlidingGlassDoor` | Brown Sliding Glass Door | Porte coulissante vitrée brune | `glass` | 350 | yes | none | TBD | Glass_Solid | SlidingGlassDoor |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_WhiteSlidingGlassDoor.png" width="96"> | `Base.WhiteSlidingGlassDoor` | White Sliding Glass Door | Porte coulissante vitrée blanche | `glass` | 350 | yes | none | TBD | Glass_Solid | SlidingGlassDoor |
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_CherryDoor.png" width="96"> | `Base.CherryDoor` | Cherry Door | Porte en cerisier | `wood` | 500 | no | standard | M1=Wood; M2=Door | Wood_Solid | WoodDoor |
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_TanDoorWithWindow.png" width="96"> | `Base.TanDoorWithWindow` | Tan Door with Window | Porte beige avec fenêtre | `wood_glazed?` | 425 | yes | standard | TBD | TBD | TBD |
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_BlackDoorWithWindow.png" width="96"> | `Base.BlackDoorWithWindow` | Black Door with Window | Porte noire avec fenêtre | `wood_glazed?` | 425 | yes | standard | TBD | TBD | TBD |
