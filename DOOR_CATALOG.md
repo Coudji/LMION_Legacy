@@ -43,7 +43,7 @@ Status: **validated family specification**. All garage-door models use the same 
 ### Profiles and construction
 
 | Variant | Class | World HP / segment | `health` | `skillBaseHealth` | Build skill | HP at required level | HP at lvl 10 | Time | XP | Craft |
-|---|---|---:|---:|---:|---|---:|---:|---:|---:|---|
+|---|---:|---:|---:|---:|---|---:|---:|---:|---:|---|
 | Solid metal | `metal` | 1200 | 600 | 400 | MetalWelding 6 | 3000 | 4600 | 200 | 50 | Welding Mask x1 kept; Blow Torch 6 uses; Small Sheet Metal x9; Metal Bar x3; Door Hinge x6; Welding Rods 3 uses; no Screwdriver; no Screws |
 | Glazed metal | `metal_glazed` | 1000 | 500 | 350 | MetalWelding 6 | 2600 | 4000 | 200 | 50 | Welding Mask x1 kept; Blow Torch 6 uses; Small Sheet Metal x6; Glass Panel (`Base.GlassPanel`) x3; Metal Bar x3; Door Hinge x6; Welding Rods 3 uses; no Screwdriver; no Screws |
 
@@ -318,23 +318,40 @@ Status: **validated composition/durability tier; naming and pickup details still
 
 ## Wooden two-pane doors
 
-Status: **validated shared family specification**. These five models are the same general commercial-style wooden door construction with two large glazed zones; branding and color are cosmetic only. They deliberately share one gameplay profile. Their open/close sound uses `MetalDoor` rather than `WoodDoor` to avoid the rustic wooden creak while preserving a wooden impact/thump identity through `MaterialType` and explicit `ThumpSound`.
+Status: **validated shared family specification**. These five models are the same general commercial-style wooden door construction with two large glazed zones; branding and color are cosmetic only. They deliberately share one gameplay profile. Their open/close sound uses `MetalDoor` rather than `WoodDoor` to avoid the rustic wooden creak, while zombie impacts use the window family because glazing occupies a major part of the door.
 
 ### Profiles
 
 | Preview | Entity | EN name | FR name | Class | World HP | Build skill | `health` | `skillBaseHealth` | HP at required level | HP lvl 10 | Materials | MaterialType | DoorSound | ThumpSound | Frame |
 |---|---|---|---|---|---:|---|---:|---:|---:|---:|---|---|---|---|---|
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_Gas2GoDoor.png" width="96"> | `Base.Gas2GoDoor` | Red Two-Pane Door | Porte rouge à deux vitres | `wood_glazed` | **500** | Woodwork 7 | 350 | 225 | 1925 | 2600 | M1=Wood; M2=Nails; M3=Screws | Wood_Solid | **MetalDoor** | ZombieThumpWood | standard |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_FossoilDoor.png" width="96"> | `Base.FossoilDoor` | Blue Two-Pane Door | Porte bleue à deux vitres | `wood_glazed` | **500** | Woodwork 7 | 350 | 225 | 1925 | 2600 | M1=Wood; M2=Nails; M3=Screws | Wood_Solid | **MetalDoor** | ZombieThumpWood | standard |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_SpiffosGlassDoor.png" width="96"> | `Base.SpiffosGlassDoor` | Green-Striped Two-Pane Door | Porte à deux vitres à bande verte | `wood_glazed` | **500** | Woodwork 7 | 350 | 225 | 1925 | 2600 | M1=Wood; M2=Nails; M3=Screws | Wood_Solid | **MetalDoor** | ZombieThumpWood | standard |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_PizzaWhirledBrownGlassDoor.png" width="96"> | `Base.PizzaWhirledBrownGlassDoor` | Brown Two-Pane Door | Porte brune à deux vitres | `wood_glazed` | **500** | Woodwork 7 | 350 | 225 | 1925 | 2600 | M1=Wood; M2=Nails; M3=Screws | Wood_Solid | **MetalDoor** | ZombieThumpWood | standard |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_SeaHorseGlassDoor.png" width="96"> | `Base.SeaHorseGlassDoor` | Dark Brown Two-Pane Door | Porte brun foncé à deux vitres | `wood_glazed` | **500** | Woodwork 7 | 350 | 225 | 1925 | 2600 | M1=Wood; M2=Nails; M3=Screws | Wood_Solid | **MetalDoor** | ZombieThumpWood | standard |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_Gas2GoDoor.png" width="96"> | `Base.Gas2GoDoor` | Red Two-Pane Door | Porte rouge à deux vitres | `wood_glazed` | **500** | Woodwork 7 | 350 | 225 | 1925 | 2600 | M1=Wood; M2=Nails; M3=Screws | Wood_Solid | **MetalDoor** | **ZombieThumpWindow** | standard |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_FossoilDoor.png" width="96"> | `Base.FossoilDoor` | Blue Two-Pane Door | Porte bleue à deux vitres | `wood_glazed` | **500** | Woodwork 7 | 350 | 225 | 1925 | 2600 | M1=Wood; M2=Nails; M3=Screws | Wood_Solid | **MetalDoor** | **ZombieThumpWindow** | standard |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_SpiffosGlassDoor.png" width="96"> | `Base.SpiffosGlassDoor` | Green-Striped Two-Pane Door | Porte à deux vitres à bande verte | `wood_glazed` | **500** | Woodwork 7 | 350 | 225 | 1925 | 2600 | M1=Wood; M2=Nails; M3=Screws | Wood_Solid | **MetalDoor** | **ZombieThumpWindow** | standard |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_PizzaWhirledBrownGlassDoor.png" width="96"> | `Base.PizzaWhirledBrownGlassDoor` | Brown Two-Pane Door | Porte brune à deux vitres | `wood_glazed` | **500** | Woodwork 7 | 350 | 225 | 1925 | 2600 | M1=Wood; M2=Nails; M3=Screws | Wood_Solid | **MetalDoor** | **ZombieThumpWindow** | standard |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_SeaHorseGlassDoor.png" width="96"> | `Base.SeaHorseGlassDoor` | Dark Brown Two-Pane Door | Porte brun foncé à deux vitres | `wood_glazed` | **500** | Woodwork 7 | 350 | 225 | 1925 | 2600 | M1=Wood; M2=Nails; M3=Screws | Wood_Solid | **MetalDoor** | **ZombieThumpWindow** | standard |
 
 ### Shared craft and handling
 
 | Tools | Inputs | Time | XP | Pickup | Replacement |
 |---|---|---|---:|---|---|
 | Hammer + Screwdriver kept | Plank x4; Nails x4; Door Hinge x2; Screws x4; Doorknob x1; **Glass Panel x2** | TBD | **20** | Woodwork 3; Hammer + Screwdriver; no break chance; 1 package — **16 kg** | package + Hammer + Screwdriver |
+
+## Wooden full-glass doors
+
+Status: **validated shared family specification**. These two models are wooden-framed doors whose surface is dominated by one large glass panel. They form the weakest normal-quality wooden glazed tier in the composition ladder. `Glass_Solid` is used for impact character, `MetalDoor` for clean non-rustic opening/closing, and `ZombieThumpWindow` for zombie impacts.
+
+### Profiles
+
+| Preview | Entity | EN name | FR name | Class | World HP | Build skill | `health` | `skillBaseHealth` | HP at required level | HP lvl 10 | Materials | MaterialType | DoorSound | ThumpSound | Frame |
+|---|---|---|---|---|---:|---|---:|---:|---:|---:|---|---|---|---|---|
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_BlackGlassDoor.png" width="96"> | `Base.BlackGlassDoor` | Black Full-Glass Door | Porte noire entièrement vitrée | `wood_glazed` | **425** | Woodwork 7 | 300 | 175 | 1525 | 2050 | M1=Wood; M2=Nails; M3=Screws | **Glass_Solid** | **MetalDoor** | **ZombieThumpWindow** | standard |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_ChestnutGlassDoor.png" width="96"> | `Base.ChestnutGlassDoor` | Brown Full-Glass Door | Porte brune entièrement vitrée | `wood_glazed` | **425** | Woodwork 7 | 300 | 175 | 1525 | 2050 | M1=Wood; M2=Nails; M3=Screws | **Glass_Solid** | **MetalDoor** | **ZombieThumpWindow** | standard |
+
+### Shared craft and handling
+
+| Tools | Inputs | Time | XP | Pickup | Replacement |
+|---|---|---|---:|---|---|
+| Hammer + Screwdriver kept | Plank x2; Nails x2; Door Hinge x2; Screws x4; Doorknob x1; **Glass Panel x3** | TBD | **20** | Woodwork 3; Hammer + Screwdriver; no break chance; 1 package — **14 kg** | package + Hammer + Screwdriver |
 
 ## Simple 1x1 doors — pending review
 
@@ -347,8 +364,6 @@ Status: **validated shared family specification**. These five models are the sam
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_BlackDoorWithWindow.png" width="96"> | `Base.BlackDoorWithWindow` | Black Door with Window | Porte noire avec fenêtre | `wood_glazed?` | 425 | yes | standard | TBD | TBD | TBD |
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_BlueMetalDoor.png" width="96"> | `Base.BlueMetalDoor` | Blue Metal Door | Porte métallique bleue | `metal` | 650 | no | standard | M1=MetalPlates; M2=Door | Metal_Solid | MetalDoor |
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_SecurityDoor.png" width="96"> | `Base.SecurityDoor` | Security Door | Porte sécurisée | `security` | 3000 | no | standard | M1=MetalBars; M2=MetalPlates | Metal_Solid | MetalDoor |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_ChestnutGlassDoor.png" width="96"> | `Base.ChestnutGlassDoor` | Chestnut Glass Door | Porte vitrée châtaigne | `glass` | 350 | yes | standard | TBD | Glass_Solid | TBD |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_BlackGlassDoor.png" width="96"> | `Base.BlackGlassDoor` | Black Glass Door | Porte vitrée noire | `glass` | 350 | yes | standard | TBD | Glass_Solid | TBD |
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_BlackTwoPaneDoor.png" width="96"> | `Base.BlackTwoPaneDoor` | Black Two-Pane Door | Porte noire à deux vitres | `wood_glazed?` | 425 | yes | standard | TBD | TBD | TBD |
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_WhiteMetalDoor.png" width="96"> | `Base.WhiteMetalDoor` | White Metal Door | Porte métallique blanche | `metal` | 650 | no | standard | M1=MetalPlates; M2=Door | Metal_Solid | MetalDoor |
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_WhiteMetalDoorWithWindow.png" width="96"> | `Base.WhiteMetalDoorWithWindow` | White Metal Door with Window | Porte métallique blanche vitrée | `metal_glazed` | 550 | yes | standard | M1=MetalPlates; M2=Door | Metal_Solid | MetalDoor |
@@ -392,8 +407,6 @@ BlackGlassDoubleDoor
 BlueRestroomDoor
 TanDoorWithWindow
 BlackDoorWithWindow
-ChestnutGlassDoor
-BlackGlassDoor
 BlackTwoPaneDoor
 PileOCrepeOrangeDoor
 ```
