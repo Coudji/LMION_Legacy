@@ -100,6 +100,13 @@ Status: **validated design specification**. The vanilla model is the normal larg
 | `Base.DoubleDoor` | vanilla | unchanged | Hammer | Plank x8; Nails x8; Door Hinge x4; Doorknob x2 | standard large wooden gate |
 | `Base.WoodenFenceDoubleGate` | LMION | 200 | Hammer + Screwdriver, kept | Plank x10; Nails x10; Screws x8; Door Hinge x4; Doorknob x2 | hardened tier; +2 Planks and +2 Nails versus vanilla while intentionally keeping screws |
 
+#### Pickup and replacement
+
+| Entity | Pickup skill | Pickup tools | Break chance | Pickup output | Total weight | Replacement |
+|---|---|---|---|---|---:|---|
+| `Base.DoubleDoor` | Woodwork 2 | Hammer | none | 2 packages x 18 kg | 36 kg | both packages + Hammer |
+| `Base.WoodenFenceDoubleGate` | Woodwork 3 | Hammer + Screwdriver | none | 2 packages x 22 kg | 44 kg | both packages + Hammer + Screwdriver |
+
 ### Large metal gates
 
 Status: **validated three-tier design specification**. The farm gate is intentionally weak because it is a low livestock barrier made from light tubing and can be vaulted. `DoubleWireGate` and `DoubleFenceGate` share the same middle tier: the first is light but regular, while the second contains more metal but is visibly an improvised bric-a-brac assembly. The wrought-iron gate is the clear heavy-duty tier. Display names are player-facing only; technical vanilla IDs remain unchanged.
@@ -122,7 +129,16 @@ Status: **validated three-tier design specification**. The farm gate is intentio
 | `Base.DoubleFenceGate` | vanilla | unchanged | vanilla | Blow Torch 10 uses; Metal Pipe x10; Door Hinge x4; Scrap Metal x4; Welding Rods 10 uses | vanilla craft otherwise unchanged |
 | `Base.WroughtIronDoubleGate` | LMION | 200 | Welding Mask kept | Blow Torch 8 uses; Metal Bar x8; Metal Pipe x4; Door Hinge x4; Welding Rods 6 uses | no Screwdriver; no Screws; strongest gate of this family |
 
-Pickup, replacement packaging and dismantling rules for large metal gates have not yet been reviewed and must not be inferred from the garage-door rules.
+#### Pickup and replacement
+
+| Entity | Pickup skill | Pickup tools | Break chance | Pickup output | Total weight | Replacement |
+|---|---|---|---|---|---:|---|
+| `Base.FarmDoubleGate` | MetalWelding 2 | Blow Torch + Welding Mask | none | 2 packages x 12 kg | 24 kg | both packages + Blow Torch + Welding Mask |
+| `Base.DoubleWireGate` | MetalWelding 2 | Blow Torch + Welding Mask | none | 2 packages x 15 kg | 30 kg | both packages + Blow Torch + Welding Mask |
+| `Base.DoubleFenceGate` | MetalWelding 2 | Blow Torch + Welding Mask | none | 2 packages x 20 kg | 40 kg | both packages + Blow Torch + Welding Mask |
+| `Base.WroughtIronDoubleGate` | MetalWelding 3 | Blow Torch + Welding Mask | none | 2 packages x 30 kg | 60 kg | both packages + Blow Torch + Welding Mask |
+
+Dismantling rules for large metal gates have not yet been reviewed.
 
 ## Paired double doors
 
