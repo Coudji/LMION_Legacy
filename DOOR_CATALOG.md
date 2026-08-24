@@ -353,22 +353,47 @@ Status: **validated shared family specification**. These two models are wooden-f
 |---|---|---|---:|---|---|
 | Hammer + Screwdriver kept | Plank x2; Nails x2; Door Hinge x2; Screws x4; Doorknob x1; **Glass Panel x3** | TBD | **20** | Woodwork 3; Hammer + Screwdriver; no break chance; 1 package — **14 kg** | package + Hammer + Screwdriver |
 
+## Metal 1x1 doors — basic and finished
+
+Status: **validated batch specification**. The progression deliberately separates the ugly patchwork vanilla door, the cleaner but still simple second vanilla metal door, and the finished sheet-metal variants. The glazed finished doors keep the same metal impact identity as their solid counterparts because one window is not enough to switch zombie impacts to the window family. All welded recipes use a Welding Mask and intentionally remove Screwdriver/Screws.
+
+### Profiles
+
+| Preview | Entity | EN name | FR name | Tier / role | Class | World HP | Build skill | `health` | `skillBaseHealth` | HP at required level | HP lvl 10 | Materials | MaterialType | DoorSound | ThumpSound | Frame |
+|---|---|---|---|---|---|---:|---|---:|---:|---:|---:|---|---|---|---|---|
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_MetalDoorLvl1.png" width="96"> | `Base.MetalDoorLvl1` | Basic Metal Door | Porte en métal basique | patchwork / basic | `metal` | **650** | MetalWelding 3 | 350 | 250 | 1100 | 2850 | M1=MetalPlates; M2=MetalScrap | Metal_Light | MetalDoor | ZombieThumpMetal | standard |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_MetalDoorLvl2.png" width="96"> | `Base.MetalDoorLvl2` | Simple Metal Door | Porte en métal simple | simple / intermediate | `metal` | **750** | MetalWelding 4 | 400 | 275 | 1500 | 3150 | M1=MetalPlates | Metal_Light | MetalDoor | ZombieThumpMetal | standard |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_WhiteMetalDoor.png" width="96"> | `Base.WhiteMetalDoor` | White Metal Door | Porte métallique blanche | finished / solid | `metal` | **800** | MetalWelding 4 | 425 | 275 | 1525 | 3175 | M1=MetalPlates; M2=MetalBars | Metal_Solid | MetalDoor | ZombieThumpMetal | standard |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_TanMetalDoor.png" width="96"> | `Base.TanMetalDoor` | Tan Metal Door | Porte métallique beige | finished / solid | `metal` | **800** | MetalWelding 4 | 425 | 275 | 1525 | 3175 | M1=MetalPlates; M2=MetalBars | Metal_Solid | MetalDoor | ZombieThumpMetal | standard |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_BlackDoorWithWindow.png" width="96"> | `Base.BlackDoorWithWindow` | Black Metal Door with Window | Porte métallique noire vitrée | finished / one window | `metal_glazed` | **700** | MetalWelding 4 | 375 | 225 | 1275 | 2625 | M1=MetalPlates; M2=MetalBars | Metal_Solid | MetalDoor | ZombieThumpMetal | standard |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_TanDoorWithWindow.png" width="96"> | `Base.TanDoorWithWindow` | Tan Metal Door with Window | Porte métallique beige vitrée | finished / one window | `metal_glazed` | **700** | MetalWelding 4 | 375 | 225 | 1275 | 2625 | M1=MetalPlates; M2=MetalBars | Metal_Solid | MetalDoor | ZombieThumpMetal | standard |
+
+### Craft
+
+| Entity / variant | Tools | Inputs | Time | XP | Notes |
+|---|---|---|---|---:|---|
+| `Base.MetalDoorLvl1` | Welding Mask kept | Blow Torch 4 uses; Small Sheet Metal x3; Door Hinge x2; Welding Rods 4 uses; Doorknob x1 | TBD | **20** | deliberately rough patchwork; no Screwdriver; no Screws |
+| `Base.MetalDoorLvl2` | Welding Mask kept | Blow Torch 4 uses; Small Sheet Metal x3; Door Hinge x2; Welding Rods 4 uses; Doorknob x1 | TBD | **25** | quality improvement comes from skill/workmanship; no Screwdriver; no Screws |
+| Finished solid (`WhiteMetalDoor`, `TanMetalDoor`) | Welding Mask kept | Blow Torch 4 uses; **Sheet Metal x1**; Metal Bar x2; Door Hinge x2; Welding Rods 4 uses; Doorknob x1 | TBD | **30** | one full sheet replaces the small-sheet assembly; no Screwdriver; no Screws |
+| Finished one-window (`BlackDoorWithWindow`, `TanDoorWithWindow`) | Welding Mask kept | Blow Torch 4 uses; **Sheet Metal x1**; Metal Bar x2; Door Hinge x2; Welding Rods 4 uses; Doorknob x1; Glass Panel x1 | TBD | **30** | one-window metal variant; no Screwdriver; no Screws |
+
+### Pickup and replacement
+
+| Entity / variant | Pickup skill | Pickup tools | Break chance | Pickup output / weight | Replacement |
+|---|---|---|---|---|---|
+| `Base.MetalDoorLvl1` | MetalWelding 1 | Blow Torch + Welding Mask | none | 1 package — **20 kg** | package + Blow Torch + Welding Mask |
+| `Base.MetalDoorLvl2` | MetalWelding 2 | Blow Torch + Welding Mask | none | 1 package — **22 kg** | package + Blow Torch + Welding Mask |
+| Finished solid | MetalWelding 2 | Blow Torch + Welding Mask | none | 1 package — **24 kg** | package + Blow Torch + Welding Mask |
+| Finished one-window | MetalWelding 2 | Blow Torch + Welding Mask | none | 1 package — **22 kg** | package + Blow Torch + Welding Mask |
+
 ## Simple 1x1 doors — pending review
 
 | Preview | Entity | EN name | FR name | Class | HP | Glazed | Frame | Material(s) | MaterialType | DoorSound |
 |---|---|---|---|---|---:|---|---|---|---|---|
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_MetalDoorLvl2.png" width="96"> | `Base.MetalDoorLvl2` | Metal Door Level 2 | Porte métallique niveau 2 | `metal` | 650 | no | standard | M1=MetalPlates; M2=Door | Metal_Solid | MetalDoor |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_MetalDoorLvl1.png" width="96"> | `Base.MetalDoorLvl1` | Metal Door Level 1 | Porte métallique niveau 1 | `metal` | 650 | no | standard | M1=MetalPlates; M2=Door | Metal_Solid | MetalDoor |
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_BlueRestroomDoor.png" width="96"> | `Base.BlueRestroomDoor` | Blue Restroom Door | Porte de sanitaires bleue | `unknown` | TBD | no | standard | TBD | TBD | TBD |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_TanDoorWithWindow.png" width="96"> | `Base.TanDoorWithWindow` | Tan Door with Window | Porte beige avec fenêtre | `wood_glazed?` | 425 | yes | standard | TBD | TBD | TBD |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_BlackDoorWithWindow.png" width="96"> | `Base.BlackDoorWithWindow` | Black Door with Window | Porte noire avec fenêtre | `wood_glazed?` | 425 | yes | standard | TBD | TBD | TBD |
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_BlueMetalDoor.png" width="96"> | `Base.BlueMetalDoor` | Blue Metal Door | Porte métallique bleue | `metal` | 650 | no | standard | M1=MetalPlates; M2=Door | Metal_Solid | MetalDoor |
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_SecurityDoor.png" width="96"> | `Base.SecurityDoor` | Security Door | Porte sécurisée | `security` | 3000 | no | standard | M1=MetalBars; M2=MetalPlates | Metal_Solid | MetalDoor |
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_BlackTwoPaneDoor.png" width="96"> | `Base.BlackTwoPaneDoor` | Black Two-Pane Door | Porte noire à deux vitres | `wood_glazed?` | 425 | yes | standard | TBD | TBD | TBD |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_WhiteMetalDoor.png" width="96"> | `Base.WhiteMetalDoor` | White Metal Door | Porte métallique blanche | `metal` | 650 | no | standard | M1=MetalPlates; M2=Door | Metal_Solid | MetalDoor |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_WhiteMetalDoorWithWindow.png" width="96"> | `Base.WhiteMetalDoorWithWindow` | White Metal Door with Window | Porte métallique blanche vitrée | `metal_glazed` | 550 | yes | standard | M1=MetalPlates; M2=Door | Metal_Solid | MetalDoor |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_TanMetalDoor.png" width="96"> | `Base.TanMetalDoor` | Tan Metal Door | Porte métallique beige | `metal` | 650 | no | standard | M1=MetalPlates; M2=Door | Metal_Solid | MetalDoor |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_BlackMetalDoor.png" width="96"> | `Base.BlackMetalDoor` | Black Metal Door | Porte métallique noire | `metal` | 650 | no | standard | M1=MetalPlates; M2=Door | Metal_Solid | MetalDoor |
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_RedMetalDoor.png" width="96"> | `Base.RedMetalDoor` | Red Metal Door | Porte métallique rouge | `metal` | 650 | no | standard | M1=MetalPlates; M2=Door | Metal_Solid | MetalDoor |
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_JailDoor.png" width="96"> | `Base.JailDoor` | Jail Door | Porte de prison | `jail` | 2000 | no | standard | M1=MetalBars | Metal_Solid | PrisonMetalDoor |
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_PileOCrepeOrangeDoor.png" width="96"> | `Base.PileOCrepeOrangeDoor` | Pile O' Crepe Orange Door | Porte orange Pile O' Crepe | `unknown` | TBD | no | standard | TBD | TBD | TBD |
@@ -405,8 +430,6 @@ The bulk pass intentionally leaves these rows partially unresolved because their
 ```text
 BlackGlassDoubleDoor
 BlueRestroomDoor
-TanDoorWithWindow
-BlackDoorWithWindow
 BlackTwoPaneDoor
 PileOCrepeOrangeDoor
 ```
