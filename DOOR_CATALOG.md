@@ -229,6 +229,14 @@ Status: **validated shared family specification**. These five models are lightwe
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_SmallPinkDoor.png" width="96"> | `Base.SmallPinkDoor` | Pink Restroom Stall Door | Porte de cabine sanitaire rose |
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_SmallWhitePanelDoor.png" width="96"> | `Base.SmallWhitePanelDoor` | White Restroom Stall Door | Porte de cabine sanitaire blanche |
 
+### Full-height restroom door
+
+The blue restroom model uses the same cheap screw-built utility philosophy as the stall doors, but as a full-height door it receives a small durability increase. Durability stays fixed regardless of skill. Its vanilla-like plastic impact character is retained rather than forcing it into a heavy metal sound profile.
+
+| Preview | Entity | EN name | FR name | Class | World HP | Build skill | `health` | `skillBaseHealth` | Built HP all levels | XP | Time | Materials | MaterialType | DoorSound | ThumpSound | Frame | Craft | Pickup | Replacement |
+|---|---|---|---|---|---:|---|---:|---:|---:|---:|---:|---|---|---|---|---|---|---|---|
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_BlueRestroomDoor.png" width="96"> | `Base.BlueRestroomDoor` | Blue Restroom Door | Porte de sanitaires bleue | `wood` | **200** | Woodwork 1 | **200** | **0** | **200** | **5** | **50** | M1=Wood; M2=Screws | **Plastic** | **MetalDoor** | **ZombieThumpGeneric** | standard | Screwdriver kept; Plank x2; Screws x4; Door Hinge x2; **no Doorknob**; no Nails; no Hammer; no Blow Torch | Woodwork 0; Screwdriver; no break chance; 1 package — **10 kg** | package + Screwdriver |
+
 ## Sliding glass doors
 
 Status: **validated shared family specification**. The brown and white models are the same wall-height sliding glass door with different frame finishes. Their large glazed area is intentionally fragile: world and constructed durability are fixed at **250 HP**, with `skillBaseHealth = 0`. They require no separate frame. Pickup and replacement are deliberately asymmetric: a Crowbar is used to unseat the installed unit from the wall, while replacement requires welding the metal frame back into place.
@@ -386,6 +394,14 @@ Status: **validated batch specification**. The progression deliberately separate
 | Finished solid | MetalWelding 2 | Blow Torch + Welding Mask | none | 1 package — **24 kg** | package + Blow Torch + Welding Mask |
 | Finished one-window | MetalWelding 2 | Blow Torch + Welding Mask | none | 1 package — **22 kg** | package + Blow Torch + Welding Mask |
 
+## Metal two-pane door
+
+Status: **validated single-model specification**. This model is the metal counterpart to the two-pane wooden commercial doors. It follows the finished metal progression: 800 HP solid, 700 HP with one window, and 650 HP with two substantial glazed zones. Because it crosses the agreed two-window threshold, zombie impacts use the window family while normal operation remains `MetalDoor`.
+
+| Preview | Entity | EN name | FR name | Class | World HP | Build skill | `health` | `skillBaseHealth` | HP at required level | HP lvl 10 | XP | Materials | MaterialType | DoorSound | ThumpSound | Frame | Craft | Pickup | Replacement |
+|---|---|---|---|---|---:|---|---:|---:|---:|---:|---:|---|---|---|---|---|---|---|---|
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_BlackTwoPaneDoor.png" width="96"> | `Base.BlackTwoPaneDoor` | Black Two-Pane Metal Door | Porte métallique noire à deux vitres | `metal_glazed` | **650** | MetalWelding 5 | 350 | 250 | 1600 | 2850 | **30** | M1=MetalPlates; M2=MetalBars | Metal_Solid | MetalDoor | **ZombieThumpWindow** | standard | Welding Mask kept; Blow Torch 4 uses; Sheet Metal x1; Metal Bar x2; Door Hinge x2; Welding Rods 4 uses; Doorknob x1; **Glass Panel x2**; no Screwdriver; no Screws | MetalWelding 2; Blow Torch + Welding Mask; no break chance; 1 package — **21 kg** | package + Blow Torch + Welding Mask |
+
 ## Metal service doors
 
 Status: **validated shared family specification**. These are light swing/service doors used mainly as separation rather than intrusion-resistant construction. The visual logic is a wooden internal frame clad with sheet metal and screwed hardware, so their recipes deliberately use no Blow Torch, no Welding Mask and no separate Doorknob. They sit slightly below the normal finished metal doors in durability. A single porthole does not change the metal zombie-impact family.
@@ -412,9 +428,7 @@ Status: **validated shared family specification**. These are light swing/service
 
 | Preview | Entity | EN name | FR name | Class | HP | Glazed | Frame | Material(s) | MaterialType | DoorSound |
 |---|---|---|---|---|---:|---|---|---|---|---|
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_BlueRestroomDoor.png" width="96"> | `Base.BlueRestroomDoor` | Blue Restroom Door | Porte de sanitaires bleue | `unknown` | TBD | no | standard | TBD | TBD | TBD |
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_SecurityDoor.png" width="96"> | `Base.SecurityDoor` | Security Door | Porte sécurisée | `security` | 3000 | no | standard | M1=MetalBars; M2=MetalPlates | Metal_Solid | MetalDoor |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_BlackTwoPaneDoor.png" width="96"> | `Base.BlackTwoPaneDoor` | Black Two-Pane Door | Porte noire à deux vitres | `wood_glazed?` | 425 | yes | standard | TBD | TBD | TBD |
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_JailDoor.png" width="96"> | `Base.JailDoor` | Jail Door | Porte de prison | `jail` | 2000 | no | standard | M1=MetalBars | Metal_Solid | PrisonMetalDoor |
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_PizzaWhirledGreenMetalDoor.png" width="96"> | `Base.PizzaWhirledGreenMetalDoor` | Pizza Whirled Green Metal Door | Porte métallique verte Pizza Whirled | `metal` | 650 | no | standard | M1=MetalPlates; M2=Door | Metal_Solid | MetalDoor |
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_LogDoor.png" width="96"> | `Base.LogDoor` | Log Door | Porte en rondins | `heavy_wood` | 600 | no | standard | M1=Log | Wood_Solid | WoodDoor |
@@ -445,8 +459,6 @@ The bulk pass intentionally leaves these rows partially unresolved because their
 
 ```text
 BlackGlassDoubleDoor
-BlueRestroomDoor
-BlackTwoPaneDoor
 ```
 
 For these, the next useful step is visual/runtime review rather than guessing. Everything else in this document is now a concrete provisional profile proposal ready for review before code generation.
