@@ -246,23 +246,57 @@ Status: **validated shared family specification**. The brown and white models ar
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_BrownSlidingGlassDoor.png" width="96"> | `Base.BrownSlidingGlassDoor` | Brown Sliding Glass Door | Porte coulissante vitrée brune |
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_WhiteSlidingGlassDoor.png" width="96"> | `Base.WhiteSlidingGlassDoor` | White Sliding Glass Door | Porte coulissante vitrée blanche |
 
-## Simple 1x1 doors
+## Solid wooden 1x1 doors
+
+Status: **validated family specification**. Normal solid wooden doors use three quality tiers based on workmanship rather than increasingly expensive recipes: **basic**, **standard** and **artisan**. The three vanilla `WoodenDoorLvl*` constructions define those tiers. Visually similar LMION-buildable variants inherit a tier instead of creating extra durability classes. The outhouse door is a separate deliberately fragile utility door with fixed durability.
+
+### Profiles
+
+| Entity | EN name | FR name | Tier | World HP | Build skill | `health` | `skillBaseHealth` | HP at required level | HP lvl 10 | Materials | MaterialType | DoorSound | ThumpSound | Frame |
+|---|---|---|---|---:|---|---:|---:|---:|---:|---|---|---|---|---|
+| `Base.WoodenDoorLvl1` | Basic Wooden Door | Porte en bois basique | basic | **400** | Woodwork 3 | 250 | 150 | 700 | 1750 | M1=Wood; M2=Nails | Wood_Solid | WoodDoor | ZombieThumpWood | standard |
+| `Base.RoughWoodenDoor` | Rough Wooden Door | Porte en bois brut | basic | **400** | Woodwork 3 | 250 | 150 | 700 | 1750 | M1=Wood; M2=Nails | Wood_Solid | WoodDoor | ZombieThumpWood | standard |
+| `Base.WoodenDoorLvl2` | Sturdy Wooden Door | Porte en bois robuste | standard | **500** | Woodwork 5 | 300 | 200 | 1300 | 2300 | M1=Wood; M2=Nails | Wood_Solid | WoodDoor | ZombieThumpWood | standard |
+| `Base.WoodenDoor` | Rustic Wooden Door | Porte en bois rustique | standard | **500** | Woodwork 5 | 300 | 200 | 1300 | 2300 | M1=Wood; M2=Nails | Wood_Solid | WoodDoor | ZombieThumpWood | standard |
+| `Base.WoodenDoorLvl3` | Artisan Wooden Door | Porte en bois artisanale | artisan | **600** | Woodwork 7 | 350 | 250 | 2100 | 2850 | M1=Wood; M2=Nails | Wood_Solid | WoodDoor | ZombieThumpWood | standard |
+| `Base.OuthouseDoor` | Outhouse Door | Porte de latrines | light utility | **250** | Woodwork 1 | **250** | **0** | **250** | **250** | M1=Wood; M2=Nails | Wood | WoodDoor | ZombieThumpWood | standard |
+
+The explicit 400 / 500 / 600 values override the generic 500 HP normal-wood baseline. `RoughWoodenDoor` is an aesthetic alternative to the basic tier and `WoodenDoor` to the standard tier; neither creates a new progression step. `WoodenDoorLvl3` is already the hardened/high-workmanship end of this ordinary wooden-door family, so no extra artificial "hardened" tier is added.
+
+### Craft
+
+| Entity | Source | Tools | Inputs | Time | XP | Notes |
+|---|---|---|---|---|---|---|
+| `Base.WoodenDoorLvl1` | vanilla | Hammer kept | Plank x4; Nails x4; Door Hinge x2; Doorknob x1 | unchanged | unchanged | same resources; quality comes from Woodwork skill |
+| `Base.WoodenDoorLvl2` | vanilla | Hammer kept | Plank x4; Nails x4; Door Hinge x2; Doorknob x1 | unchanged | unchanged | same resources; quality comes from Woodwork skill |
+| `Base.WoodenDoorLvl3` | vanilla | Hammer kept | Plank x4; Nails x4; Door Hinge x2; Doorknob x1 | unchanged | unchanged | same resources; quality comes from Woodwork skill |
+| `Base.RoughWoodenDoor` | LMION build recipe | Hammer kept | Plank x4; Nails x4; Door Hinge x2; Doorknob x1 | TBD | TBD | no Screwdriver; no Screws |
+| `Base.WoodenDoor` | LMION build recipe | Hammer kept | Plank x4; Nails x4; Door Hinge x2; Doorknob x1 | TBD | TBD | no Screwdriver; no Screws |
+| `Base.OuthouseDoor` | LMION build recipe | Hammer kept | Plank x3; Nails x4; Door Hinge x2; Doorknob x1 | **50** | **5** | deliberately cheap/simple utility door |
+
+### Pickup and replacement
+
+| Entity | Pickup skill | Pickup tools | Break chance | Pickup output / weight | Replacement |
+|---|---|---|---|---|---|
+| `Base.WoodenDoorLvl1` | Woodwork 1 | Hammer | none | 1 package — 15 kg | package + Hammer |
+| `Base.RoughWoodenDoor` | Woodwork 1 | Hammer | none | 1 package — 14 kg | package + Hammer |
+| `Base.WoodenDoorLvl2` | Woodwork 2 | Hammer | none | 1 package — 15 kg | package + Hammer |
+| `Base.WoodenDoor` | Woodwork 2 | Hammer | none | 1 package — 15 kg | package + Hammer |
+| `Base.WoodenDoorLvl3` | Woodwork 3 | Hammer | none | 1 package — 15 kg | package + Hammer |
+| `Base.OuthouseDoor` | Woodwork 0 | Hammer | none | 1 package — 10 kg | package + Hammer |
+
+## Simple 1x1 doors — pending review
 
 | Preview | Entity | EN name | FR name | Class | HP | Glazed | Frame | Material(s) | MaterialType | DoorSound |
 |---|---|---|---|---|---:|---|---|---|---|---|
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_WoodenDoorLvl1.png" width="96"> | `Base.WoodenDoorLvl1` | Wooden Door Level 1 | Porte en bois niveau 1 | `wood` | 500 | no | standard | M1=Wood; M2=Door | Wood_Solid | WoodDoor |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_WoodenDoorLvl2.png" width="96"> | `Base.WoodenDoorLvl2` | Wooden Door Level 2 | Porte en bois niveau 2 | `wood` | 500 | no | standard | M1=Wood; M2=Door | Wood_Solid | WoodDoor |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_WoodenDoorLvl3.png" width="96"> | `Base.WoodenDoorLvl3` | Wooden Door Level 3 | Porte en bois niveau 3 | `wood` | 500 | no | standard | M1=Wood; M2=Door | Wood_Solid | WoodDoor |
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_WhiteWoodenDoor.png" width="96"> | `Base.WhiteWoodenDoor` | White Wooden Door | Porte en bois blanche | `wood` | 500 | no | standard | M1=Wood; M2=Door | Wood_Solid | WoodDoor |
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_MetalDoorLvl2.png" width="96"> | `Base.MetalDoorLvl2` | Metal Door Level 2 | Porte métallique niveau 2 | `metal` | 650 | no | standard | M1=MetalPlates; M2=Door | Metal_Solid | MetalDoor |
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_MetalDoorLvl1.png" width="96"> | `Base.MetalDoorLvl1` | Metal Door Level 1 | Porte métallique niveau 1 | `metal` | 650 | no | standard | M1=MetalPlates; M2=Door | Metal_Solid | MetalDoor |
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_BlueRestroomDoor.png" width="96"> | `Base.BlueRestroomDoor` | Blue Restroom Door | Porte de sanitaires bleue | `unknown` | TBD | no | standard | TBD | TBD | TBD |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_OuthouseDoor.png" width="96"> | `Base.OuthouseDoor` | Outhouse Door | Porte de latrines | `wood` | 425 | no | standard | M1=Wood; M2=Door | Wood | WoodDoor |
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_CherryDoor.png" width="96"> | `Base.CherryDoor` | Cherry Door | Porte en cerisier | `wood` | 500 | no | standard | M1=Wood; M2=Door | Wood_Solid | WoodDoor |
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_TanDoorWithWindow.png" width="96"> | `Base.TanDoorWithWindow` | Tan Door with Window | Porte beige avec fenêtre | `wood_glazed?` | 425 | yes | standard | TBD | TBD | TBD |
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_BlackDoorWithWindow.png" width="96"> | `Base.BlackDoorWithWindow` | Black Door with Window | Porte noire avec fenêtre | `wood_glazed?` | 425 | yes | standard | TBD | TBD | TBD |
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_BlueMetalDoor.png" width="96"> | `Base.BlueMetalDoor` | Blue Metal Door | Porte métallique bleue | `metal` | 650 | no | standard | M1=MetalPlates; M2=Door | Metal_Solid | MetalDoor |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_RoughWoodenDoor.png" width="96"> | `Base.RoughWoodenDoor` | Rough Wooden Door | Porte en bois brut | `wood` | 500 | no | standard | M1=Wood; M2=Door | Wood_Solid | WoodDoor |
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_SecurityDoor.png" width="96"> | `Base.SecurityDoor` | Security Door | Porte sécurisée | `security` | 3000 | no | standard | M1=MetalBars; M2=MetalPlates | Metal_Solid | MetalDoor |
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_ChestnutGlassDoor.png" width="96"> | `Base.ChestnutGlassDoor` | Chestnut Glass Door | Porte vitrée châtaigne | `glass` | 350 | yes | standard | TBD | Glass_Solid | TBD |
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_BlackGlassDoor.png" width="96"> | `Base.BlackGlassDoor` | Black Glass Door | Porte vitrée noire | `glass` | 350 | yes | standard | TBD | Glass_Solid | TBD |
@@ -272,7 +306,6 @@ Status: **validated shared family specification**. The brown and white models ar
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_WhiteMetalDoor.png" width="96"> | `Base.WhiteMetalDoor` | White Metal Door | Porte métallique blanche | `metal` | 650 | no | standard | M1=MetalPlates; M2=Door | Metal_Solid | MetalDoor |
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_WhiteMetalDoorWithWindow.png" width="96"> | `Base.WhiteMetalDoorWithWindow` | White Metal Door with Window | Porte métallique blanche vitrée | `metal_glazed` | 550 | yes | standard | M1=MetalPlates; M2=Door | Metal_Solid | MetalDoor |
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_TanMetalDoor.png" width="96"> | `Base.TanMetalDoor` | Tan Metal Door | Porte métallique beige | `metal` | 650 | no | standard | M1=MetalPlates; M2=Door | Metal_Solid | MetalDoor |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_WoodenDoor.png" width="96"> | `Base.WoodenDoor` | Wooden Door | Porte en bois | `wood` | 500 | no | standard | M1=Wood; M2=Door | Wood_Solid | WoodDoor |
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_BlueDoor.png" width="96"> | `Base.BlueDoor` | Blue Door | Porte bleue | `unknown` | TBD | no | standard | TBD | TBD | TBD |
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_BlackMetalDoor.png" width="96"> | `Base.BlackMetalDoor` | Black Metal Door | Porte métallique noire | `metal` | 650 | no | standard | M1=MetalPlates; M2=Door | Metal_Solid | MetalDoor |
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_BrownDoorWithWindows.png" width="96"> | `Base.BrownDoorWithWindows` | Brown Door with Windows | Porte brune avec fenêtres | `wood_glazed?` | 425 | yes | standard | TBD | TBD | TBD |
