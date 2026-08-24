@@ -424,14 +424,31 @@ Status: **validated shared family specification**. These are light swing/service
 | Solid | Screwdriver kept | Sheet Metal x1; Small Sheet Metal x1; Plank x2; Screws x6; Door Hinge x2; **no Doorknob**; no Blow Torch; no Welding Mask | **120** | **15** | MetalWelding 1; Screwdriver + Crowbar; no break chance; 1 package — **18 kg** | package + Screwdriver |
 | Porthole | Screwdriver kept | Sheet Metal x1; Small Sheet Metal x1; Plank x2; Screws x6; Door Hinge x2; Glass Panel x1; **no Doorknob**; no Blow Torch; no Welding Mask | **120** | **15** | MetalWelding 1; Screwdriver + Crowbar; no break chance; 1 package — **17 kg** | package + Screwdriver |
 
+## Special doors
+
+Status: **validated special-model specification**. These three doors intentionally sit outside the normal family progression. The log door is a no-skill improvised heavy-wood construction with fixed durability; the jail door is an endgame heavy steel-bar door; the security door is the ultimate reinforced door. Pickup package weights are deliberately gameplay-compressed below 40 kg so the objects remain practically movable within inventory limits; they are not literal real-world masses.
+
+### Profiles
+
+| Preview | Entity | EN name | FR name | Class | World HP | Build skill | `health` | `skillBaseHealth` | HP at required level | XP | Time | Materials | MaterialType | DoorSound | ThumpSound | Frame |
+|---|---|---|---|---|---:|---|---:|---:|---:|---:|---:|---|---|---|---|---|
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_LogDoor.png" width="96"> | `Base.LogDoor` | Log Door | Porte en rondins | `heavy_wood` | **700** | none / Woodwork 0 | **700** | **0** | **700 fixed** | **5** | **80** | M1=Log | Wood_Solid | WoodDoor | ZombieThumpWood | standard |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_JailDoor.png" width="96"> | `Base.JailDoor` | Jail Door | Porte de cellule | `jail` | **2000** | MetalWelding **10** | **1000** | **500** | **6000** | **75** | **300** | M1=MetalBars; M2=MetalPlates; M3=Screws | Metal_Solid | PrisonMetalDoor | ZombieThumpMetal | standard |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_SecurityDoor.png" width="96"> | `Base.SecurityDoor` | Security Door | Porte sécurisée | `security` | **3000** | MetalWelding **10** | **1250** | **650** | **7750** | **100** | **400** | M1=MetalBars; M2=MetalPlates; M3=MetalWire | Metal_Solid | MetalDoor | ZombieThumpMetal | standard |
+
+### Craft and handling
+
+| Entity | Tools | Inputs | Pickup | Replacement | Notes |
+|---|---|---|---|---|---|
+| `Base.LogDoor` | none | Log x4; Ripped Sheets x4 | Woodwork 0; no tools; no break chance; 1 package — **25 kg** | package; no tools | fixed 700 HP regardless of Woodwork level |
+| `Base.JailDoor` | Welding Mask + Screwdriver kept | Blow Torch 10 uses; **Steel Bar x7**; **Small Steel Sheet x2**; Door Hinge x4; Screws x8; Doorknob x1; Welding Rods 8 uses | MetalWelding **5** (`floor(10 / 2)`); Blow Torch + Welding Mask + Screwdriver; no break chance; 1 package — **30 kg** | package + Blow Torch + Welding Mask + Screwdriver | extremely heavy cell-door construction; steel craft components deliberately exceed normal metal-door requirements |
+| `Base.SecurityDoor` | Welding Mask + Screwdriver kept | Blow Torch 12 uses; **Steel Bar x6**; Sheet Metal x2; **Glass Panel x2**; **Wire x4**; Door Hinge x4; Screws x8; Doorknob x1; Electronics Scrap x2; Electric Wire x2; Welding Rods 10 uses | MetalWelding **5** (`floor(10 / 2)`); Blow Torch + Welding Mask + Screwdriver; no break chance; 1 package — **35 kg** | package + Blow Torch + Welding Mask + Screwdriver | ultimate door; Glass Panel x2 + Wire x4 is the temporary reinforced-glass recipe and should be replaced by Armored Glass x2 if/when that component is added |
+
 ## Simple 1x1 doors — pending review
 
 | Preview | Entity | EN name | FR name | Class | HP | Glazed | Frame | Material(s) | MaterialType | DoorSound |
 |---|---|---|---|---|---:|---|---|---|---|---|
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_SecurityDoor.png" width="96"> | `Base.SecurityDoor` | Security Door | Porte sécurisée | `security` | 3000 | no | standard | M1=MetalBars; M2=MetalPlates | Metal_Solid | MetalDoor |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_JailDoor.png" width="96"> | `Base.JailDoor` | Jail Door | Porte de prison | `jail` | 2000 | no | standard | M1=MetalBars | Metal_Solid | PrisonMetalDoor |
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_PizzaWhirledGreenMetalDoor.png" width="96"> | `Base.PizzaWhirledGreenMetalDoor` | Pizza Whirled Green Metal Door | Porte métallique verte Pizza Whirled | `metal` | 650 | no | standard | M1=MetalPlates; M2=Door | Metal_Solid | MetalDoor |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_LogDoor.png" width="96"> | `Base.LogDoor` | Log Door | Porte en rondins | `heavy_wood` | 600 | no | standard | M1=Log | Wood_Solid | WoodDoor |
 
 ## Paired double doors — pending review
 
