@@ -1,0 +1,42 @@
+module Base
+{
+    xuiSkin default
+    {
+        entity ES_LargeHardenedWoodenGate
+        {
+            LuaWindowClass = ISEntityWindow,
+            DisplayName = Large Hardened Wooden Gate,
+            Icon = fixtures_doors_fences_01_50,
+        }
+    }
+
+    entity LargeHardenedWoodenGate
+    {
+        component UiConfig
+        {
+            xuiSkin = default,
+            entityStyle = ES_LargeHardenedWoodenGate,
+            uiEnabled = false,
+        }
+
+        component CraftRecipe
+        {
+            timedAction = BuildWallHammer,
+            time = 200,
+            category = LMION,
+            SkillRequired = Woodwork:4,
+            xpAward = Woodwork:40,
+
+            inputs
+            {
+                item 1 tags[base:hammer] mode:keep flags[Prop1;MayDegradeVeryLight],
+                item 1 [Base.Screwdriver] mode:keep,
+                item 8 [Base.Plank],
+                item 8 [Base.Nails],
+                item 4 [Base.Hinge],
+                item 8 [Base.Screws],
+                item 2 [Base.Doorknob],
+            }
+        }
+    }
+}

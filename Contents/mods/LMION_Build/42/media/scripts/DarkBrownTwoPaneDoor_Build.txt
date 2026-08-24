@@ -1,0 +1,43 @@
+module Base
+{
+    xuiSkin default
+    {
+        entity ES_DarkBrownTwoPaneDoor
+        {
+            LuaWindowClass = ISEntityWindow,
+            DisplayName = Dark Brown Two-Pane Door,
+            Icon = location_restaurant_seahorse_01_49,
+        }
+    }
+
+    entity DarkBrownTwoPaneDoor
+    {
+        component UiConfig
+        {
+            xuiSkin = default,
+            entityStyle = ES_DarkBrownTwoPaneDoor,
+            uiEnabled = false,
+        }
+
+        component CraftRecipe
+        {
+            timedAction = BuildWallHammer,
+            time = 200,
+            category = LMION,
+            SkillRequired = Woodwork:3,
+            xpAward = Woodwork:30,
+
+            inputs
+            {
+                item 1 tags[base:hammer] mode:keep flags[Prop1;MayDegradeVeryLight],
+                item 1 [Base.Screwdriver] mode:keep,
+                item 4 [Base.Plank],
+                item 4 [Base.Nails],
+                item 2 [Base.Hinge],
+                item 4 [Base.Screws],
+                item 1 [Base.Doorknob],
+                item 1 [Base.GlassPanel],
+            }
+        }
+    }
+}

@@ -1,0 +1,42 @@
+module Base
+{
+    xuiSkin default
+    {
+        entity ES_RedTwoPaneDoor
+        {
+            LuaWindowClass = ISEntityWindow,
+            DisplayName = Red Two-Pane Door,
+            Icon = location_shop_gas2go_01_61,
+        }
+    }
+
+    entity RedTwoPaneDoor
+    {
+        component UiConfig
+        {
+            xuiSkin = default,
+            entityStyle = ES_RedTwoPaneDoor,
+            uiEnabled = false,
+        }
+
+        component CraftRecipe
+        {
+            timedAction = BuildWallHammer,
+            time = 120,
+            category = LMION,
+            SkillRequired = Woodwork:3,
+            xpAward = Woodwork:30,
+
+            inputs
+            {
+                item 1 tags[base:hammer] mode:keep flags[Prop1;MayDegradeVeryLight],
+                item 1 [Base.Screwdriver] mode:keep,
+                item 2 [Base.Plank],
+                item 1 [Base.GlassPanel],
+                item 2 [Base.Hinge],
+                item 1 [Base.Doorknob],
+                item 4 [Base.Screws],
+            }
+        }
+    }
+}

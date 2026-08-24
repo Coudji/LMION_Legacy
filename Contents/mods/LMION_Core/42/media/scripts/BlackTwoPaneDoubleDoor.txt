@@ -1,0 +1,86 @@
+module Base
+{
+    entity BlackTwoPaneDoubleDoorLeft
+    {
+        component SpriteConfig
+        {
+            health = 500,
+            skillBaseHealth = 50,
+            BreakSound = BreakDoor,
+
+            face W
+            {
+                layer
+                {
+                    row = fixtures_doors_02_40,
+                }
+            }
+
+            face N
+            {
+                layer
+                {
+                    row = fixtures_doors_02_41,
+                }
+            }
+
+            face W_OPEN
+            {
+                layer
+                {
+                    row = fixtures_doors_02_42,
+                }
+            }
+
+            face N_OPEN
+            {
+                layer
+                {
+                    row = fixtures_doors_02_43,
+                }
+            }
+        }
+    }
+
+    entity BlackTwoPaneDoubleDoorRight
+    {
+        component SpriteConfig
+        {
+            health = 500,
+            skillBaseHealth = 50,
+            BreakSound = BreakDoor,
+
+            face W
+            {
+                layer
+                {
+                    row = fixtures_doors_02_44,
+                }
+            }
+
+            face N
+            {
+                layer
+                {
+                    row = fixtures_doors_02_45,
+                }
+            }
+
+            face W_OPEN
+            {
+                layer
+                {
+                    row = fixtures_doors_02_46,
+                }
+            }
+
+            face N_OPEN
+            {
+                layer
+                {
+                    row = fixtures_doors_02_47,
+                }
+            }
+        }
+    }
+}

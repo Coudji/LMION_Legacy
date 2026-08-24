@@ -1,0 +1,44 @@
+module Base
+{
+    entity BlackTwoPaneMetalDoor
+    {
+        component SpriteConfig
+        {
+            health = 500,
+            skillBaseHealth = 50,
+            BreakSound = BreakDoor,
+
+            face W
+            {
+                layer
+                {
+                    row = fixtures_doors_01_48,
+                }
+            }
+
+            face N
+            {
+                layer
+                {
+                    row = fixtures_doors_01_49,
+                }
+            }
+
+            face W_OPEN
+            {
+                layer
+                {
+                    row = fixtures_doors_01_50,
+                }
+            }
+
+            face N_OPEN
+            {
+                layer
+                {
+                    row = fixtures_doors_01_51,
+                }
+            }
+        }
+    }
+}

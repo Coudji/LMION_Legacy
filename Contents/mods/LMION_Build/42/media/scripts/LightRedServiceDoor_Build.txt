@@ -1,0 +1,44 @@
+module Base
+{
+    xuiSkin default
+    {
+        entity ES_LightRedServiceDoor
+        {
+            LuaWindowClass = ISEntityWindow,
+            DisplayName = Light Red Service Door,
+            Icon = fixtures_doors_02_9,
+        }
+    }
+
+    entity LightRedServiceDoor
+    {
+        component UiConfig
+        {
+            xuiSkin = default,
+            entityStyle = ES_LightRedServiceDoor,
+            uiEnabled = false,
+        }
+
+        component CraftRecipe
+        {
+            timedAction = BuildWallMetal,
+            time = 200,
+            category = LMION,
+            SkillRequired = MetalWelding:3,
+            xpAward = MetalWelding:30,
+
+            inputs
+            {
+                item 1 [Base.WeldingMask] mode:keep,
+                item 1 [Base.Screwdriver] mode:keep,
+                item 4 [Base.BlowTorch] flags[DontRecordInput],
+                item 2 [Base.SmallSheetMetal],
+                item 2 [Base.MetalBar],
+                item 2 [Base.Hinge],
+                item 4 [Base.Screws],
+                item 1 [Base.Doorknob],
+                item 4 [Base.WeldingRods] flags[DontRecordInput],
+            }
+        }
+    }
+}

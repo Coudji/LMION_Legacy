@@ -1,0 +1,42 @@
+module Base
+{
+    xuiSkin default
+    {
+        entity ES_BrownRestroomStallDoor
+        {
+            LuaWindowClass = ISEntityWindow,
+            DisplayName = Brown Restroom Stall Door,
+            Icon = fixtures_doors_02_17,
+        }
+    }
+
+    entity BrownRestroomStallDoor
+    {
+        component UiConfig
+        {
+            xuiSkin = default,
+            entityStyle = ES_BrownRestroomStallDoor,
+            uiEnabled = false,
+        }
+
+        component CraftRecipe
+        {
+            timedAction = BuildWallHammer,
+            time = 200,
+            category = LMION,
+            SkillRequired = Woodwork:2,
+            xpAward = Woodwork:20,
+
+            inputs
+            {
+                item 1 tags[base:hammer] mode:keep flags[Prop1;MayDegradeVeryLight],
+                item 1 [Base.Screwdriver] mode:keep,
+                item 2 [Base.Plank],
+                item 2 [Base.Nails],
+                item 2 [Base.Hinge],
+                item 4 [Base.Screws],
+                item 1 [Base.Doorknob],
+            }
+        }
+    }
+}

@@ -1,0 +1,44 @@
+module Base
+{
+    entity BlueTwoPaneDoor
+    {
+        component SpriteConfig
+        {
+            health = 500,
+            skillBaseHealth = 50,
+            BreakSound = BreakDoor,
+
+            face W
+            {
+                layer
+                {
+                    row = location_shop_fossoil_01_60,
+                }
+            }
+
+            face N
+            {
+                layer
+                {
+                    row = location_shop_fossoil_01_61,
+                }
+            }
+
+            face W_OPEN
+            {
+                layer
+                {
+                    row = location_shop_fossoil_01_62,
+                }
+            }
+
+            face N_OPEN
+            {
+                layer
+                {
+                    row = location_shop_fossoil_01_63,
+                }
+            }
+        }
+    }
+}
