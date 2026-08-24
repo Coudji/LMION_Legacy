@@ -6,7 +6,7 @@ module Base
         {
             LuaWindowClass = ISEntityWindow,
             DisplayName = Log Door,
-            Icon = walls_logs_41,
+            Icon = LMION_LogDoor,
         }
     }
 
@@ -22,9 +22,9 @@ module Base
         component CraftRecipe
         {
             timedAction = BuildWallNoTool,
-            time = 200,
+            time = 80,
             category = LMION,
-            xpAward = Woodwork:10,
+            xpAward = Woodwork:5,
 
             inputs
             {

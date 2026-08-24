@@ -6,7 +6,7 @@ module Base
         {
             LuaWindowClass = ISEntityWindow,
             DisplayName = Wrought Iron Gate,
-            Icon = fixtures_doors_fences_01_21,
+            Icon = LMION_WroughtIronGate,
         }
     }
 
@@ -22,20 +22,18 @@ module Base
         component CraftRecipe
         {
             timedAction = BuildWireFence,
-            time = 200,
+            time = 140,
             category = LMION,
-            SkillRequired = MetalWelding:3,
-            xpAward = MetalWelding:30,
+            SkillRequired = MetalWelding:4,
+            xpAward = MetalWelding:25,
 
             inputs
             {
                 item 1 [Base.WeldingMask] mode:keep,
-                item 1 [Base.Screwdriver] mode:keep,
-                item 4 [Base.BlowTorch] flags[DontRecordInput],
-                item 2 [Base.SmallSheetMetal],
-                item 2 [Base.MetalBar],
+                item 5 [Base.BlowTorch] flags[DontRecordInput],
+                item 4 [Base.MetalBar],
+                item 2 [Base.MetalPipe],
                 item 2 [Base.Hinge],
-                item 4 [Base.Screws],
                 item 4 [Base.WeldingRods] flags[DontRecordInput],
             }
         }

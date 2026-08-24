@@ -6,7 +6,7 @@ module Base
         {
             LuaWindowClass = ISEntityWindow,
             DisplayName = Red Window Garage Door,
-            Icon = walls_garage_02_35,
+            Icon = LMION_RedWindowGarageDoor,
         }
     }
 
@@ -24,19 +24,18 @@ module Base
             timedAction = BuildWallMetal,
             time = 200,
             category = LMION,
-            SkillRequired = MetalWelding:5,
+            SkillRequired = MetalWelding:6,
             xpAward = MetalWelding:50,
 
             inputs
             {
                 item 1 [Base.WeldingMask] mode:keep,
-                item 1 [Base.Screwdriver] mode:keep,
-                item 10 [Base.BlowTorch] flags[DontRecordInput],
-                item 9 [Base.SmallSheetMetal],
+                item 6 [Base.BlowTorch] flags[DontRecordInput],
+                item 6 [Base.SmallSheetMetal],
+                item 3 [Base.GlassPanel],
                 item 3 [Base.MetalBar],
                 item 6 [Base.Hinge],
-                item 12 [Base.Screws],
-                item 5 [Base.WeldingRods] flags[DontRecordInput],
+                item 3 [Base.WeldingRods] flags[DontRecordInput],
             }
         }
     }

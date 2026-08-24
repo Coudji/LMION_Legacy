@@ -6,7 +6,7 @@ module Base
         {
             LuaWindowClass = ISEntityWindow,
             DisplayName = White Door with Windows,
-            Icon = fixtures_doors_01_45,
+            Icon = LMION_WhiteDoorWithWindows,
         }
     }
 
@@ -22,10 +22,10 @@ module Base
         component CraftRecipe
         {
             timedAction = BuildWallHammer,
-            time = 200,
+            time = 160,
             category = LMION,
-            SkillRequired = Woodwork:3,
-            xpAward = Woodwork:30,
+            SkillRequired = Woodwork:6,
+            xpAward = Woodwork:35,
 
             inputs
             {

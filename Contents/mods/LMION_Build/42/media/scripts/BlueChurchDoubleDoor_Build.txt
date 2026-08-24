@@ -5,15 +5,15 @@ module Base
         entity ES_BlueChurchDoubleDoorLeft
         {
             LuaWindowClass = ISEntityWindow,
-            DisplayName = Blue Church Double Door - Left,
-            Icon = location_community_church_small_01_25,
+            DisplayName = Blue Church Double Door,
+            Icon = LMION_BlueChurchDoubleDoorLeft,
         }
 
         entity ES_BlueChurchDoubleDoorRight
         {
             LuaWindowClass = ISEntityWindow,
-            DisplayName = Blue Church Double Door - Right,
-            Icon = location_community_church_small_01_29,
+            DisplayName = Blue Church Double Door,
+            Icon = LMION_BlueChurchDoubleDoorRight,
         }
     }
 
@@ -29,10 +29,10 @@ module Base
         component CraftRecipe
         {
             timedAction = BuildWallHammer,
-            time = 200,
+            time = 150,
             category = LMION,
-            SkillRequired = Woodwork:3,
-            xpAward = Woodwork:30,
+            SkillRequired = Woodwork:6,
+            xpAward = Woodwork:35,
 
             inputs
             {
@@ -59,10 +59,10 @@ module Base
         component CraftRecipe
         {
             timedAction = BuildWallHammer,
-            time = 200,
+            time = 150,
             category = LMION,
-            SkillRequired = Woodwork:3,
-            xpAward = Woodwork:30,
+            SkillRequired = Woodwork:6,
+            xpAward = Woodwork:35,
 
             inputs
             {

@@ -6,7 +6,7 @@ module Base
         {
             LuaWindowClass = ISEntityWindow,
             DisplayName = Blue Restroom Door,
-            Icon = fixtures_bathroom_02_17,
+            Icon = LMION_BlueRestroomDoor,
         }
     }
 
@@ -21,23 +21,18 @@ module Base
 
         component CraftRecipe
         {
-            timedAction = BuildWallMetal,
-            time = 200,
+            timedAction = BuildWallHammer,
+            time = 50,
             category = LMION,
-            SkillRequired = MetalWelding:3,
-            xpAward = MetalWelding:30,
+            SkillRequired = Woodwork:1,
+            xpAward = Woodwork:5,
 
             inputs
             {
-                item 1 [Base.WeldingMask] mode:keep,
                 item 1 [Base.Screwdriver] mode:keep,
-                item 4 [Base.BlowTorch] flags[DontRecordInput],
-                item 2 [Base.SmallSheetMetal],
-                item 2 [Base.MetalBar],
-                item 2 [Base.Hinge],
+                item 2 [Base.Plank],
                 item 4 [Base.Screws],
-                item 1 [Base.Doorknob],
-                item 4 [Base.WeldingRods] flags[DontRecordInput],
+                item 2 [Base.Hinge],
             }
         }
     }

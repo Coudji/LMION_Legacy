@@ -6,7 +6,7 @@ module Base
         {
             LuaWindowClass = ISEntityWindow,
             DisplayName = Dark Brown Two-Pane Door,
-            Icon = location_restaurant_seahorse_01_49,
+            Icon = LMION_DarkBrownTwoPaneDoor,
         }
     }
 
@@ -22,10 +22,10 @@ module Base
         component CraftRecipe
         {
             timedAction = BuildWallHammer,
-            time = 200,
+            time = 180,
             category = LMION,
-            SkillRequired = Woodwork:3,
-            xpAward = Woodwork:30,
+            SkillRequired = Woodwork:7,
+            xpAward = Woodwork:45,
 
             inputs
             {
@@ -36,7 +36,7 @@ module Base
                 item 2 [Base.Hinge],
                 item 4 [Base.Screws],
                 item 1 [Base.Doorknob],
-                item 1 [Base.GlassPanel],
+                item 2 [Base.GlassPanel],
             }
         }
     }

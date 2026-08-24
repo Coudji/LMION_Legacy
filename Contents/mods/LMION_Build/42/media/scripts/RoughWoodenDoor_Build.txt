@@ -6,7 +6,7 @@ module Base
         {
             LuaWindowClass = ISEntityWindow,
             DisplayName = Rough Wooden Door,
-            Icon = fixtures_doors_01_29,
+            Icon = LMION_RoughWoodenDoor,
         }
     }
 
@@ -22,19 +22,17 @@ module Base
         component CraftRecipe
         {
             timedAction = BuildWallHammer,
-            time = 200,
+            time = 90,
             category = LMION,
             SkillRequired = Woodwork:3,
-            xpAward = Woodwork:30,
+            xpAward = Woodwork:15,
 
             inputs
             {
                 item 1 tags[base:hammer] mode:keep flags[Prop1;MayDegradeVeryLight],
-                item 1 [Base.Screwdriver] mode:keep,
                 item 4 [Base.Plank],
                 item 4 [Base.Nails],
                 item 2 [Base.Hinge],
-                item 4 [Base.Screws],
                 item 1 [Base.Doorknob],
             }
         }

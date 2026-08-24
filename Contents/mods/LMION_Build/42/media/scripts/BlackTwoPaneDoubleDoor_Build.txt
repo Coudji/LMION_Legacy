@@ -5,15 +5,15 @@ module Base
         entity ES_BlackTwoPaneDoubleDoorLeft
         {
             LuaWindowClass = ISEntityWindow,
-            DisplayName = Black Two-Pane Double Door - Left,
-            Icon = fixtures_doors_02_41,
+            DisplayName = Black Two-Pane Double Door,
+            Icon = LMION_BlackTwoPaneDoubleDoorLeft,
         }
 
         entity ES_BlackTwoPaneDoubleDoorRight
         {
             LuaWindowClass = ISEntityWindow,
-            DisplayName = Black Two-Pane Double Door - Right,
-            Icon = fixtures_doors_02_45,
+            DisplayName = Black Two-Pane Double Door,
+            Icon = LMION_BlackTwoPaneDoubleDoorRight,
         }
     }
 
@@ -29,23 +29,21 @@ module Base
         component CraftRecipe
         {
             timedAction = BuildWallMetal,
-            time = 200,
+            time = 190,
             category = LMION,
-            SkillRequired = MetalWelding:3,
-            xpAward = MetalWelding:30,
+            SkillRequired = MetalWelding:5,
+            xpAward = MetalWelding:35,
 
             inputs
             {
                 item 1 [Base.WeldingMask] mode:keep,
-                item 1 [Base.Screwdriver] mode:keep,
                 item 4 [Base.BlowTorch] flags[DontRecordInput],
-                item 2 [Base.SmallSheetMetal],
+                item 1 [Base.SheetMetal],
                 item 2 [Base.MetalBar],
                 item 2 [Base.Hinge],
-                item 4 [Base.Screws],
-                item 1 [Base.Doorknob],
-                item 1 [Base.GlassPanel],
                 item 4 [Base.WeldingRods] flags[DontRecordInput],
+                item 1 [Base.Doorknob],
+                item 2 [Base.GlassPanel],
             }
         }
     }
@@ -62,23 +60,21 @@ module Base
         component CraftRecipe
         {
             timedAction = BuildWallMetal,
-            time = 200,
+            time = 190,
             category = LMION,
-            SkillRequired = MetalWelding:3,
-            xpAward = MetalWelding:30,
+            SkillRequired = MetalWelding:5,
+            xpAward = MetalWelding:35,
 
             inputs
             {
                 item 1 [Base.WeldingMask] mode:keep,
-                item 1 [Base.Screwdriver] mode:keep,
                 item 4 [Base.BlowTorch] flags[DontRecordInput],
-                item 2 [Base.SmallSheetMetal],
+                item 1 [Base.SheetMetal],
                 item 2 [Base.MetalBar],
                 item 2 [Base.Hinge],
-                item 4 [Base.Screws],
-                item 1 [Base.Doorknob],
-                item 1 [Base.GlassPanel],
                 item 4 [Base.WeldingRods] flags[DontRecordInput],
+                item 1 [Base.Doorknob],
+                item 2 [Base.GlassPanel],
             }
         }
     }

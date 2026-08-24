@@ -1,0 +1,471 @@
+module Base
+{
+    xuiSkin default
+    {
+        entity ES_LMION_DoubleDoor
+        {
+            LuaWindowClass = ISEntityWindow,
+            DisplayName = Large Wooden Gate,
+            Icon = LMION_DoubleDoor,
+        }
+
+        entity ES_LMION_DoubleWireGate
+        {
+            LuaWindowClass = ISEntityWindow,
+            DisplayName = Large Chain-Link Gate,
+            Icon = LMION_DoubleWireGate,
+        }
+
+        entity ES_LMION_DoubleFenceGate
+        {
+            LuaWindowClass = ISEntityWindow,
+            DisplayName = Large Scrap Metal Gate,
+            Icon = LMION_DoubleFenceGate,
+        }
+
+        entity ES_LMION_WoodFenceGate
+        {
+            LuaWindowClass = ISEntityWindow,
+            DisplayName = Wooden Gate,
+            Icon = LMION_WoodFenceGate,
+        }
+
+        entity ES_LMION_MetalWireFenceGateSmall
+        {
+            LuaWindowClass = ISEntityWindow,
+            DisplayName = Small Chain-Link Gate,
+            Icon = LMION_MetalWireFenceGateSmall,
+        }
+
+        entity ES_LMION_MetalWireFenceGate
+        {
+            LuaWindowClass = ISEntityWindow,
+            DisplayName = Chain-Link Gate,
+            Icon = LMION_MetalWireFenceGate,
+        }
+
+        entity ES_LMION_MetalPoleFenceGateSmall
+        {
+            LuaWindowClass = ISEntityWindow,
+            DisplayName = Small Scrap Metal Gate,
+            Icon = LMION_MetalPoleFenceGateSmall,
+        }
+
+        entity ES_LMION_MetalPoleFenceGate
+        {
+            LuaWindowClass = ISEntityWindow,
+            DisplayName = Scrap Metal Gate,
+            Icon = LMION_MetalPoleFenceGate,
+        }
+
+        entity ES_LMION_WoodenDoorLvl1
+        {
+            LuaWindowClass = ISEntityWindow,
+            DisplayName = Basic Wooden Door,
+            Icon = LMION_WoodenDoorLvl1,
+        }
+
+        entity ES_LMION_WoodenDoorLvl2
+        {
+            LuaWindowClass = ISEntityWindow,
+            DisplayName = Sturdy Wooden Door,
+            Icon = LMION_WoodenDoorLvl2,
+        }
+
+        entity ES_LMION_WoodenDoorLvl3
+        {
+            LuaWindowClass = ISEntityWindow,
+            DisplayName = Artisan Wooden Door,
+            Icon = LMION_WoodenDoorLvl3,
+        }
+
+        entity ES_LMION_MetalDoorLvl1
+        {
+            LuaWindowClass = ISEntityWindow,
+            DisplayName = Basic Metal Door,
+            Icon = LMION_MetalDoorLvl1,
+        }
+
+        entity ES_LMION_MetalDoorLvl2
+        {
+            LuaWindowClass = ISEntityWindow,
+            DisplayName = Simple Metal Door,
+            Icon = LMION_MetalDoorLvl2,
+        }
+    }
+
+    entity DoubleDoor
+    {
+        component UiConfig
+        {
+            xuiSkin = default,
+            entityStyle = ES_LMION_DoubleDoor,
+            uiEnabled = false,
+        }
+
+        component CraftRecipe
+        {
+            timedAction = BuildWallHammer,
+            time = 180,
+            category = LMION,
+            SkillRequired = Woodwork:4,
+            xpAward = Woodwork:30,
+
+            inputs
+            {
+                item 1 tags[base:hammer] mode:keep flags[Prop1;MayDegradeVeryLight],
+                item 8 [Base.Plank],
+                item 8 [Base.Nails],
+                item 4 [Base.Hinge],
+                item 2 [Base.Doorknob],
+            }
+        }
+    }
+
+    entity DoubleWireGate
+    {
+        component UiConfig
+        {
+            xuiSkin = default,
+            entityStyle = ES_LMION_DoubleWireGate,
+            uiEnabled = false,
+        }
+
+        component CraftRecipe
+        {
+            timedAction = BuildWireFence,
+            time = 220,
+            category = LMION,
+            SkillRequired = MetalWelding:5,
+            xpAward = MetalWelding:40,
+
+            inputs
+            {
+                item 1 [Base.WeldingMask] mode:keep,
+                item 10 [Base.BlowTorch] flags[DontRecordInput],
+                item 8 [Base.MetalPipe],
+                item 4 [Base.Wire],
+                item 4 [Base.Hinge],
+                item 2 [Base.ScrapMetal],
+                item 10 [Base.WeldingRods] flags[DontRecordInput],
+            }
+        }
+    }
+
+    entity DoubleFenceGate
+    {
+        component UiConfig
+        {
+            xuiSkin = default,
+            entityStyle = ES_LMION_DoubleFenceGate,
+            uiEnabled = false,
+        }
+
+        component CraftRecipe
+        {
+            timedAction = BuildWireFence,
+            time = 240,
+            category = LMION,
+            SkillRequired = MetalWelding:5,
+            xpAward = MetalWelding:40,
+
+            inputs
+            {
+                item 1 [Base.WeldingMask] mode:keep,
+                item 10 [Base.BlowTorch] flags[DontRecordInput],
+                item 10 [Base.MetalPipe],
+                item 4 [Base.Hinge],
+                item 4 [Base.ScrapMetal],
+                item 10 [Base.WeldingRods] flags[DontRecordInput],
+            }
+        }
+    }
+
+    entity WoodFenceGate
+    {
+        component UiConfig
+        {
+            xuiSkin = default,
+            entityStyle = ES_LMION_WoodFenceGate,
+            uiEnabled = false,
+        }
+
+        component CraftRecipe
+        {
+            timedAction = BuildWallHammer,
+            time = 100,
+            category = LMION,
+            SkillRequired = Woodwork:3,
+            xpAward = Woodwork:15,
+
+            inputs
+            {
+                item 1 tags[base:hammer] mode:keep flags[Prop1;MayDegradeVeryLight],
+                item 4 [Base.Plank],
+                item 4 [Base.Nails],
+                item 2 [Base.Hinge],
+                item 1 [Base.Doorknob],
+            }
+        }
+    }
+
+    entity MetalWireFenceGateSmall
+    {
+        component UiConfig
+        {
+            xuiSkin = default,
+            entityStyle = ES_LMION_MetalWireFenceGateSmall,
+            uiEnabled = false,
+        }
+
+        component CraftRecipe
+        {
+            timedAction = BuildWireFence,
+            time = 70,
+            category = LMION,
+            SkillRequired = MetalWelding:2,
+            xpAward = MetalWelding:10,
+
+            inputs
+            {
+                item 1 [Base.WeldingMask] mode:keep,
+                item 2 [Base.BlowTorch] flags[DontRecordInput],
+                item 2 [Base.MetalPipe],
+                item 1 [Base.Wire],
+                item 2 [Base.Hinge],
+                item 1 [Base.ScrapMetal],
+                item 2 [Base.WeldingRods] flags[DontRecordInput],
+            }
+        }
+    }
+
+    entity MetalWireFenceGate
+    {
+        component UiConfig
+        {
+            xuiSkin = default,
+            entityStyle = ES_LMION_MetalWireFenceGate,
+            uiEnabled = false,
+        }
+
+        component CraftRecipe
+        {
+            timedAction = BuildWireFence,
+            time = 110,
+            category = LMION,
+            SkillRequired = MetalWelding:3,
+            xpAward = MetalWelding:15,
+
+            inputs
+            {
+                item 1 [Base.WeldingMask] mode:keep,
+                item 4 [Base.BlowTorch] flags[DontRecordInput],
+                item 4 [Base.MetalPipe],
+                item 2 [Base.Wire],
+                item 2 [Base.Hinge],
+                item 1 [Base.ScrapMetal],
+                item 4 [Base.WeldingRods] flags[DontRecordInput],
+            }
+        }
+    }
+
+    entity MetalPoleFenceGateSmall
+    {
+        component UiConfig
+        {
+            xuiSkin = default,
+            entityStyle = ES_LMION_MetalPoleFenceGateSmall,
+            uiEnabled = false,
+        }
+
+        component CraftRecipe
+        {
+            timedAction = BuildWireFence,
+            time = 80,
+            category = LMION,
+            SkillRequired = MetalWelding:2,
+            xpAward = MetalWelding:10,
+
+            inputs
+            {
+                item 1 [Base.WeldingMask] mode:keep,
+                item 3 [Base.BlowTorch] flags[DontRecordInput],
+                item 3 [Base.MetalPipe],
+                item 2 [Base.Hinge],
+                item 1 [Base.ScrapMetal],
+                item 3 [Base.WeldingRods] flags[DontRecordInput],
+            }
+        }
+    }
+
+    entity MetalPoleFenceGate
+    {
+        component UiConfig
+        {
+            xuiSkin = default,
+            entityStyle = ES_LMION_MetalPoleFenceGate,
+            uiEnabled = false,
+        }
+
+        component CraftRecipe
+        {
+            timedAction = BuildWireFence,
+            time = 120,
+            category = LMION,
+            SkillRequired = MetalWelding:3,
+            xpAward = MetalWelding:15,
+
+            inputs
+            {
+                item 1 [Base.WeldingMask] mode:keep,
+                item 5 [Base.BlowTorch] flags[DontRecordInput],
+                item 5 [Base.MetalPipe],
+                item 2 [Base.Hinge],
+                item 2 [Base.ScrapMetal],
+                item 5 [Base.WeldingRods] flags[DontRecordInput],
+            }
+        }
+    }
+
+    entity WoodenDoorLvl1
+    {
+        component UiConfig
+        {
+            xuiSkin = default,
+            entityStyle = ES_LMION_WoodenDoorLvl1,
+            uiEnabled = false,
+        }
+
+        component CraftRecipe
+        {
+            timedAction = BuildWallHammer,
+            time = 90,
+            category = LMION,
+            SkillRequired = Woodwork:3,
+            xpAward = Woodwork:15,
+
+            inputs
+            {
+                item 1 tags[base:hammer] mode:keep flags[Prop1;MayDegradeVeryLight],
+                item 4 [Base.Plank],
+                item 4 [Base.Nails],
+                item 2 [Base.Hinge],
+                item 1 [Base.Doorknob],
+            }
+        }
+    }
+
+    entity WoodenDoorLvl2
+    {
+        component UiConfig
+        {
+            xuiSkin = default,
+            entityStyle = ES_LMION_WoodenDoorLvl2,
+            uiEnabled = false,
+        }
+
+        component CraftRecipe
+        {
+            timedAction = BuildWallHammer,
+            time = 120,
+            category = LMION,
+            SkillRequired = Woodwork:5,
+            xpAward = Woodwork:25,
+
+            inputs
+            {
+                item 1 tags[base:hammer] mode:keep flags[Prop1;MayDegradeVeryLight],
+                item 4 [Base.Plank],
+                item 4 [Base.Nails],
+                item 2 [Base.Hinge],
+                item 1 [Base.Doorknob],
+            }
+        }
+    }
+
+    entity WoodenDoorLvl3
+    {
+        component UiConfig
+        {
+            xuiSkin = default,
+            entityStyle = ES_LMION_WoodenDoorLvl3,
+            uiEnabled = false,
+        }
+
+        component CraftRecipe
+        {
+            timedAction = BuildWallHammer,
+            time = 160,
+            category = LMION,
+            SkillRequired = Woodwork:7,
+            xpAward = Woodwork:40,
+
+            inputs
+            {
+                item 1 tags[base:hammer] mode:keep flags[Prop1;MayDegradeVeryLight],
+                item 4 [Base.Plank],
+                item 4 [Base.Nails],
+                item 2 [Base.Hinge],
+                item 1 [Base.Doorknob],
+            }
+        }
+    }
+
+    entity MetalDoorLvl1
+    {
+        component UiConfig
+        {
+            xuiSkin = default,
+            entityStyle = ES_LMION_MetalDoorLvl1,
+            uiEnabled = false,
+        }
+
+        component CraftRecipe
+        {
+            timedAction = BuildWallMetal,
+            time = 120,
+            category = LMION,
+            SkillRequired = MetalWelding:3,
+            xpAward = MetalWelding:20,
+
+            inputs
+            {
+                item 1 [Base.WeldingMask] mode:keep,
+                item 4 [Base.BlowTorch] flags[DontRecordInput],
+                item 3 [Base.SmallSheetMetal],
+                item 2 [Base.Hinge],
+                item 4 [Base.WeldingRods] flags[DontRecordInput],
+                item 1 [Base.Doorknob],
+            }
+        }
+    }
+
+    entity MetalDoorLvl2
+    {
+        component UiConfig
+        {
+            xuiSkin = default,
+            entityStyle = ES_LMION_MetalDoorLvl2,
+            uiEnabled = false,
+        }
+
+        component CraftRecipe
+        {
+            timedAction = BuildWallMetal,
+            time = 140,
+            category = LMION,
+            SkillRequired = MetalWelding:4,
+            xpAward = MetalWelding:25,
+
+            inputs
+            {
+                item 1 [Base.WeldingMask] mode:keep,
+                item 4 [Base.BlowTorch] flags[DontRecordInput],
+                item 3 [Base.SmallSheetMetal],
+                item 2 [Base.Hinge],
+                item 4 [Base.WeldingRods] flags[DontRecordInput],
+                item 1 [Base.Doorknob],
+            }
+        }
+    }
+}

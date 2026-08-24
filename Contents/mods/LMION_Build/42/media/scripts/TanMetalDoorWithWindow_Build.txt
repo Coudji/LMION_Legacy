@@ -6,7 +6,7 @@ module Base
         {
             LuaWindowClass = ISEntityWindow,
             DisplayName = Tan Metal Door with Window,
-            Icon = fixtures_doors_01_17,
+            Icon = LMION_TanMetalDoorWithWindow,
         }
     }
 
@@ -21,20 +21,20 @@ module Base
 
         component CraftRecipe
         {
-            timedAction = BuildWallHammer,
-            time = 200,
+            timedAction = BuildWallMetal,
+            time = 170,
             category = LMION,
-            SkillRequired = Woodwork:3,
-            xpAward = Woodwork:30,
+            SkillRequired = MetalWelding:4,
+            xpAward = MetalWelding:30,
 
             inputs
             {
-                item 1 tags[base:hammer] mode:keep flags[Prop1;MayDegradeVeryLight],
-                item 1 [Base.Screwdriver] mode:keep,
-                item 4 [Base.Plank],
-                item 4 [Base.Nails],
+                item 1 [Base.WeldingMask] mode:keep,
+                item 4 [Base.BlowTorch] flags[DontRecordInput],
+                item 1 [Base.SheetMetal],
+                item 2 [Base.MetalBar],
                 item 2 [Base.Hinge],
-                item 4 [Base.Screws],
+                item 4 [Base.WeldingRods] flags[DontRecordInput],
                 item 1 [Base.Doorknob],
                 item 1 [Base.GlassPanel],
             }
