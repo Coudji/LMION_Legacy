@@ -33,7 +33,7 @@ module Base
                 item 1 [Base.Screwdriver] mode:keep,
                 item 10 [Base.BlowTorch] flags[DontRecordInput],
                 item 7 [Base.SteelBar],
-                item 2 [Base.SmallSteelSheet],
+                item 2 [Base.SmallSheetMetal],
                 item 4 [Base.Hinge],
                 item 8 [Base.Screws],
                 item 1 [Base.Doorknob],
