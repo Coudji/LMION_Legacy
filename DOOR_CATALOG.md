@@ -91,7 +91,7 @@ Status: **validated design specification**. The vanilla model is the normal larg
 | Preview | Entity | EN name | FR name | World HP / segment | Build skill | `health` | `skillBaseHealth` | HP at required level | HP lvl 10 | Class | Glazed | Frame | Materials | MaterialType | DoorSound | ThumpSound |
 |---|---|---|---|---:|---|---:|---:|---:|---:|---|---|---|---|---|---|---|
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_DoubleDoor.png" width="120"> | `Base.DoubleDoor` | Large Wooden Gate | Grand portail en bois | 650 | Woodwork 4 | 400 | 300 | 1600 | 3400 | `wood` | no | none | M1=Wood; M2=Nails | Wood_Solid | WoodGate | ZombieThumpWood |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_WoodenFenceDoubleGate.png" width="120"> | `Base.WoodenFenceDoubleGate` | Hardened Wooden Gate | Grand portail en bois durci | 750 | Woodwork 7 | 500 | 350 | 2950 | 4000 | `wood` | no | none | M1=Wood; M2=Nails; M3=Screws | Wood_Solid | WoodGate | ZombieThumpWood |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_WoodenFenceDoubleGate.png" width="120"> | `Base.WoodenFenceDoubleGate` | Large Hardened Wooden Gate | Grand portail en bois durci | 750 | Woodwork 7 | 500 | 350 | 2950 | 4000 | `wood` | no | none | M1=Wood; M2=Nails; M3=Screws | Wood_Solid | WoodGate | ZombieThumpWood |
 
 #### Craft
 
@@ -115,10 +115,10 @@ Status: **validated three-tier design specification**. The farm gate is intentio
 
 | Preview | Entity | EN name | FR name | Tier | World HP / segment | Build skill | `health` | `skillBaseHealth` | HP at required level | HP lvl 10 | Materials | MaterialType | DoorSound | ThumpSound / effective family |
 |---|---|---|---|---|---:|---|---:|---:|---:|---:|---|---|---|---|
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_FarmDoubleGate.png" width="120"> | `Base.FarmDoubleGate` | Farm Gate | Portail de ferme | 1 — light farm | 500 | MetalWelding 4 | 300 | 200 | 1100 | 2300 | M1=MetalPipe; M2=MetalBars | Metal_Light | FarmGate | ZombieThumpMetalPoleGate |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_FarmDoubleGate.png" width="120"> | `Base.FarmDoubleGate` | Large Farm Gate | Grand portail de ferme | 1 — light farm | 500 | MetalWelding 4 | 300 | 200 | 1100 | 2300 | M1=MetalPipe; M2=MetalBars | Metal_Light | FarmGate | ZombieThumpMetalPoleGate |
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_DoubleWireGate.png" width="120"> | `Base.DoubleWireGate` | Large Chain-Link Gate | Grand portail grillagé | 2 — cheap metal | 850 | MetalWelding 5 | 400 | 275 | 1775 | 3150 | M1=MetalPipe; M2=MetalWire | Metal_Light | MetalGate | MetalGate default → ZombieThumpChainlinkFence |
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_DoubleFenceGate.png" width="120"> | `Base.DoubleFenceGate` | Large Scrap Metal Gate | Grand portail en ferraille | 2 — cheap metal | 850 | MetalWelding 5 | 400 | 275 | 1775 | 3150 | M1=MetalPipe; M2=MetalScrap | Metal_Light | MetalGate | MetalGate default → ZombieThumpChainlinkFence |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_WroughtIronDoubleGate.png" width="120"> | `Base.WroughtIronDoubleGate` | Wrought Iron Gate | Portail en fer forgé | 3 — wrought iron | 1200 | MetalWelding 6 | 500 | 375 | 2750 | 4250 | M1=MetalBars; M2=MetalPipe | Metal_Solid | MetalPoleGateDouble | ZombieThumpMetalPoleGate |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_WroughtIronDoubleGate.png" width="120"> | `Base.WroughtIronDoubleGate` | Large Wrought Iron Gate | Grand portail en fer forgé | 3 — wrought iron | 1200 | MetalWelding 6 | 500 | 375 | 2750 | 4250 | M1=MetalBars; M2=MetalPipe | Metal_Solid | MetalPoleGateDouble | ZombieThumpMetalPoleGate |
 
 #### Craft
 
@@ -152,21 +152,74 @@ Left/right entities are listed together because they represent one visual door m
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_BlueChurchDoubleDoorLeft.png" width="70"><img src="Contents/mods/LMION_Build/42/media/textures/LMION_BlueChurchDoubleDoorRight.png" width="70"> | `Base.BlueChurchDoubleDoorLeft` / `Right` | Blue Church Double Door | Double porte d'église bleue | `wood` | 600 | no | paired | M1=Wood; M2=Door | Wood_Solid | WoodDoor |
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_BrownChurchDoubleDoorLeft.png" width="70"><img src="Contents/mods/LMION_Build/42/media/textures/LMION_BrownChurchDoubleDoorRight.png" width="70"> | `Base.BrownChurchDoubleDoorLeft` / `Right` | Brown Church Double Door | Double porte d'église brune | `wood` | 600 | no | paired | M1=Wood; M2=Door | Wood_Solid | WoodDoor |
 
-## Single gates, fence gates and wickets
+## Fence gates and wickets
 
-These stay separate from normal 1x1 doors because their material, pickup, placement and later repair rules may need to differ even when the runtime object is still an `IsoDoor`.
+These are the door-like openings used in fences and barriers. LMION uses a three-size naming hierarchy where applicable: **Large … Gate / Grand portail …** for the double-width models above, **… Gate / Portail …** for normal single-leaf models, and **Small … Gate / Portillon …** for the smallest variants. `Wicket` is avoided in player-facing English because `Small … Gate` is clearer. Naming may later be harmonized with non-door buildables when that wider construction pass happens.
 
-| Preview | Entity | EN name | FR name | Class | HP | Frame | Material(s) | MaterialType | DoorSound |
-|---|---|---|---|---|---:|---|---|---|---|
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_MetalWireFenceGate.png" width="96"> | `Base.MetalWireFenceGate` | Metal Wire Fence Gate | Portail de clôture grillagée | `metal` | 550 | none | M1=MetalPipe; M2=MetalWire | Metal_Light | MetalGate |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_MetalWireFenceGateSmall.png" width="96"> | `Base.MetalWireFenceGateSmall` | Small Metal Wire Fence Gate | Petit portail de clôture grillagée | `metal` | 475 | none | M1=MetalPipe; M2=MetalWire | Metal_Light | MetalGate |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_MetalPoleFenceGate.png" width="96"> | `Base.MetalPoleFenceGate` | Metal Pole Fence Gate | Portail de clôture métallique | `metal` | 650 | none | M1=MetalPipe | Metal_Light | MetalPoleGate |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_MetalPoleFenceGateSmall.png" width="96"> | `Base.MetalPoleFenceGateSmall` | Small Metal Pole Fence Gate | Petit portail de clôture métallique | `metal` | 550 | none | M1=MetalPipe | Metal_Light | MetalPoleGate |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_WoodFenceGate.png" width="96"> | `Base.WoodFenceGate` | Wood Fence Gate | Portail de clôture en bois | `wood` | 500 | none | M1=Wood; M2=Nails | Wood_Solid | WoodDoor |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_SmallMetalFenceGate.png" width="96"> | `Base.SmallMetalFenceGate` | Small Metal Fence Gate | Petit portail métallique | `metal` | 550 | none | M1=MetalBars | Metal_Light | MetalGate |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_TallWoodenFenceGate.png" width="96"> | `Base.TallWoodenFenceGate` | Tall Wooden Fence Gate | Grand portail de clôture en bois | `wood` | 600 | none | M1=Wood; M2=Nails | Wood_Solid | WoodDoor |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_TallWroughtIronGate.png" width="96"> | `Base.TallWroughtIronGate` | Tall Wrought Iron Gate | Grand portail en fer forgé | `metal` | 800 | none | M1=MetalBars | Metal_Solid | MetalPoleGate |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_SmallWhiteWoodenFenceGate.png" width="96"> | `Base.SmallWhiteWoodenFenceGate` | Small White Wooden Fence Gate | Petit portail de clôture en bois blanc | `wood` | 425 | none | M1=Wood; M2=Nails | Wood | WoodDoor |
+### Wooden fence gates
+
+The wooden family follows the same standard-versus-hardened logic as the large wooden gates. The tall brown model is treated as the single-leaf hardened counterpart; the small white model is deliberately lighter and simpler.
+
+#### Profiles
+
+| Preview | Entity | EN name | FR name | World HP | Build skill | `health` | `skillBaseHealth` | HP at required level | HP lvl 10 | Class | Frame | Materials | MaterialType | DoorSound | ThumpSound |
+|---|---|---|---|---:|---|---:|---:|---:|---:|---|---|---|---|---|---|
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_SmallWhiteWoodenFenceGate.png" width="96"> | `Base.SmallWhiteWoodenFenceGate` | Small White Wooden Gate | Portillon en bois blanc | 425 | Woodwork 2 | 225 | 175 | 575 | 1975 | `wood` | none | M1=Wood; M2=Nails | Wood | WoodGateSmall | ZombieThumpWood |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_WoodFenceGate.png" width="96"> | `Base.WoodFenceGate` | Wooden Gate | Portail en bois | 500 | Woodwork 3 | 300 | 225 | 975 | 2550 | `wood` | none | M1=Wood; M2=Nails | Wood_Solid | WoodGate | ZombieThumpWood |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_TallWoodenFenceGate.png" width="96"> | `Base.TallWoodenFenceGate` | Hardened Wooden Gate | Portail en bois durci | 600 | Woodwork 5 | 400 | 275 | 1775 | 3150 | `wood` | none | M1=Wood; M2=Nails; M3=Screws | Wood_Solid | WoodGate | ZombieThumpWood |
+
+#### Craft
+
+| Entity | Tools | Inputs | Notes |
+|---|---|---|---|
+| `Base.SmallWhiteWoodenFenceGate` | Hammer kept | Plank x2; Nails x2; Door Hinge x2 | no Screwdriver; no Screws; light/simple tier |
+| `Base.WoodFenceGate` | Hammer kept | Plank x4; Nails x4; Door Hinge x2; Doorknob x1 | standard wooden gate |
+| `Base.TallWoodenFenceGate` | Hammer + Screwdriver kept | Plank x5; Nails x5; Screws x4; Door Hinge x2; Doorknob x1 | hardened tier; screw reinforcement intentionally retained |
+
+#### Pickup and replacement
+
+| Entity | Pickup skill | Pickup tools | Break chance | Pickup output / weight | Replacement |
+|---|---|---|---|---|---|
+| `Base.SmallWhiteWoodenFenceGate` | Woodwork 1 | Hammer | none | 1 package — 7 kg | package + Hammer |
+| `Base.WoodFenceGate` | Woodwork 1 | Hammer | none | 1 package — 14 kg | package + Hammer |
+| `Base.TallWoodenFenceGate` | Woodwork 2 | Hammer + Screwdriver | none | 1 package — 18 kg | package + Hammer + Screwdriver |
+
+### Metal fence gates
+
+Chain-link and scrap-metal models use the same durability tier at a given size, mirroring the large-gate logic. Chain-link is light but regular; the pole/scrap models use more metal but are visibly rougher assemblies. Wrought iron remains the strongest family at every size. All metal constructions are treated as welded structures, so Screwdriver and Screws are removed where present. Welding Mask is required consistently.
+
+#### Profiles
+
+| Preview | Entity | EN name | FR name | Family / size | World HP | Build skill | `health` | `skillBaseHealth` | HP at required level | HP lvl 10 | Materials | MaterialType | DoorSound | ThumpSound |
+|---|---|---|---|---|---:|---|---:|---:|---:|---:|---|---|---|---|
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_MetalWireFenceGateSmall.png" width="96"> | `Base.MetalWireFenceGateSmall` | Small Chain-Link Gate | Portillon grillagé | chain-link / small | 450 | MetalWelding 2 | 250 | 175 | 600 | 2000 | M1=MetalPipe; M2=MetalWire | Metal_Light | MetalGate | ZombieThumpChainlinkFence |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_MetalWireFenceGate.png" width="96"> | `Base.MetalWireFenceGate` | Chain-Link Gate | Portail grillagé | chain-link / normal | 600 | MetalWelding 3 | 300 | 225 | 975 | 2550 | M1=MetalPipe; M2=MetalWire | Metal_Light | MetalGate | ZombieThumpChainlinkFence |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_MetalPoleFenceGateSmall.png" width="96"> | `Base.MetalPoleFenceGateSmall` | Small Scrap Metal Gate | Portillon en ferraille | scrap / small | 450 | MetalWelding 2 | 250 | 175 | 600 | 2000 | M1=MetalPipe; M2=MetalScrap | Metal_Light | MetalPoleGateSmall | ZombieThumpMetalPoleGate |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_MetalPoleFenceGate.png" width="96"> | `Base.MetalPoleFenceGate` | Scrap Metal Gate | Portail en ferraille | scrap / normal | 600 | MetalWelding 3 | 300 | 225 | 975 | 2550 | M1=MetalPipe; M2=MetalScrap | Metal_Light | MetalPoleGate | ZombieThumpMetalPoleGate |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_SmallMetalFenceGate.png" width="96"> | `Base.SmallMetalFenceGate` | Small Wrought Iron Gate | Portillon en fer forgé | wrought iron / small | 650 | MetalWelding 3 | 325 | 250 | 1075 | 2825 | M1=MetalBars; M2=MetalPipe | Metal_Solid | MetalPoleGateSmall | ZombieThumpMetalPoleGate |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_TallWroughtIronGate.png" width="96"> | `Base.TallWroughtIronGate` | Wrought Iron Gate | Portail en fer forgé | wrought iron / normal | 850 | MetalWelding 4 | 400 | 300 | 1600 | 3400 | M1=MetalBars; M2=MetalPipe | Metal_Solid | MetalPoleGate | ZombieThumpMetalPoleGate |
+
+#### Craft
+
+| Entity | Tools | Inputs | Notes |
+|---|---|---|---|
+| `Base.MetalWireFenceGateSmall` | Welding Mask kept | Blow Torch 2 uses; Metal Pipe x2; Wire 1 use; Door Hinge x2; Scrap Metal x1; Welding Rods 2 uses | small chain-link tier |
+| `Base.MetalWireFenceGate` | Welding Mask kept | Blow Torch 4 uses; Metal Pipe x4; Wire 2 uses; Door Hinge x2; Scrap Metal x1; Welding Rods 4 uses | normal chain-link tier |
+| `Base.MetalPoleFenceGateSmall` | Welding Mask kept | Blow Torch 3 uses; Metal Pipe x3; Door Hinge x2; Scrap Metal x1; Welding Rods 3 uses | small scrap tier |
+| `Base.MetalPoleFenceGate` | Welding Mask kept | Blow Torch 5 uses; Metal Pipe x5; Door Hinge x2; Scrap Metal x2; Welding Rods 5 uses | normal scrap tier |
+| `Base.SmallMetalFenceGate` | Welding Mask kept | Blow Torch 3 uses; Metal Bar x2; Metal Pipe x1; Door Hinge x2; Welding Rods 2 uses | no Screwdriver; no Screws; no Small Sheet Metal |
+| `Base.TallWroughtIronGate` | Welding Mask kept | Blow Torch 5 uses; Metal Bar x4; Metal Pipe x2; Door Hinge x2; Welding Rods 4 uses | no Screwdriver; no Screws; no Small Sheet Metal |
+
+#### Pickup and replacement
+
+| Entity | Pickup skill | Pickup tools | Break chance | Pickup output / weight | Replacement |
+|---|---|---|---|---|---|
+| `Base.MetalWireFenceGateSmall` | MetalWelding 1 | Blow Torch + Welding Mask | none | 1 package — 6 kg | package + Blow Torch + Welding Mask |
+| `Base.MetalWireFenceGate` | MetalWelding 1 | Blow Torch + Welding Mask | none | 1 package — 12 kg | package + Blow Torch + Welding Mask |
+| `Base.MetalPoleFenceGateSmall` | MetalWelding 1 | Blow Torch + Welding Mask | none | 1 package — 8 kg | package + Blow Torch + Welding Mask |
+| `Base.MetalPoleFenceGate` | MetalWelding 1 | Blow Torch + Welding Mask | none | 1 package — 16 kg | package + Blow Torch + Welding Mask |
+| `Base.SmallMetalFenceGate` | MetalWelding 1 | Blow Torch + Welding Mask | none | 1 package — 12 kg | package + Blow Torch + Welding Mask |
+| `Base.TallWroughtIronGate` | MetalWelding 2 | Blow Torch + Welding Mask | none | 1 package — 25 kg | package + Blow Torch + Welding Mask |
 
 ## Simple 1x1 doors
 
