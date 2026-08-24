@@ -285,23 +285,24 @@ The explicit 400 / 500 / 600 values override the generic 500 HP normal-wood base
 | `Base.WoodenDoorLvl3` | Woodwork 3 | Hammer | none | 1 package — 15 kg | package + Hammer |
 | `Base.OuthouseDoor` | Woodwork 0 | Hammer | none | 1 package — 10 kg | package + Hammer |
 
-## Finished wooden 1x1 doors
+## Paneled wooden 1x1 doors
 
-Status: **validated shared family specification**. These three doors use the same paneled model and differ only by finish / wood species. They represent a well-finished household door: intentionally a little better than the ordinary artisan wooden door, but still a normal wooden door rather than a defensive or security construction.
+Status: **validated shared family specification**. These four doors use the same four-panel household model and differ only by color / finish. They represent a well-finished wooden door: intentionally a little better than the ordinary artisan wooden door, but still a normal household door rather than a defensive or security construction.
 
 ### Profiles
 
 | Preview | Entity | EN name | FR name | World HP | Build skill | `health` | `skillBaseHealth` | HP at required level | HP lvl 10 | Materials | MaterialType | DoorSound | ThumpSound | Frame |
 |---|---|---|---|---:|---|---:|---:|---:|---:|---|---|---|---|---|
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_WhiteWoodenDoor.png" width="96"> | `Base.WhiteWoodenDoor` | Birch Door | Porte en bouleau | **625** | Woodwork 6 | 450 | 275 | 2100 | 3200 | M1=Wood; M2=Nails; M3=Screws | Wood_Solid | WoodDoor | ZombieThumpWood | standard |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_BrownDoor.png" width="96"> | `Base.BrownDoor` | Walnut Door | Porte en noyer | **625** | Woodwork 6 | 450 | 275 | 2100 | 3200 | M1=Wood; M2=Nails; M3=Screws | Wood_Solid | WoodDoor | ZombieThumpWood | standard |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_CherryDoor.png" width="96"> | `Base.CherryDoor` | Cherry Door | Porte en cerisier | **625** | Woodwork 6 | 450 | 275 | 2100 | 3200 | M1=Wood; M2=Nails; M3=Screws | Wood_Solid | WoodDoor | ZombieThumpWood | standard |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_WhiteWoodenDoor.png" width="96"> | `Base.WhiteWoodenDoor` | White Panel Door | Porte blanche à panneaux | **625** | Woodwork 6 | 450 | 275 | 2100 | 3200 | M1=Wood; M2=Nails; M3=Screws | Wood_Solid | WoodDoor | ZombieThumpWood | standard |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_BrownDoor.png" width="96"> | `Base.BrownDoor` | Brown Panel Door | Porte brune à panneaux | **625** | Woodwork 6 | 450 | 275 | 2100 | 3200 | M1=Wood; M2=Nails; M3=Screws | Wood_Solid | WoodDoor | ZombieThumpWood | standard |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_CherryDoor.png" width="96"> | `Base.CherryDoor` | Mahogany Panel Door | Porte acajou à panneaux | **625** | Woodwork 6 | 450 | 275 | 2100 | 3200 | M1=Wood; M2=Nails; M3=Screws | Wood_Solid | WoodDoor | ZombieThumpWood | standard |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_BlueDoor.png" width="96"> | `Base.BlueDoor` | Blue Panel Door | Porte bleue à panneaux | **625** | Woodwork 6 | 450 | 275 | 2100 | 3200 | M1=Wood; M2=Nails; M3=Screws | Wood_Solid | WoodDoor | ZombieThumpWood | standard |
 
 ### Shared craft and handling
 
 | Source | Tools | Inputs | Time | XP | Pickup | Replacement |
 |---|---|---|---|---:|---|---|
-| LMION build recipe; same recipe as the current Cherry Door | Hammer + Screwdriver kept | Plank x4; Nails x4; Door Hinge x2; Screws x4; Doorknob x1 | TBD | **20** | Woodwork 3; Hammer + Screwdriver; no break chance; 1 package — **17 kg** | package + Hammer + Screwdriver |
+| LMION build recipe; same recipe as the current `Base.CherryDoor` recipe | Hammer + Screwdriver kept | Plank x4; Nails x4; Door Hinge x2; Screws x4; Doorknob x1 | TBD | **20** | Woodwork 3; Hammer + Screwdriver; no break chance; 1 package — **17 kg** | package + Hammer + Screwdriver |
 
 ## Simple 1x1 doors — pending review
 
@@ -321,7 +322,6 @@ Status: **validated shared family specification**. These three doors use the sam
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_WhiteMetalDoor.png" width="96"> | `Base.WhiteMetalDoor` | White Metal Door | Porte métallique blanche | `metal` | 650 | no | standard | M1=MetalPlates; M2=Door | Metal_Solid | MetalDoor |
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_WhiteMetalDoorWithWindow.png" width="96"> | `Base.WhiteMetalDoorWithWindow` | White Metal Door with Window | Porte métallique blanche vitrée | `metal_glazed` | 550 | yes | standard | M1=MetalPlates; M2=Door | Metal_Solid | MetalDoor |
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_TanMetalDoor.png" width="96"> | `Base.TanMetalDoor` | Tan Metal Door | Porte métallique beige | `metal` | 650 | no | standard | M1=MetalPlates; M2=Door | Metal_Solid | MetalDoor |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_BlueDoor.png" width="96"> | `Base.BlueDoor` | Blue Door | Porte bleue | `unknown` | TBD | no | standard | TBD | TBD | TBD |
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_BlackMetalDoor.png" width="96"> | `Base.BlackMetalDoor` | Black Metal Door | Porte métallique noire | `metal` | 650 | no | standard | M1=MetalPlates; M2=Door | Metal_Solid | MetalDoor |
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_BrownDoorWithWindows.png" width="96"> | `Base.BrownDoorWithWindows` | Brown Door with Windows | Porte brune avec fenêtres | `wood_glazed?` | 425 | yes | standard | TBD | TBD | TBD |
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_RedMetalDoor.png" width="96"> | `Base.RedMetalDoor` | Red Metal Door | Porte métallique rouge | `metal` | 650 | no | standard | M1=MetalPlates; M2=Door | Metal_Solid | MetalDoor |
@@ -351,8 +351,8 @@ Status: **not yet reviewed as a family**. Left/right entities are listed togethe
 
 ## Current known exceptions and validated facts
 
-- `CherryDoor` localized names are runtime-validated as `Cherry Door` / `Porte en cerisier` and remain the chosen player-facing names for that species variant.
-- Cherry's current runtime `MetalPlates` secondary material is a diagnostic canary and must be replaced by the finished-wood family setup: `M1=Wood; M2=Nails; M3=Screws`.
+- `Base.CherryDoor` keeps its technical entity ID but intentionally overrides its old `Cherry Door` / `Porte en cerisier` display localization with **Mahogany Panel Door / Porte acajou à panneaux** so the four identical panel-door sprites use one coherent naming scheme.
+- Cherry's current runtime `MetalPlates` secondary material is a diagnostic canary and must be replaced by the paneled-wood family setup: `M1=Wood; M2=Nails; M3=Screws`.
 - `BlueMetalDoor` was runtime-observed with `Material = MetalPlates`, `Material2 = Door`, `MaterialType = Plastic`; the catalog intentionally proposes `Metal_Solid` as the LMION physical classification instead of inheriting that vanilla value blindly.
 - `BlueMetalDoor` currently uses `worldMaxHealth = 600` only as a runtime durability canary. The catalog target is 650.
 - `LogDoor` keeps `M1=Log` for semantic fidelity. Vanilla's generic salvage path does not recognize `Log` as a wood salvage tag, and `IsoDoor.destroy()` would still add knob/hinge hardware. LMION should therefore give LogDoor custom destruction loot: `1 x Base.Log`, no doorknob, no hinges, and no additional vanilla door loot.
@@ -372,7 +372,6 @@ ChestnutGlassDoor
 BlackGlassDoor
 WhiteDoorWithWindows
 BlackTwoPaneDoor
-BlueDoor
 BrownDoorWithWindows
 PileOCrepeBlueDoorWithWindow
 PileOCrepeOrangeDoor
