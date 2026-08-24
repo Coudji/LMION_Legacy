@@ -42,7 +42,7 @@ Status: **validated family specification**. All garage-door models currently lis
 - Glazed garage doors: class `metal_glazed`, world max health **1000 HP per segment**.
 - Primary material: `MetalPlates`.
 - Secondary material: `MetalBars`.
-- `MaterialType = Metal_Large`.
+- `MaterialType = Metal_Light`. For this family, `MaterialType` is selected for the impact sound produced when the door is struck; garage doors should use the lighter sheet-metal impact rather than `Metal_Large`.
 - `DoorSound = GarageDoor`.
 - `BreakSound = BreakDoor` for the construction/thumpable stage unless a better verified value is adopted later.
 - Frame requirement: none.
@@ -109,13 +109,13 @@ The pickup skill must be tied to the door's construction skill, not inferred fro
 
 | Preview | Model / entity | EN name | FR name | Class | World HP / segment | Glazed | Frame | Material(s) | MaterialType | DoorSound | BreakSound |
 |---|---|---|---|---|---:|---|---|---|---|---|---|
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_IndustrialGarageDoor.png" width="120"> | `Base.IndustrialGarageDoor` | Industrial Garage Door | Porte de garage industrielle | `metal` | 1200 | no | none | M1=MetalPlates; M2=MetalBars | Metal_Large | GarageDoor | BreakDoor |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_GreenGarageDoor.png" width="120"> | `Base.GreenGarageDoor` | Green Garage Door | Porte de garage verte | `metal` | 1200 | no | none | M1=MetalPlates; M2=MetalBars | Metal_Large | GarageDoor | BreakDoor |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_WhiteGarageDoor.png" width="120"> | `Base.WhiteGarageDoor` | White Garage Door | Porte de garage blanche | `metal` | 1200 | no | none | M1=MetalPlates; M2=MetalBars | Metal_Large | GarageDoor | BreakDoor |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_GreyGarageDoor.png" width="120"> | `Base.GreyGarageDoor` | Grey Garage Door | Porte de garage grise | `metal` | 1200 | no | none | M1=MetalPlates; M2=MetalBars | Metal_Large | GarageDoor | BreakDoor |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_RollingGarageDoor.png" width="120"> | `Base.RollingGarageDoor` | Rolling Garage Door | Porte de garage à enroulement | `metal` | 1200 | no | none | M1=MetalPlates; M2=MetalBars | Metal_Large | GarageDoor | BreakDoor |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_RedWindowGarageDoor.png" width="120"> | `Base.RedWindowGarageDoor` | Red Window Garage Door | Porte de garage rouge vitrée | `metal_glazed` | 1000 | yes | none | M1=MetalPlates; M2=MetalBars | Metal_Large | GarageDoor | BreakDoor |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_RollingWindowGarageDoor.png" width="120"> | `Base.RollingWindowGarageDoor` | Rolling Window Garage Door | Porte de garage à enroulement vitrée | `metal_glazed` | 1000 | yes | none | M1=MetalPlates; M2=MetalBars | Metal_Large | GarageDoor | BreakDoor |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_IndustrialGarageDoor.png" width="120"> | `Base.IndustrialGarageDoor` | Industrial Garage Door | Porte de garage industrielle | `metal` | 1200 | no | none | M1=MetalPlates; M2=MetalBars | Metal_Light | GarageDoor | BreakDoor |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_GreenGarageDoor.png" width="120"> | `Base.GreenGarageDoor` | Green Garage Door | Porte de garage verte | `metal` | 1200 | no | none | M1=MetalPlates; M2=MetalBars | Metal_Light | GarageDoor | BreakDoor |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_WhiteGarageDoor.png" width="120"> | `Base.WhiteGarageDoor` | White Garage Door | Porte de garage blanche | `metal` | 1200 | no | none | M1=MetalPlates; M2=MetalBars | Metal_Light | GarageDoor | BreakDoor |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_GreyGarageDoor.png" width="120"> | `Base.GreyGarageDoor` | Grey Garage Door | Porte de garage grise | `metal` | 1200 | no | none | M1=MetalPlates; M2=MetalBars | Metal_Light | GarageDoor | BreakDoor |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_RollingGarageDoor.png" width="120"> | `Base.RollingGarageDoor` | Rolling Garage Door | Porte de garage à enroulement | `metal` | 1200 | no | none | M1=MetalPlates; M2=MetalBars | Metal_Light | GarageDoor | BreakDoor |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_RedWindowGarageDoor.png" width="120"> | `Base.RedWindowGarageDoor` | Red Window Garage Door | Porte de garage rouge vitrée | `metal_glazed` | 1000 | yes | none | M1=MetalPlates; M2=MetalBars | Metal_Light | GarageDoor | BreakDoor |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_RollingWindowGarageDoor.png" width="120"> | `Base.RollingWindowGarageDoor` | Rolling Window Garage Door | Porte de garage à enroulement vitrée | `metal_glazed` | 1000 | yes | none | M1=MetalPlates; M2=MetalBars | Metal_Light | GarageDoor | BreakDoor |
 
 ### Internal model descriptions
 
