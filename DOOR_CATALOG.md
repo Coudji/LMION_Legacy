@@ -221,6 +221,26 @@ Chain-link and scrap-metal models use the same durability tier at a given size, 
 | `Base.SmallMetalFenceGate` | MetalWelding 1 | Blow Torch + Welding Mask | none | 1 package — 12 kg | package + Blow Torch + Welding Mask |
 | `Base.TallWroughtIronGate` | MetalWelding 2 | Blow Torch + Welding Mask | none | 1 package — 25 kg | package + Blow Torch + Welding Mask |
 
+## Restroom stall doors
+
+Status: **validated shared family specification**. These five models are lightweight North-American public-restroom stall doors differentiated only by color/finish. They deliberately remain fragile regardless of carpenter skill: both world and player-built durability are fixed at **150 HP**, with `skillBaseHealth = 0` so higher Woodwork never turns them into defensive doors. Their screw-based recipe also provides an early-game alternative that does not require a Hammer.
+
+### Shared profile, craft and handling
+
+| Class | World HP | Build skill | `health` | `skillBaseHealth` | Built HP all levels | XP | Time | Tools | Inputs | Materials | MaterialType | DoorSound | ThumpSound | Frame | Pickup | Replacement |
+|---|---:|---|---:|---:|---:|---:|---:|---|---|---|---|---|---|---|---|---|
+| `wood` | **150** | Woodwork 1 | **150** | **0** | **150** | 5 | 50 | Screwdriver kept | Plank x2; Screws x4; Door Hinge x2; Doorknob x1; no Nails; no Hammer | M1=Wood; M2=Screws | Wood | WoodDoor | ZombieThumpWood | standard | Woodwork 0; Screwdriver; no break chance; 1 package — 8 kg | package + Screwdriver |
+
+### Models
+
+| Preview | Entity | EN name | FR name |
+|---|---|---|---|
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_SmallBlackPanelDoor.png" width="96"> | `Base.SmallBlackPanelDoor` | Black Restroom Stall Door | Porte de cabine sanitaire noire |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_SmallBlueDoor.png" width="96"> | `Base.SmallBlueDoor` | Blue Restroom Stall Door | Porte de cabine sanitaire bleue |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_SmallBrownPanelDoor.png" width="96"> | `Base.SmallBrownPanelDoor` | Brown Restroom Stall Door | Porte de cabine sanitaire brune |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_SmallPinkDoor.png" width="96"> | `Base.SmallPinkDoor` | Pink Restroom Stall Door | Porte de cabine sanitaire rose |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_SmallWhitePanelDoor.png" width="96"> | `Base.SmallWhitePanelDoor` | White Restroom Stall Door | Porte de cabine sanitaire blanche |
+
 ## Simple 1x1 doors
 
 | Preview | Entity | EN name | FR name | Class | HP | Glazed | Frame | Material(s) | MaterialType | DoorSound |
@@ -231,8 +251,6 @@ Chain-link and scrap-metal models use the same durability tier at a given size, 
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_WhiteWoodenDoor.png" width="96"> | `Base.WhiteWoodenDoor` | White Wooden Door | Porte en bois blanche | `wood` | 500 | no | standard | M1=Wood; M2=Door | Wood_Solid | WoodDoor |
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_MetalDoorLvl2.png" width="96"> | `Base.MetalDoorLvl2` | Metal Door Level 2 | Porte métallique niveau 2 | `metal` | 650 | no | standard | M1=MetalPlates; M2=Door | Metal_Solid | MetalDoor |
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_MetalDoorLvl1.png" width="96"> | `Base.MetalDoorLvl1` | Metal Door Level 1 | Porte métallique niveau 1 | `metal` | 650 | no | standard | M1=MetalPlates; M2=Door | Metal_Solid | MetalDoor |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_SmallBlueDoor.png" width="96"> | `Base.SmallBlueDoor` | Small Blue Door | Petite porte bleue | `unknown` | TBD | no | standard | TBD | TBD | TBD |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_SmallPinkDoor.png" width="96"> | `Base.SmallPinkDoor` | Small Pink Door | Petite porte rose | `unknown` | TBD | no | standard | TBD | TBD | TBD |
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_BlueRestroomDoor.png" width="96"> | `Base.BlueRestroomDoor` | Blue Restroom Door | Porte de sanitaires bleue | `unknown` | TBD | no | standard | TBD | TBD | TBD |
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_OuthouseDoor.png" width="96"> | `Base.OuthouseDoor` | Outhouse Door | Porte de latrines | `wood` | 425 | no | standard | M1=Wood; M2=Door | Wood | WoodDoor |
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_BrownSlidingGlassDoor.png" width="96"> | `Base.BrownSlidingGlassDoor` | Brown Sliding Glass Door | Porte coulissante vitrée brune | `glass` | 350 | yes | none | TBD | Glass_Solid | SlidingGlassDoor |
@@ -254,9 +272,6 @@ Chain-link and scrap-metal models use the same durability tier at a given size, 
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_WoodenDoor.png" width="96"> | `Base.WoodenDoor` | Wooden Door | Porte en bois | `wood` | 500 | no | standard | M1=Wood; M2=Door | Wood_Solid | WoodDoor |
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_BlueDoor.png" width="96"> | `Base.BlueDoor` | Blue Door | Porte bleue | `unknown` | TBD | no | standard | TBD | TBD | TBD |
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_BlackMetalDoor.png" width="96"> | `Base.BlackMetalDoor` | Black Metal Door | Porte métallique noire | `metal` | 650 | no | standard | M1=MetalPlates; M2=Door | Metal_Solid | MetalDoor |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_SmallBrownPanelDoor.png" width="96"> | `Base.SmallBrownPanelDoor` | Small Brown Panel Door | Petite porte à panneau brune | `wood` | 425 | no | standard | M1=Wood; M2=Door | Wood | WoodDoor |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_SmallWhitePanelDoor.png" width="96"> | `Base.SmallWhitePanelDoor` | Small White Panel Door | Petite porte à panneau blanche | `wood` | 425 | no | standard | M1=Wood; M2=Door | Wood | WoodDoor |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_SmallBlackPanelDoor.png" width="96"> | `Base.SmallBlackPanelDoor` | Small Black Panel Door | Petite porte à panneau noire | `wood` | 425 | no | standard | M1=Wood; M2=Door | Wood | WoodDoor |
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_BrownDoorWithWindows.png" width="96"> | `Base.BrownDoorWithWindows` | Brown Door with Windows | Porte brune avec fenêtres | `wood_glazed?` | 425 | yes | standard | TBD | TBD | TBD |
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_RedMetalDoor.png" width="96"> | `Base.RedMetalDoor` | Red Metal Door | Porte métallique rouge | `metal` | 650 | no | standard | M1=MetalPlates; M2=Door | Metal_Solid | MetalDoor |
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_JailDoor.png" width="96"> | `Base.JailDoor` | Jail Door | Porte de prison | `jail` | 2000 | no | standard | M1=MetalBars | Metal_Solid | PrisonMetalDoor |
@@ -287,8 +302,6 @@ The bulk pass intentionally leaves these rows partially unresolved because their
 
 ```text
 BlackGlassDoubleDoor
-SmallBlueDoor
-SmallPinkDoor
 BlueRestroomDoor
 TanDoorWithWindow
 BlackDoorWithWindow
