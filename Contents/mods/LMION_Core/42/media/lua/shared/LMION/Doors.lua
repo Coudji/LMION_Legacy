@@ -3,10 +3,10 @@ local Doors = LMION.Doors
 
 Doors.Profiles = Doors.Profiles or {}
 Doors.MaxHealthModDataKey = "lmionDoorMaxHealth"
-Doors.Profiles.CherryDoor = {
-    id = "CherryDoor",
-    nameKey = "EC_LMION_CherryDoor",
-    fallbackName = "Cherry Door",
+Doors.Profiles.MahoganyPanelDoor = {
+    id = "MahoganyPanelDoor",
+    nameKey = "EC_LMION_MahoganyPanelDoor",
+    fallbackName = "Mahogany Panel Door",
     requiresFrame = true,
 
     materials = {
@@ -17,7 +17,7 @@ Doors.Profiles.CherryDoor = {
 
     pickup = {
         allowed = true,
-        itemType = "Base.LMION_CherryDoor",
+        itemType = "Base.LMION_MahoganyPanelDoor",
         moveType = "Object",
         pickUpTool = "Hammer",
         placeTool = "Hammer",
@@ -27,8 +27,8 @@ Doors.Profiles.CherryDoor = {
     },
 }
 
-Doors.Profiles.BlueMetalDoor = {
-    id = "BlueMetalDoor",
+Doors.Profiles.BlueServiceDoor = {
+    id = "BlueServiceDoor",
     durability = {
         worldMaxHealth = 600,
     },
