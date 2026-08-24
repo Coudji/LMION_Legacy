@@ -1,38 +1,8 @@
 LMION.Doors = LMION.Doors or {}
 local Doors = LMION.Doors
 
-Doors.Profiles = Doors.Profiles or {}
+Doors.Profiles = require "LMION/DoorProfiles"
 Doors.MaxHealthModDataKey = "lmionDoorMaxHealth"
-Doors.Profiles.MahoganyPanelDoor = {
-    id = "MahoganyPanelDoor",
-    nameKey = "EC_LMION_MahoganyPanelDoor",
-    fallbackName = "Mahogany Panel Door",
-    requiresFrame = true,
-
-    materials = {
-        primary = "Door",
-        secondary = "MetalPlates",
-        materialType = "Wood_Solid",
-    },
-
-    pickup = {
-        allowed = true,
-        itemType = "Base.LMION_MahoganyPanelDoor",
-        moveType = "Object",
-        pickUpTool = "Hammer",
-        placeTool = "Hammer",
-        pickUpLevel = 2,
-        pickUpWeight = 200,
-        canBreak = false,
-    },
-}
-
-Doors.Profiles.BlueServiceDoor = {
-    id = "BlueServiceDoor",
-    durability = {
-        worldMaxHealth = 600,
-    },
-}
 
 local spriteProfiles = nil
 
@@ -84,8 +54,14 @@ local function setAliasedProperty(properties, name, value)
     return false
 end
 
+local function clearProperty(properties, name)
+    if properties ~= nil and properties:has(name) then
+        properties:unset(name)
+    end
+end
+
 local function applyEngineProfileToSprite(sprite, profile)
-    if sprite == nil or profile == nil or profile.materials == nil then
+    if sprite == nil or profile == nil then
         return false
     end
 
@@ -94,23 +70,44 @@ local function applyEngineProfileToSprite(sprite, profile)
         return false
     end
 
-    local materials = profile.materials
     local ok = true
+    local materials = profile.materials
 
-    if materials.primary ~= nil then
-        ok = setAliasedProperty(properties, "Material", materials.primary) and ok
+    if materials ~= nil then
+        if materials.primary ~= nil then
+            ok = setAliasedProperty(properties, "Material", materials.primary) and ok
+        else
+            clearProperty(properties, "Material")
+        end
+
+        if materials.secondary ~= nil then
+            ok = setAliasedProperty(properties, "Material2", materials.secondary) and ok
+        else
+            clearProperty(properties, "Material2")
+        end
+
+        if materials.tertiary ~= nil then
+            ok = setAliasedProperty(properties, "Material3", materials.tertiary) and ok
+        else
+            clearProperty(properties, "Material3")
+        end
+
+        if materials.materialType ~= nil then
+            ok = setAliasedProperty(properties, "MaterialType", materials.materialType) and ok
+        else
+            clearProperty(properties, "MaterialType")
+        end
     end
 
-    if materials.secondary ~= nil then
-        ok = setAliasedProperty(properties, "Material2", materials.secondary) and ok
-    end
+    local sounds = profile.sounds
+    if sounds ~= nil then
+        if sounds.door ~= nil then
+            ok = setAliasedProperty(properties, "DoorSound", sounds.door) and ok
+        end
 
-    if materials.tertiary ~= nil then
-        ok = setAliasedProperty(properties, "Material3", materials.tertiary) and ok
-    end
-
-    if materials.materialType ~= nil then
-        ok = setAliasedProperty(properties, "MaterialType", materials.materialType) and ok
+        if sounds.thump ~= nil then
+            ok = setAliasedProperty(properties, "ThumpSound", sounds.thump) and ok
+        end
     end
 
     return ok
@@ -121,6 +118,8 @@ function Doors.applyEngineProfiles()
         return 0, 0
     end
 
+    spriteProfiles = nil
+
     local scripts = ScriptManager.instance:getAllGameEntities()
     local applied = 0
     local rejected = 0
@@ -129,7 +128,7 @@ function Doors.applyEngineProfiles()
         local script = scripts:get(i)
         local profile = Doors.Profiles[script:getName()]
 
-        if profile ~= nil and profile.materials ~= nil then
+        if profile ~= nil then
             local spriteConfig = script:getComponentScriptFor(ComponentType.SpriteConfig)
             if spriteConfig ~= nil then
                 local tileNames = spriteConfig:getAllTileNames()
@@ -171,6 +170,29 @@ function Doors.getDisplayName(profile)
     end
 
     return profile.fallbackName or profile.id
+end
+
+function Doors.getConstructionMaxHealth(profile, craftRecipe, character)
+    local durability = profile and profile.durability or nil
+    if durability == nil then
+        return nil
+    end
+
+    local baseHealth = tonumber(durability.health)
+    local skillBaseHealth = tonumber(durability.skillBaseHealth) or 0
+    if baseHealth == nil then
+        return nil
+    end
+
+    local skillLevel = 0
+    if skillBaseHealth ~= 0
+        and craftRecipe ~= nil
+        and character ~= nil
+        and craftRecipe.getHighestRelevantSkillLevel ~= nil then
+        skillLevel = tonumber(craftRecipe:getHighestRelevantSkillLevel(character)) or 0
+    end
+
+    return math.max(0, math.floor(baseHealth + skillBaseHealth * skillLevel))
 end
 
 function Doors.setEffectiveMaxHealth(object, value)
@@ -381,7 +403,11 @@ function Doors.onCreateDoor(params)
 
     local square = thumpable:getSquare()
     local profile = Doors.getProfileForSprite(thumpable:getSprite())
-    local maxHealth = thumpable:getMaxHealth()
+    local effectiveMaxHealth = params and tonumber(params.effectiveMaxHealth) or nil
+    if effectiveMaxHealth == nil then
+        effectiveMaxHealth = thumpable:getMaxHealth()
+    end
+
     local door = IsoDoor.new(
         getCell(),
         square,
@@ -389,13 +415,18 @@ function Doors.onCreateDoor(params)
         thumpable:getNorth()
     )
 
-    door:setName(profile and (profile.fallbackName or profile.id) or thumpable:getName())
+    door:setName(profile and Doors.getDisplayName(profile) or thumpable:getName())
     door:setModData(copyTable(thumpable:getModData()))
-    Doors.setEffectiveMaxHealth(door, maxHealth)
+    Doors.setEffectiveMaxHealth(door, effectiveMaxHealth)
     door:setKeyId(thumpable:getKeyId())
     door:setIsLocked(false)
     door:setLockedByKey(false)
-    door:setHealth(thumpable:getHealth())
+
+    if params ~= nil and params.effectiveMaxHealth ~= nil then
+        door:setHealth(effectiveMaxHealth)
+    else
+        door:setHealth(thumpable:getHealth())
+    end
 
     if GameEntityFactory ~= nil then
         local properties = door:getProperties()
@@ -421,6 +452,10 @@ end
 
 if Events ~= nil and Events.LoadGridsquare ~= nil then
     Events.LoadGridsquare.Add(Doors.adoptWorldDoorsOnSquare)
+end
+
+if Events ~= nil and Events.OnObjectAdded ~= nil then
+    Events.OnObjectAdded.Add(Doors.adoptWorldDoor)
 end
 
 Doors.applyEngineProfiles()

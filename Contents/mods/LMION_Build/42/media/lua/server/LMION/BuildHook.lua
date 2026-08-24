@@ -10,7 +10,7 @@ local function isLmionBuild(self)
         and self.craftRecipe:getModID() == "LMION_Build"
 end
 
-local function normalizeBuiltDoor(square, gameScript)
+local function normalizeBuiltDoor(square, gameScript, effectiveMaxHealth)
     if square == nil or gameScript == nil then
         return
     end
@@ -22,7 +22,10 @@ local function normalizeBuiltDoor(square, gameScript)
             and object:isDoor()
             and object.getEntityScript ~= nil
             and object:getEntityScript() == gameScript then
-            local result = LMION.Doors.onCreateDoor({ thumpable = object })
+            local result = LMION.Doors.onCreateDoor({
+                thumpable = object,
+                effectiveMaxHealth = effectiveMaxHealth,
+            })
             if result ~= nil and result.object ~= nil then
                 result.object:transmitCompleteItemToClients()
             end
@@ -41,7 +44,13 @@ ISBuildIsoEntity.setInfo = function(self, square, north, sprite, openSprite)
     local gameScript = spriteScript and spriteScript:getParent() or nil
 
     if isLmionBuild(self) then
-        normalizeBuiltDoor(square, gameScript)
+        local profile = gameScript and LMION.Doors.getProfile(gameScript:getName()) or nil
+        local effectiveMaxHealth = LMION.Doors.getConstructionMaxHealth(
+            profile,
+            self.craftRecipe,
+            self.character
+        )
+        normalizeBuiltDoor(square, gameScript, effectiveMaxHealth)
     end
 
     return result
