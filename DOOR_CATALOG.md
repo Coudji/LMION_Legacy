@@ -292,7 +292,7 @@ Status: **validated shared family specification**. These four doors use the same
 ### Profiles
 
 | Preview | Entity | EN name | FR name | World HP | Build skill | `health` | `skillBaseHealth` | HP at required level | HP lvl 10 | Materials | MaterialType | DoorSound | ThumpSound | Frame |
-|---|---|---|---|---:|---|---:|---:|---:|---:|---|---|---|---|---|
+|---|---|---|---|---:|---|---:|---:|---:|---|---|---|---|---|
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_WhiteWoodenDoor.png" width="96"> | `Base.WhiteWoodenDoor` | White Panel Door | Porte blanche à panneaux | **625** | Woodwork 6 | 450 | 275 | 2100 | 3200 | M1=Wood; M2=Nails; M3=Screws | Wood_Solid | WoodDoor | ZombieThumpWood | standard |
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_BrownDoor.png" width="96"> | `Base.BrownDoor` | Brown Panel Door | Porte brune à panneaux | **625** | Woodwork 6 | 450 | 275 | 2100 | 3200 | M1=Wood; M2=Nails; M3=Screws | Wood_Solid | WoodDoor | ZombieThumpWood | standard |
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_CherryDoor.png" width="96"> | `Base.CherryDoor` | Mahogany Panel Door | Porte acajou à panneaux | **625** | Woodwork 6 | 450 | 275 | 2100 | 3200 | M1=Wood; M2=Nails; M3=Screws | Wood_Solid | WoodDoor | ZombieThumpWood | standard |
@@ -386,19 +386,37 @@ Status: **validated batch specification**. The progression deliberately separate
 | Finished solid | MetalWelding 2 | Blow Torch + Welding Mask | none | 1 package — **24 kg** | package + Blow Torch + Welding Mask |
 | Finished one-window | MetalWelding 2 | Blow Torch + Welding Mask | none | 1 package — **22 kg** | package + Blow Torch + Welding Mask |
 
+## Metal service doors
+
+Status: **validated shared family specification**. These are light swing/service doors used mainly as separation rather than intrusion-resistant construction. The visual logic is a wooden internal frame clad with sheet metal and screwed hardware, so their recipes deliberately use no Blow Torch, no Welding Mask and no separate Doorknob. They sit slightly below the normal finished metal doors in durability. A single porthole does not change the metal zombie-impact family.
+
+### Profiles
+
+| Preview | Entity | EN name | FR name | Variant | Class | World HP | Build skill | `health` | `skillBaseHealth` | HP at required level | HP lvl 10 | Materials | MaterialType | DoorSound | ThumpSound | Frame |
+|---|---|---|---|---|---|---:|---|---:|---:|---:|---:|---|---|---|---|---|
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_BlueMetalDoor.png" width="96"> | `Base.BlueMetalDoor` | Blue Service Door | Porte de service bleue | solid | `metal` | **700** | MetalWelding 3 | 375 | 250 | 1125 | 2875 | M1=MetalPlates; M2=Wood; M3=Screws | Metal_Light | MetalDoor | ZombieThumpMetal | standard |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_PileOCrepeOrangeDoor.png" width="96"> | `Base.PileOCrepeOrangeDoor` | Orange Service Door | Porte de service orange | solid | `metal` | **700** | MetalWelding 3 | 375 | 250 | 1125 | 2875 | M1=MetalPlates; M2=Wood; M3=Screws | Metal_Light | MetalDoor | ZombieThumpMetal | standard |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_RedMetalDoor.png" width="96"> | `Base.RedMetalDoor` | Light Red Service Door | Porte de service rouge clair | solid | `metal` | **700** | MetalWelding 3 | 375 | 250 | 1125 | 2875 | M1=MetalPlates; M2=Wood; M3=Screws | Metal_Light | MetalDoor | ZombieThumpMetal | standard |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_BlackMetalDoor.png" width="96"> | `Base.BlackMetalDoor` | Black Service Door | Porte de service noire | solid | `metal` | **700** | MetalWelding 3 | 375 | 250 | 1125 | 2875 | M1=MetalPlates; M2=Wood; M3=Screws | Metal_Light | MetalDoor | ZombieThumpMetal | standard |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_SpiffosRedMetalDoor.png" width="96"> | `Base.SpiffosRedMetalDoor` | Red Service Door | Porte de service rouge | solid | `metal` | **700** | MetalWelding 3 | 375 | 250 | 1125 | 2875 | M1=MetalPlates; M2=Wood; M3=Screws | Metal_Light | MetalDoor | ZombieThumpMetal | standard |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_WhiteMetalDoorWithWindow.png" width="96"> | `Base.WhiteMetalDoorWithWindow` | White Service Door with Porthole | Porte de service blanche à hublot | porthole | `metal_glazed` | **650** | MetalWelding 3 | 325 | 225 | 1000 | 2575 | M1=MetalPlates; M2=Wood; M3=Screws | Metal_Light | MetalDoor | ZombieThumpMetal | standard |
+
+### Craft and handling
+
+| Variant | Tools | Inputs | Time | XP | Pickup | Replacement |
+|---|---|---|---:|---:|---|---|
+| Solid | Screwdriver kept | Sheet Metal x1; Small Sheet Metal x1; Plank x2; Screws x6; Door Hinge x2; **no Doorknob**; no Blow Torch; no Welding Mask | **120** | **15** | MetalWelding 1; Screwdriver + Crowbar; no break chance; 1 package — **18 kg** | package + Screwdriver |
+| Porthole | Screwdriver kept | Sheet Metal x1; Small Sheet Metal x1; Plank x2; Screws x6; Door Hinge x2; Glass Panel x1; **no Doorknob**; no Blow Torch; no Welding Mask | **120** | **15** | MetalWelding 1; Screwdriver + Crowbar; no break chance; 1 package — **17 kg** | package + Screwdriver |
+
 ## Simple 1x1 doors — pending review
 
 | Preview | Entity | EN name | FR name | Class | HP | Glazed | Frame | Material(s) | MaterialType | DoorSound |
 |---|---|---|---|---|---:|---|---|---|---|---|
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_BlueRestroomDoor.png" width="96"> | `Base.BlueRestroomDoor` | Blue Restroom Door | Porte de sanitaires bleue | `unknown` | TBD | no | standard | TBD | TBD | TBD |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_BlueMetalDoor.png" width="96"> | `Base.BlueMetalDoor` | Blue Metal Door | Porte métallique bleue | `metal` | 650 | no | standard | M1=MetalPlates; M2=Door | Metal_Solid | MetalDoor |
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_SecurityDoor.png" width="96"> | `Base.SecurityDoor` | Security Door | Porte sécurisée | `security` | 3000 | no | standard | M1=MetalBars; M2=MetalPlates | Metal_Solid | MetalDoor |
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_BlackTwoPaneDoor.png" width="96"> | `Base.BlackTwoPaneDoor` | Black Two-Pane Door | Porte noire à deux vitres | `wood_glazed?` | 425 | yes | standard | TBD | TBD | TBD |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_RedMetalDoor.png" width="96"> | `Base.RedMetalDoor` | Red Metal Door | Porte métallique rouge | `metal` | 650 | no | standard | M1=MetalPlates; M2=Door | Metal_Solid | MetalDoor |
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_JailDoor.png" width="96"> | `Base.JailDoor` | Jail Door | Porte de prison | `jail` | 2000 | no | standard | M1=MetalBars | Metal_Solid | PrisonMetalDoor |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_PileOCrepeOrangeDoor.png" width="96"> | `Base.PileOCrepeOrangeDoor` | Pile O' Crepe Orange Door | Porte orange Pile O' Crepe | `unknown` | TBD | no | standard | TBD | TBD | TBD |
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_PizzaWhirledGreenMetalDoor.png" width="96"> | `Base.PizzaWhirledGreenMetalDoor` | Pizza Whirled Green Metal Door | Porte métallique verte Pizza Whirled | `metal` | 650 | no | standard | M1=MetalPlates; M2=Door | Metal_Solid | MetalDoor |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_SpiffosRedMetalDoor.png" width="96"> | `Base.SpiffosRedMetalDoor` | Spiffo's Red Metal Door | Porte métallique rouge Spiffo's | `metal` | 650 | no | standard | M1=MetalPlates; M2=Door | Metal_Solid | MetalDoor |
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_LogDoor.png" width="96"> | `Base.LogDoor` | Log Door | Porte en rondins | `heavy_wood` | 600 | no | standard | M1=Log | Wood_Solid | WoodDoor |
 
 ## Paired double doors — pending review
@@ -417,8 +435,6 @@ Status: **not yet reviewed as a family**. Left/right entities are listed togethe
 
 - `Base.CherryDoor` keeps its technical entity ID but intentionally overrides its old `Cherry Door` / `Porte en cerisier` display localization with **Mahogany Panel Door / Porte acajou à panneaux** so the four identical panel-door sprites use one coherent naming scheme.
 - Cherry's current runtime `MetalPlates` secondary material is a diagnostic canary and must be replaced by the paneled-wood family setup: `M1=Wood; M2=Nails; M3=Screws`.
-- `BlueMetalDoor` was runtime-observed with `Material = MetalPlates`, `Material2 = Door`, `MaterialType = Plastic`; the catalog intentionally proposes `Metal_Solid` as the LMION physical classification instead of inheriting that vanilla value blindly.
-- `BlueMetalDoor` currently uses `worldMaxHealth = 600` only as a runtime durability canary. The catalog target is 650.
 - `LogDoor` keeps `M1=Log` for semantic fidelity. Vanilla's generic salvage path does not recognize `Log` as a wood salvage tag, and `IsoDoor.destroy()` would still add knob/hinge hardware. LMION should therefore give LogDoor custom destruction loot: `1 x Base.Log`, no doorknob, no hinges, and no additional vanilla door loot.
 - Jail and Security doors deliberately override normal material-class durability at 2000 and 3000 HP.
 - Single fence gates/wickets are kept separate from normal 1x1 doors even if they share `IsoDoor`, so their gameplay profile can diverge later without reclassifying the catalog.
@@ -431,7 +447,6 @@ The bulk pass intentionally leaves these rows partially unresolved because their
 BlackGlassDoubleDoor
 BlueRestroomDoor
 BlackTwoPaneDoor
-PileOCrepeOrangeDoor
 ```
 
 For these, the next useful step is visual/runtime review rather than guessing. Everything else in this document is now a concrete provisional profile proposal ready for review before code generation.
