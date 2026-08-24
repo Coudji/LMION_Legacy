@@ -304,6 +304,18 @@ Status: **validated shared family specification**. These four doors use the same
 |---|---|---|---|---:|---|---|
 | LMION build recipe; same recipe as the current `Base.CherryDoor` recipe | Hammer + Screwdriver kept | Plank x4; Nails x4; Door Hinge x2; Screws x4; Doorknob x1 | TBD | **20** | Woodwork 3; Hammer + Screwdriver; no break chance; 1 package — **17 kg** | package + Hammer + Screwdriver |
 
+## Wooden doors with one window
+
+Status: **validated composition/durability tier; naming and pickup details still pending**. These models all count as a wooden door with one integrated window even when that window is divided into several panes. The blue Pile O' Crepe model is a commercial door and is deliberately one Woodwork level higher and slightly more durable than the two residential variants. For this quality range, the intended composition ladder is: **solid panel door 625 HP > one-window residential door 550 HP > two-window door 500 HP > mostly/full-glass wooden door 425 HP**. The commercial one-window exception sits at 575 HP.
+
+### Profiles and craft
+
+| Preview | Entity | Working EN name | Working FR name | Role | Class | World HP | Build skill | `health` | `skillBaseHealth` | HP at required level | HP lvl 10 | Frame | Craft | Time | XP |
+|---|---|---|---|---|---|---:|---|---:|---:|---:|---:|---|---|---|---|
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_WhiteDoorWithWindows.png" width="96"> | `Base.WhiteDoorWithWindows` | White Door with Windows | Porte blanche avec fenêtres | residential / one window | `wood_glazed` | **550** | Woodwork 6 | 400 | 250 | 1900 | 2900 | standard | Hammer + Screwdriver kept; Plank x4; Nails x4; Door Hinge x2; Screws x4; Doorknob x1; Glass Panel x1 | TBD | TBD |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_BrownDoorWithWindows.png" width="96"> | `Base.BrownDoorWithWindows` | Brown Door with Windows | Porte brune avec fenêtres | residential / one window | `wood_glazed` | **550** | Woodwork 6 | 400 | 250 | 1900 | 2900 | standard | Hammer + Screwdriver kept; Plank x4; Nails x4; Door Hinge x2; Screws x4; Doorknob x1; Glass Panel x1 | TBD | TBD |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_PileOCrepeBlueDoorWithWindow.png" width="96"> | `Base.PileOCrepeBlueDoorWithWindow` | Pile O' Crepe Blue Door with Window | Porte bleue vitrée Pile O' Crepe | commercial / one window | `wood_glazed` | **575** | Woodwork 7 | 425 | 250 | 2175 | 2925 | standard | Hammer + Screwdriver kept; Plank x4; Nails x4; Door Hinge x2; Screws x4; Doorknob x1; Glass Panel x1 | TBD | TBD |
+
 ## Simple 1x1 doors — pending review
 
 | Preview | Entity | EN name | FR name | Class | HP | Glazed | Frame | Material(s) | MaterialType | DoorSound |
@@ -317,16 +329,13 @@ Status: **validated shared family specification**. These four doors use the same
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_SecurityDoor.png" width="96"> | `Base.SecurityDoor` | Security Door | Porte sécurisée | `security` | 3000 | no | standard | M1=MetalBars; M2=MetalPlates | Metal_Solid | MetalDoor |
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_ChestnutGlassDoor.png" width="96"> | `Base.ChestnutGlassDoor` | Chestnut Glass Door | Porte vitrée châtaigne | `glass` | 350 | yes | standard | TBD | Glass_Solid | TBD |
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_BlackGlassDoor.png" width="96"> | `Base.BlackGlassDoor` | Black Glass Door | Porte vitrée noire | `glass` | 350 | yes | standard | TBD | Glass_Solid | TBD |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_WhiteDoorWithWindows.png" width="96"> | `Base.WhiteDoorWithWindows` | White Door with Windows | Porte blanche avec fenêtres | `wood_glazed?` | 425 | yes | standard | TBD | TBD | TBD |
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_BlackTwoPaneDoor.png" width="96"> | `Base.BlackTwoPaneDoor` | Black Two-Pane Door | Porte noire à deux vitres | `wood_glazed?` | 425 | yes | standard | TBD | TBD | TBD |
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_WhiteMetalDoor.png" width="96"> | `Base.WhiteMetalDoor` | White Metal Door | Porte métallique blanche | `metal` | 650 | no | standard | M1=MetalPlates; M2=Door | Metal_Solid | MetalDoor |
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_WhiteMetalDoorWithWindow.png" width="96"> | `Base.WhiteMetalDoorWithWindow` | White Metal Door with Window | Porte métallique blanche vitrée | `metal_glazed` | 550 | yes | standard | M1=MetalPlates; M2=Door | Metal_Solid | MetalDoor |
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_TanMetalDoor.png" width="96"> | `Base.TanMetalDoor` | Tan Metal Door | Porte métallique beige | `metal` | 650 | no | standard | M1=MetalPlates; M2=Door | Metal_Solid | MetalDoor |
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_BlackMetalDoor.png" width="96"> | `Base.BlackMetalDoor` | Black Metal Door | Porte métallique noire | `metal` | 650 | no | standard | M1=MetalPlates; M2=Door | Metal_Solid | MetalDoor |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_BrownDoorWithWindows.png" width="96"> | `Base.BrownDoorWithWindows` | Brown Door with Windows | Porte brune avec fenêtres | `wood_glazed?` | 425 | yes | standard | TBD | TBD | TBD |
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_RedMetalDoor.png" width="96"> | `Base.RedMetalDoor` | Red Metal Door | Porte métallique rouge | `metal` | 650 | no | standard | M1=MetalPlates; M2=Door | Metal_Solid | MetalDoor |
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_JailDoor.png" width="96"> | `Base.JailDoor` | Jail Door | Porte de prison | `jail` | 2000 | no | standard | M1=MetalBars | Metal_Solid | PrisonMetalDoor |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_PileOCrepeBlueDoorWithWindow.png" width="96"> | `Base.PileOCrepeBlueDoorWithWindow` | Pile O' Crepe Blue Door with Window | Porte bleue vitrée Pile O' Crepe | `wood_glazed?` | 425 | yes | standard | TBD | TBD | TBD |
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_PileOCrepeOrangeDoor.png" width="96"> | `Base.PileOCrepeOrangeDoor` | Pile O' Crepe Orange Door | Porte orange Pile O' Crepe | `unknown` | TBD | no | standard | TBD | TBD | TBD |
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_PizzaWhirledBrownGlassDoor.png" width="96"> | `Base.PizzaWhirledBrownGlassDoor` | Pizza Whirled Brown Glass Door | Porte vitrée brune Pizza Whirled | `glass` | 350 | yes | standard | TBD | Glass_Solid | TBD |
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_PizzaWhirledGreenMetalDoor.png" width="96"> | `Base.PizzaWhirledGreenMetalDoor` | Pizza Whirled Green Metal Door | Porte métallique verte Pizza Whirled | `metal` | 650 | no | standard | M1=MetalPlates; M2=Door | Metal_Solid | MetalDoor |
@@ -370,10 +379,7 @@ TanDoorWithWindow
 BlackDoorWithWindow
 ChestnutGlassDoor
 BlackGlassDoor
-WhiteDoorWithWindows
 BlackTwoPaneDoor
-BrownDoorWithWindows
-PileOCrepeBlueDoorWithWindow
 PileOCrepeOrangeDoor
 PizzaWhirledBrownGlassDoor
 SeaHorseGlassDoor
