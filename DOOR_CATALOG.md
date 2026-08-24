@@ -1,6 +1,6 @@
 # LMION — Door catalog
 
-Status: working catalog for profile preparation. Values marked with `?` are provisional inferences that still need review before they are pushed into LMION profiles.
+Status: **current door inventory reviewed and classified**. Explicit `TBD` values are intentionally deferred implementation/balance details, not unresolved visual classifications.
 
 The inventory below is based on the openings currently present in the LMION deterministic Test Zone. The goal is to prepare names, physical classes, durability, materials and sounds in one place before profiles are generated in bulk.
 
@@ -300,7 +300,7 @@ Status: **validated shared family specification**. These four doors use the same
 ### Profiles
 
 | Preview | Entity | EN name | FR name | World HP | Build skill | `health` | `skillBaseHealth` | HP at required level | HP lvl 10 | Materials | MaterialType | DoorSound | ThumpSound | Frame |
-|---|---|---|---|---:|---|---:|---:|---:|---|---|---|---|---|
+|---|---|---|---|---:|---|---:|---:|---:|---:|---|---|---|---|---|
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_WhiteWoodenDoor.png" width="96"> | `Base.WhiteWoodenDoor` | White Panel Door | Porte blanche à panneaux | **625** | Woodwork 6 | 450 | 275 | 2100 | 3200 | M1=Wood; M2=Nails; M3=Screws | Wood_Solid | WoodDoor | ZombieThumpWood | standard |
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_BrownDoor.png" width="96"> | `Base.BrownDoor` | Brown Panel Door | Porte brune à panneaux | **625** | Woodwork 6 | 450 | 275 | 2100 | 3200 | M1=Wood; M2=Nails; M3=Screws | Wood_Solid | WoodDoor | ZombieThumpWood | standard |
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_CherryDoor.png" width="96"> | `Base.CherryDoor` | Mahogany Panel Door | Porte acajou à panneaux | **625** | Woodwork 6 | 450 | 275 | 2100 | 3200 | M1=Wood; M2=Nails; M3=Screws | Wood_Solid | WoodDoor | ZombieThumpWood | standard |
@@ -414,6 +414,7 @@ Status: **validated shared family specification**. These are light swing/service
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_PileOCrepeOrangeDoor.png" width="96"> | `Base.PileOCrepeOrangeDoor` | Orange Service Door | Porte de service orange | solid | `metal` | **700** | MetalWelding 3 | 375 | 250 | 1125 | 2875 | M1=MetalPlates; M2=Wood; M3=Screws | Metal_Light | MetalDoor | ZombieThumpMetal | standard |
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_RedMetalDoor.png" width="96"> | `Base.RedMetalDoor` | Light Red Service Door | Porte de service rouge clair | solid | `metal` | **700** | MetalWelding 3 | 375 | 250 | 1125 | 2875 | M1=MetalPlates; M2=Wood; M3=Screws | Metal_Light | MetalDoor | ZombieThumpMetal | standard |
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_BlackMetalDoor.png" width="96"> | `Base.BlackMetalDoor` | Black Service Door | Porte de service noire | solid | `metal` | **700** | MetalWelding 3 | 375 | 250 | 1125 | 2875 | M1=MetalPlates; M2=Wood; M3=Screws | Metal_Light | MetalDoor | ZombieThumpMetal | standard |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_PizzaWhirledGreenMetalDoor.png" width="96"> | `Base.PizzaWhirledGreenMetalDoor` | Green Service Door | Porte de service verte | solid | `metal` | **700** | MetalWelding 3 | 375 | 250 | 1125 | 2875 | M1=MetalPlates; M2=Wood; M3=Screws | Metal_Light | MetalDoor | ZombieThumpMetal | standard |
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_SpiffosRedMetalDoor.png" width="96"> | `Base.SpiffosRedMetalDoor` | Red Service Door | Porte de service rouge | solid | `metal` | **700** | MetalWelding 3 | 375 | 250 | 1125 | 2875 | M1=MetalPlates; M2=Wood; M3=Screws | Metal_Light | MetalDoor | ZombieThumpMetal | standard |
 | <img src="Contents/mods/LMION_Build/42/media/textures/LMION_WhiteMetalDoorWithWindow.png" width="96"> | `Base.WhiteMetalDoorWithWindow` | White Service Door with Porthole | Porte de service blanche à hublot | porthole | `metal_glazed` | **650** | MetalWelding 3 | 325 | 225 | 1000 | 2575 | M1=MetalPlates; M2=Wood; M3=Screws | Metal_Light | MetalDoor | ZombieThumpMetal | standard |
 
@@ -444,23 +445,29 @@ Status: **validated special-model specification**. These three doors intentional
 | `Base.JailDoor` | Welding Mask + Screwdriver kept | Blow Torch 10 uses; **Steel Bar x7**; **Small Steel Sheet x2**; Door Hinge x4; Screws x8; Doorknob x1; Welding Rods 8 uses | MetalWelding **5** (`floor(10 / 2)`); Blow Torch + Welding Mask + Screwdriver; no break chance; 1 package — **30 kg** | package + Blow Torch + Welding Mask + Screwdriver | extremely heavy cell-door construction; steel craft components deliberately exceed normal metal-door requirements |
 | `Base.SecurityDoor` | Welding Mask + Screwdriver kept | Blow Torch 12 uses; **Steel Bar x6**; Sheet Metal x2; **Glass Panel x2**; **Wire x4**; Door Hinge x4; Screws x8; Doorknob x1; Electronics Scrap x2; Electric Wire x2; Welding Rods 10 uses | MetalWelding **5** (`floor(10 / 2)`); Blow Torch + Welding Mask + Screwdriver; no break chance; 1 package — **35 kg** | package + Blow Torch + Welding Mask + Screwdriver | ultimate door; Glass Panel x2 + Wire x4 is the temporary reinforced-glass recipe and should be replaced by Armored Glass x2 if/when that component is added |
 
-## Simple 1x1 doors — pending review
+## Paired double doors
 
-| Preview | Entity | EN name | FR name | Class | HP | Glazed | Frame | Material(s) | MaterialType | DoorSound |
-|---|---|---|---|---|---:|---|---|---|---|---|
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_PizzaWhirledGreenMetalDoor.png" width="96"> | `Base.PizzaWhirledGreenMetalDoor` | Pizza Whirled Green Metal Door | Porte métallique verte Pizza Whirled | `metal` | 650 | no | standard | M1=MetalPlates; M2=Door | Metal_Solid | MetalDoor |
+Status: **validated inherited-profile specification**. Paired doors do not introduce new balance tiers. Each leaf inherits the complete gameplay profile of the already-reviewed single door that matches its material and construction; only `Frame = paired` and the left/right entity split are specific to this family. Craft, pickup and package weight below are **per leaf**.
 
-## Paired double doors — pending review
+### Profiles
 
-Status: **not yet reviewed as a family**. Left/right entities are listed together because they represent one visual door model for naming/material/balance purposes. Runtime placement/grouping may still require distinct entity handling. This section is intentionally kept near the end until the family has been reviewed like the validated categories above.
+| Preview | Model / entities | EN name | FR name | Reference profile | Class | World HP / leaf | Build skill | `health` | `skillBaseHealth` | HP at required level | HP lvl 10 | Materials | MaterialType | DoorSound | ThumpSound | Frame |
+|---|---|---|---|---|---|---|---:|---|---:|---:|---:|---:|---|---|---|---|---|
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_BlackGlassDoubleDoorLeft.png" width="70"><img src="Contents/mods/LMION_Build/42/media/textures/LMION_BlackGlassDoubleDoorRight.png" width="70"> | `Base.BlackGlassDoubleDoorLeft` / `Right` | Black Two-Pane Double Door | Double porte noire à deux vitres | `Base.BlackTwoPaneDoor` | `metal_glazed` | **650** | MetalWelding 5 | 350 | 250 | 1600 | 2850 | M1=MetalPlates; M2=MetalBars | Metal_Solid | MetalDoor | **ZombieThumpWindow** | paired |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_GreyMetalDoubleDoorLeft.png" width="70"><img src="Contents/mods/LMION_Build/42/media/textures/LMION_GreyMetalDoubleDoorRight.png" width="70"> | `Base.GreyMetalDoubleDoorLeft` / `Right` | Grey Simple Metal Double Door | Double porte en métal simple grise | `Base.MetalDoorLvl2` | `metal` | **750** | MetalWelding 4 | 400 | 275 | 1500 | 3150 | M1=MetalPlates | Metal_Light | MetalDoor | ZombieThumpMetal | paired |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_YellowMetalDoubleDoorLeft.png" width="70"><img src="Contents/mods/LMION_Build/42/media/textures/LMION_YellowMetalDoubleDoorRight.png" width="70"> | `Base.YellowMetalDoubleDoorLeft` / `Right` | Yellow Service Double Door | Double porte de service jaune | service porthole profile | `metal_glazed` | **650** | MetalWelding 3 | 325 | 225 | 1000 | 2575 | M1=MetalPlates; M2=Wood; M3=Screws | Metal_Light | MetalDoor | ZombieThumpMetal | paired |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_BlueChurchDoubleDoorLeft.png" width="70"><img src="Contents/mods/LMION_Build/42/media/textures/LMION_BlueChurchDoubleDoorRight.png" width="70"> | `Base.BlueChurchDoubleDoorLeft` / `Right` | Blue Church Double Door | Double porte d'église bleue | paneled wooden door profile | `wood` | **625** | Woodwork 6 | 450 | 275 | 2100 | 3200 | M1=Wood; M2=Nails; M3=Screws | Wood_Solid | WoodDoor | ZombieThumpWood | paired |
+| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_BrownChurchDoubleDoorLeft.png" width="70"><img src="Contents/mods/LMION_Build/42/media/textures/LMION_BrownChurchDoubleDoorRight.png" width="70"> | `Base.BrownChurchDoubleDoorLeft` / `Right` | Brown Church Double Door | Double porte d'église brune | paneled wooden door profile | `wood` | **625** | Woodwork 6 | 450 | 275 | 2100 | 3200 | M1=Wood; M2=Nails; M3=Screws | Wood_Solid | WoodDoor | ZombieThumpWood | paired |
 
-| Preview | Model / entities | EN name | FR name | Class | HP / segment | Glazed | Frame | Material(s) | MaterialType | DoorSound |
-|---|---|---|---|---|---:|---|---|---|---|---|
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_BlackGlassDoubleDoorLeft.png" width="70"><img src="Contents/mods/LMION_Build/42/media/textures/LMION_BlackGlassDoubleDoorRight.png" width="70"> | `Base.BlackGlassDoubleDoorLeft` / `Right` | Black Glass Double Door | Double porte vitrée noire | `glass` | 425 | yes | paired | TBD | Glass_Solid | TBD |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_GreyMetalDoubleDoorLeft.png" width="70"><img src="Contents/mods/LMION_Build/42/media/textures/LMION_GreyMetalDoubleDoorRight.png" width="70"> | `Base.GreyMetalDoubleDoorLeft` / `Right` | Grey Metal Double Door | Double porte métallique grise | `metal` | 800 | no | paired | M1=MetalPlates; M2=Door | Metal_Solid | MetalDoor |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_YellowMetalDoubleDoorLeft.png" width="70"><img src="Contents/mods/LMION_Build/42/media/textures/LMION_YellowMetalDoubleDoorRight.png" width="70"> | `Base.YellowMetalDoubleDoorLeft` / `Right` | Yellow Metal Double Door | Double porte métallique jaune | `metal` | 800 | no | paired | M1=MetalPlates; M2=Door | Metal_Solid | MetalDoor |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_BlueChurchDoubleDoorLeft.png" width="70"><img src="Contents/mods/LMION_Build/42/media/textures/LMION_BlueChurchDoubleDoorRight.png" width="70"> | `Base.BlueChurchDoubleDoorLeft` / `Right` | Blue Church Double Door | Double porte d'église bleue | `wood` | 600 | no | paired | M1=Wood; M2=Door | Wood_Solid | WoodDoor |
-| <img src="Contents/mods/LMION_Build/42/media/textures/LMION_BrownChurchDoubleDoorLeft.png" width="70"><img src="Contents/mods/LMION_Build/42/media/textures/LMION_BrownChurchDoubleDoorRight.png" width="70"> | `Base.BrownChurchDoubleDoorLeft` / `Right` | Brown Church Double Door | Double porte d'église brune | `wood` | 600 | no | paired | M1=Wood; M2=Door | Wood_Solid | WoodDoor |
+### Craft, pickup and replacement
+
+| Model | Tools / craft per leaf | XP | Pickup per leaf | Replacement per leaf |
+|---|---|---:|---|---|
+| Black two-pane double door | Welding Mask kept; Blow Torch 4 uses; Sheet Metal x1; Metal Bar x2; Door Hinge x2; Welding Rods 4 uses; Doorknob x1; Glass Panel x2; no Screwdriver; no Screws | **30** | MetalWelding 2; Blow Torch + Welding Mask; no break chance; **21 kg** | package + Blow Torch + Welding Mask |
+| Grey simple metal double door | Welding Mask kept; Blow Torch 4 uses; Small Sheet Metal x3; Door Hinge x2; Welding Rods 4 uses; Doorknob x1; no Screwdriver; no Screws | **25** | MetalWelding 2; Blow Torch + Welding Mask; no break chance; **22 kg** | package + Blow Torch + Welding Mask |
+| Yellow service double door | Screwdriver kept; Sheet Metal x1; Small Sheet Metal x1; Plank x2; Screws x6; Door Hinge x2; Glass Panel x1; no Doorknob; no Blow Torch; no Welding Mask | **15** | MetalWelding 1; Screwdriver + Crowbar; no break chance; **17 kg** | package + Screwdriver |
+| Blue church double door | Hammer + Screwdriver kept; Plank x4; Nails x4; Door Hinge x2; Screws x4; Doorknob x1 | **20** | Woodwork 3; Hammer + Screwdriver; no break chance; **17 kg** | package + Hammer + Screwdriver |
+| Brown church double door | Hammer + Screwdriver kept; Plank x4; Nails x4; Door Hinge x2; Screws x4; Doorknob x1 | **20** | Woodwork 3; Hammer + Screwdriver; no break chance; **17 kg** | package + Hammer + Screwdriver |
 
 ## Current known exceptions and validated facts
 
@@ -469,13 +476,8 @@ Status: **not yet reviewed as a family**. Left/right entities are listed togethe
 - `LogDoor` keeps `M1=Log` for semantic fidelity. Vanilla's generic salvage path does not recognize `Log` as a wood salvage tag, and `IsoDoor.destroy()` would still add knob/hinge hardware. LMION should therefore give LogDoor custom destruction loot: `1 x Base.Log`, no doorknob, no hinges, and no additional vanilla door loot.
 - Jail and Security doors deliberately override normal material-class durability at 2000 and 3000 HP.
 - Single fence gates/wickets are kept separate from normal 1x1 doors even if they share `IsoDoor`, so their gameplay profile can diverge later without reclassifying the catalog.
+- Paired double doors inherit the profile of their single-door reference per leaf; paired geometry is not a separate durability tier.
 
-## Remaining ambiguous cases
+## Catalog coverage
 
-The bulk pass intentionally leaves these rows partially unresolved because their visible construction/material cannot be determined safely from the entity name alone:
-
-```text
-BlackGlassDoubleDoor
-```
-
-For these, the next useful step is visual/runtime review rather than guessing. Everything else in this document is now a concrete provisional profile proposal ready for review before code generation.
+All door-like openings currently identified in the LMION Test Zone have now been visually reviewed and assigned to a gameplay family. No model remains in the previous ambiguous/pending bucket. Remaining `TBD` cells elsewhere in the document are deliberate deferred tuning values such as construction time or XP where no exact value has been validated yet.
