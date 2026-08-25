@@ -1,34 +1,135 @@
-# Let Me In... Or Not — Development
+# Let Me In... Or Not — Development & handoff
 
-## Current modules
+Last updated: 2026-08-25
 
-The Build 42 project contains four internal Mod IDs:
+This is the **single authoritative development/handoff document** for LMION. It is intentionally responsible for the information that must survive between development sessions: project structure, current validated state, design guardrails, workflow rules and the next intended milestones.
 
-- `LMION_Core`
-- `LMION_Build`
-- `LMION_Pickup`
-- `LMION_Debug`
+Detailed engine forensics, failed approaches and addon-facing technical rationale belong in `Research/`, not here.
 
-Build, Pickup and Debug depend on Core. Build and Pickup remain independent of each other, and normal gameplay modules do not depend on Debug.
+## Project direction
 
-A future real repair feature should remain a separate gameplay module depending on Core. Core owns only the low-level logical-health primitives.
+LMION progressively takes ownership of gameplay rules around doors, gates and other passable openings while leaving Project Zomboid responsible for the physical mechanics it already handles well.
 
-## Current development state
+> **Vanilla defines the physical opening mechanics; LMION defines the gameplay rules.**
 
-The simple 1x1 door path is stable enough to serve as the baseline. Current work has moved into multi-tile large gates.
+LMION should reuse vanilla opening/closing, collision, synchronization, sprite-state behavior and object mechanics whenever practical. LMION owns things such as construction, naming/localization, material rules, pickup/transport identity, placement requirements, logical durability and future repair/access-control gameplay.
 
-Validated 1x1 behavior includes:
+`newtiledefinitions.tiles` / TileDefinitions are research/reference data. Do not edit them as an LMION runtime solution.
 
-- construction recipes for the Test Zone door set;
-- dedicated Pickup item identities;
-- frame-aware replacement where appropriate;
-- current-health preservation through pickup/replacement;
-- LMION logical max-health preservation through pickup/replacement;
+## Documentation map
+
+Keep the root documentation small:
+
+- `README.md` — short public project overview;
+- `README_DEV.md` — this document: architecture, state, guardrails and session handoff;
+- `Research/` — detailed engine evidence, reverse engineering, failed hypotheses, lifecycle constraints and future addon contracts;
+- `DOOR_CATALOG.md` / `DOOR_CATALOG_VALUES.md` — working door catalog data. **Do not restructure or rewrite these unless the current task explicitly concerns the catalog.**
+
+Do not create another root-level architecture/state/design document just because one section grows. If a topic needs deep technical detail, create or extend a focused note under `Research/` and keep only the durable conclusion/link here.
+
+## Repository / module structure
+
+One Workshop item contains several internal Build 42 Mod IDs:
+
+```text
+Contents/mods/
+├── LMION_Core/
+├── LMION_Build/
+├── LMION_Pickup/
+└── LMION_Debug/
+```
+
+Dependencies:
+
+```text
+LMION_Build   ─┐
+LMION_Pickup  ─┼─> LMION_Core
+LMION_Debug   ─┘
+```
+
+Build and Pickup must remain independent of each other. Gameplay modules must not depend on Debug.
+
+### `LMION_Core`
+
+Core owns only functionality proven to be shared across real gameplay modules:
+
+- the `LMION` namespace, logging and module registration;
+- door/opening gameplay profiles;
+- mapping profiles to `GameEntityScript` / `SpriteConfig` sprites;
+- alias-safe application of engine-facing properties such as materials/sounds;
+- low-level placement/persistence helpers that are genuinely shared;
+- authoritative logical max-health storage in `modData.lmionDoorMaxHealth`;
 - world-door durability adoption;
-- alias-safe engine-facing material application;
-- 1x1 fence gates and sliding doors using the shared Pickup path.
+- low-level repair capped by LMION logical max.
 
-The six large-gate families are now split into independent construction leaves:
+Core does **not** own construction UX, Pickup UX or future Repair UX. Avoid speculative event buses, catalogs or parallel models that duplicate facts already available from runtime objects or Project Zomboid scripts.
+
+### `LMION_Build`
+
+Build owns construction/crafting concerns:
+
+- construction entities and recipes;
+- construction progression and requirements;
+- construction-facing localization/presentation;
+- large-gate construction topology and vanilla SpriteConfig ownership splitting where required.
+
+For the three vanilla large-gate families (`Base.DoubleDoor`, `Base.DoubleWireGate`, `Base.DoubleFenceGate`), Build keeps the vanilla entity as the left leaf and assigns the right leaf to a separate entity. The vanilla SpriteConfig is reduced to left-leaf ownership at `OnGameBoot` using targeted `SpriteConfigScript:PreReload()`.
+
+### `LMION_Pickup`
+
+Pickup owns transport/reinstallation of passable openings through Moveables or specialized Moveables-compatible paths:
+
+- pickup eligibility;
+- tool/skill requirements;
+- inventory transport identity;
+- preservation of physical state such as health/logical max;
+- placement rules;
+- specialized multi-tile transport where generic 1x1 behavior is insufficient.
+
+General design rule:
+
+> **If it opens and the player can pass through it, Pickup owns its transport behavior.**
+
+Transport identity should follow the gameplay unit that makes sense to remove and reinstall. World synchronization does not imply that the complete synchronized structure must become one inventory item.
+
+### `LMION_Debug`
+
+Debug owns development-only tooling:
+
+- Inspector;
+- world selection/highlighting;
+- deterministic Test Zone;
+- Lua reload helpers;
+- temporary validation actions.
+
+The Test Zone is an explicit deterministic fixture, not a runtime discovery scanner. Development diagnostics must not silently become gameplay dependencies.
+
+## Current validated state
+
+### Simple / 1x1 openings
+
+The 1x1 path is mechanically stable enough to be the baseline.
+
+Validated behavior includes:
+
+- construction recipes across the Test Zone set;
+- dedicated/localized Pickup inventory identities;
+- vanilla Moveables pickup/replacement;
+- frame-aware placement where required;
+- current-health preservation;
+- `lmionDoorMaxHealth` preservation;
+- existing-world-door durability adoption;
+- repair above engine max through the logical-max model;
+- 1x1 fence gates and sliding doors on the shared Pickup architecture.
+
+Current profile-specific facts worth preserving:
+
+- `LogDoor` intentionally has no Pickup/place tools;
+- sliding doors currently use Crowbar for pickup and Hammer for placement through custom Moveables tool definitions.
+
+### Large-gate construction
+
+The six current large-gate families are split into independent left/right construction leaves:
 
 - Large Farm Gate;
 - Large Wrought Iron Gate;
@@ -37,149 +138,170 @@ The six large-gate families are now split into independent construction leaves:
 - Large Scrap Metal Gate;
 - Large Wooden Gate.
 
-Each is exposed as a left and right leaf. All six were runtime-tested in both N and W orientations and opening synchronization works through vanilla `DoubleDoor` behavior.
+All six were runtime-tested in both N and W orientations. Correctly assembled left/right leaves synchronize opening through vanilla `DoubleDoor` behavior even when the leaves use different GameEntity identities.
 
-The Test Zone now contains 83 explicit entries.
+The deterministic Test Zone currently contains 83 explicit entries.
 
-## Large-gate split implementation
+The vanilla Destroy action still destroys the complete linked portal. LMION intentionally does not override that behavior at this stage.
 
-For vanilla `Base.DoubleDoor`, `Base.DoubleWireGate` and `Base.DoubleFenceGate`, Build keeps the vanilla entity as the left leaf and introduces a separate right-leaf entity.
+### Large Chain-Link Gate Pickup
 
-At `OnGameBoot`, Build:
+`Large Chain-Link Gate` / `DoubleWireGate` is the validated multi-tile Pickup reference implementation.
 
-1. validates the exact original eight closed SpriteConfig tile names;
-2. resets only the vanilla SpriteConfig component with `PreReload()`;
-3. reloads that component with the four left-leaf tiles;
-4. verifies the resulting four-tile ownership set.
+Validated closed-leaf behavior:
 
-This avoids duplicate scripted-sprite ownership while preserving vanilla physical `DoubleDoor` behavior supplied by the engine/tile definitions.
+- either physical segment of a leaf can be targeted;
+- only the selected two-segment leaf is removed;
+- Pickup creates two localized parcels `(1/2)` and `(2/2)`;
+- both parcels are required for replacement;
+- both physical `IsoDoor` members are rebuilt in one placement action;
+- left and right leaves place correctly in original orientation and after N/W rotation;
+- restored leaves resume vanilla synchronized opening;
+- pickup/placement preview is clean in both orientations for both leaves.
 
-For LMION-owned large gates, the previous full-gate identity has been replaced by explicit `Left` and `Right` entities.
+Design identity:
 
-Runtime validation established that correctly placed leaves synchronize opening even when the two sides have different GameEntity identities. Vanilla grouping is based on `DoubleDoor` indices and geometry, not family/entity equality.
+```text
+one leaf = two physical IsoDoor segments = two parcels = one placement action
+```
 
-The vanilla Destroy action intentionally still destroys the complete linked portal. LMION does not override that behavior at this stage.
+The logical runtime SpriteGrid keeps both segments for Moveables semantics. Final placement is explicit LMION per-segment reconstruction because generic vanilla multisprite placement does not preserve rotated DoubleDoor geometry correctly.
 
-## Large-gate Pickup prototype
+Preview rendering is specialized because the gate sprites are not authored like ordinary two-tile furniture: the complete visible member is `Part1` on the left leaf and `Part2` on the right leaf. The other member remains logically present in the SpriteGrid but is not redundantly ghost-rendered.
 
-The active Pickup prototype targets `Large Chain-Link Gate` first.
+Full evidence and failed hypotheses: `Research/Moveables/LargeGateLeaves.md`.
 
-Validated:
+Current scope guardrail: **do not blindly copy the Chain-Link sprite/index/visual mapping to the other five gate families.** Reuse the architecture, then inspect each family's actual DoubleDoor indices and artwork.
 
-- targeting either of the two squares of a leaf identifies the correct leaf;
-- targeting the non-pivot/inner segment also works;
-- only the targeted leaf is removed, not the full four-segment portal;
-- pickup creates two inventory parcels for the leaf: `(1/2)` and `(2/2)`;
-- French parcel names are working;
-- replacement consumes both parcels and recreates both physical segments in one action;
-- both left and right leaves place correctly in their original orientation and after N/W rotation;
-- after both segments are restored, vanilla synchronized opening works again;
-- placement/pickup preview is clean in both orientations for both leaves.
+Open-state Pickup is not yet the reference path.
 
-The preview requires a specialized visual path because `DoubleWireGate` is not authored like ordinary two-tile furniture. One SpriteGrid member already contains the complete visible leaf while the other is only a partial technical visual member. The complete visual member is asymmetric: left uses Part1, right uses Part2. The logical SpriteGrid still retains both members.
-
-A non-blocking engine warning has also been observed during multi-square pickup:
+A non-blocking engine warning can appear during multi-square pickup:
 
 ```text
 GameEntityFactory.TransferComponents> Cannot transfer components for multi-square objects
 ```
 
-Pickup/replacement still functions despite the warning. Do not build a workaround until a concrete state-loss bug is proven.
+No concrete state-loss bug has been reproduced from it. Do not add a workaround until one is demonstrated.
 
-Full research and failed hypotheses are recorded in `Research/Moveables/LargeGateLeaves.md`.
+### Garage doors
 
-## Localization status
+Garage doors remain a separate multi-tile problem. Their linkage uses `garageDoorIndex`, `garage.first`, `garage.prev`, `garage.next`, etc., rather than DoubleDoor logical indices.
 
-Build has a French `Recipes.json` covering the construction entries. B42 recipe localization lookup normalizes `DisplayName` by removing spaces before looking up the recipe key, so LMION keys follow that form.
+Do not generalize the two-segment leaf model to garage doors without separate research/validation.
 
-Large-gate display naming uses:
+## Core technical guardrails
 
-```text
-English: <base> - Left Leaf / Right Leaf
-French:  <base> - vantail gauche / vantail droit
-```
+This section is intentionally concise. Detailed evidence belongs in `Research/`.
 
-The broader French construction-name pass has been added, but final in-game confirmation of every entry can happen progressively rather than blocking mechanical work.
+### Logical max health
 
-## Development workflow
-
-Enable `LMION_Debug` while developing. Use the in-game LMION Lua reload for edits to already-loaded Lua files when practical.
-
-A full game/server restart is required after:
-
-- `media/scripts` changes;
-- adding new GameEntity/item definitions;
-- adding brand-new Lua files when the active loader will not discover them;
-- load-order or metadata changes;
-- stale monkey-patch closures that cannot be safely replaced.
-
-A Lua reload can update an already-loaded file, but an active cursor/action instance may still hold old state. If a hot reload appears to do nothing, re-enter the mode first; if behavior still remains stale, restart the game before concluding the code path is wrong.
-
-Avoid speculative Java calls in production or Debug. Debug Mode can surface Java/Kahlua runtime exceptions even inside `pcall`.
-
-Game-loaded LMION Lua/script files must remain free of `--` line comments. Keep rationale in the repository documentation.
-
-Detailed lifecycle rationale is recorded in `Research/Engine/LoadLifecycle.md`.
-
-## Engine research conclusions currently relied upon
-
-### DoubleDoor grouping
-
-`IsoDoor.getDoubleDoorIndex()` maps a double-door member to logical indices 1..4. Open sprites 5..8 map back to the same logical members.
-
-The physical/logical leaf mapping is orientation-dependent for the validated Chain-Link sprites; do not reduce it to fixed `{1,2}` / `{3,4}` pairs. See `Research/Moveables/LargeGateLeaves.md`.
-
-`IsoDoor.getDoubleDoorObject()` locates linked members by geometry/orientation/index and does not require matching GameEntity identity, sprite family or materials.
-
-This is the basis for independent LMION construction/pickup leaves while retaining vanilla synchronization.
-
-### SpriteConfig lifecycle
-
-`SpriteConfigScript.allTileNames` is built from actual declared face tiles. Runtime ownership reassignment must use `SpriteConfigScript:PreReload()` before reloading a reduced component body. Reusing a component without clearing it can leave stale tile ownership and cause duplicate-sprite failures.
-
-Do not call `GameEntityScript:PreReload()` just to reset SpriteConfig because it clears all component scripts.
-
-Detailed evidence and failed ownership prototypes are in `Research/Engine/SpriteConfigLifecycle.md`.
-
-### Logical durability
-
-LMION keeps the authoritative gameplay max in:
+B42.20.3 exposes `IsoDoor:setHealth()` but no usable public `IsoDoor:setMaxHealth()` path for production Lua. LMION therefore stores the authoritative gameplay maximum in:
 
 ```text
 lmionDoorMaxHealth
 ```
 
-because B42.20.3 exposes `IsoDoor:setHealth()` but no public `IsoDoor:setMaxHealth()`. Current health may exceed the engine max and LMION repair logic must use the logical max.
+Current `IsoDoor.health` may legitimately exceed `IsoDoor:getMaxHealth()`. LMION-owned repair/condition logic must use `Doors.getEffectiveMaxHealth()` rather than engine max.
 
-Detailed API evidence, migration rules and addon implications are in `Research/Engine/DoorHealth.md`.
+Existing-world adoption is conservative: intact doors at engine max are raised to the configured LMION world max; already-damaged doors retain their exact current health; already-adopted doors are not repeatedly migrated.
 
-### Engine property aliases
+See `Research/Engine/DoorHealth.md`.
 
-Engine sprite/object properties are alias-backed. Unknown values can silently resolve to alias id `0` rather than preserving the requested string. LMION therefore verifies exact readback after engine-facing writes and restores the old property on mismatch.
+### Engine-facing property aliases
 
-Detailed bytecode evidence is in `Research/Engine/PropertyAliases.md`.
+Project Zomboid `PropertyContainer` values are alias-backed. Unknown strings can silently resolve to another valid alias instead of preserving the requested value.
 
-## Inspector / Debug
+LMION engine-facing property writes must use the pattern:
 
-The LMION Inspector remains focused on facts useful to door systems: class, square, sprite/entity identity, orientation/open state, health, logical max, locks, materials and multi-door grouping/link data.
+```text
+preserve old value -> write requested value -> exact readback -> keep or restore
+```
 
-The deterministic Test Zone is an explicit fixture. Do not replace it with runtime scanning/discovery heuristics.
+See `Research/Engine/PropertyAliases.md`.
 
-## Documentation workflow
+### SpriteConfig ownership
 
-The documentation intentionally separates current state from technical archaeology:
+`SpriteConfigScript.allTileNames` is derived from declared SpriteConfig face tiles and participates in global scripted-sprite ownership.
 
-- `CURRENT_STATE.md` — active handoff and validated/unvalidated state;
-- `ARCHITECTURE.md` — module ownership and hard structural rules;
-- `LMION_Design_Notes.md` — durable gameplay/design decisions;
-- `README_DEV.md` — practical workflow and high-level implementation status;
-- `Research/` — detailed engine evidence, lifecycle constraints, failed approaches and addon-facing contracts.
+When LMION reduces vanilla large-gate ownership:
 
-Do not delete a research explanation merely because the final implementation becomes simple. Expensive engine discoveries are part of the project's long-term technical material and may later feed a public wiki.
+1. validate the exact original tile set;
+2. call `SpriteConfigScript:PreReload()` on that component only;
+3. reload only the intended SpriteConfig body;
+4. verify the resulting ownership set exactly.
 
-## Next gameplay milestone
+Do not call `GameEntityScript:PreReload()` merely to reset SpriteConfig; it clears all component scripts.
 
-1. Validate per-segment health/logical-max preservation through the working Chain-Link leaf pickup cycle.
-2. Generalize the proven two-parcel leaf model to the other five large-gate families, checking each family's sprite/index/visual authoring rather than assuming the Chain-Link mapping.
-3. Move to garage-door transport as a separate multi-tile system rather than forcing the DoubleDoor model onto it.
-4. Build the real Repair gameplay module after multi-tile transport and material/craft rules are sufficiently stable.
+See `Research/Engine/SpriteConfigLifecycle.md`.
+
+### Load timing matters
+
+Different mutations intentionally happen at different lifecycle points:
+
+- Lua load — useful for already-running/hot-reload sessions;
+- `OnGameBoot` — scripted entities are available and vanilla SpriteConfig ownership can be adjusted before later consumers rely on it;
+- `OnLoadedTileDefinitions` — tile/sprite definitions have finished rebuilding; runtime sprite mutations such as Chain-Link `IsoSpriteGrid` attachment must be re-applied here;
+- `LoadGridsquare` — adopt matching existing world doors as squares stream in;
+- `OnObjectAdded` — adopt newly created doors too.
+
+Do not move code between these phases merely for tidiness without checking what engine state exists at that point.
+
+See `Research/Engine/LoadLifecycle.md`.
+
+## Localization conventions
+
+Build construction localization uses `Recipes.json`. Current B42 lookup removes spaces from recipe `DisplayName` before translation-key lookup, so LMION keys follow that normalized form.
+
+Paired large-gate naming convention:
+
+```text
+internal ID:  <Base>Left / <Base>Right
+English:      <base> - Left Leaf / Right Leaf
+French:       <base> - vantail gauche / vantail droit
+```
+
+## Development workflow / hard rules
+
+- Development currently happens directly on `main`. Do not create PRs or feature branches unless explicitly requested or a temporary rollback branch materially reduces risk.
+- Before changing an unfamiliar subsystem, inspect the current code and the relevant `Research/` note rather than relying on remembered conversation context.
+- Prefer Java/API/vanilla-source/runtime verification over guessed engine behavior.
+- Avoid speculative Java/reflection calls in production or Debug. Kahlua/Debug Mode may surface Java exceptions even inside `pcall`.
+- Runtime classification should prefer strong engine structure (`GameEntityScript`, SpriteConfig, DoubleDoor index, object type/properties) over sprite-name guessing when available.
+- Game-loaded LMION Lua/script files intentionally contain no `--` line comments. Rationale belongs in documentation.
+- `media/scripts` changes require a full game/server restart.
+- New Lua files, load-order changes, mod metadata changes and stale monkey-patch closures may also require a full restart.
+- Lua-only edits to already-loaded files can often use the LMION Debug reload path, but active cursors/actions may hold stale state. Re-enter the mode first; if behavior still looks stale, cold restart before concluding the code path is wrong.
+- Do not add speculative abstractions or compatibility workarounds without a reproduced requirement/bug.
+- Do not modify the door catalog unless the current task explicitly calls for catalog work.
+
+## Instructions for future development / AI sessions
+
+These rules exist specifically so the project does not depend on the user repeating the same context in every new conversation.
+
+1. **Start by reading this file and `Research/README.md`, then inspect current `main`.** Do not assume a remembered checkpoint is newer than the repository.
+2. **Use the repository as the handoff.** When conversation context is missing, reconstruct from current code, Git history and Research before asking the user to re-explain work that is recoverable.
+3. **Update documentation proactively when it is relevant.** A meaningful architecture change, validated/invalidated behavior, engine limitation or expensive research result should update `README_DEV.md` and/or the appropriate `Research/` note in the same development pass. Do not wait for the user to remind you.
+4. **Do not document every commit.** Update the durable state/decision, not a changelog. Git already records mechanical history.
+5. **Preserve why, not only what.** If a workaround exists because an engine API is missing, a lifecycle event is required, or an apparently obvious alternative was tested and failed, put that reasoning in `Research/`.
+6. **Do not resurrect a rejected approach casually.** Check relevant Research notes and Git history first; if revisiting it because PZ changed, explicitly state what changed and revalidate the old conclusion.
+7. **Keep this file concise enough to read at the start of every session.** Deep reverse engineering belongs under `Research/` with a short summary/link here.
+8. **Current code + runtime validation outrank stale prose.** If documentation and implementation disagree, investigate the discrepancy, fix the documentation, and do not silently assume either side is correct.
+
+## Known compatibility note
+
+Existing saves containing old full `Base.DoubleWireGate` instances from before the construction split may emit:
+
+```text
+Invalid SpriteConfig object! scripted object = DoubleWireGate
+```
+
+A new save did not reproduce the warning, including after interacting with naturally placed Chain-Link gates. Current evidence points to stale serialized old-gate instances. Treat old-save migration as a separate compatibility task rather than distorting the new split topology.
+
+## Next intended milestones
+
+1. Confirm per-segment health / `lmionDoorMaxHealth` preservation through the validated Chain-Link leaf pickup cycle.
+2. Generalize the proven leaf transport architecture to the other five large-gate families, validating each family's index geometry and sprite authoring independently.
+3. Research/implement garage-door transport as its own multi-tile system.
+4. Build a real `LMION_Repair` gameplay module after transport/material/craft rules are stable enough. Core should keep only the low-level logical-health primitives.
+
+Potential locksmith/access-control systems remain future scope and must not distort the current transport architecture prematurely.
