@@ -153,6 +153,97 @@ local function setParcelIdentity(moveProps, segment)
     end
 end
 
+local function findInventoryItem(character, fullType)
+    if character == nil or fullType == nil then
+        return nil
+    end
+
+    local inventory = character:getInventory()
+    if inventory == nil then
+        return nil
+    end
+
+    local items = inventory:getItems()
+    for i = 0, items:size() - 1 do
+        local item = items:get(i)
+        if item ~= nil and item:getFullType() == fullType then
+            return item
+        end
+    end
+
+    return nil
+end
+
+local function getPlacementSquares(self, square)
+    if self == nil or square == nil then
+        return nil
+    end
+
+    local facing = self.lmionDoorFacing
+    local partIndex = tonumber(self.lmionLargeGatePart)
+    if facing == nil or partIndex == nil then
+        return nil
+    end
+
+    local dx = 0
+    local dy = 0
+    if facing == "N" then
+        dx = 1
+    elseif facing == "W" then
+        dy = -1
+    else
+        return nil
+    end
+
+    local anchorX = square:getX()
+    local anchorY = square:getY()
+    if partIndex == 2 then
+        anchorX = anchorX - dx
+        anchorY = anchorY - dy
+    elseif partIndex ~= 1 then
+        return nil
+    end
+
+    local z = square:getZ()
+    local part1Square = getCell():getGridSquare(anchorX, anchorY, z)
+    local part2Square = getCell():getGridSquare(anchorX + dx, anchorY + dy, z)
+    if part1Square == nil or part2Square == nil then
+        return nil
+    end
+
+    return {
+        [1] = part1Square,
+        [2] = part2Square,
+    }
+end
+
+local function buildPlacementPlan(self, character, square)
+    local leaf = self and leafSpecs[self.lmionLargeGateLeaf] or nil
+    local squares = getPlacementSquares(self, square)
+    if leaf == nil or squares == nil then
+        return nil
+    end
+
+    local facing = self.lmionDoorFacing
+    local plan = {}
+    for partIndex = 1, 2 do
+        local part = leaf.parts[partIndex]
+        local item = findInventoryItem(character, part.itemType)
+        local spriteName = part.faces[facing]
+        if item == nil or spriteName == nil then
+            return nil
+        end
+
+        plan[partIndex] = {
+            item = item,
+            square = squares[partIndex],
+            spriteName = spriteName,
+        }
+    end
+
+    return plan
+end
+
 if Pickup._largeGateOriginalMoveableSpritePropsNew == nil then
     Pickup._largeGateOriginalMoveableSpritePropsNew = ISMoveableSpriteProps.new
 end
@@ -263,6 +354,77 @@ ISMoveableSpriteProps.pickUpMoveable = function(self, character, square, createI
     end
 
     return items
+end
+
+if Pickup._largeGateOriginalCanPlaceMoveable == nil then
+    Pickup._largeGateOriginalCanPlaceMoveable = ISMoveableSpriteProps.canPlaceMoveable
+end
+
+ISMoveableSpriteProps.canPlaceMoveable = function(self, character, square, item)
+    if self == nil or self.lmionLargeGateLeaf == nil then
+        return Pickup._largeGateOriginalCanPlaceMoveable(self, character, square, item)
+    end
+
+    local plan = buildPlacementPlan(self, character, square)
+    if plan == nil then
+        return false
+    end
+
+    for partIndex = 1, 2 do
+        local entry = plan[partIndex]
+        local moveProps = ISMoveableSpriteProps.new(entry.spriteName)
+        if not moveProps:canPlaceMoveableInternal(character, entry.square, entry.item) then
+            return false
+        end
+    end
+
+    return true
+end
+
+if Pickup._largeGateOriginalPlaceMoveable == nil then
+    Pickup._largeGateOriginalPlaceMoveable = ISMoveableSpriteProps.placeMoveable
+end
+
+ISMoveableSpriteProps.placeMoveable = function(self, character, square, origSpriteName, forceAllow)
+    if self == nil or self.lmionLargeGateLeaf == nil then
+        return Pickup._largeGateOriginalPlaceMoveable(self, character, square, origSpriteName, forceAllow)
+    end
+
+    local plan = buildPlacementPlan(self, character, square)
+    if plan == nil then
+        return false
+    end
+
+    if not forceAllow
+        and not character:isMovablesCheat()
+        and not ISMoveableDefinitions.cheat
+        and not self:canPlaceMoveable(character, square, plan[self.lmionLargeGatePart].item) then
+        return false
+    end
+
+    local placed = {}
+    for partIndex = 1, 2 do
+        local entry = plan[partIndex]
+        local moveProps = ISMoveableSpriteProps.new(entry.spriteName)
+        local object = moveProps:placeMoveableInternal(entry.square, entry.item, entry.spriteName)
+        if object == nil then
+            return false
+        end
+        placed[partIndex] = object
+    end
+
+    local inventory = character:getInventory()
+    for partIndex = 1, 2 do
+        local item = plan[partIndex].item
+        inventory:Remove(item)
+        sendRemoveItemFromContainer(inventory, item)
+    end
+
+    if ISMoveableCursor ~= nil and ISMoveableCursor.clearCacheForAllPlayers ~= nil then
+        ISMoveableCursor.clearCacheForAllPlayers()
+    end
+
+    return placed
 end
 
 return Pickup
