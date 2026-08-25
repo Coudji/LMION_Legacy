@@ -4,7 +4,7 @@ LMION.Pickup = LMION.Pickup or {}
 local Pickup = LMION.Pickup
 
 Pickup.ID = "LMION_Pickup"
-Pickup.VERSION = "0.0.6-dev"
+Pickup.VERSION = "0.0.7-dev"
 Pickup.Strategies = Pickup.Strategies or {}
 
 function Pickup.registerStrategy(id, strategy, priority)
