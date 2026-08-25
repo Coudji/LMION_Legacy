@@ -61,6 +61,83 @@ for leafId, leaf in pairs(leafSpecs) do
     end
 end
 
+local gridFacingSpecs = {
+    N = {
+        width = 2,
+        height = 1,
+        partOrder = {1, 2},
+    },
+    W = {
+        width = 1,
+        height = 2,
+        partOrder = {2, 1},
+    },
+}
+
+Pickup._largeGateOriginalSpriteGrids = Pickup._largeGateOriginalSpriteGrids or {}
+Pickup.LargeGateRuntimeSpriteGrids = {}
+
+local function installRuntimeSpriteGrid(leafId, facing)
+    local leaf = leafSpecs[leafId]
+    local gridSpec = gridFacingSpecs[facing]
+    if leaf == nil or gridSpec == nil or IsoSpriteGrid == nil or IsoSpriteGrid.new == nil then
+        return false
+    end
+
+    local grid = IsoSpriteGrid.new(gridSpec.width, gridSpec.height)
+    if grid == nil then
+        return false
+    end
+
+    local members = {}
+    for position, partIndex in ipairs(gridSpec.partOrder) do
+        local part = leaf.parts[partIndex]
+        local spriteName = part and part.faces[facing] or nil
+        local sprite = spriteName and getSprite(spriteName) or nil
+        if sprite == nil then
+            return false
+        end
+
+        local x = gridSpec.width > 1 and position - 1 or 0
+        local y = gridSpec.height > 1 and position - 1 or 0
+        grid:setSprite(x, y, sprite)
+        members[position] = {
+            spriteName = spriteName,
+            sprite = sprite,
+        }
+    end
+
+    if not grid:validate() then
+        return false
+    end
+
+    for _, member in ipairs(members) do
+        if Pickup._largeGateOriginalSpriteGrids[member.spriteName] == nil then
+            Pickup._largeGateOriginalSpriteGrids[member.spriteName] = member.sprite:getSpriteGrid() or false
+        end
+        member.sprite:setSpriteGrid(grid)
+    end
+
+    Pickup.LargeGateRuntimeSpriteGrids[leafId .. ":" .. facing] = grid
+    return true
+end
+
+local installedGridCount = 0
+for leafId, _ in pairs(leafSpecs) do
+    if installRuntimeSpriteGrid(leafId, "N") then
+        installedGridCount = installedGridCount + 1
+    end
+    if installRuntimeSpriteGrid(leafId, "W") then
+        installedGridCount = installedGridCount + 1
+    end
+end
+
+if installedGridCount == 4 then
+    LMION.log("Pickup", "installed DoubleWireGate runtime sprite grids")
+else
+    LMION.error("Pickup", "failed to install all DoubleWireGate runtime sprite grids: " .. tostring(installedGridCount) .. "/4")
+end
+
 local function getDoubleDoorIndex(object)
     if object == nil or IsoDoor == nil or IsoDoor.getDoubleDoorIndex == nil then
         return nil
@@ -177,6 +254,18 @@ local function isLargeGateMoveProps(moveProps)
         and moveProps.lmionDoorFaces ~= nil
 end
 
+local function getLeafAnchorFaces(moveProps)
+    local leaf = moveProps and leafSpecs[moveProps.lmionLargeGateLeaf] or nil
+    if leaf == nil then
+        return nil
+    end
+
+    return {
+        N = leaf.parts[1].faces.N,
+        W = leaf.parts[2].faces.W,
+    }
+end
+
 if Pickup._largeGateOriginalMoveableSpritePropsNew == nil then
     Pickup._largeGateOriginalMoveableSpritePropsNew = ISMoveableSpriteProps.new
 end
@@ -204,6 +293,9 @@ end
 
 ISMoveableSpriteProps.getFaces = function(self)
     if isLargeGateMoveProps(self) then
+        if self.isMultiSprite then
+            return getLeafAnchorFaces(self) or {}
+        end
         return {
             N = self.lmionDoorFaces.N,
             W = self.lmionDoorFaces.W,
@@ -219,7 +311,8 @@ end
 
 ISMoveableSpriteProps.hasFaces = function(self)
     if isLargeGateMoveProps(self) then
-        return self.lmionDoorFaces.N ~= nil and self.lmionDoorFaces.W ~= nil
+        local faces = self:getFaces()
+        return faces.N ~= nil and faces.W ~= nil
     end
 
     return Pickup._largeGateOriginalHasFaces(self)
@@ -231,8 +324,9 @@ end
 
 ISMoveableSpriteProps.getIndexedFaces = function(self)
     if isLargeGateMoveProps(self) then
-        local n = self.lmionDoorFaces.N
-        local w = self.lmionDoorFaces.W
+        local faces = self:getFaces()
+        local n = faces.N
+        local w = faces.W
         return {n, w, n, w}
     end
 
@@ -245,10 +339,10 @@ end
 
 ISMoveableSpriteProps.getFaceIndex = function(self)
     if isLargeGateMoveProps(self) then
-        if self.spriteName == self.lmionDoorFaces.N then
+        if self.lmionDoorFacing == "N" then
             return 1
         end
-        if self.spriteName == self.lmionDoorFaces.W then
+        if self.lmionDoorFacing == "W" then
             return 2
         end
         return -1
@@ -263,9 +357,13 @@ end
 
 ISMoveableSpriteProps.findInInventoryMultiSprite = function(self, character, requestedName)
     if isLargeGateMoveProps(self) then
-        local index = tonumber(string.match(requestedName or "", "%((%d+)/2%)$"))
+        local gridIndex = tonumber(string.match(requestedName or "", "%((%d+)/2%)$"))
         local leaf = leafSpecs[self.lmionLargeGateLeaf]
-        local part = leaf and index and leaf.parts[index] or nil
+        local partIndex = gridIndex
+        if self.lmionDoorFacing == "W" and gridIndex ~= nil then
+            partIndex = 3 - gridIndex
+        end
+        local part = leaf and partIndex and leaf.parts[partIndex] or nil
         if part ~= nil then
             return findInventoryItem(character, part.itemType)
         end
@@ -293,7 +391,11 @@ ISMoveableSpriteProps.canPickUpMoveable = function(self, character, square, obje
         return false
     end
 
-    if not Pickup._largeGateOriginalCanPickUpMoveable(self, character, square, selected) then
+    local wasMultiSprite = self.isMultiSprite
+    self.isMultiSprite = false
+    local canPickUp = Pickup._largeGateOriginalCanPickUpMoveable(self, character, square, selected)
+    self.isMultiSprite = wasMultiSprite
+    if not canPickUp then
         return false
     end
 
