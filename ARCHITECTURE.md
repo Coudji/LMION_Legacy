@@ -19,102 +19,91 @@ LMION_Workshop/
         │       ├── media/scripts/
         │       └── media/lua/shared/LMION/
         │           ├── Core.lua
-        │           └── Doors.lua
-        │
+        │           ├── Doors.lua
+        │           └── DoorProfiles.lua
         ├── LMION_Build/
         │   └── 42/
         │       ├── mod.info
         │       └── media/
-        │           ├── lua/shared/LMION/
-        │           │   └── Build.lua
+        │           ├── lua/shared/LMION/Build.lua
+        │           ├── lua/shared/Translate/
         │           ├── scripts/
         │           └── textures/
-        │
         ├── LMION_Pickup/
         │   └── 42/
         │       ├── mod.info
-        │       └── media/lua/shared/LMION/
-        │           ├── Pickup.lua
-        │           └── Pickup/
-        │               └── DoorMoveables.lua
-        │
+        │       └── media/
+        │           ├── lua/shared/LMION/Pickup.lua
+        │           ├── lua/shared/LMION/Pickup/
+        │           │   ├── DoorMoveables.lua
+        │           │   ├── DoorProfiles.lua
+        │           │   ├── LargeGateMoveables.lua
+        │           │   ├── LargeGateProfiles.lua
+        │           │   └── ToolDefinitions.lua
+        │           ├── lua/shared/Translate/
+        │           └── scripts/
         └── LMION_Debug/
             └── 42/
                 ├── mod.info
                 └── media/lua/
                     ├── client/LMION/Debug/
                     │   ├── Inspect/
-                    │   │   ├── Door.lua
-                    │   │   └── ObjectInspector.lua
                     │   ├── UI/
                     │   ├── Util/
-                    │   │   └── Safe.lua
                     │   ├── World/
                     │   ├── Inspector.lua
-                    │   ├── TestZone.lua
                     │   └── TestZone/
-                    │       ├── Manifest.lua
-                    │       └── Spawner.lua
-                    └── server/LMION/Debug/
-                        └── ReloadServer.lua
+                    └── server/LMION/Debug/ReloadServer.lua
 ```
 
 ## Module responsibilities
 
 ### `LMION_Core`
 
-Core owns only shared functionality that is proven necessary across gameplay modules:
+Core owns shared functionality proven necessary across gameplay modules:
 
-- the `LMION` namespace, logging helpers and module registration;
-- LMION door profiles containing only gameplay rules that LMION actually overrides;
-- mapping those profiles to `GameEntityScript` / `SpriteConfig` tile names;
-- alias-safe application of engine-facing door properties such as materials;
-- shared low-level placement and persistence primitives used by real modules;
-- logical max-health storage in door modData;
-- world-door durability adoption when an LMION durability profile exists;
-- low-level health repair capped by LMION logical max rather than engine `IsoDoor.maxHealth`;
-- `media/scripts` entity definitions needed by the project.
+- the `LMION` namespace, logging and module registration;
+- LMION door gameplay profiles;
+- sprite/profile mapping from `GameEntityScript` / `SpriteConfig`;
+- alias-safe application of engine-facing material and sound properties;
+- low-level placement and durability helpers;
+- authoritative logical max-health storage in `modData.lmionDoorMaxHealth`;
+- world-door adoption and low-level repair capped by the LMION logical max.
 
-Core does not own player-facing construction, pickup or repair UX. A future gameplay repair module should depend on Core and own tools, materials, skills, timed actions and menu/UI behavior.
-
-Core intentionally has no generic event bus and no speculative parallel model duplicating facts already available from Project Zomboid runtime objects and `GameEntityScript` / `SpriteConfig` data. The profile registry exists only for LMION-owned gameplay overrides.
-
-Future cross-module contracts should be added only for concrete requirements. Core should not accumulate generic abstractions merely because a later module might need them.
+Core does not own construction UX, pickup UX or future repair gameplay. It should not accumulate speculative abstractions or duplicate facts already available from Project Zomboid runtime objects and scripts.
 
 ### `LMION_Build`
 
-Build owns the player-facing construction side:
+Build owns construction recipes, progression and construction-facing localization/UI.
 
-- construction-menu entries;
-- craft recipes and progression;
-- dismantle and destruction salvage rules when those are Build-owned gameplay decisions;
-- Build-specific validation and UX around creating a door.
+Build also owns the current large-gate split preparation because that split changes construction entity topology. On `OnGameBoot`, Build validates the exact vanilla closed-sprite sets for `Base.DoubleDoor`, `Base.DoubleWireGate` and `Base.DoubleFenceGate`, resets only their `SpriteConfig`, and reloads each vanilla entity as its left leaf. Right leaves use separate entities.
 
-Build-specific construction definitions live in `media/scripts/`. LMION profiles in Core may override shared gameplay properties, but Build should not duplicate a separate door-family catalog.
-
-Build-specific construction icons currently live as standalone PNG files under `media/textures/`; they are presentation assets, not canonical door-model data.
+For LMION-owned large gates, the old full-gate identities have been replaced by explicit `Left` / `Right` entities. The six current large-gate families are therefore represented as twelve craftable leaves.
 
 Build depends on Core, not Pickup.
 
 ### `LMION_Pickup`
 
-Pickup owns the player-facing recovery/transport side:
+Pickup owns transport/reinstallation through vanilla Moveables.
 
-- recognizing LMION-enabled world doors through the shared profile mapping;
-- pickup eligibility and Moveables integration;
-- tool/skill requirements for recovering and placing a door;
-- clean removal;
-- serializing physical/runtime state needed for transport;
-- inventory representation of a recovered door;
-- requesting re-placement of that recovered door;
-- restoring current health and LMION logical max on the actual placed `IsoDoor`.
+For validated 1x1 doors it handles:
 
-For the validated simple-door path, inventory modData carries:
+- pickup eligibility;
+- tools and skill requirements;
+- dedicated inventory items;
+- frame-aware replacement;
+- preservation of current health and LMION logical max.
 
-```text
-lmionDoorHealth
-lmionDoorMaxHealth
-```
+Large-gate Pickup is now a specialized path rather than forcing a 1x1 abstraction onto multi-square leaves. The active prototype is `Large Chain-Link Gate`:
+
+- either square of one leaf can be targeted;
+- logical `DoubleDoor` indices identify the two members of that leaf;
+- only that leaf is removed;
+- Pickup produces two parcels, `(1/2)` and `(2/2)`;
+- replacement requires both parcels and recreates both segments in one action;
+- vanilla `DoubleDoor` grouping resumes automatically when compatible leaves are adjacent.
+
+The current large-gate placement preview is still under active validation. Keep preview/render code separate conceptually from the already working pickup and two-segment placement logic.
 
 Pickup depends on Core, not Build.
 
@@ -122,72 +111,80 @@ Pickup depends on Core, not Build.
 
 Debug owns development-only tooling:
 
-- the door-focused LMION Inspector and its extensible report registry;
-- world-square selection, highlighting and picker UI;
-- the deterministic Test Zone;
-- client/server LMION Lua reload helpers;
-- temporary validation actions such as the current `LMION Repair +50 HP` context action.
+- the Inspector;
+- world-square selection/highlighting;
+- deterministic Test Zone;
+- LMION Lua reload helpers;
+- temporary validation actions.
 
-Temporary Debug validation actions must not silently become gameplay systems. Once a real feature module exists, Debug should return to inspection/testing support only.
+The Test Zone is an explicit fixture, not a runtime discovery scanner. It currently contains 83 entries after splitting the six large gates into twelve leaves.
 
-The Inspector intentionally reports only runtime facts useful to LMION door systems. Static configuration such as closed/open sprite pairs belongs to `GameEntityScript` / `SpriteConfig` and the source scripts rather than a private-field reflection dump.
+Debug depends on Core. Gameplay modules do not depend on Debug.
 
-Debug depends on Core. Core, Build and Pickup do not depend on Debug. The namespace remains `LMION.Debug` so the debug code can stay modular without leaking developer tooling into Core.
+## Large-gate topology rule
 
-The Test Zone is intentionally a deterministic fixture. Its manifest explicitly defines which opening is spawned at each coordinate. It must not grow back into a runtime discovery scanner.
+Project Zomboid runtime grouping for `IsoDoor` double doors/gates is driven by `DoubleDoor` indices and geometry, not by matching entity identity or sprite family.
 
-## Shared-system rule
+Validated logical leaves are:
 
-Build and Pickup must not duplicate genuinely shared placement, persistence or durability logic. Shared primitives belong in Core only after a real use case proves that more than one gameplay module needs them.
+```text
+leaf A = indices 1 + 2
+leaf B = indices 3 + 4
+```
 
-Do not maintain a speculative parallel model of doors when equivalent runtime or script data is already available from Project Zomboid. Profiles are for LMION-owned gameplay overrides only.
+LMION may therefore expose each leaf as an independent construction/pickup unit while still letting vanilla synchronize opening and closing across a correctly assembled four-member portal.
+
+Do not call vanilla whole-double-door destruction logic when implementing per-leaf pickup, because that path intentionally destroys linked members. The vanilla `Destroy` menu is currently expected to destroy the complete portal and is left unchanged.
+
+## SpriteConfig ownership rule
+
+`SpriteConfigScript.allTileNames` is derived from actual declared `SpriteConfig` face tiles. `SpriteConfigManager` uses those names for global scripted-sprite ownership.
+
+When changing vanilla large-gate ownership at runtime:
+
+- validate the expected vanilla tile set first;
+- call `SpriteConfigScript:PreReload()` on that component only;
+- reload only the intended `SpriteConfig` body;
+- verify the resulting tile set exactly;
+- never call `GameEntityScript:PreReload()` merely to reset SpriteConfig, because that would clear all components.
+
+`media/scripts` and TileDefinitions remain separate concerns: TileDefinitions can provide runtime physical properties and open-state behavior without being the source of `SpriteConfigScript.allTileNames`.
 
 ## Durability rule
 
-`IsoDoor` exposes current health and engine max health, but production Lua has no usable `IsoDoor:setMaxHealth()` path. LMION therefore keeps an authoritative logical max in modData:
+`IsoDoor` exposes current health and engine max health, but production Lua has no usable `IsoDoor:setMaxHealth()` path. LMION therefore keeps the authoritative gameplay max in:
 
 ```text
 lmionDoorMaxHealth
 ```
 
-Current health may legitimately exceed `IsoDoor:getMaxHealth()`.
-
-Existing world-door adoption uses a conservative migration rule:
-
-- if current health equals engine max on first adoption, current health is raised to the new LMION world max;
-- if the door is already damaged, current health is not changed;
-- the LMION logical max is stored in both cases;
-- an already-adopted door is not re-adopted merely because its square loads again.
-
-Do not replace this with ratio-based scaling or unconditional healing without an explicit design change.
+Current health may legitimately exceed `IsoDoor:getMaxHealth()`. LMION-owned repair and condition logic must use the logical max.
 
 ## Material-property safety rule
 
-Project Zomboid property values are alias-backed. Unknown string values can resolve to the wrong valid alias. Engine-facing property application must verify exact readback and restore the previous property when the requested value does not survive exactly.
+Project Zomboid property values are alias-backed. Unknown string values can resolve to a different valid alias. Engine-facing writes must verify exact readback and restore the previous property if the requested value did not survive exactly.
 
-Do not blindly call `PropertyContainer:set(name, arbitraryString)` for LMION gameplay data.
+## Localization rule
 
-## Folder rules
+Build construction names use `Recipes.json`. In current B42 behavior, recipe translation lookup removes spaces from `DisplayName`, so translation keys must match that normalized form. Pickup inventory items use their own item/localization path.
 
-- `shared/LMION/` contains APIs and data structures usable by client/server code.
-- `client/LMION/` contains UI, context menus and other client-only behavior.
-- `server/LMION/` contains authoritative server behavior when it genuinely exists.
-- The `LMION/` namespace folder is intentional; it avoids generic Lua require paths colliding with other mods.
-- Developer/debug tooling belongs to `LMION_Debug`, not Core.
-- Feature modules may register extra inspector sections from their own client code when Debug is present, but they must not require Debug for gameplay.
-- Pickup strategies may live under `shared/LMION/Pickup/Strategies/` when specialized opening handling requires them; do not create speculative strategy layers before they are needed.
-- New code should be reload-friendly whenever practical: replace registrations by ID and remove/re-add event handlers instead of stacking duplicates.
-- Runtime classification must not rely on sprite names alone when the engine exposes stronger data.
-- Game-loaded Lua and script files intentionally avoid source comments. Important rationale and implementation constraints belong in project documentation such as this file, `LMION_Design_Notes.md` or `CURRENT_STATE.md`.
-- `--` line comments are forbidden in LMION game-loaded source. In `media/scripts`, if a comment is ever unavoidable, use only the Project Zomboid parser-supported multiline comment form. Lua gameplay/debug source should remain comment-free rather than introducing parser/style exceptions.
-- `media/scripts` changes require a real game restart; LMION Lua reload cannot reparse script definitions.
-- New Lua files, changed load order, mod metadata changes or stale monkey-patch closures can also require a full restart.
-- Development-only migration or research tooling should not remain in gameplay modules after the task it served is complete.
-- Do not reintroduce the removed intrusive `MoveablesTrace.lua` diagnostic unless a new, nonintrusive design is explicitly required.
+Canonical LMION paired naming uses the English base name plus `Left` / `Right` in internal identifiers and `Left Leaf` / `Right Leaf` in English display text. French display text uses `vantail gauche` / `vantail droit`.
+
+## Folder and source rules
+
+- `shared/LMION/` contains code usable by both client/server contexts.
+- `client/LMION/` is for client UI/context behavior.
+- `server/LMION/` is for authoritative server behavior when genuinely needed.
+- Game-loaded LMION Lua and script files intentionally contain no `--` line comments; rationale belongs in documentation.
+- `media/scripts` changes require a full game restart.
+- New Lua files, load-order changes, metadata changes and stale monkey-patch closures may also require a full restart.
+- Lua-only edits to already loaded LMION files may be tested with the Debug reload path, but active cursor instances/closures can still require re-entering the mode or restarting.
+- Runtime classification should prefer engine structure over sprite-name guesses whenever stronger data exists.
+- Development-only diagnostics must not become permanent gameplay dependencies.
 
 ## Documentation roles
 
-- `CURRENT_STATE.md` is the active handoff/checkpoint document. Update it after meaningful validated milestones or architecture-impacting decisions, not mechanically after every commit.
-- `ARCHITECTURE.md` documents module boundaries, ownership and guardrails.
-- `LMION_Design_Notes.md` documents durable gameplay/design decisions and engine research conclusions.
-- `README_DEV.md` gives the practical developer workflow and current high-level status.
+- `CURRENT_STATE.md` is the active handoff/checkpoint.
+- `ARCHITECTURE.md` documents module boundaries and hard guardrails.
+- `LMION_Design_Notes.md` records durable gameplay decisions and engine research conclusions.
+- `README_DEV.md` records practical workflow and current high-level implementation status.
