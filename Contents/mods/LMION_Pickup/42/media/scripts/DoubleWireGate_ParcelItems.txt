@@ -1,0 +1,38 @@
+module Base
+{
+    item LMION_DoubleWireGateLeft_Part1
+    {
+        DisplayCategory = Furniture,
+        ItemType = base:moveable,
+        Icon = default,
+        Weight = 12.0,
+        Tags = base:usedisplayname,
+    }
+
+    item LMION_DoubleWireGateLeft_Part2
+    {
+        DisplayCategory = Furniture,
+        ItemType = base:moveable,
+        Icon = default,
+        Weight = 12.0,
+        Tags = base:usedisplayname,
+    }
+
+    item LMION_DoubleWireGateRight_Part1
+    {
+        DisplayCategory = Furniture,
+        ItemType = base:moveable,
+        Icon = default,
+        Weight = 12.0,
+        Tags = base:usedisplayname,
+    }
+
+    item LMION_DoubleWireGateRight_Part2
+    {
+        DisplayCategory = Furniture,
+        ItemType = base:moveable,
+        Icon = default,
+        Weight = 12.0,
+        Tags = base:usedisplayname,
+    }
+}
