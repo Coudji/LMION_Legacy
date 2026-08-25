@@ -1,0 +1,11 @@
+module Base
+{
+    item LMION_SmallWhiteWoodenGate
+    {
+        DisplayCategory = Furniture,
+        ItemType = base:moveable,
+        Icon = default,
+        Weight = 7.0,
+        Tags = base:usedisplayname,
+    }
+}

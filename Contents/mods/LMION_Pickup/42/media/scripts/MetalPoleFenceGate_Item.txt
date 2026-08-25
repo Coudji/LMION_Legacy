@@ -1,0 +1,11 @@
+module Base
+{
+    item LMION_MetalPoleFenceGate
+    {
+        DisplayCategory = Furniture,
+        ItemType = base:moveable,
+        Icon = default,
+        Weight = 16.0,
+        Tags = base:usedisplayname,
+    }
+}

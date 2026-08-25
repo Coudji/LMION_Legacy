@@ -1,0 +1,11 @@
+module Base
+{
+    item LMION_MetalWireFenceGateSmall
+    {
+        DisplayCategory = Furniture,
+        ItemType = base:moveable,
+        Icon = default,
+        Weight = 6.0,
+        Tags = base:usedisplayname,
+    }
+}

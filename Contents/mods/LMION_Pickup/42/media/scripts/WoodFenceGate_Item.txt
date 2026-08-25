@@ -1,0 +1,11 @@
+module Base
+{
+    item LMION_WoodFenceGate
+    {
+        DisplayCategory = Furniture,
+        ItemType = base:moveable,
+        Icon = default,
+        Weight = 14.0,
+        Tags = base:usedisplayname,
+    }
+}
