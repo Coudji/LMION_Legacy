@@ -3,6 +3,7 @@ local Doors = LMION.Doors
 
 Doors.Profiles = require "LMION/DoorProfiles"
 Doors.MaxHealthModDataKey = "lmionDoorMaxHealth"
+Doors.BuildContext = nil
 
 local spriteProfiles = nil
 
@@ -404,6 +405,13 @@ function Doors.onCreateDoor(params)
     local square = thumpable:getSquare()
     local profile = Doors.getProfileForSprite(thumpable:getSprite())
     local effectiveMaxHealth = params and tonumber(params.effectiveMaxHealth) or nil
+
+    if effectiveMaxHealth == nil
+        and Doors.BuildContext ~= nil
+        and Doors.BuildContext.profile == profile then
+        effectiveMaxHealth = tonumber(Doors.BuildContext.effectiveMaxHealth)
+    end
+
     if effectiveMaxHealth == nil then
         effectiveMaxHealth = thumpable:getMaxHealth()
     end
@@ -422,7 +430,7 @@ function Doors.onCreateDoor(params)
     door:setIsLocked(false)
     door:setLockedByKey(false)
 
-    if params ~= nil and params.effectiveMaxHealth ~= nil then
+    if effectiveMaxHealth ~= nil then
         door:setHealth(effectiveMaxHealth)
     else
         door:setHealth(thumpable:getHealth())
