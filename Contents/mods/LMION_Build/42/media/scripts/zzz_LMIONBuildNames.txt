@@ -1,0 +1,120 @@
+module Base
+{
+    xuiSkin default
+    {
+        entity ES_Wood_DoorLvl1
+        {
+            DisplayName = Basic Wooden Door,
+        }
+
+        entity ES_Wood_DoorLvl2
+        {
+            DisplayName = Sturdy Wooden Door,
+        }
+
+        entity ES_Wood_DoorLvl3
+        {
+            DisplayName = Artisan Wooden Door,
+        }
+
+        entity ES_Wood_FenceGate
+        {
+            DisplayName = Wooden Gate,
+        }
+
+        entity ES_Dumbledoor
+        {
+            DisplayName = Large Wooden Gate - Left Leaf,
+        }
+
+        entity ES_Metal_DoorLvl1
+        {
+            DisplayName = Basic Metal Door,
+        }
+
+        entity ES_Metal_DoorLvl2
+        {
+            DisplayName = Simple Metal Door,
+        }
+
+        entity ES_MetalWireFenceGateSmall
+        {
+            DisplayName = Small Chain-Link Gate,
+        }
+
+        entity ES_MetalWireFenceGate
+        {
+            DisplayName = Chain-Link Gate,
+        }
+
+        entity ES_MetalPoleFenceGateSmall
+        {
+            DisplayName = Small Scrap Metal Gate,
+        }
+
+        entity ES_MetalPoleFenceGate
+        {
+            DisplayName = Scrap Metal Gate,
+        }
+
+        entity ES_DoubleWireGate
+        {
+            DisplayName = Large Chain-Link Gate - Left Leaf,
+        }
+
+        entity ES_DoubleFenceGate
+        {
+            DisplayName = Large Scrap Metal Gate - Left Leaf,
+        }
+
+        entity ES_BlackTwoPaneDoubleDoorLeft
+        {
+            DisplayName = Black Two-Pane Double Door - Left Leaf,
+        }
+
+        entity ES_BlackTwoPaneDoubleDoorRight
+        {
+            DisplayName = Black Two-Pane Double Door - Right Leaf,
+        }
+
+        entity ES_GreyMetalDoubleDoorLeft
+        {
+            DisplayName = Grey Metal Double Door - Left Leaf,
+        }
+
+        entity ES_GreyMetalDoubleDoorRight
+        {
+            DisplayName = Grey Metal Double Door - Right Leaf,
+        }
+
+        entity ES_YellowServiceDoubleDoorLeft
+        {
+            DisplayName = Yellow Service Double Door - Left Leaf,
+        }
+
+        entity ES_YellowServiceDoubleDoorRight
+        {
+            DisplayName = Yellow Service Double Door - Right Leaf,
+        }
+
+        entity ES_BlueChurchDoubleDoorLeft
+        {
+            DisplayName = Blue Church Double Door - Left Leaf,
+        }
+
+        entity ES_BlueChurchDoubleDoorRight
+        {
+            DisplayName = Blue Church Double Door - Right Leaf,
+        }
+
+        entity ES_BrownChurchDoubleDoorLeft
+        {
+            DisplayName = Brown Church Double Door - Left Leaf,
+        }
+
+        entity ES_BrownChurchDoubleDoorRight
+        {
+            DisplayName = Brown Church Double Door - Right Leaf,
+        }
+    }
+}

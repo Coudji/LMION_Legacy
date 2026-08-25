@@ -1,0 +1,29 @@
+module Base
+{
+    entity LargeWroughtIronGateLeft
+    {
+        component SpriteConfig
+        {
+            health = 500,
+            skillBaseHealth = 50,
+            dontNeedFrame = true,
+
+            face W
+            {
+                layer
+                {
+                    row = fixtures_doors_fences_01_33,
+                    row = fixtures_doors_fences_01_32,
+                }
+            }
+
+            face N
+            {
+                layer
+                {
+                    row = fixtures_doors_fences_01_34 fixtures_doors_fences_01_35,
+                }
+            }
+        }
+    }
+}

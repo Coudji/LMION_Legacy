@@ -2,40 +2,40 @@ module Base
 {
     xuiSkin default
     {
-        entity ES_LargeHardenedWoodenGate
+        entity ES_LargeHardenedWoodenGateLeft
         {
             LuaWindowClass = ISEntityWindow,
-            DisplayName = Large Hardened Wooden Gate,
+            DisplayName = Large Hardened Wooden Gate - Left Leaf,
             Icon = LMION_LargeHardenedWoodenGate,
         }
     }
 
-    entity LargeHardenedWoodenGate
+    entity LargeHardenedWoodenGateLeft
     {
         component UiConfig
         {
             xuiSkin = default,
-            entityStyle = ES_LargeHardenedWoodenGate,
+            entityStyle = ES_LargeHardenedWoodenGateLeft,
             uiEnabled = false,
         }
 
         component CraftRecipe
         {
             timedAction = BuildWallHammer,
-            time = 240,
+            time = 120,
             category = LMION,
             SkillRequired = Woodwork:7,
-            xpAward = Woodwork:60,
+            xpAward = Woodwork:30,
 
             inputs
             {
                 item 1 tags[base:hammer] mode:keep flags[Prop1;MayDegradeVeryLight],
                 item 1 [Base.Screwdriver] mode:keep,
-                item 10 [Base.Plank],
-                item 10 [Base.Nails],
-                item 8 [Base.Screws],
-                item 4 [Base.Hinge],
-                item 2 [Base.Doorknob],
+                item 5 [Base.Plank],
+                item 5 [Base.Nails],
+                item 4 [Base.Screws],
+                item 2 [Base.Hinge],
+                item 1 [Base.Doorknob],
             }
         }
     }

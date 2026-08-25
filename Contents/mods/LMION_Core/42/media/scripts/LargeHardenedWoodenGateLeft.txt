@@ -1,13 +1,12 @@
 module Base
 {
-    entity LargeHardenedWoodenGate
+    entity LargeHardenedWoodenGateLeft
     {
         component SpriteConfig
         {
             health = 500,
             skillBaseHealth = 50,
             dontNeedFrame = true,
-            
 
             face W
             {
@@ -15,8 +14,6 @@ module Base
                 {
                     row = fixtures_doors_fences_01_49,
                     row = fixtures_doors_fences_01_48,
-                    row = fixtures_doors_fences_01_57,
-                    row = fixtures_doors_fences_01_56,
                 }
             }
 
@@ -24,7 +21,7 @@ module Base
             {
                 layer
                 {
-                    row = fixtures_doors_fences_01_50 fixtures_doors_fences_01_51 fixtures_doors_fences_01_58 fixtures_doors_fences_01_59,
+                    row = fixtures_doors_fences_01_50 fixtures_doors_fences_01_51,
                 }
             }
         }

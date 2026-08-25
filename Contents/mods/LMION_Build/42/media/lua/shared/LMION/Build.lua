@@ -4,27 +4,75 @@ LMION.Build = LMION.Build or {}
 local Build = LMION.Build
 
 Build.ID = "LMION_Build"
-Build.VERSION = "0.0.4-dev"
+Build.VERSION = "0.0.5-dev"
 
-local expectedClosedTiles = {
-    ["fixtures_doors_fences_01_64"] = true,
-    ["fixtures_doors_fences_01_65"] = true,
-    ["fixtures_doors_fences_01_66"] = true,
-    ["fixtures_doors_fences_01_67"] = true,
-    ["fixtures_doors_fences_01_72"] = true,
-    ["fixtures_doors_fences_01_73"] = true,
-    ["fixtures_doors_fences_01_74"] = true,
-    ["fixtures_doors_fences_01_75"] = true,
+local splitSpecs = {
+    {
+        id = "DoubleDoor",
+        expected = {
+            "fixtures_doors_fences_01_96",
+            "fixtures_doors_fences_01_97",
+            "fixtures_doors_fences_01_98",
+            "fixtures_doors_fences_01_99",
+            "fixtures_doors_fences_01_104",
+            "fixtures_doors_fences_01_105",
+            "fixtures_doors_fences_01_106",
+            "fixtures_doors_fences_01_107",
+        },
+        left = {
+            "fixtures_doors_fences_01_96",
+            "fixtures_doors_fences_01_97",
+            "fixtures_doors_fences_01_98",
+            "fixtures_doors_fences_01_99",
+        },
+        body = [[
+entity DoubleDoor
+{
+    component SpriteConfig
+    {
+        skillBaseHealth = 300,
+        dontNeedFrame = true,
+        BreakSound = BreakDoor,
+
+        face W
+        {
+            layer
+            {
+                row = fixtures_doors_fences_01_97,
+                row = fixtures_doors_fences_01_96,
+            }
+        }
+
+        face N
+        {
+            layer
+            {
+                row = fixtures_doors_fences_01_98 fixtures_doors_fences_01_99,
+            }
+        }
+    }
 }
-
-local expectedLeftTiles = {
-    ["fixtures_doors_fences_01_64"] = true,
-    ["fixtures_doors_fences_01_65"] = true,
-    ["fixtures_doors_fences_01_66"] = true,
-    ["fixtures_doors_fences_01_67"] = true,
-}
-
-local leftSpriteConfigBody = [[
+]],
+    },
+    {
+        id = "DoubleWireGate",
+        expected = {
+            "fixtures_doors_fences_01_64",
+            "fixtures_doors_fences_01_65",
+            "fixtures_doors_fences_01_66",
+            "fixtures_doors_fences_01_67",
+            "fixtures_doors_fences_01_72",
+            "fixtures_doors_fences_01_73",
+            "fixtures_doors_fences_01_74",
+            "fixtures_doors_fences_01_75",
+        },
+        left = {
+            "fixtures_doors_fences_01_64",
+            "fixtures_doors_fences_01_65",
+            "fixtures_doors_fences_01_66",
+            "fixtures_doors_fences_01_67",
+        },
+        body = [[
 entity DoubleWireGate
 {
     component SpriteConfig
@@ -51,7 +99,115 @@ entity DoubleWireGate
         }
     }
 }
-]]
+]],
+    },
+    {
+        id = "DoubleFenceGate",
+        expected = {
+            "fixtures_doors_fences_01_80",
+            "fixtures_doors_fences_01_81",
+            "fixtures_doors_fences_01_82",
+            "fixtures_doors_fences_01_83",
+            "fixtures_doors_fences_01_88",
+            "fixtures_doors_fences_01_89",
+            "fixtures_doors_fences_01_90",
+            "fixtures_doors_fences_01_91",
+        },
+        left = {
+            "fixtures_doors_fences_01_80",
+            "fixtures_doors_fences_01_81",
+            "fixtures_doors_fences_01_82",
+            "fixtures_doors_fences_01_83",
+        },
+        body = [[
+entity DoubleFenceGate
+{
+    component SpriteConfig
+    {
+        skillBaseHealth = 300,
+        dontNeedFrame = true,
+        BreakSound = BreakDoor,
+
+        face W
+        {
+            layer
+            {
+                row = fixtures_doors_fences_01_81,
+                row = fixtures_doors_fences_01_80,
+            }
+        }
+
+        face N
+        {
+            layer
+            {
+                row = fixtures_doors_fences_01_82 fixtures_doors_fences_01_83,
+            }
+        }
+    }
+}
+]],
+    },
+}
+
+local function cloneProfile(source, id, fallbackName)
+    if source == nil then
+        return nil
+    end
+
+    return {
+        id = id,
+        fallbackName = fallbackName,
+        class = source.class,
+        frame = source.frame,
+        requiresFrame = source.requiresFrame,
+        durability = source.durability,
+        materials = source.materials,
+        sounds = source.sounds,
+    }
+end
+
+local function installSplitProfiles()
+    if LMION.Doors == nil or LMION.Doors.Profiles == nil then
+        return false
+    end
+
+    local profiles = LMION.Doors.Profiles
+    local doubleDoor = profiles.DoubleDoor
+    local doubleWireGate = profiles.DoubleWireGate
+    local doubleFenceGate = profiles.DoubleFenceGate
+    local largeFarmGate = profiles.LargeFarmGate
+    local largeHardenedWoodenGate = profiles.LargeHardenedWoodenGate
+    local largeWroughtIronGate = profiles.LargeWroughtIronGate
+
+    profiles.DoubleDoor = cloneProfile(doubleDoor, "DoubleDoor", "Large Wooden Gate - Left Leaf")
+    profiles.DoubleDoorRight = cloneProfile(doubleDoor, "DoubleDoorRight", "Large Wooden Gate - Right Leaf")
+    profiles.DoubleWireGate = cloneProfile(doubleWireGate, "DoubleWireGate", "Large Chain-Link Gate - Left Leaf")
+    profiles.DoubleWireGateRight = cloneProfile(doubleWireGate, "DoubleWireGateRight", "Large Chain-Link Gate - Right Leaf")
+    profiles.DoubleFenceGate = cloneProfile(doubleFenceGate, "DoubleFenceGate", "Large Scrap Metal Gate - Left Leaf")
+    profiles.DoubleFenceGateRight = cloneProfile(doubleFenceGate, "DoubleFenceGateRight", "Large Scrap Metal Gate - Right Leaf")
+
+    profiles.LargeFarmGateLeft = cloneProfile(largeFarmGate, "LargeFarmGateLeft", "Large Farm Gate - Left Leaf")
+    profiles.LargeFarmGateRight = cloneProfile(largeFarmGate, "LargeFarmGateRight", "Large Farm Gate - Right Leaf")
+    profiles.LargeHardenedWoodenGateLeft = cloneProfile(largeHardenedWoodenGate, "LargeHardenedWoodenGateLeft", "Large Hardened Wooden Gate - Left Leaf")
+    profiles.LargeHardenedWoodenGateRight = cloneProfile(largeHardenedWoodenGate, "LargeHardenedWoodenGateRight", "Large Hardened Wooden Gate - Right Leaf")
+    profiles.LargeWroughtIronGateLeft = cloneProfile(largeWroughtIronGate, "LargeWroughtIronGateLeft", "Large Wrought Iron Gate - Left Leaf")
+    profiles.LargeWroughtIronGateRight = cloneProfile(largeWroughtIronGate, "LargeWroughtIronGateRight", "Large Wrought Iron Gate - Right Leaf")
+
+    profiles.LargeFarmGate = nil
+    profiles.LargeHardenedWoodenGate = nil
+    profiles.LargeWroughtIronGate = nil
+
+    return true
+end
+
+local function makeSet(values)
+    local result = {}
+    for _, value in ipairs(values) do
+        result[value] = true
+    end
+    return result
+end
 
 local function countKnown(tileNames, known)
     local count = 0
@@ -63,136 +219,99 @@ local function countKnown(tileNames, known)
     return count
 end
 
-local function dumpSpriteConfig(label, spriteConfig)
-    if spriteConfig == nil then
-        LMION.error("Build", label .. " SpriteConfig=nil")
-        return
+local function getScript(id)
+    local script = ScriptManager.instance:getGameEntityScript("Base." .. id)
+    if script == nil then
+        script = ScriptManager.instance:getGameEntityScript(id)
     end
-
-    local tileNames = spriteConfig:getAllTileNames()
-    LMION.log("Build", label .. " allTileNames count=" .. tostring(tileNames:size()))
-    for i = 0, tileNames:size() - 1 do
-        LMION.log("Build", label .. " allTileNames[" .. tostring(i) .. "]=" .. tostring(tileNames:get(i)))
-    end
-
-    for faceId = 0, 5 do
-        local face = spriteConfig:getFace(faceId)
-        if face ~= nil then
-            LMION.log(
-                "Build",
-                label
-                    .. " face["
-                    .. tostring(faceId)
-                    .. "]="
-                    .. tostring(face:getFaceName())
-                    .. " width="
-                    .. tostring(face:getTotalWidth())
-                    .. " height="
-                    .. tostring(face:getTotalHeight())
-                    .. " layers="
-                    .. tostring(face:getZLayers())
-            )
-
-            for layerIndex = 0, face:getZLayers() - 1 do
-                local layer = face:getLayer(layerIndex)
-                if layer ~= nil then
-                    for rowIndex = 0, layer:getHeight() - 1 do
-                        local row = layer:getRow(rowIndex)
-                        if row ~= nil then
-                            for tileIndex = 0, row:getWidth() - 1 do
-                                local tile = row:getTile(tileIndex)
-                                if tile ~= nil then
-                                    LMION.log(
-                                        "Build",
-                                        label
-                                            .. " face["
-                                            .. tostring(faceId)
-                                            .. "] layer["
-                                            .. tostring(layerIndex)
-                                            .. "] row["
-                                            .. tostring(rowIndex)
-                                            .. "] tile["
-                                            .. tostring(tileIndex)
-                                            .. "]="
-                                            .. tostring(tile:getTileName())
-                                    )
-                                end
-                            end
-                        end
-                    end
-                end
-            end
-        end
-    end
+    return script
 end
 
-function Build.prepareSplitDoubleWireGate()
-    if ScriptManager == nil or ScriptManager.instance == nil then
-        return false
-    end
-
-    local script = ScriptManager.instance:getGameEntityScript("Base.DoubleWireGate")
-    if script == nil then
-        script = ScriptManager.instance:getGameEntityScript("DoubleWireGate")
-    end
-    if script == nil then
-        LMION.error("Build", "DoubleWireGate GameEntityScript not found")
-        return false
-    end
-
+local function validateCurrentSpriteConfig(spec, script)
     local spriteConfig = script:getComponentScriptFor(ComponentType.SpriteConfig)
     if spriteConfig == nil then
-        LMION.error("Build", "DoubleWireGate SpriteConfig not found")
-        return false
+        return nil, "SpriteConfig not found"
     end
 
-    dumpSpriteConfig("DoubleWireGate before reload", spriteConfig)
-
+    local expected = makeSet(spec.expected)
     local tileNames = spriteConfig:getAllTileNames()
-    local closedCount = countKnown(tileNames, expectedClosedTiles)
-    if closedCount ~= 8 then
-        LMION.error(
-            "Build",
-            "refusing DoubleWireGate reload: expected all 8 vanilla closed tiles, found " .. tostring(closedCount)
-        )
-        return false
+    if tileNames:size() ~= #spec.expected or countKnown(tileNames, expected) ~= #spec.expected then
+        return nil, "expected exact vanilla closed-tile set"
     end
 
+    return spriteConfig, nil
+end
+
+local function reloadAsLeftLeaf(spec, script, spriteConfig)
     spriteConfig:PreReload()
 
     local ok, err = pcall(function()
-        script:Load("DoubleWireGate", leftSpriteConfigBody)
+        script:Load(spec.id, spec.body)
     end)
-
     if not ok then
-        LMION.error("Build", "DoubleWireGate reload failed: " .. tostring(err))
-        return false
+        return false, "reload failed: " .. tostring(err)
     end
 
     local reloaded = script:getComponentScriptFor(ComponentType.SpriteConfig)
-    dumpSpriteConfig("DoubleWireGate after reload", reloaded)
-
     if reloaded == nil then
-        LMION.error("Build", "DoubleWireGate reload produced no SpriteConfig")
+        return false, "reload produced no SpriteConfig"
+    end
+
+    local expectedLeft = makeSet(spec.left)
+    local tileNames = reloaded:getAllTileNames()
+    if tileNames:size() ~= #spec.left or countKnown(tileNames, expectedLeft) ~= #spec.left then
+        return false, "left-leaf verification failed"
+    end
+
+    return true, nil
+end
+
+function Build.prepareSplitVanillaLargeGates()
+    if not installSplitProfiles() then
+        LMION.error("Build", "unable to install split large-gate profiles")
         return false
     end
 
-    local reloadedNames = reloaded:getAllTileNames()
-    if reloadedNames:size() ~= 4 or countKnown(reloadedNames, expectedLeftTiles) ~= 4 then
-        LMION.error("Build", "DoubleWireGate reload verification failed")
+    if ScriptManager == nil or ScriptManager.instance == nil or ComponentType == nil then
         return false
     end
 
-    if LMION.Doors ~= nil and LMION.Doors.Profiles ~= nil then
-        LMION.Doors.Profiles.DoubleWireGateRight = LMION.Doors.Profiles.DoubleWireGate
+    local prepared = {}
+
+    for _, spec in ipairs(splitSpecs) do
+        local script = getScript(spec.id)
+        if script == nil then
+            LMION.error("Build", spec.id .. " GameEntityScript not found")
+            return false
+        end
+
+        local spriteConfig, reason = validateCurrentSpriteConfig(spec, script)
+        if spriteConfig == nil then
+            LMION.error("Build", "refusing " .. spec.id .. " split: " .. tostring(reason))
+            return false
+        end
+
+        prepared[#prepared + 1] = {
+            spec = spec,
+            script = script,
+            spriteConfig = spriteConfig,
+        }
     end
 
-    LMION.log("Build", "DoubleWireGate vanilla SpriteConfig reloaded as left half")
+    for _, entry in ipairs(prepared) do
+        local ok, reason = reloadAsLeftLeaf(entry.spec, entry.script, entry.spriteConfig)
+        if not ok then
+            LMION.error("Build", entry.spec.id .. " split failed: " .. tostring(reason))
+            return false
+        end
+        LMION.log("Build", entry.spec.id .. " SpriteConfig reloaded as left leaf")
+    end
+
     return true
 end
 
 if Events ~= nil and Events.OnGameBoot ~= nil then
-    Events.OnGameBoot.Add(Build.prepareSplitDoubleWireGate)
+    Events.OnGameBoot.Add(Build.prepareSplitVanillaLargeGates)
 end
 
 LMION.registerModule(Build.ID, Build)

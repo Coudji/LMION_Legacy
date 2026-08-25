@@ -1,0 +1,29 @@
+module Base
+{
+    entity LargeHardenedWoodenGateRight
+    {
+        component SpriteConfig
+        {
+            health = 500,
+            skillBaseHealth = 50,
+            dontNeedFrame = true,
+
+            face W
+            {
+                layer
+                {
+                    row = fixtures_doors_fences_01_57,
+                    row = fixtures_doors_fences_01_56,
+                }
+            }
+
+            face N
+            {
+                layer
+                {
+                    row = fixtures_doors_fences_01_58 fixtures_doors_fences_01_59,
+                }
+            }
+        }
+    }
+}

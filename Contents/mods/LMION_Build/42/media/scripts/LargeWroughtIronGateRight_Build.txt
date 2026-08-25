@@ -2,39 +2,39 @@ module Base
 {
     xuiSkin default
     {
-        entity ES_LargeWroughtIronGate
+        entity ES_LargeWroughtIronGateRight
         {
             LuaWindowClass = ISEntityWindow,
-            DisplayName = Large Wrought Iron Gate,
+            DisplayName = Large Wrought Iron Gate - Right Leaf,
             Icon = LMION_LargeWroughtIronGate,
         }
     }
 
-    entity LargeWroughtIronGate
+    entity LargeWroughtIronGateRight
     {
         component UiConfig
         {
             xuiSkin = default,
-            entityStyle = ES_LargeWroughtIronGate,
+            entityStyle = ES_LargeWroughtIronGateRight,
             uiEnabled = false,
         }
 
         component CraftRecipe
         {
             timedAction = BuildWireFence,
-            time = 260,
+            time = 130,
             category = LMION,
             SkillRequired = MetalWelding:6,
-            xpAward = MetalWelding:50,
+            xpAward = MetalWelding:25,
 
             inputs
             {
                 item 1 [Base.WeldingMask] mode:keep,
-                item 8 [Base.BlowTorch] flags[DontRecordInput],
-                item 8 [Base.MetalBar],
-                item 4 [Base.MetalPipe],
-                item 4 [Base.Hinge],
-                item 6 [Base.WeldingRods] flags[DontRecordInput],
+                item 4 [Base.BlowTorch] flags[DontRecordInput],
+                item 4 [Base.MetalBar],
+                item 2 [Base.MetalPipe],
+                item 2 [Base.Hinge],
+                item 3 [Base.WeldingRods] flags[DontRecordInput],
             }
         }
     }

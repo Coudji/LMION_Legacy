@@ -1,0 +1,40 @@
+module Base
+{
+    xuiSkin default
+    {
+        entity ES_LargeFarmGateLeft
+        {
+            LuaWindowClass = ISEntityWindow,
+            DisplayName = Large Farm Gate - Left Leaf,
+            Icon = LMION_LargeFarmGate,
+        }
+    }
+
+    entity LargeFarmGateLeft
+    {
+        component UiConfig
+        {
+            xuiSkin = default,
+            entityStyle = ES_LargeFarmGateLeft,
+            uiEnabled = false,
+        }
+
+        component CraftRecipe
+        {
+            timedAction = BuildWireFence,
+            time = 80,
+            category = LMION,
+            SkillRequired = MetalWelding:4,
+            xpAward = MetalWelding:15,
+
+            inputs
+            {
+                item 1 [Base.WeldingMask] mode:keep,
+                item 3 [Base.BlowTorch] flags[DontRecordInput],
+                item 4 [Base.MetalPipe],
+                item 2 [Base.Hinge],
+                item 2 [Base.WeldingRods] flags[DontRecordInput],
+            }
+        }
+    }
+}

@@ -1,0 +1,64 @@
+module Base
+{
+    xuiSkin default
+    {
+        entity ES_DoubleDoorRight
+        {
+            LuaWindowClass = ISEntityWindow,
+            DisplayName = Large Wooden Gate - Right Leaf,
+            Icon = Build_DoubleWoodGate,
+        }
+    }
+
+    entity DoubleDoorRight
+    {
+        component UiConfig
+        {
+            xuiSkin = default,
+            entityStyle = ES_DoubleDoorRight,
+            uiEnabled = false,
+        }
+
+        component SpriteConfig
+        {
+            skillBaseHealth = 300,
+            dontNeedFrame = true,
+            BreakSound = BreakDoor,
+
+            face W
+            {
+                layer
+                {
+                    row = fixtures_doors_fences_01_105,
+                    row = fixtures_doors_fences_01_104,
+                }
+            }
+
+            face N
+            {
+                layer
+                {
+                    row = fixtures_doors_fences_01_106 fixtures_doors_fences_01_107,
+                }
+            }
+        }
+
+        component CraftRecipe
+        {
+            timedAction = BuildWallHammer,
+            time = 90,
+            category = LMION,
+            SkillRequired = Woodwork:4,
+            xpAward = Woodwork:15,
+
+            inputs
+            {
+                item 1 tags[base:hammer] mode:keep flags[Prop1;MayDegradeVeryLight],
+                item 4 [Base.Plank],
+                item 4 [Base.Nails],
+                item 2 [Base.Hinge],
+                item 1 [Base.Doorknob],
+            }
+        }
+    }
+}
