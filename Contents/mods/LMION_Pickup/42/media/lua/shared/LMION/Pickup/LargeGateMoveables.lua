@@ -285,18 +285,6 @@ local function isLargeGateMoveProps(moveProps)
         and moveProps.lmionDoorFaces ~= nil
 end
 
-local function getLeafAnchorFaces(moveProps)
-    local leaf = moveProps and leafSpecs[moveProps.lmionLargeGateLeaf] or nil
-    if leaf == nil then
-        return nil
-    end
-
-    return {
-        N = leaf.parts[1].faces.N,
-        W = leaf.parts[2].faces.W,
-    }
-end
-
 if Pickup._largeGateOriginalMoveableSpritePropsNew == nil then
     Pickup._largeGateOriginalMoveableSpritePropsNew = ISMoveableSpriteProps.new
 end
@@ -324,9 +312,6 @@ end
 
 ISMoveableSpriteProps.getFaces = function(self)
     if isLargeGateMoveProps(self) then
-        if self.isMultiSprite then
-            return getLeafAnchorFaces(self) or {}
-        end
         return {
             N = self.lmionDoorFaces.N,
             W = self.lmionDoorFaces.W,
