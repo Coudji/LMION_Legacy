@@ -26,20 +26,20 @@ module Base
         component CraftRecipe
         {
             timedAction = BuildWireFence,
-            time = 220,
+            time = 110,
             category = LMION,
             SkillRequired = MetalWelding:5,
-            xpAward = MetalWelding:40,
+            xpAward = MetalWelding:20,
 
             inputs
             {
                 item 1 [Base.WeldingMask] mode:keep,
-                item 10 [Base.BlowTorch] flags[DontRecordInput],
-                item 8 [Base.MetalPipe],
-                item 4 [Base.Wire],
-                item 4 [Base.Hinge],
-                item 2 [Base.ScrapMetal],
-                item 10 [Base.WeldingRods] flags[DontRecordInput],
+                item 5 [Base.BlowTorch] flags[DontRecordInput],
+                item 4 [Base.MetalPipe],
+                item 2 [Base.Wire],
+                item 2 [Base.Hinge],
+                item 1 [Base.ScrapMetal],
+                item 5 [Base.WeldingRods] flags[DontRecordInput],
             }
         }
     }
