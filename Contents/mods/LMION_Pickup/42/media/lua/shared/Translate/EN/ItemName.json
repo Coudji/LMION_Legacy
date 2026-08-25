@@ -50,5 +50,7 @@
   "Base.LMION_MetalPoleFenceGateSmall": "Small Scrap Metal Gate",
   "Base.LMION_MetalPoleFenceGate": "Scrap Metal Gate",
   "Base.LMION_SmallWroughtIronGate": "Small Wrought Iron Gate",
-  "Base.LMION_WroughtIronGate": "Wrought Iron Gate"
+  "Base.LMION_WroughtIronGate": "Wrought Iron Gate",
+  "Base.LMION_BrownSlidingGlassDoor": "Brown Sliding Glass Door",
+  "Base.LMION_WhiteSlidingGlassDoor": "White Sliding Glass Door"
 }
