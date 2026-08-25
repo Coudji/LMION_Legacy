@@ -85,6 +85,8 @@ addGate("MetalPoleFenceGateSmall", "LMIONMetalCrowbar", "LMIONMetalHammer", 1, 8
 addGate("MetalPoleFenceGate", "LMIONMetalCrowbar", "LMIONMetalHammer", 1, 16)
 addGate("SmallWroughtIronGate", "LMIONMetalCrowbar", "LMIONMetalHammer", 1, 12)
 addGate("WroughtIronGate", "LMIONMetalCrowbar", "LMIONMetalHammer", 2, 25)
+addGate("BrownSlidingGlassDoor", "LMIONMetalCrowbar", "LMIONMetalBlowTorch", 1, 20)
+addGate("WhiteSlidingGlassDoor", "LMIONMetalCrowbar", "LMIONMetalBlowTorch", 1, 20)
 
 LMION.Pickup.DoorProfiles = Profiles
 
