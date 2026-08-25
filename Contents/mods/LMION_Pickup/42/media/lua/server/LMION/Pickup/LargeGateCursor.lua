@@ -52,19 +52,19 @@ ISMoveableCursor.renderSpriteGrid = function(self, x, y, z, color)
         end
     end
 
-    -- DoubleWireGate is not authored like a normal two-tile piece of furniture:
-    -- logical Part2 already contains the complete leaf artwork, while Part1 is
-    -- only the extra technical strip used by the DoubleDoor object. Vanilla's
-    -- generic renderSpriteGrid() draws both and therefore renders that strip
-    -- twice. Keep the SpriteGrid for Moveables logic, but render only the complete
-    -- visual member here.
-    local leaf = leafSpecs[self.currentMoveProps.lmionLargeGateLeaf]
+    -- The two gate leaves are authored asymmetrically. On the right leaf Part2
+    -- already contains the complete visual leaf; on the left leaf the complete
+    -- visual member is Part1. Keep both members in the SpriteGrid for Moveables
+    -- logic, but render only the complete visual member in the ghost preview.
+    local leafId = self.currentMoveProps.lmionLargeGateLeaf
+    local leaf = leafSpecs[leafId]
     local facing = self.currentMoveProps.lmionDoorFacing
+    local visualPartIndex = leafId == "left" and 1 or 2
     local fullSpriteName = leaf
         and leaf.parts
-        and leaf.parts[2]
-        and leaf.parts[2].faces
-        and leaf.parts[2].faces[facing]
+        and leaf.parts[visualPartIndex]
+        and leaf.parts[visualPartIndex].faces
+        and leaf.parts[visualPartIndex].faces[facing]
         or nil
 
     if fullSpriteName == nil then
