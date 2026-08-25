@@ -5,6 +5,7 @@ local Pickup = LMION.Pickup
 
 local leafSpecs = {
     left = {
+        visualPartIndex = 1,
         indices = {
             N = {1, 2},
             W = {4, 3},
@@ -27,6 +28,7 @@ local leafSpecs = {
         },
     },
     right = {
+        visualPartIndex = 2,
         indices = {
             N = {3, 4},
             W = {2, 1},
@@ -170,9 +172,6 @@ if Events ~= nil and Events.OnLoadedTileDefinitions ~= nil then
     end
 end
 
--- Needed for Lua hot-reload when tile definitions are already loaded. During a
--- normal startup OnLoadedTileDefinitions installs the grids again after the
--- engine has finished rebuilding the global IsoSprite definitions.
 installAllRuntimeSpriteGrids("lua-load")
 
 local function getDoubleDoorIndex(object)
