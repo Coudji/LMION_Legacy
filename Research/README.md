@@ -107,7 +107,6 @@ Several older development areas still deserve the same treatment. They can be re
 - Debug reload behavior in single-player vs multiplayer and which stale closures/instances survive a Lua reload;
 - Inspector evolution and removal of broad reflection/runtime dumping;
 - the removed intrusive `MoveablesTrace.lua` experiment;
-- material/salvage behavior and the historical Cherry `Material2` canary test;
 - localization lookup quirks and evidence for normalized recipe keys.
 
 Items should move out of this backlog only when the surviving evidence is strong enough to explain both the conclusion and its limits.
