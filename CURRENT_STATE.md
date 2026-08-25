@@ -86,7 +86,7 @@ Validated behavior:
 - correctly assembled left/right leaves synchronize opening through vanilla logic;
 - synchronization survives save/load and a full cold restart in the validated Chain-Link case;
 - a naturally placed vanilla large chain-link gate in a new save loaded and opened without `Invalid SpriteConfig` warnings;
-- the deterministic Test Zone now spawns 83/83 entries after the six full-gate entries became twelve leaf entries.
+- the deterministic Test Zone spawns 83/83 entries after the six full-gate entries became twelve leaf entries.
 
 The vanilla Destroy menu still destroys the complete linked portal. This is confirmed behavior and is currently left unchanged.
 
@@ -94,16 +94,21 @@ The vanilla Destroy menu still destroys the complete linked portal. This is conf
 
 Java research established that `DoubleDoor` runtime grouping is based on logical index, orientation and hardcoded geometry.
 
-Logical members are 1..4, with the two leaves:
+`IsoDoor.getDoubleDoorIndex()` reads the member identity encoded by the sprite. `IsoDoor.getDoubleDoorObject()` then resolves linked members from orientation/open state, geometry and requested logical index. Matching GameEntity identity is not required.
+
+For the validated `DoubleWireGate` closed sprites, logical indices are orientation-dependent:
 
 ```text
-leaf A = 1 + 2
-leaf B = 3 + 4
+LEFT LEAF
+N: Part1=1, Part2=2
+W: Part1=4, Part2=3
+
+RIGHT LEAF
+N: Part1=3, Part2=4
+W: Part1=2, Part2=1
 ```
 
-`IsoDoor.getDoubleDoorObject()` does not require matching sprite family, GameEntity identity or material profile. This is why two independently constructible leaf entities can still synchronize as one vanilla portal.
-
-`destroyDoubleDoor` follows the linked structure, which explains why the vanilla Destroy action removes the complete portal.
+This mapping is required for rotated replacement to reconstruct linked vanilla DoubleDoor members rather than merely two adjacent `IsoDoor` objects.
 
 ## SpriteConfig split implementation
 
@@ -135,7 +140,7 @@ Treat old-save migration as a separate compatibility task. Do not distort the ne
 
 ## Localization status
 
-Build now includes French construction localization through `Recipes.json`.
+Build includes French construction localization through `Recipes.json`.
 
 Important B42 behavior: recipe translation lookup removes spaces from the `DisplayName` before key lookup. LMION translation keys therefore use the normalized no-space form.
 
@@ -146,16 +151,14 @@ English: <base> - Left Leaf / Right Leaf
 French:  <base> - vantail gauche / vantail droit
 ```
 
-The broader French construction-name pass has been added. Mechanical work does not need to stop for a complete manual visual audit of every translated entry.
+## Large Chain-Link Gate Pickup prototype — validated closed-leaf cycle
 
-## Large Chain-Link Gate Pickup prototype
-
-Pickup work has started with one family only: `Large Chain-Link Gate`.
+Pickup work currently targets one family only: `Large Chain-Link Gate` / `DoubleWireGate`.
 
 ### Validated pickup behavior
 
 - all four closed physical portal squares are targetable in Moveables mode;
-- targeting either segment of one leaf, including the non-pivot/inner segment, resolves the correct leaf;
+- targeting either segment of one leaf resolves the correct leaf;
 - only the selected two-segment leaf is removed;
 - the other leaf remains in the world;
 - Pickup produces two localized inventory parcels:
@@ -167,39 +170,90 @@ Grand portail grillagé - vantail <gauche/droit> (2/2)
 
 Each parcel currently weighs 12.
 
+### Runtime SpriteGrid bridge
+
+The original DoubleWireGate sprites are not authored with the SpriteGrid metadata that generic Moveables expects. LMION therefore creates runtime `IsoSpriteGrid` objects for left/right leaves in N and W orientations and attaches them to the relevant global `IsoSprite` instances.
+
+The grids must be installed twice:
+
+1. at Lua load for hot reloads;
+2. again on `Events.OnLoadedTileDefinitions` because normal tile-definition loading can rebuild sprite state after the first install.
+
+The second install is required for reliable cold-start behavior.
+
+The SpriteGrid provides vanilla Moveables grouping, two-square targeting/footprint and inventory multisprite behavior. Pickup itself still creates two parcels by temporarily treating each physical source segment as non-multisprite while calling vanilla internal pickup code.
+
 ### Validated replacement behavior
 
-The first prototype required placing each parcel separately. That proved segment identities and orientation data were usable, and the portal synchronized after both were placed.
+Replacement requires both parcels and places both physical `IsoDoor` segments in one action.
 
-The current replacement logic consumes both parcels and creates both physical segments in one placement action. Once restored, vanilla synchronized opening works correctly.
+LMION does **not** rely on generic vanilla multisprite placement for the final reconstruction. That path failed after rotation because ordinary SpriteGrid anchor assumptions do not match DoubleDoor's orientation-dependent logical indices.
 
-### Current unresolved issue: placement preview
+The current placement path:
 
-The visual preview is not yet validated.
+- resolves leaf + facing;
+- requires both parcel item types;
+- computes Part1/Part2 target squares;
+- validates each square through vanilla `canPlaceMoveableInternal()`;
+- calls vanilla `placeMoveableInternal()` separately for each physical segment while temporarily disabling multisprite recursion;
+- removes both parcel items;
+- leaves opening/link synchronization to vanilla DoubleDoor mechanics.
 
-Observed progression:
+Validated runtime result:
 
-- initial one-segment placement path: cursor preview showed the full two-tile leaf, but clicking placed only the selected segment;
-- after changing to two-segment placement: clicking correctly places both segments, but vanilla preview showed only one segment and could visually swap segment order when changing orientation;
-- the latest code hooks `ISMoveableCursor.render` and explicitly draws both canonical leaf sprites for the current orientation.
+- left leaf: original orientation works;
+- left leaf: N/W rotation works;
+- right leaf: original orientation works;
+- right leaf: N/W rotation works;
+- both parcels are consumed in one placement action;
+- restored leaves resume vanilla synchronized opening.
 
-That latest render fix is currently being runtime-tested. Do not describe it as solved until the test confirms it.
+### Validated preview behavior
 
-Preview rendering is a presentation path separate from actual placement. Do not regress the already working two-segment placement merely to satisfy cursor visuals.
+Generic vanilla `renderSpriteGrid()` is not visually correct for these sprites.
+
+A controlled diagnostic established that one member of each leaf already contains the complete visible leaf artwork, while the other member is only a technical/partial visual sprite. Drawing both members duplicates part of the gate.
+
+The complete visual member is asymmetric between the two leaves:
+
+```text
+left leaf  -> Part1
+right leaf -> Part2
+```
+
+LMION therefore keeps both members in the logical SpriteGrid but overrides the large-gate preview renderer to:
+
+- draw both footprint squares;
+- draw only the configured complete visual member;
+- leave all non-large-gate Moveables rendering on vanilla behavior.
+
+This preview is now runtime-validated in both N and W orientations for both Chain-Link leaves.
+
+### Important failed hypotheses
+
+The following were explicitly tested and should not be rediscovered from scratch:
+
+- installing SpriteGrid only at initial Lua load is insufficient;
+- a valid SpriteGrid alone does not make generic vanilla multisprite placement correct for rotated DoubleDoor leaves;
+- the duplicate preview was not caused by a second hidden cursor renderer;
+- the duplicate preview was not fixed by changing ghost alpha;
+- separated member rendering showed that one member already contains the complete visual leaf, explaining the duplication.
+
+Full technical rationale is recorded in `LMION_Design_Notes.md`.
 
 ### Non-blocking warning
 
-During multi-square pickup the engine has logged:
+During multi-square pickup the engine can log:
 
 ```text
-GameEntityFactory.TransferComponents> Cannot transfer components for multi-square objects
+GameEntityFactory.TransferComponents> Cannot transfer components for multi-square objects.
 ```
 
-No concrete functional failure has been observed from it: both parcels are created and replacement works. Do not add speculative workarounds until state loss or another real bug is reproduced.
+No concrete functional failure has been observed from it in the validated closed-leaf cycle. Do not add speculative workarounds unless state loss is reproduced.
 
 ### Current scope guardrail
 
-Large-gate Pickup currently supports only the Chain-Link prototype. Do not generalize to all six families until the complete pickup → two parcels → one-action replacement → correct preview cycle is validated in both N and W orientations.
+Large-gate Pickup currently supports only the Chain-Link prototype. Do not generalize blindly to all six families. Reuse the validated architecture, but inspect each family's logical-index geometry and sprite artwork before assuming the same preview `visualPartIndex` pattern.
 
 Open-state pickup is not yet the reference path.
 
@@ -230,7 +284,7 @@ Engine-facing LMION writes must:
 - Lua-only changes to already-loaded files can usually be tested with LMION reload, but active cursor/action instances may retain stale state.
 - Do not use speculative Java reflection as a production solution.
 - Prefer source/bytecode/runtime verification over guessed engine behavior.
-- Development writes may use a feature branch and then fast-forward `main`; do not create PRs unless explicitly requested.
+- During active prototype development, work directly on `main`; use a temporary branch only when it materially helps rollback. Do not create PRs unless explicitly requested.
 
 ## Documentation checkpoint rule
 
@@ -243,18 +297,16 @@ Update docs after meaningful milestones, not every commit:
 
 ## Next intended milestones
 
-1. Confirm the latest full-leaf Chain-Link placement preview fix.
-2. Retest placement from both `(1/2)` and `(2/2)` parcels in N and W orientations.
-3. Confirm pickup/replacement preserves the intended per-segment health/max-health semantics.
-4. Generalize the validated two-parcel leaf model to the other five large-gate families.
-5. Research garage-door pickup/replacement separately.
-6. Build the real Repair gameplay module after multi-tile transport and material/craft rules are stable enough.
+1. Confirm per-segment health / logical-max preservation through the now-working Chain-Link leaf pickup cycle.
+2. Generalize the validated two-parcel leaf architecture to the other five large-gate families, checking each family's sprite artwork and index geometry.
+3. Research garage-door pickup/replacement separately.
+4. Build the real Repair gameplay module after multi-tile transport and material/craft rules are stable enough.
 
 ## Useful recent milestone commits
 
-- `be8faa780e778a14af602692ae1e779df226e5e2` — validated v2 split prototype base for vanilla DoubleWireGate.
-- `c2d96aba13c9b2837c04d0dbd640a59a0de57fad` — generalized construction split to all six large-gate families and localization pass.
-- `a81f130908eea2dfa7b11f41d72a8d736298b7d2` — corrected B42 recipe translation key normalization.
-- `2dc64db627274e94485569a372eb5217e32804f3` — first Chain-Link leaf Pickup prototype with two parcels.
-- `0e7745ccdbeb150e805ff02b41d8b6f7181c5142` — place a complete leaf from both parcels in one action.
-- `ba5e6b15e5258f7f96848f487690a86268e013e5` — latest placement-preview render-path experiment under runtime validation.
+- `e87e24d` — corrected west-facing DoubleDoor logical/index geometry.
+- `40f044b` — aligned explicit west-facing placement with DoubleDoor indices.
+- `1409e02` — rendered only the complete visual member for the right Chain-Link leaf preview.
+- `3b53e98` — applied the opposite complete visual member for the left Chain-Link leaf.
+- `71adc6c` / `8701371` / `3e97186` — cleaned validated Moveables/preview/placement prototype code.
+- `bc65e2f` — documented the validated runtime SpriteGrid and explicit-placement architecture.
