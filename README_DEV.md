@@ -64,17 +64,19 @@ The vanilla Destroy action intentionally still destroys the complete linked port
 
 The active Pickup prototype targets `Large Chain-Link Gate` first.
 
-Validated so far:
+Validated:
 
 - targeting either of the two squares of a leaf identifies the correct leaf;
 - targeting the non-pivot/inner segment also works;
 - only the targeted leaf is removed, not the full four-segment portal;
 - pickup creates two inventory parcels for the leaf: `(1/2)` and `(2/2)`;
 - French parcel names are working;
-- replacement now consumes both parcels and recreates both physical segments in one action;
-- after both segments are restored, vanilla synchronized opening works again.
+- replacement consumes both parcels and recreates both physical segments in one action;
+- both left and right leaves place correctly in their original orientation and after N/W rotation;
+- after both segments are restored, vanilla synchronized opening works again;
+- placement/pickup preview is clean in both orientations for both leaves.
 
-The current unresolved point is **placement preview rendering**. The underlying two-segment placement logic works, but vanilla Moveables preview behavior has changed as LMION took over paired placement. The latest code hooks the cursor render path to draw the complete leaf explicitly. That visual fix is still being runtime-tested and must not yet be described as validated.
+The preview requires a specialized visual path because `DoubleWireGate` is not authored like ordinary two-tile furniture. One SpriteGrid member already contains the complete visible leaf while the other is only a partial technical visual member. The complete visual member is asymmetric: left uses Part1, right uses Part2. The logical SpriteGrid still retains both members.
 
 A non-blocking engine warning has also been observed during multi-square pickup:
 
@@ -82,7 +84,9 @@ A non-blocking engine warning has also been observed during multi-square pickup:
 GameEntityFactory.TransferComponents> Cannot transfer components for multi-square objects
 ```
 
-Pickup/replacement still functioned despite the warning. Do not build a workaround until a concrete state-loss bug is proven.
+Pickup/replacement still functions despite the warning. Do not build a workaround until a concrete state-loss bug is proven.
+
+Full research and failed hypotheses are recorded in `Research/Moveables/LargeGateLeaves.md`.
 
 ## Localization status
 
@@ -115,18 +119,15 @@ Avoid speculative Java calls in production or Debug. Debug Mode can surface Java
 
 Game-loaded LMION Lua/script files must remain free of `--` line comments. Keep rationale in the repository documentation.
 
+Detailed lifecycle rationale is recorded in `Research/Engine/LoadLifecycle.md`.
+
 ## Engine research conclusions currently relied upon
 
 ### DoubleDoor grouping
 
 `IsoDoor.getDoubleDoorIndex()` maps a double-door member to logical indices 1..4. Open sprites 5..8 map back to the same logical members.
 
-The logical leaves are:
-
-```text
-left/leaf A  = 1 + 2
-right/leaf B = 3 + 4
-```
+The physical/logical leaf mapping is orientation-dependent for the validated Chain-Link sprites; do not reduce it to fixed `{1,2}` / `{3,4}` pairs. See `Research/Moveables/LargeGateLeaves.md`.
 
 `IsoDoor.getDoubleDoorObject()` locates linked members by geometry/orientation/index and does not require matching GameEntity identity, sprite family or materials.
 
@@ -138,6 +139,8 @@ This is the basis for independent LMION construction/pickup leaves while retaini
 
 Do not call `GameEntityScript:PreReload()` just to reset SpriteConfig because it clears all component scripts.
 
+Detailed evidence and failed ownership prototypes are in `Research/Engine/SpriteConfigLifecycle.md`.
+
 ### Logical durability
 
 LMION keeps the authoritative gameplay max in:
@@ -146,7 +149,15 @@ LMION keeps the authoritative gameplay max in:
 lmionDoorMaxHealth
 ```
 
-because production Lua cannot usefully mutate `IsoDoor.maxHealth`. Current health may exceed the engine max and LMION repair logic must use the logical max.
+because B42.20.3 exposes `IsoDoor:setHealth()` but no public `IsoDoor:setMaxHealth()`. Current health may exceed the engine max and LMION repair logic must use the logical max.
+
+Detailed API evidence, migration rules and addon implications are in `Research/Engine/DoorHealth.md`.
+
+### Engine property aliases
+
+Engine sprite/object properties are alias-backed. Unknown values can silently resolve to alias id `0` rather than preserving the requested string. LMION therefore verifies exact readback after engine-facing writes and restores the old property on mismatch.
+
+Detailed bytecode evidence is in `Research/Engine/PropertyAliases.md`.
 
 ## Inspector / Debug
 
@@ -156,17 +167,19 @@ The deterministic Test Zone is an explicit fixture. Do not replace it with runti
 
 ## Documentation workflow
 
-Use documentation checkpoints rather than duplicating Git history:
+The documentation intentionally separates current state from technical archaeology:
 
-- `CURRENT_STATE.md` after meaningful runtime validation/invalidation or milestone changes;
-- `ARCHITECTURE.md` for module ownership and hard structural rules;
-- `LMION_Design_Notes.md` for durable gameplay choices and engine research conclusions;
-- this file for practical workflow and high-level implementation status.
+- `CURRENT_STATE.md` — active handoff and validated/unvalidated state;
+- `ARCHITECTURE.md` — module ownership and hard structural rules;
+- `LMION_Design_Notes.md` — durable gameplay/design decisions;
+- `README_DEV.md` — practical workflow and high-level implementation status;
+- `Research/` — detailed engine evidence, lifecycle constraints, failed approaches and addon-facing contracts.
+
+Do not delete a research explanation merely because the final implementation becomes simple. Expensive engine discoveries are part of the project's long-term technical material and may later feed a public wiki.
 
 ## Next gameplay milestone
 
-1. Finish the Large Chain-Link Gate Pickup cycle, including correct full-leaf placement preview.
-2. Validate pickup/replacement from both parcels and both N/W orientations.
-3. Generalize the proven two-parcel leaf model to the other five large-gate families.
-4. Then move to garage-door transport as a separate multi-tile system rather than forcing the DoubleDoor model onto it.
-5. Build the real Repair gameplay module after multi-tile transport and material/craft rules are sufficiently stable.
+1. Validate per-segment health/logical-max preservation through the working Chain-Link leaf pickup cycle.
+2. Generalize the proven two-parcel leaf model to the other five large-gate families, checking each family's sprite/index/visual authoring rather than assuming the Chain-Link mapping.
+3. Move to garage-door transport as a separate multi-tile system rather than forcing the DoubleDoor model onto it.
+4. Build the real Repair gameplay module after multi-tile transport and material/craft rules are sufficiently stable.
