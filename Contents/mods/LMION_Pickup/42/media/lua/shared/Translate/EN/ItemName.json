@@ -41,5 +41,14 @@
   "Base.LMION_WhiteServiceDoorWithPorthole": "White Service Door with Porthole",
   "Base.LMION_LogDoor": "Log Door",
   "Base.LMION_JailDoor": "Jail Door",
-  "Base.LMION_SecurityDoor": "Security Door"
+  "Base.LMION_SecurityDoor": "Security Door",
+  "Base.LMION_SmallWhiteWoodenGate": "Small White Wooden Gate",
+  "Base.LMION_WoodFenceGate": "Wooden Gate",
+  "Base.LMION_HardenedWoodenGate": "Hardened Wooden Gate",
+  "Base.LMION_MetalWireFenceGateSmall": "Small Chain-Link Gate",
+  "Base.LMION_MetalWireFenceGate": "Chain-Link Gate",
+  "Base.LMION_MetalPoleFenceGateSmall": "Small Scrap Metal Gate",
+  "Base.LMION_MetalPoleFenceGate": "Scrap Metal Gate",
+  "Base.LMION_SmallWroughtIronGate": "Small Wrought Iron Gate",
+  "Base.LMION_WroughtIronGate": "Wrought Iron Gate"
 }
