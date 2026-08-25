@@ -27,15 +27,6 @@ local function registerToolDefinitions()
         "Hammering",
         true
     )
-
-    definitions.addToolDefinition(
-        "LMIONMetalBlowTorch",
-        {"Base.BlowTorch"},
-        Perks.MetalWelding,
-        100,
-        "BlowTorch",
-        true
-    )
 end
 
 registerToolDefinitions()
