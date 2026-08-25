@@ -17,13 +17,10 @@ local function getLeafAnchorFaces(moveProps)
         return nil
     end
 
-    -- Vanilla Moveables canonicalizes multisprite inventory entries to each
-    -- SpriteGrid's anchor. Our N grid anchor is logical Part1, while our W grid
-    -- anchor is logical Part2 because the closed double-door indices run toward
-    -- negative Y in the west orientation.
+    -- Both runtime SpriteGrids now use logical Part1 as their anchor.
     return {
         N = leaf.parts[1].faces.N,
-        W = leaf.parts[2].faces.W,
+        W = leaf.parts[1].faces.W,
     }
 end
 
@@ -86,7 +83,7 @@ local function getPlacementSquares(moveProps, square)
     if facing == "N" then
         dx = 1
     elseif facing == "W" then
-        dy = -1
+        dy = 1
     else
         return nil
     end
@@ -94,8 +91,6 @@ local function getPlacementSquares(moveProps, square)
     local part1X = square:getX()
     local part1Y = square:getY()
 
-    -- The cursor square is the square occupied by the current anchor sprite.
-    -- N anchor = Part1. W anchor = Part2, which is one square north of Part1.
     if partIndex == 2 then
         part1X = part1X - dx
         part1Y = part1Y - dy
@@ -251,9 +246,6 @@ ISMoveableSpriteProps.placeMoveable = function(self, character, square, origSpri
             return false
         end
 
-        -- Place each IsoDoor with the properties belonging to that exact tile.
-        -- The SpriteGrid remains attached globally for selection/grouping, but
-        -- the two doors are reconstructed independently here.
         local wasMultiSprite = moveProps.isMultiSprite
         moveProps.isMultiSprite = false
         local object = moveProps:placeMoveableInternal(entry.square, entry.item, entry.spriteName)
@@ -274,8 +266,9 @@ ISMoveableSpriteProps.placeMoveable = function(self, character, square, origSpri
     end
 
     local leaf = leafSpecs[self.lmionLargeGateLeaf]
-    local partnerForPart1 = leaf and leaf.indices[2] or -1
-    local partnerForPart2 = leaf and leaf.indices[1] or -1
+    local indices = leaf and leaf.indices and leaf.indices[self.lmionDoorFacing] or nil
+    local partnerForPart1 = indices and indices[2] or -1
+    local partnerForPart2 = indices and indices[1] or -1
 
     LMION.log(
         "Pickup",
