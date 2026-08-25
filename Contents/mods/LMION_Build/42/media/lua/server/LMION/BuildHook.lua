@@ -39,9 +39,34 @@ if Build._originalSetInfo == nil then
 end
 
 ISBuildIsoEntity.setInfo = function(self, square, north, sprite, openSprite)
-    local result = Build._originalSetInfo(self, square, north, sprite, openSprite)
+    local gameScriptBefore = nil
+    if self ~= nil and self.objectInfo ~= nil and self.objectInfo:getScript() ~= nil then
+        gameScriptBefore = self.objectInfo:getScript():getParent()
+    end
+
+    if isLmionBuild(self) then
+        local profile = gameScriptBefore and LMION.Doors.getProfile(gameScriptBefore:getName()) or nil
+        LMION.Doors.BuildContext = {
+            profile = profile,
+            craftRecipe = self.craftRecipe,
+            character = self.character,
+            effectiveMaxHealth = LMION.Doors.getConstructionMaxHealth(
+                profile,
+                self.craftRecipe,
+                self.character
+            ),
+        }
+    end
+
+    local ok, result = pcall(Build._originalSetInfo, self, square, north, sprite, openSprite)
+    LMION.Doors.BuildContext = nil
+
+    if not ok then
+        error(result)
+    end
+
     local spriteScript = self.objectInfo and self.objectInfo:getScript() or nil
-    local gameScript = spriteScript and spriteScript:getParent() or nil
+    local gameScript = spriteScript and spriteScript:getParent() or gameScriptBefore
 
     if isLmionBuild(self) then
         local profile = gameScript and LMION.Doors.getProfile(gameScript:getName()) or nil
