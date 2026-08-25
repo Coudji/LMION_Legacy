@@ -75,6 +75,8 @@ Build owns construction/crafting concerns:
 
 For the three vanilla large-gate families (`Base.DoubleDoor`, `Base.DoubleWireGate`, `Base.DoubleFenceGate`), Build keeps the vanilla entity as the left leaf and assigns the right leaf to a separate entity. The vanilla SpriteConfig is reduced to left-leaf ownership at `OnGameBoot` using targeted `SpriteConfigScript:PreReload()`.
 
+The derived left/right LMION gameplay profiles are installed both when `Build.lua` loads and again during `OnGameBoot`. This is intentional: `OnGameBoot` does not rerun during Lua hot reload, so relying on it alone can leave runtime-only profiles such as `DoubleWireGateRight` missing while the game continues running.
+
 ### `LMION_Pickup`
 
 Pickup owns transport/reinstallation of passable openings through Moveables or specialized Moveables-compatible paths:
@@ -139,6 +141,8 @@ The six current large-gate families are split into independent left/right constr
 - Large Wooden Gate.
 
 All six were runtime-tested in both N and W orientations. Correctly assembled left/right leaves synchronize opening through vanilla `DoubleDoor` behavior even when the leaves use different GameEntity identities.
+
+For the Chain-Link reference gate, both left and right construction profiles now survive Lua reload correctly. Runtime validation at MetalWelding level 2 produced the same skill-derived logical/current health on all four segments (`950/950`) and the expected `MetalPipe` / `MetalWire` profile materials on both leaves.
 
 The deterministic Test Zone currently contains 83 explicit entries.
 
@@ -238,7 +242,7 @@ See `Research/Engine/SpriteConfigLifecycle.md`.
 
 Different mutations intentionally happen at different lifecycle points:
 
-- Lua load — useful for already-running/hot-reload sessions;
+- Lua load — useful for already-running/hot-reload sessions, including reconstruction of runtime-derived split profiles;
 - `OnGameBoot` — scripted entities are available and vanilla SpriteConfig ownership can be adjusted before later consumers rely on it;
 - `OnLoadedTileDefinitions` — tile/sprite definitions have finished rebuilding; runtime sprite mutations such as Chain-Link `IsoSpriteGrid` attachment must be re-applied here;
 - `LoadGridsquare` — adopt matching existing world doors as squares stream in;
