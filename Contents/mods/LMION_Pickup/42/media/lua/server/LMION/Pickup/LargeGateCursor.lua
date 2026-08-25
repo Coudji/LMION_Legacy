@@ -32,9 +32,7 @@ ISMoveableCursor.renderSpriteGrid = function(self, x, y, z, color)
     local wx = x - xo
     local wy = y - yo
 
-    -- Diagnostic: render ONLY the footprint. Deliberately render no gate sprite.
-    -- If any gate tile is still visible while placing, another render path is
-    -- drawing it outside renderSpriteGrid().
+    -- Keep the real footprint visible at the intended placement position.
     for gridX = 0, spriteGrid:getWidth() - 1 do
         for gridY = 0, spriteGrid:getHeight() - 1 do
             local worldX = wx + gridX
@@ -53,8 +51,49 @@ ISMoveableCursor.renderSpriteGrid = function(self, x, y, z, color)
             end
         end
     end
+
+    -- Diagnostic: render the two SpriteGrid members far apart, so their image
+    -- footprints cannot overlap. Member #1 is red and member #2 is blue.
+    -- This shows exactly what each individual gate tile contains visually.
+    local members = {}
+    for gridX = 0, spriteGrid:getWidth() - 1 do
+        for gridY = 0, spriteGrid:getHeight() - 1 do
+            local sprite = spriteGrid:getSprite(gridX, gridY)
+            if sprite ~= nil then
+                members[#members + 1] = sprite
+            end
+        end
+    end
+
+    if members[1] ~= nil then
+        members[1]:RenderGhostTileColor(
+            x - 3,
+            y,
+            z,
+            0,
+            self.yOffset * Core.getTileScale(),
+            1.0,
+            0.15,
+            0.15,
+            0.85
+        )
+    end
+
+    if members[2] ~= nil then
+        members[2]:RenderGhostTileColor(
+            x + 3,
+            y,
+            z,
+            0,
+            self.yOffset * Core.getTileScale(),
+            0.15,
+            0.35,
+            1.0,
+            0.85
+        )
+    end
 end
 
-LMION.log("Pickup", "large gate cursor diagnostic: place mode renders footprint only")
+LMION.log("Pickup", "large gate cursor diagnostic: separated red/blue sprite members")
 
 return Pickup
