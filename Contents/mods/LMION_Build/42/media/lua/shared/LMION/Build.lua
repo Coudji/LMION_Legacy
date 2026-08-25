@@ -173,30 +173,45 @@ local function installSplitProfiles()
     end
 
     local profiles = LMION.Doors.Profiles
-    local doubleDoor = profiles.DoubleDoor
-    local doubleWireGate = profiles.DoubleWireGate
-    local doubleFenceGate = profiles.DoubleFenceGate
-    local largeFarmGate = profiles.LargeFarmGate
-    local largeHardenedWoodenGate = profiles.LargeHardenedWoodenGate
-    local largeWroughtIronGate = profiles.LargeWroughtIronGate
+    local doubleDoor = profiles.DoubleDoor or profiles.DoubleDoorRight
+    local doubleWireGate = profiles.DoubleWireGate or profiles.DoubleWireGateRight
+    local doubleFenceGate = profiles.DoubleFenceGate or profiles.DoubleFenceGateRight
+    local largeFarmGate = profiles.LargeFarmGate or profiles.LargeFarmGateLeft or profiles.LargeFarmGateRight
+    local largeHardenedWoodenGate = profiles.LargeHardenedWoodenGate or profiles.LargeHardenedWoodenGateLeft or profiles.LargeHardenedWoodenGateRight
+    local largeWroughtIronGate = profiles.LargeWroughtIronGate or profiles.LargeWroughtIronGateLeft or profiles.LargeWroughtIronGateRight
 
-    profiles.DoubleDoor = cloneProfile(doubleDoor, "DoubleDoor", "Large Wooden Gate - Left Leaf")
-    profiles.DoubleDoorRight = cloneProfile(doubleDoor, "DoubleDoorRight", "Large Wooden Gate - Right Leaf")
-    profiles.DoubleWireGate = cloneProfile(doubleWireGate, "DoubleWireGate", "Large Chain-Link Gate - Left Leaf")
-    profiles.DoubleWireGateRight = cloneProfile(doubleWireGate, "DoubleWireGateRight", "Large Chain-Link Gate - Right Leaf")
-    profiles.DoubleFenceGate = cloneProfile(doubleFenceGate, "DoubleFenceGate", "Large Scrap Metal Gate - Left Leaf")
-    profiles.DoubleFenceGateRight = cloneProfile(doubleFenceGate, "DoubleFenceGateRight", "Large Scrap Metal Gate - Right Leaf")
+    if doubleDoor ~= nil then
+        profiles.DoubleDoor = cloneProfile(doubleDoor, "DoubleDoor", "Large Wooden Gate - Left Leaf")
+        profiles.DoubleDoorRight = cloneProfile(doubleDoor, "DoubleDoorRight", "Large Wooden Gate - Right Leaf")
+    end
 
-    profiles.LargeFarmGateLeft = cloneProfile(largeFarmGate, "LargeFarmGateLeft", "Large Farm Gate - Left Leaf")
-    profiles.LargeFarmGateRight = cloneProfile(largeFarmGate, "LargeFarmGateRight", "Large Farm Gate - Right Leaf")
-    profiles.LargeHardenedWoodenGateLeft = cloneProfile(largeHardenedWoodenGate, "LargeHardenedWoodenGateLeft", "Large Hardened Wooden Gate - Left Leaf")
-    profiles.LargeHardenedWoodenGateRight = cloneProfile(largeHardenedWoodenGate, "LargeHardenedWoodenGateRight", "Large Hardened Wooden Gate - Right Leaf")
-    profiles.LargeWroughtIronGateLeft = cloneProfile(largeWroughtIronGate, "LargeWroughtIronGateLeft", "Large Wrought Iron Gate - Left Leaf")
-    profiles.LargeWroughtIronGateRight = cloneProfile(largeWroughtIronGate, "LargeWroughtIronGateRight", "Large Wrought Iron Gate - Right Leaf")
+    if doubleWireGate ~= nil then
+        profiles.DoubleWireGate = cloneProfile(doubleWireGate, "DoubleWireGate", "Large Chain-Link Gate - Left Leaf")
+        profiles.DoubleWireGateRight = cloneProfile(doubleWireGate, "DoubleWireGateRight", "Large Chain-Link Gate - Right Leaf")
+    end
 
-    profiles.LargeFarmGate = nil
-    profiles.LargeHardenedWoodenGate = nil
-    profiles.LargeWroughtIronGate = nil
+    if doubleFenceGate ~= nil then
+        profiles.DoubleFenceGate = cloneProfile(doubleFenceGate, "DoubleFenceGate", "Large Scrap Metal Gate - Left Leaf")
+        profiles.DoubleFenceGateRight = cloneProfile(doubleFenceGate, "DoubleFenceGateRight", "Large Scrap Metal Gate - Right Leaf")
+    end
+
+    if largeFarmGate ~= nil then
+        profiles.LargeFarmGateLeft = cloneProfile(largeFarmGate, "LargeFarmGateLeft", "Large Farm Gate - Left Leaf")
+        profiles.LargeFarmGateRight = cloneProfile(largeFarmGate, "LargeFarmGateRight", "Large Farm Gate - Right Leaf")
+        profiles.LargeFarmGate = nil
+    end
+
+    if largeHardenedWoodenGate ~= nil then
+        profiles.LargeHardenedWoodenGateLeft = cloneProfile(largeHardenedWoodenGate, "LargeHardenedWoodenGateLeft", "Large Hardened Wooden Gate - Left Leaf")
+        profiles.LargeHardenedWoodenGateRight = cloneProfile(largeHardenedWoodenGate, "LargeHardenedWoodenGateRight", "Large Hardened Wooden Gate - Right Leaf")
+        profiles.LargeHardenedWoodenGate = nil
+    end
+
+    if largeWroughtIronGate ~= nil then
+        profiles.LargeWroughtIronGateLeft = cloneProfile(largeWroughtIronGate, "LargeWroughtIronGateLeft", "Large Wrought Iron Gate - Left Leaf")
+        profiles.LargeWroughtIronGateRight = cloneProfile(largeWroughtIronGate, "LargeWroughtIronGateRight", "Large Wrought Iron Gate - Right Leaf")
+        profiles.LargeWroughtIronGate = nil
+    end
 
     return true
 end
@@ -309,6 +324,8 @@ function Build.prepareSplitVanillaLargeGates()
 
     return true
 end
+
+installSplitProfiles()
 
 if Events ~= nil and Events.OnGameBoot ~= nil then
     Events.OnGameBoot.Add(Build.prepareSplitVanillaLargeGates)
