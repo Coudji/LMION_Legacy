@@ -25,6 +25,7 @@ module Base
     {
         component CraftRecipe
         {
+            OnAddToMenu = LMION.Build.hideSplitDoubleWireGate,
             timedAction = BuildWireFence,
             time = 220,
             category = LMION,
