@@ -44,6 +44,8 @@ local leafSpecs = {
     },
 }
 
+Pickup.LargeGateLeafSpecs = leafSpecs
+
 local segmentBySprite = {}
 for leafId, leaf in pairs(leafSpecs) do
     for partIndex, part in pairs(leaf.parts) do
