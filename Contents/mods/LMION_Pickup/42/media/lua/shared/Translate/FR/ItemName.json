@@ -41,5 +41,14 @@
   "Base.LMION_WhiteServiceDoorWithPorthole": "Porte de service blanche à hublot",
   "Base.LMION_LogDoor": "Porte en rondins",
   "Base.LMION_JailDoor": "Porte de cellule",
-  "Base.LMION_SecurityDoor": "Porte sécurisée"
+  "Base.LMION_SecurityDoor": "Porte sécurisée",
+  "Base.LMION_SmallWhiteWoodenGate": "Portillon en bois blanc",
+  "Base.LMION_WoodFenceGate": "Portail en bois",
+  "Base.LMION_HardenedWoodenGate": "Portail en bois durci",
+  "Base.LMION_MetalWireFenceGateSmall": "Portillon grillagé",
+  "Base.LMION_MetalWireFenceGate": "Portail grillagé",
+  "Base.LMION_MetalPoleFenceGateSmall": "Portillon en ferraille",
+  "Base.LMION_MetalPoleFenceGate": "Portail en ferraille",
+  "Base.LMION_SmallWroughtIronGate": "Portillon en fer forgé",
+  "Base.LMION_WroughtIronGate": "Portail en fer forgé"
 }
