@@ -33,21 +33,20 @@ For engine behavior, prefer evidence in roughly this order:
 3. controlled in-game tests and logs;
 4. current LMION code;
 5. Git history, especially commits that introduce/remove a workaround;
-6. old design documents as historical evidence only.
+6. older documentation as historical evidence only.
 
-Old LMION documents are valuable archaeology, but they can contain assumptions that were later disproved. Do not restore an old statement merely because it once appeared in `README_DEV.md` or `LMION_Design_Notes.md`.
+Old LMION prose is useful archaeology, but it may contain assumptions that were later disproved. Current code/runtime evidence and focused research notes outrank stale documentation.
 
 ## Documentation roles
 
-The repository documentation now has deliberately different roles:
+The repository intentionally keeps only a small documentation surface:
 
-- `CURRENT_STATE.md` — what is currently implemented and runtime-validated;
-- `ARCHITECTURE.md` — module ownership, hard boundaries and guardrails;
-- `LMION_Design_Notes.md` — durable gameplay/design choices;
-- `README_DEV.md` — practical development workflow and current high-level status;
-- `Research/` — detailed engine forensics, lifecycle constraints, failed approaches and addon-facing technical contracts.
+- `README.md` — short public overview;
+- `README_DEV.md` — authoritative development/handoff document: architecture, current state, design guardrails, workflow and future-session instructions;
+- `Research/` — this archive: engine forensics, lifecycle constraints, failed approaches and addon-facing technical contracts;
+- `DOOR_CATALOG.md` / `DOOR_CATALOG_VALUES.md` — working catalog data, kept separate from architecture/research documentation.
 
-A conclusion may be summarized in the root documents and explained fully here. The detailed research should not be deleted merely because the current implementation becomes simple.
+A durable conclusion may be summarized in `README_DEV.md` and explained fully here. Detailed research should not be deleted merely because the final implementation becomes simple.
 
 ## Current research notes
 
