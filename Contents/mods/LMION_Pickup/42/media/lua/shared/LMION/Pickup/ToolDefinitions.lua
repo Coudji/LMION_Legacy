@@ -8,6 +8,7 @@ local function registerToolDefinitions()
 
     definitions.removeToolDefinition("LMIONMetalCrowbar")
     definitions.removeToolDefinition("LMIONMetalHammer")
+    definitions.removeToolDefinition("LMIONMetalBlowTorch")
 
     definitions.addToolDefinition(
         "LMIONMetalCrowbar",
@@ -24,6 +25,15 @@ local function registerToolDefinitions()
         Perks.MetalWelding,
         75,
         "Hammering",
+        true
+    )
+
+    definitions.addToolDefinition(
+        "LMIONMetalBlowTorch",
+        {"Base.BlowTorch"},
+        Perks.MetalWelding,
+        100,
+        "BlowTorch",
         true
     )
 end
