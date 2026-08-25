@@ -5,7 +5,10 @@ local Pickup = LMION.Pickup
 
 local leafSpecs = {
     left = {
-        indices = {1, 2},
+        indices = {
+            N = {1, 2},
+            W = {4, 3},
+        },
         parts = {
             [1] = {
                 itemType = "Base.LMION_DoubleWireGateLeft_Part1",
@@ -24,7 +27,10 @@ local leafSpecs = {
         },
     },
     right = {
-        indices = {3, 4},
+        indices = {
+            N = {3, 4},
+            W = {2, 1},
+        },
         parts = {
             [1] = {
                 itemType = "Base.LMION_DoubleWireGateRight_Part1",
@@ -70,7 +76,7 @@ local gridFacingSpecs = {
     W = {
         width = 1,
         height = 2,
-        partOrder = {2, 1},
+        partOrder = {1, 2},
     },
 }
 
@@ -206,13 +212,26 @@ local function getLeafMembers(source, leafId)
         return nil
     end
 
+    local sourceSprite = source:getSprite()
+    local sourceSpriteName = sourceSprite and sourceSprite:getName() or nil
+    local sourceSegment = sourceSpriteName and segmentBySprite[sourceSpriteName] or nil
+    if sourceSegment == nil or sourceSegment.leafId ~= leafId then
+        return nil
+    end
+
+    local facing = sourceSegment.facing
+    local logicalIndices = leaf.indices[facing]
+    if logicalIndices == nil then
+        return nil
+    end
+
     local sourceIndex = getDoubleDoorIndex(source)
     if sourceIndex == nil then
         return nil
     end
 
     local members = {}
-    for partIndex, logicalIndex in ipairs(leaf.indices) do
+    for partIndex, logicalIndex in ipairs(logicalIndices) do
         local object = sourceIndex == logicalIndex and source or getDoubleDoorObject(source, logicalIndex)
         if object == nil or not instanceof(object, "IsoDoor") then
             return nil
@@ -221,7 +240,10 @@ local function getLeafMembers(source, leafId)
         local sprite = object:getSprite()
         local spriteName = sprite and sprite:getName() or nil
         local segment = spriteName and segmentBySprite[spriteName] or nil
-        if segment == nil or segment.leafId ~= leafId or segment.partIndex ~= partIndex then
+        if segment == nil
+            or segment.leafId ~= leafId
+            or segment.partIndex ~= partIndex
+            or segment.facing ~= facing then
             return nil
         end
 
@@ -375,11 +397,7 @@ ISMoveableSpriteProps.findInInventoryMultiSprite = function(self, character, req
     if isLargeGateMoveProps(self) then
         local gridIndex = tonumber(string.match(requestedName or "", "%((%d+)/2%)$"))
         local leaf = leafSpecs[self.lmionLargeGateLeaf]
-        local partIndex = gridIndex
-        if self.lmionDoorFacing == "W" and gridIndex ~= nil then
-            partIndex = 3 - gridIndex
-        end
-        local part = leaf and partIndex and leaf.parts[partIndex] or nil
+        local part = leaf and gridIndex and leaf.parts[gridIndex] or nil
         if part ~= nil then
             return findInventoryItem(character, part.itemType)
         end
