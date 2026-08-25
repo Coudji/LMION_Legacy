@@ -122,21 +122,52 @@ local function installRuntimeSpriteGrid(leafId, facing)
     return true
 end
 
-local installedGridCount = 0
-for leafId, _ in pairs(leafSpecs) do
-    if installRuntimeSpriteGrid(leafId, "N") then
-        installedGridCount = installedGridCount + 1
+local function installAllRuntimeSpriteGrids(reason)
+    Pickup.LargeGateRuntimeSpriteGrids = {}
+
+    local installedGridCount = 0
+    for leafId, _ in pairs(leafSpecs) do
+        if installRuntimeSpriteGrid(leafId, "N") then
+            installedGridCount = installedGridCount + 1
+        end
+        if installRuntimeSpriteGrid(leafId, "W") then
+            installedGridCount = installedGridCount + 1
+        end
     end
-    if installRuntimeSpriteGrid(leafId, "W") then
-        installedGridCount = installedGridCount + 1
+
+    local suffix = reason and (" (" .. tostring(reason) .. ")") or ""
+    if installedGridCount == 4 then
+        LMION.log("Pickup", "installed DoubleWireGate runtime sprite grids" .. suffix)
+        return true
+    end
+
+    LMION.error(
+        "Pickup",
+        "failed to install all DoubleWireGate runtime sprite grids: "
+            .. tostring(installedGridCount)
+            .. "/4"
+            .. suffix
+    )
+    return false
+end
+
+Pickup.installLargeGateRuntimeSpriteGrids = installAllRuntimeSpriteGrids
+
+if Events ~= nil and Events.OnLoadedTileDefinitions ~= nil then
+    if not Pickup._largeGateRuntimeSpriteGridHookInstalled then
+        Events.OnLoadedTileDefinitions.Add(function()
+            if Pickup.installLargeGateRuntimeSpriteGrids ~= nil then
+                Pickup.installLargeGateRuntimeSpriteGrids("OnLoadedTileDefinitions")
+            end
+        end)
+        Pickup._largeGateRuntimeSpriteGridHookInstalled = true
     end
 end
 
-if installedGridCount == 4 then
-    LMION.log("Pickup", "installed DoubleWireGate runtime sprite grids")
-else
-    LMION.error("Pickup", "failed to install all DoubleWireGate runtime sprite grids: " .. tostring(installedGridCount) .. "/4")
-end
+-- Needed for Lua hot-reload when tile definitions are already loaded. During a
+-- normal startup OnLoadedTileDefinitions installs the grids again after the
+-- engine has finished rebuilding the global IsoSprite definitions.
+installAllRuntimeSpriteGrids("lua-load")
 
 local function getDoubleDoorIndex(object)
     if object == nil or IsoDoor == nil or IsoDoor.getDoubleDoorIndex == nil then
