@@ -144,6 +144,7 @@ local function setParcelIdentity(moveProps, segment)
     moveProps.lmionDoorFaces = segment.faces
     moveProps.lmionDoorFacing = segment.facing
     moveProps.facing = segment.facing
+    moveProps.isMultiSprite = false
     moveProps.rawWeight = 120
     moveProps.weight = 12
 
