@@ -4,256 +4,222 @@
 
 - One Workshop item.
 - Several internal Mod IDs.
-- `LMION_Core` orchestrates only shared systems and persistence conventions that are proven necessary by gameplay modules.
+- `LMION_Core` owns only proven shared systems and persistence conventions.
 - `LMION_Build` owns construction/crafting concerns.
-- `LMION_Pickup` is the single user-facing pickup module for passable opening systems.
-- `LMION_Debug` owns development-only tooling such as the Inspector, Test Zone, Lua reload helpers and temporary validation actions.
-- Internal complexity is handled through focused strategies or feature modules only when a real opening type requires them.
+- `LMION_Pickup` owns pickup/transport/reinstallation.
+- `LMION_Debug` owns development-only tooling.
 
-`LMION_Debug` depends on Core, but Core, Build and Pickup do not depend on Debug.
-
-Core deliberately avoids speculative abstractions. The old generic event bus and parallel all-purpose door model were removed because there was no concrete consumer and they duplicated information already available from Project Zomboid runtime objects and `GameEntityScript` / `SpriteConfig` data.
-
-The current `LMION.Doors.Profiles` registry is intentionally narrower: it stores only gameplay facts LMION owns or overrides, such as localized naming, materials, pickup rules, frame requirements and durability policy. Sprite membership and static opening configuration are still derived from `GameEntityScript` / `SpriteConfig`.
+Core deliberately avoids speculative abstractions and parallel copies of facts already exposed by Project Zomboid runtime objects or `GameEntityScript` / `SpriteConfig`.
 
 ## Ownership principle
 
 > Vanilla defines the physical opening mechanics; LMION defines the gameplay rules.
 
-LMION should reuse vanilla door behavior wherever possible for opening/closing, collision, sprite state and other physical mechanics. LMION should own gameplay decisions such as materials, pickup, crafting, durability, repair rules and later specialized transport logic.
+LMION should reuse vanilla opening/closing, collision, synchronization and sprite-state behavior wherever possible. LMION owns rules such as crafting, materials, transport identity, pickup eligibility, durability and repair.
 
-`newtiledefinitions.tiles` is research/reference data only and should not be edited for LMION runtime behavior.
+`newtiledefinitions.tiles` remains research/reference data only and should not be edited for LMION runtime behavior.
 
-## Pickup rule
+## General Pickup rule
 
 > If it opens and the player can pass through it, Pickup owns it.
 
-Synchronization between world objects does not automatically make them one inventory item. Pickup identity follows the physical/gameplay unit that makes sense to transport and reinstall.
+Transport identity should follow the physical/gameplay unit that makes sense to move and reinstall. Synchronization in the world does not automatically imply a single inventory item.
 
-## General pickup behavior
+For normal 1x1 doors, one physical door maps naturally to one inventory item.
 
-Pickup is a non-destructive alternative to vanilla dismantling.
-
-For normal hinged doors, current intended eligibility includes appropriate lock/barricade/curtain/tool/skill handling as the profile defines it. The door does not need to be open before removal.
-
-The primary physical condition is current health relative to LMION's logical max where one exists. `modData.itemCondition` is not reliable as the authoritative damage state.
-
-For validated simple LMION doors, Pickup now transports both:
-
-```text
-lmionDoorHealth
-lmionDoorMaxHealth
-```
-
-The actual placed `IsoDoor` is resolved from the vanilla placement result when possible before state is restored.
+For large double gates, one **leaf** is the transport unit, but each leaf currently maps to two physical door segments. LMION therefore represents one recovered leaf as two parcels, `(1/2)` and `(2/2)`, while replacement recreates the complete two-segment leaf in one operation.
 
 ## Runtime findings
 
 ### Generic `IsoDoor`
 
-Multiple visually and behaviorally different opening types use `zombie.iso.objects.IsoDoor`. Runtime class alone is therefore not enough to classify an opening.
+Many visually different opening types use `zombie.iso.objects.IsoDoor`; runtime class alone is not enough for classification.
 
-Closed/open sprite pairs are static opening configuration. Use `GameEntityScript` / `SpriteConfig` or source script data rather than private-field reflection.
+Static closed/open sprite configuration should come from `GameEntityScript` / `SpriteConfig` or source scripts rather than private-field reflection.
 
-For `IsoDoor` orientation, prefer door-specific orientation data such as `north` / `doorN` / `doorW` over generic direction fields.
+### Engine max-health limitation
 
-### Engine max health limitation
+`IsoDoor:setHealth()` accepts values above engine max, but production Lua has no useful `IsoDoor:setMaxHealth()` path.
 
-`IsoDoor` exposes current health and max health, but production Lua does not provide a usable `setMaxHealth()` path for `IsoDoor`.
-
-`IsoDoor:setHealth()` does accept values above engine max. This was validated in runtime.
-
-LMION therefore uses object modData key:
+LMION therefore stores the authoritative gameplay max in:
 
 ```text
 lmionDoorMaxHealth
 ```
 
-as the authoritative gameplay max.
-
-The engine max may remain 500 while LMION current health and logical max are higher. Example validated runtime state:
-
-```text
-health = 2540
-lmionMaxHealth = 3000
-engineMaxHealth = 500
-```
-
-Known compromise: vanilla systems that explicitly use `IsoDoor:getMaxHealth()` or `getThumpCondition()` still see the engine max. LMION-owned repair/condition logic must use the logical max instead.
+LMION-owned repair/condition logic must use that logical max instead of `IsoDoor:getMaxHealth()`.
 
 ### Existing world-door migration
 
-When LMION first adopts a matching world `IsoDoor` with a configured `worldMaxHealth`:
+When LMION first adopts a matching world `IsoDoor` with a configured world max:
 
-- if current health equals engine max, the object is treated as full life and current health is raised to the LMION max;
-- if current health is already below engine max, current health is kept exactly unchanged;
-- LMION stores the logical max in either case;
-- a door that already has an LMION max is not re-adopted on every grid-square load.
+- an intact door at engine max is treated as full life and raised to the LMION max;
+- an already damaged door keeps its current health exactly;
+- the LMION logical max is stored in both cases;
+- an already-adopted door is not repeatedly migrated.
 
-This rule intentionally avoids both ratio rescaling and artificial healing of previously damaged doors.
-
-Validated test with temporary `BlueMetalDoor` max of 600:
-
-```text
-damaged: 316 / 600 logical, engine max 500
-intact: 600 / 600 logical, engine max 500
-```
-
-The value 600 is test balance only.
-
-### Repair model
-
-Core owns only the low-level operation needed to change current health safely:
-
-```text
-Doors.repairHealth(object, amount)
-```
-
-It caps against LMION logical max rather than engine max.
-
-Runtime testing with the temporary Debug `+50 HP` action proved that repair can cross 500 and reach 600.
-
-The final repair gameplay system should not live in Build. It should be a separate optional gameplay module depending on Core, with its own tools, materials, skill checks, timed actions and UX.
+This avoids ratio scaling and artificial healing.
 
 ### Simple / autonomous 1x1 doors
 
-CherryDoor is the active reference implementation.
+The simple-door path is considered mechanically validated enough to serve as the baseline for broader work.
 
-Validated behavior includes localized naming, dedicated pickup item identity, frame-aware replacement, preservation of current health, preservation of logical max health and repair above engine max.
+Validated behavior includes:
 
-Cherry is not balance-complete yet.
+- localized/dedicated inventory identity;
+- Moveables pickup/replacement;
+- frame-aware placement where required;
+- preservation of current health;
+- preservation of LMION logical max;
+- repair above engine max;
+- straightforward fence-gate and sliding-door integration.
 
-### Visually glazed doors
+Balance/material tuning remains separate from the mechanical architecture.
 
-Tested doors that look glazed do not appear to contain an independently breakable window component. Do not serialize a door `glassState` unless a real vanilla runtime state is later found.
+## Double doors and large gates
 
-### Sliding doors
+This area is no longer speculative: the core topology has been validated from Java research and runtime tests.
 
-Tested sliding doors are also `IsoDoor` and can share the broad runtime shape of normal 1x1 doors. Do not assume a dedicated sliding-door class exists for classification.
+### Logical grouping
 
-### Double doors and large gates
+`IsoDoor.getDoubleDoorIndex()` uses logical members 1..4. Open-state raw values 5..8 map back to logical 1..4.
 
-Large gate pieces tested as `IsoDoor` expose a `DoubleDoor` property and non-negative `doubleDoorIndex` values.
+The two leaves are:
 
-Observed large-gate structure suggests fixed logical member indexes across a grouped opening, but the exact universal leaf/member model is not yet proven across all vanilla types.
+```text
+leaf A = indices 1 + 2
+leaf B = indices 3 + 4
+```
 
-Do not encode a universal two-members-per-leaf assumption until more complete families are validated.
+`IsoDoor.getDoubleDoorObject()` locates linked members using source orientation/open state, hardcoded geometry and logical index matching.
 
-### Garage doors
+Critically, grouping does **not** require:
 
-Garage doors are also composed of `IsoDoor` objects, but use a distinct linkage system:
+- matching sprite family;
+- matching GameEntity/entity identity;
+- matching material/profile identity.
 
-- `doubleDoorIndex = -1`;
-- `garageDoorIndex >= 0`;
-- `garage.first` identifies the start of the contiguous chain;
-- `garage.prev` / `garage.next` link neighboring compatible pieces.
+Runtime testing confirmed that independently constructed left/right leaves with different entity identities still synchronize opening correctly when placed in the proper geometry.
 
-Although vanilla stores separate components, LMION should treat a functioning garage door as one transportable opening rather than exposing individual segments as separate inventory items.
+### Geometry
+
+Validated closed geometry follows four contiguous members. Opening rearranges those members according to vanilla hardcoded offsets. LMION should not reimplement that synchronization unless the engine proves insufficient.
+
+### Construction split
+
+The six current large-gate families are now exposed as independent left/right construction leaves:
+
+- Large Farm Gate;
+- Large Wrought Iron Gate;
+- Large Hardened Wooden Gate;
+- Large Chain-Link Gate;
+- Large Scrap Metal Gate;
+- Large Wooden Gate.
+
+All six were tested in both N and W orientations and synchronized opening works.
+
+For the three vanilla families (`DoubleDoor`, `DoubleWireGate`, `DoubleFenceGate`), LMION keeps the vanilla entity as the left leaf and adds a distinct right-leaf entity. For LMION-owned families, explicit `Left` / `Right` entities are used.
+
+### Destruction behavior
+
+Vanilla whole-double-door destruction intentionally follows linked members. In current gameplay, using the Destroy menu on one member destroys the complete portal.
+
+LMION currently leaves this behavior unchanged. Per-leaf Pickup must therefore remove members directly and must not call whole-double-door destruction helpers.
+
+### Pickup model
+
+The active proof-of-concept is `Large Chain-Link Gate`.
+
+Validated behavior:
+
+- targeting either physical square of a closed leaf identifies the same logical leaf;
+- the other leaf remains in the world;
+- pickup produces two parcels for the selected leaf;
+- replacement requires both parcels and places both segments in one operation;
+- once reassembled, vanilla synchronized opening resumes.
+
+Current design choice:
+
+```text
+one leaf = two parcels = one placement action
+```
+
+This is preferred over `1/4..4/4` parcels for the complete portal because construction and gameplay ownership are now leaf-based.
+
+Open-state pickup is not yet the reference path. The intended eventual behavior is to normalize recovered parcels to the canonical closed-segment identities rather than creating separate inventory identities for open sprites.
+
+### Placement preview
+
+Moveables visual preview and actual placement are distinct vanilla paths. During prototyping, the cursor could preview a full multi-square SpriteGrid while actual placement created only one segment; after LMION took over paired placement, the opposite occurred: both segments were placed while the vanilla cursor previewed only one.
+
+Therefore multi-segment preview must be treated as presentation logic, not as proof of placement semantics.
+
+The current implementation explicitly hooks the Moveables cursor render path for the large-gate prototype. That visual path is still under runtime validation.
+
+## SpriteConfig research
+
+`SpriteConfigScript.getAllTileNames()` is backed by a mutable list populated from declared face/layer/row/tile entries during script checking.
+
+`SpriteConfigManager` later uses those names for global scripted-sprite ownership and writes `EntityScriptName` / `EntityScript` flags onto owned sprites.
+
+`SpriteConfigScript:PreReload()` clears faces and `allTileNames` and resets component state. This is the correct targeted reset before reloading a modified SpriteConfig body.
+
+`GameEntityScript:PreReload()` is **not** an equivalent targeted reset; it clears the whole component list and would remove unrelated components such as UiConfig/CraftRecipe.
+
+The earlier duplicate-sprite prototype failure came from stale/overlapping SpriteConfig ownership. The validated split path now verifies exact vanilla ownership before reset and exact left-leaf ownership after reload.
+
+TileDefinitions can still supply physical runtime properties and open-state behavior, but current bytecode evidence does not support treating TileDefinitions as the source of `SpriteConfigScript.allTileNames`.
+
+## Localization decision
+
+Canonical paired naming uses:
+
+- internal IDs: base + `Left` / `Right`;
+- English display: `Left Leaf` / `Right Leaf`;
+- French display: `vantail gauche` / `vantail droit`.
+
+Construction localization uses `Recipes.json`. Current B42 lookup strips spaces from recipe display names before key lookup, so LMION translation keys must match that normalized form.
+
+## Garage doors
+
+Garage doors remain a separate multi-tile system and should not inherit the DoubleDoor leaf model by assumption.
+
+Observed garage linkage uses `garageDoorIndex`, `garage.first`, `garage.prev` and `garage.next` rather than `DoubleDoor` logical indices.
+
+A functioning garage door should likely remain one transportable opening even though it contains several physical segments, but that implementation should be researched and validated independently.
 
 ## Material system findings
 
-### Alias safety
+Project Zomboid `PropertyContainer` values are alias-backed. Unknown strings can silently resolve to another valid alias.
 
-Project Zomboid `PropertyContainer` values are backed by `TilePropertyAliasMap`. Setting an unknown string value can silently resolve to the first valid alias rather than preserving the requested value.
+LMION must verify exact readback after engine-facing property writes and restore previous values when the request did not survive exactly.
 
-LMION engine-facing property writes must therefore verify exact readback and restore the old value if the requested value was not preserved exactly.
+`MaterialType` is a closed engine enum and is not equivalent to salvage material tags.
 
-This is a hard guardrail. Do not replace it with blind arbitrary-string property writes.
-
-### `MaterialType`
-
-`MaterialType` is a closed engine enum and cannot be freely invented in Lua.
-
-It is useful for engine physical/audio behavior but is not the same thing as destruction salvage material tags.
-
-### `IsoDoor.destroy()` materials
-
-`IsoDoor.destroy()` reads `Material`, `Material2` and `Material3` for salvage and separately handles door hardware such as knobs and hinges.
-
-Observed recognized salvage-facing values include:
-
-- `Wood`;
-- `MetalBars`;
-- `MetalPlates`;
-- `MetalPipe`;
-- `MetalWire`;
-- `Nails`;
-- `Screws`.
-
-`Door` is a vanilla property/tag value, not a physical material.
-
-### Cherry material canary
-
-Cherry currently deliberately uses `Material2 = MetalPlates` to prove that LMION material overrides affect physical destruction/dismantling behavior. This is not intended final balance and must not be mistaken for Cherry's final material design.
+`IsoDoor.destroy()` reads `Material`, `Material2` and `Material3` for salvage and separately handles door hardware.
 
 ## Debug tooling
 
-The LMION Inspector belongs to the dedicated `LMION_Debug` module because it is a developer tool, not gameplay runtime.
+The Inspector and Test Zone belong to `LMION_Debug` and must remain development-only.
 
-The Inspector now deliberately distinguishes:
+The deterministic Test Zone now has 83 explicit entries after splitting the six large gates into twelve leaves.
 
-```text
-lmionMaxHealth = <unset>
-```
-
-from an actual stored logical max. It also reports engine max separately and only computes LMION condition when a stored logical max exists.
-
-The old intrusive `MoveablesTrace.lua` diagnostic was removed. It wrapped vanilla Moveables functions, caused runtime errors due to assumptions about return values, and was not required for the real Pickup path. Do not reintroduce it casually.
-
-## Build prototype
-
-Build construction definitions live in `media/scripts` and remain the source of truth for current construction entities/recipes.
-
-For Cherry, vanilla-style construction first creates a temporary `IsoThumpable` with skill-based health. LMION captures that object's max health before converting it to `IsoDoor`, then stores the captured value as the logical LMION max.
-
-The final relationship between materials, craft cost and durability is not yet balanced. Avoid assigning exaggerated final PV values before that design is settled.
+Do not reintroduce intrusive generic Moveables tracing unless a new, narrowly scoped diagnostic is genuinely required.
 
 ## Future module ideas
 
 ### Repair
 
-Likely scope:
+A future `LMION_Repair` should own tools, materials, skills, timed action, UX and repair balance. Core should retain only low-level logical-health operations.
 
-- context/menu action;
-- material-dependent repair recipes;
-- required tools;
-- relevant skill checks;
-- timed action;
-- health restored per operation;
-- eventual failure/waste behavior if desired.
+### Locksmith / Access Control
 
-Core should remain responsible only for the low-level logical-health primitive.
-
-### Locksmith
-
-Possible scope includes:
-
-- removable/installable cylinders or barrels;
-- Key ID belonging conceptually to the cylinder;
-- rekeying;
-- duplicating keys from blanks with appropriate tools/machines;
-- padlocks and hasps;
-- hinge wear/breakage and replacement;
-- forced entry based on material, strength, lock type, damage, and injury risk.
-
-### Access Control
-
-Possible scope includes:
-
-- powered keypad/code access;
-- mechanical key fallback;
-- fail-secure/fail-safe behavior depending on hardware;
-- battery-backed keypads;
-- RFID/badges;
-- exit buttons;
-- alarms after repeated failed codes;
-- codes/credentials found in notes, maps, zombies, or containers.
+Potential future systems include cylinders/rekeying, keys, padlocks/hasps, powered keypads, badges, fail-secure/fail-safe hardware and alarm/access logic. These remain future scope and should not influence current door transport architecture prematurely.
 
 ## Current milestone order
 
-1. Finish CherryDoor as the complete simple-door reference.
-2. Implement and validate LogDoor.
-3. Validate LMION takeover of a door that already has a vanilla construction path.
-4. Batch straightforward 1x1 doors.
-5. Handle multi-tile/double/gate/garage openings separately.
-6. Build the real Repair gameplay module after material/craft balance is sufficiently defined.
+1. Finish and validate the Large Chain-Link Gate two-parcel leaf Pickup cycle, including preview.
+2. Validate both parcels as placement entry points and both N/W orientations.
+3. Generalize the proven leaf transport model to the other five large gates.
+4. Research/implement garage-door transport separately.
+5. Build the real Repair gameplay module after transport and material/craft rules are sufficiently stable.
