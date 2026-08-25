@@ -6,6 +6,11 @@ local Build = LMION.Build
 Build.ID = "LMION_Build"
 Build.VERSION = "0.0.4-dev"
 
+if LMION.Doors ~= nil and LMION.Doors.Profiles ~= nil then
+    LMION.Doors.Profiles.DoubleWireGateLeft = LMION.Doors.Profiles.DoubleWireGate
+    LMION.Doors.Profiles.DoubleWireGateRight = LMION.Doors.Profiles.DoubleWireGate
+end
+
 function Build.hideSplitDoubleWireGate()
     return false
 end
