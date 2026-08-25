@@ -32,7 +32,6 @@ ISMoveableCursor.renderSpriteGrid = function(self, x, y, z, color)
     local wx = x - xo
     local wy = y - yo
 
-    -- Keep vanilla's multisprite footprint rendering for both logical squares.
     for gridX = 0, spriteGrid:getWidth() - 1 do
         for gridY = 0, spriteGrid:getHeight() - 1 do
             local worldX = wx + gridX
@@ -52,15 +51,12 @@ ISMoveableCursor.renderSpriteGrid = function(self, x, y, z, color)
         end
     end
 
-    -- The two gate leaves are authored asymmetrically. On the right leaf Part2
-    -- already contains the complete visual leaf; on the left leaf the complete
-    -- visual member is Part1. Keep both members in the SpriteGrid for Moveables
-    -- logic, but render only the complete visual member in the ghost preview.
     local leafId = self.currentMoveProps.lmionLargeGateLeaf
     local leaf = leafSpecs[leafId]
     local facing = self.currentMoveProps.lmionDoorFacing
-    local visualPartIndex = leafId == "left" and 1 or 2
+    local visualPartIndex = leaf and leaf.visualPartIndex or nil
     local fullSpriteName = leaf
+        and visualPartIndex
         and leaf.parts
         and leaf.parts[visualPartIndex]
         and leaf.parts[visualPartIndex].faces
