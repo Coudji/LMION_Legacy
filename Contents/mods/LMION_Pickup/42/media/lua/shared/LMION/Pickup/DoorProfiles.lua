@@ -18,6 +18,20 @@ local function add(entityName, tool, level, weightKg)
     }
 end
 
+local function addGate(entityName, pickUpTool, placeTool, level, weightKg)
+    Profiles.entities[entityName] = {
+        id = entityName,
+        itemType = "Base.LMION_" .. entityName,
+        moveType = "Object",
+        pickUpTool = pickUpTool,
+        placeTool = placeTool,
+        pickUpLevel = level,
+        pickUpWeight = weightKg * 10,
+        canBreak = false,
+        requiresFrame = false,
+    }
+end
+
 add("BlackRestroomStallDoor", "Screwdriver", 0, 8)
 add("BlueRestroomStallDoor", "Screwdriver", 0, 8)
 add("BrownRestroomStallDoor", "Screwdriver", 0, 8)
@@ -61,6 +75,16 @@ add("WhiteServiceDoorWithPorthole", "Metal", 1, 17)
 add("LogDoor", "Screwdriver", 0, 25)
 add("JailDoor", "Metal", 5, 30)
 add("SecurityDoor", "Metal", 5, 35)
+
+addGate("SmallWhiteWoodenGate", "Crowbar", "Hammer", 1, 7)
+addGate("WoodFenceGate", "Crowbar", "Hammer", 1, 14)
+addGate("HardenedWoodenGate", "Crowbar", "Hammer", 2, 18)
+addGate("MetalWireFenceGateSmall", "LMIONMetalCrowbar", "LMIONMetalHammer", 1, 6)
+addGate("MetalWireFenceGate", "LMIONMetalCrowbar", "LMIONMetalHammer", 1, 12)
+addGate("MetalPoleFenceGateSmall", "LMIONMetalCrowbar", "LMIONMetalHammer", 1, 8)
+addGate("MetalPoleFenceGate", "LMIONMetalCrowbar", "LMIONMetalHammer", 1, 16)
+addGate("SmallWroughtIronGate", "LMIONMetalCrowbar", "LMIONMetalHammer", 1, 12)
+addGate("WroughtIronGate", "LMIONMetalCrowbar", "LMIONMetalHammer", 2, 25)
 
 LMION.Pickup.DoorProfiles = Profiles
 
