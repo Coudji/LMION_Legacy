@@ -8,6 +8,47 @@ local Profiles = Pickup.DoorProfiles
 
 local spriteProfiles = nil
 
+local function findObjectInfo(spriteConfig)
+    if spriteConfig == nil or SpriteConfigManager == nil or SpriteConfigManager.GetObjectInfoList == nil then
+        return nil
+    end
+
+    local objectInfos = SpriteConfigManager.GetObjectInfoList()
+    if objectInfos == nil then
+        return nil
+    end
+
+    for i = 0, objectInfos:size() - 1 do
+        local info = objectInfos:get(i)
+        if info ~= nil and info:getScript() == spriteConfig then
+            return info
+        end
+    end
+
+    return nil
+end
+
+local function getSingleFaceSprite(objectInfo, faceName)
+    if objectInfo == nil then
+        return nil
+    end
+
+    local face = objectInfo:getFace(faceName)
+    if face == nil
+        or face:getWidth() ~= 1
+        or face:getHeight() ~= 1
+        or face:getzLayers() ~= 1 then
+        return nil
+    end
+
+    local tileInfo = face:getTileInfo(0, 0, 0)
+    if tileInfo == nil or tileInfo:getSpriteName() == nil then
+        return nil
+    end
+
+    return tostring(tileInfo:getSpriteName())
+end
+
 local function buildSpriteProfiles()
     if spriteProfiles ~= nil then
         return
@@ -23,6 +64,19 @@ local function buildSpriteProfiles()
         if profile ~= nil then
             local spriteConfig = script:getComponentScriptFor(ComponentType.SpriteConfig)
             if spriteConfig ~= nil then
+                local objectInfo = findObjectInfo(spriteConfig)
+                local northSprite = getSingleFaceSprite(objectInfo, "n")
+                local westSprite = getSingleFaceSprite(objectInfo, "w")
+
+                if northSprite ~= nil and westSprite ~= nil and northSprite ~= westSprite then
+                    profile.moveFaces = {
+                        N = northSprite,
+                        W = westSprite,
+                    }
+                else
+                    profile.moveFaces = nil
+                end
+
                 local tileNames = spriteConfig:getAllTileNames()
                 for j = 0, tileNames:size() - 1 do
                     spriteProfiles[tileNames:get(j)] = profile
@@ -86,6 +140,19 @@ local function applyProfileToMoveProps(moveProps, sprite)
     moveProps.weight = moveProps.rawWeight and (moveProps.rawWeight / 10) or moveProps.weight
     moveProps.canBreak = profile.pickUpTool ~= nil and profile.canBreak == true
     moveProps.lmionDoorProfile = profile
+    moveProps.lmionDoorFaces = profile.moveFaces
+    moveProps.lmionDoorFacing = nil
+
+    local spriteName = moveProps.sprite and moveProps.sprite:getName() or nil
+    if profile.moveFaces ~= nil and spriteName ~= nil then
+        if spriteName == profile.moveFaces.N then
+            moveProps.lmionDoorFacing = "N"
+            moveProps.facing = "N"
+        elseif spriteName == profile.moveFaces.W then
+            moveProps.lmionDoorFacing = "W"
+            moveProps.facing = "W"
+        end
+    end
 
     return profile
 end
@@ -159,6 +226,35 @@ ISMoveableSpriteProps.new = function(sprite)
 
     applyProfileToMoveProps(moveProps, resolvedSprite)
     return moveProps
+end
+
+if Pickup._originalMoveableHasFaces == nil then
+    Pickup._originalMoveableHasFaces = ISMoveableSpriteProps.hasFaces
+end
+
+ISMoveableSpriteProps.hasFaces = function(self)
+    if self ~= nil and self.lmionDoorFaces ~= nil and self.lmionDoorFacing ~= nil then
+        return self.lmionDoorFaces.N ~= nil
+            and self.lmionDoorFaces.W ~= nil
+            and self.lmionDoorFaces.N ~= self.lmionDoorFaces.W
+    end
+
+    return Pickup._originalMoveableHasFaces(self)
+end
+
+if Pickup._originalMoveableGetFaces == nil then
+    Pickup._originalMoveableGetFaces = ISMoveableSpriteProps.getFaces
+end
+
+ISMoveableSpriteProps.getFaces = function(self)
+    if self ~= nil and self.lmionDoorFaces ~= nil and self.lmionDoorFacing ~= nil then
+        return {
+            N = self.lmionDoorFaces.N,
+            W = self.lmionDoorFaces.W,
+        }
+    end
+
+    return Pickup._originalMoveableGetFaces(self)
 end
 
 if Pickup._originalMoveableInstanceItem == nil then
