@@ -50,5 +50,7 @@
   "Base.LMION_MetalPoleFenceGateSmall": "Portillon en ferraille",
   "Base.LMION_MetalPoleFenceGate": "Portail en ferraille",
   "Base.LMION_SmallWroughtIronGate": "Portillon en fer forgé",
-  "Base.LMION_WroughtIronGate": "Portail en fer forgé"
+  "Base.LMION_WroughtIronGate": "Portail en fer forgé",
+  "Base.LMION_BrownSlidingGlassDoor": "Porte coulissante vitrée brune",
+  "Base.LMION_WhiteSlidingGlassDoor": "Porte coulissante vitrée blanche"
 }
