@@ -2,6 +2,7 @@ require "BuildingObjects/ISMoveableCursor"
 require "LMION/Pickup/LargeGateMoveables"
 
 local Pickup = LMION.Pickup
+local leafSpecs = Pickup.LargeGateLeafSpecs or {}
 
 local function isLargeGateMoveProps(moveProps)
     return moveProps ~= nil
@@ -15,8 +16,7 @@ if Pickup._largeGateOriginalRenderSpriteGrid == nil then
 end
 
 ISMoveableCursor.renderSpriteGrid = function(self, x, y, z, color)
-    if ISMoveableCursor.mode[self.player] ~= "place"
-        or not isLargeGateMoveProps(self.origMoveProps)
+    if not isLargeGateMoveProps(self.origMoveProps)
         or not isLargeGateMoveProps(self.currentMoveProps) then
         return Pickup._largeGateOriginalRenderSpriteGrid(self, x, y, z, color)
     end
@@ -32,7 +32,7 @@ ISMoveableCursor.renderSpriteGrid = function(self, x, y, z, color)
     local wx = x - xo
     local wy = y - yo
 
-    -- Keep the real footprint visible at the intended placement position.
+    -- Keep vanilla's multisprite footprint rendering for both logical squares.
     for gridX = 0, spriteGrid:getWidth() - 1 do
         for gridY = 0, spriteGrid:getHeight() - 1 do
             local worldX = wx + gridX
@@ -52,48 +52,44 @@ ISMoveableCursor.renderSpriteGrid = function(self, x, y, z, color)
         end
     end
 
-    -- Diagnostic: render the two SpriteGrid members far apart, so their image
-    -- footprints cannot overlap. Member #1 is red and member #2 is blue.
-    -- This shows exactly what each individual gate tile contains visually.
-    local members = {}
+    -- DoubleWireGate is not authored like a normal two-tile piece of furniture:
+    -- logical Part2 already contains the complete leaf artwork, while Part1 is
+    -- only the extra technical strip used by the DoubleDoor object. Vanilla's
+    -- generic renderSpriteGrid() draws both and therefore renders that strip
+    -- twice. Keep the SpriteGrid for Moveables logic, but render only the complete
+    -- visual member here.
+    local leaf = leafSpecs[self.currentMoveProps.lmionLargeGateLeaf]
+    local facing = self.currentMoveProps.lmionDoorFacing
+    local fullSpriteName = leaf
+        and leaf.parts
+        and leaf.parts[2]
+        and leaf.parts[2].faces
+        and leaf.parts[2].faces[facing]
+        or nil
+
+    if fullSpriteName == nil then
+        return
+    end
+
     for gridX = 0, spriteGrid:getWidth() - 1 do
         for gridY = 0, spriteGrid:getHeight() - 1 do
-            local sprite = spriteGrid:getSprite(gridX, gridY)
-            if sprite ~= nil then
-                members[#members + 1] = sprite
+            local objectSprite = spriteGrid:getSprite(gridX, gridY)
+            if objectSprite ~= nil and objectSprite:getName() == fullSpriteName then
+                objectSprite:RenderGhostTileColor(
+                    wx + gridX,
+                    wy + gridY,
+                    z,
+                    0,
+                    self.yOffset * Core.getTileScale(),
+                    color.r,
+                    color.g,
+                    color.b,
+                    0.8
+                )
+                return
             end
         end
     end
-
-    if members[1] ~= nil then
-        members[1]:RenderGhostTileColor(
-            x - 3,
-            y,
-            z,
-            0,
-            self.yOffset * Core.getTileScale(),
-            1.0,
-            0.15,
-            0.15,
-            0.85
-        )
-    end
-
-    if members[2] ~= nil then
-        members[2]:RenderGhostTileColor(
-            x + 3,
-            y,
-            z,
-            0,
-            self.yOffset * Core.getTileScale(),
-            0.15,
-            0.35,
-            1.0,
-            0.85
-        )
-    end
 end
-
-LMION.log("Pickup", "large gate cursor diagnostic: separated red/blue sprite members")
 
 return Pickup
