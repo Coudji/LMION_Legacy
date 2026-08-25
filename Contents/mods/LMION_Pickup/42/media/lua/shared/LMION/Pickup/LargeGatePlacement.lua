@@ -17,7 +17,6 @@ local function getLeafAnchorFaces(moveProps)
         return nil
     end
 
-    -- Both runtime SpriteGrids now use logical Part1 as their anchor.
     return {
         N = leaf.parts[1].faces.N,
         W = leaf.parts[1].faces.W,
@@ -169,42 +168,6 @@ ISMoveableSpriteProps.canPlaceMoveable = function(self, character, square, item)
     return true
 end
 
-local function describePlacedObject(object)
-    if object == nil then
-        return "nil"
-    end
-
-    local square = object:getSquare()
-    local sprite = object:getSprite()
-    local spriteName = sprite and sprite:getName() or "nil"
-    local index = nil
-    if IsoDoor ~= nil and IsoDoor.getDoubleDoorIndex ~= nil then
-        local ok, value = pcall(IsoDoor.getDoubleDoorIndex, object)
-        if ok then
-            index = tonumber(value)
-        end
-    end
-
-    local coords = square
-        and (tostring(square:getX()) .. "," .. tostring(square:getY()) .. "," .. tostring(square:getZ()))
-        or "nil"
-
-    return spriteName .. "@" .. coords .. " idx=" .. tostring(index)
-end
-
-local function getPartnerDescription(object, partnerIndex)
-    if object == nil or IsoDoor == nil or IsoDoor.getDoubleDoorObject == nil then
-        return "nil"
-    end
-
-    local ok, partner = pcall(IsoDoor.getDoubleDoorObject, object, partnerIndex)
-    if not ok or partner == nil then
-        return "nil"
-    end
-
-    return describePlacedObject(partner)
-end
-
 if Pickup._largeGatePlacementPreviousPlaceMoveable == nil then
     Pickup._largeGatePlacementPreviousPlaceMoveable = ISMoveableSpriteProps.placeMoveable
 end
@@ -226,16 +189,6 @@ ISMoveableSpriteProps.placeMoveable = function(self, character, square, origSpri
         and not self:canPlaceMoveable(character, square, plan[tonumber(self.lmionLargeGatePart) or 1].item) then
         return false
     end
-
-    LMION.log(
-        "Pickup",
-        "large gate place begin leaf=" .. tostring(self.lmionLargeGateLeaf)
-            .. " facing=" .. tostring(self.lmionDoorFacing)
-            .. " cursorPart=" .. tostring(self.lmionLargeGatePart)
-            .. " cursor=" .. tostring(square:getX()) .. "," .. tostring(square:getY()) .. "," .. tostring(square:getZ())
-            .. " plan1=" .. tostring(plan[1].spriteName) .. "@" .. tostring(plan[1].square:getX()) .. "," .. tostring(plan[1].square:getY())
-            .. " plan2=" .. tostring(plan[2].spriteName) .. "@" .. tostring(plan[2].square:getX()) .. "," .. tostring(plan[2].square:getY())
-    )
 
     local placed = {}
     for partIndex = 1, 2 do
@@ -264,19 +217,6 @@ ISMoveableSpriteProps.placeMoveable = function(self, character, square, origSpri
         entry.inventory:Remove(entry.item)
         sendRemoveItemFromContainer(entry.inventory, entry.item)
     end
-
-    local leaf = leafSpecs[self.lmionLargeGateLeaf]
-    local indices = leaf and leaf.indices and leaf.indices[self.lmionDoorFacing] or nil
-    local partnerForPart1 = indices and indices[2] or -1
-    local partnerForPart2 = indices and indices[1] or -1
-
-    LMION.log(
-        "Pickup",
-        "large gate place result part1=" .. describePlacedObject(placed[1])
-            .. " partner=" .. getPartnerDescription(placed[1], partnerForPart1)
-            .. " | part2=" .. describePlacedObject(placed[2])
-            .. " partner=" .. getPartnerDescription(placed[2], partnerForPart2)
-    )
 
     if ISMoveableCursor ~= nil and ISMoveableCursor.clearCacheForAllPlayers ~= nil then
         ISMoveableCursor.clearCacheForAllPlayers()
