@@ -6,6 +6,17 @@ local Build = LMION.Build
 Build.ID = "LMION_Build"
 Build.VERSION = "0.0.4-dev"
 
+local splitDoubleWireGateTiles = {
+    ["fixtures_doors_fences_01_64"] = true,
+    ["fixtures_doors_fences_01_65"] = true,
+    ["fixtures_doors_fences_01_66"] = true,
+    ["fixtures_doors_fences_01_67"] = true,
+    ["fixtures_doors_fences_01_72"] = true,
+    ["fixtures_doors_fences_01_73"] = true,
+    ["fixtures_doors_fences_01_74"] = true,
+    ["fixtures_doors_fences_01_75"] = true,
+}
+
 if LMION.Doors ~= nil and LMION.Doors.Profiles ~= nil then
     LMION.Doors.Profiles.DoubleWireGateLeft = LMION.Doors.Profiles.DoubleWireGate
     LMION.Doors.Profiles.DoubleWireGateRight = LMION.Doors.Profiles.DoubleWireGate
@@ -27,9 +38,35 @@ function Build.prepareSplitDoubleWireGate()
             local spriteConfig = script:getComponentScriptFor(ComponentType.SpriteConfig)
             if spriteConfig ~= nil then
                 local tileNames = spriteConfig:getAllTileNames()
-                local released = tileNames:size()
-                tileNames:clear()
-                LMION.log("Build", "released vanilla DoubleWireGate sprite ownership: " .. tostring(released))
+                local matched = 0
+
+                for j = 0, tileNames:size() - 1 do
+                    if splitDoubleWireGateTiles[tostring(tileNames:get(j))] then
+                        matched = matched + 1
+                    end
+                end
+
+                if matched ~= 8 then
+                    LMION.error(
+                        "Build",
+                        "refusing to modify vanilla DoubleWireGate sprite ownership: expected 8 known tiles, found "
+                            .. tostring(matched)
+                            .. " of "
+                            .. tostring(tileNames:size())
+                    )
+                    return false
+                end
+
+                for j = tileNames:size() - 1, 0, -1 do
+                    if splitDoubleWireGateTiles[tostring(tileNames:get(j))] then
+                        tileNames:remove(j)
+                    end
+                end
+
+                LMION.log(
+                    "Build",
+                    "released 8 known vanilla DoubleWireGate tiles; preserved " .. tostring(tileNames:size()) .. " other tile names"
+                )
                 return true
             end
         end
