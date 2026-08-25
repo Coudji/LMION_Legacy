@@ -77,6 +77,7 @@ require "LMION/Pickup/LargeGateProfiles"
 require "LMION/Pickup/ToolDefinitions"
 require "LMION/Pickup/DoorMoveables"
 require "LMION/Pickup/LargeGateMoveables"
+require "LMION/Pickup/LargeGateCursor"
 
 LMION.registerModule(Pickup.ID, Pickup)
 LMION.log("Pickup", "loaded " .. Pickup.VERSION)
