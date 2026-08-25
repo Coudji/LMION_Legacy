@@ -52,5 +52,9 @@
   "Base.LMION_SmallWroughtIronGate": "Small Wrought Iron Gate",
   "Base.LMION_WroughtIronGate": "Wrought Iron Gate",
   "Base.LMION_BrownSlidingGlassDoor": "Brown Sliding Glass Door",
-  "Base.LMION_WhiteSlidingGlassDoor": "White Sliding Glass Door"
+  "Base.LMION_WhiteSlidingGlassDoor": "White Sliding Glass Door",
+  "Base.LMION_DoubleWireGateLeft_Part1": "Large Chain-Link Gate - Left Leaf (1/2)",
+  "Base.LMION_DoubleWireGateLeft_Part2": "Large Chain-Link Gate - Left Leaf (2/2)",
+  "Base.LMION_DoubleWireGateRight_Part1": "Large Chain-Link Gate - Right Leaf (1/2)",
+  "Base.LMION_DoubleWireGateRight_Part2": "Large Chain-Link Gate - Right Leaf (2/2)"
 }
