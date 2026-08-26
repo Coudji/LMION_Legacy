@@ -4,7 +4,7 @@ require "LMION/Pickup/LargeGateProfiles"
 local Pickup = LMION.Pickup
 
 local leafSpecs = {
-    left = {
+    doubleWireLeft = {
         visualPartIndex = 1,
         indices = {
             N = {1, 2},
@@ -27,7 +27,7 @@ local leafSpecs = {
             },
         },
     },
-    right = {
+    doubleWireRight = {
         visualPartIndex = 2,
         indices = {
             N = {3, 4},
@@ -46,6 +46,52 @@ local leafSpecs = {
                 faces = {
                     N = "fixtures_doors_fences_01_75",
                     W = "fixtures_doors_fences_01_72",
+                },
+            },
+        },
+    },
+    doubleFenceLeft = {
+        visualPartIndex = 1,
+        indices = {
+            N = {1, 2},
+            W = {4, 3},
+        },
+        parts = {
+            [1] = {
+                itemType = "Base.LMION_DoubleFenceGateLeft_Part1",
+                faces = {
+                    N = "fixtures_doors_fences_01_82",
+                    W = "fixtures_doors_fences_01_81",
+                },
+            },
+            [2] = {
+                itemType = "Base.LMION_DoubleFenceGateLeft_Part2",
+                faces = {
+                    N = "fixtures_doors_fences_01_83",
+                    W = "fixtures_doors_fences_01_80",
+                },
+            },
+        },
+    },
+    doubleFenceRight = {
+        visualPartIndex = 2,
+        indices = {
+            N = {3, 4},
+            W = {2, 1},
+        },
+        parts = {
+            [1] = {
+                itemType = "Base.LMION_DoubleFenceGateRight_Part1",
+                faces = {
+                    N = "fixtures_doors_fences_01_90",
+                    W = "fixtures_doors_fences_01_89",
+                },
+            },
+            [2] = {
+                itemType = "Base.LMION_DoubleFenceGateRight_Part2",
+                faces = {
+                    N = "fixtures_doors_fences_01_91",
+                    W = "fixtures_doors_fences_01_88",
                 },
             },
         },
@@ -134,7 +180,9 @@ local function installAllRuntimeSpriteGrids(reason)
     Pickup.LargeGateRuntimeSpriteGrids = {}
 
     local installedGridCount = 0
+    local expectedGridCount = 0
     for leafId, _ in pairs(leafSpecs) do
+        expectedGridCount = expectedGridCount + 2
         if installRuntimeSpriteGrid(leafId, "N") then
             installedGridCount = installedGridCount + 1
         end
@@ -144,16 +192,17 @@ local function installAllRuntimeSpriteGrids(reason)
     end
 
     local suffix = reason and (" (" .. tostring(reason) .. ")") or ""
-    if installedGridCount == 4 then
-        LMION.log("Pickup", "installed DoubleWireGate runtime sprite grids" .. suffix)
+    if installedGridCount == expectedGridCount then
+        LMION.log("Pickup", "installed large-gate runtime sprite grids" .. suffix)
         return true
     end
 
     LMION.error(
         "Pickup",
-        "failed to install all DoubleWireGate runtime sprite grids: "
+        "failed to install all large-gate runtime sprite grids: "
             .. tostring(installedGridCount)
-            .. "/4"
+            .. "/"
+            .. tostring(expectedGridCount)
             .. suffix
     )
     return false
