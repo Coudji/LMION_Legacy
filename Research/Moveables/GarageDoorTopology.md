@@ -1,6 +1,6 @@
 # Garage-door topology
 
-Status: **Bytecode-verified B42.20.3; runtime-observed B42.20.4; Pickup implementation open**
+Status: **Bytecode-verified B42.20.3; runtime-observed B42.20.4; Industrial placement runtime-validated**
 
 This note records how Project Zomboid links and operates three-panel garage doors. Garage doors are a separate engine topology from `DoubleDoor` large gates and from ordinary paired 1x1 doors.
 
@@ -119,6 +119,8 @@ This exactly matches the bytecode linkage rule for W: `next` advances toward `y 
 
 This runtime evidence corrects an earlier LMION implementation mistake where W sprite identities were assigned as `_34=1`, `_33=2`, `_32=3`. That mistake caused Pickup parcels to swap Part 1 and Part 3 and caused replacement to create valid sprites with the wrong `GarageDoor` indices.
 
+The corrected implementation has now been runtime-validated for Industrial garage replacement, including west-facing placement after pickup and rotated placement. The placed sprites match their engine `GarageDoor` identities instead of only matching the visual footprint.
+
 ## Current LMION SpriteConfig evidence
 
 LMION Core already owns garage-door `SpriteConfig` entities for construction. The current `Base.IndustrialGarageDoor` configuration declares three closed tiles in each orientation:
@@ -182,7 +184,7 @@ The catalog already models garage transport as three 20 kg packages. The engine 
 one garage = three physical IsoDoor segments = three parcels = one placement action
 ```
 
-This is an implementation proposal until runtime-validated.
+This transport identity is now runtime-validated for the Industrial reference family through pickup and replacement. Full behavioral validation still includes synchronized opening/closing and per-segment durability preservation.
 
 Each parcel should preserve the exact current health and `lmionDoorMaxHealth` of its corresponding physical segment. Placement should reconstruct all three closed `IsoDoor` members with the correct orientation and closed sprites. If geometry and `GarageDoor` properties are correct, vanilla previous/next discovery should immediately restore synchronized opening/closing without LMION storing custom links.
 
@@ -196,8 +198,8 @@ The first runtime validation should cover:
 2. obtain exactly three `(1/3)`, `(2/3)`, `(3/3)` parcels;
 3. remove exactly the selected garage and no adjacent unrelated opening;
 4. require all three parcels for replacement;
-5. place correctly in N and W;
-6. rotate before placement;
+5. place correctly in N and W — **validated**;
+6. rotate before placement — **validated**;
 7. open any restored panel and confirm all three synchronize through vanilla;
 8. preserve exact per-segment current health and logical max, including unequal damage.
 
