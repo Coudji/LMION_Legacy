@@ -13,8 +13,8 @@ replacement validation.
 local families = {
     IndustrialGarageDoor = {
         id = "IndustrialGarageDoor",
-        pickUpTool = "Crowbar",
-        placeTool = "Hammer",
+        pickUpTool = "LMIONMetalCrowbar",
+        placeTool = "LMIONMetalHammer",
         pickUpLevel = 0,
         partWeight = 20,
         parts = {
