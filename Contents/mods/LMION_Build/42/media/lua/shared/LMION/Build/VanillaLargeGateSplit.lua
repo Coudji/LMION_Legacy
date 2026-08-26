@@ -2,11 +2,6 @@ require "LMION/Build/LargeGateProfiles"
 
 local Build = LMION.Build
 
---[[
-These three vanilla entities originally own both leaves in one SpriteConfig.
-LMION keeps the vanilla entity for the left leaf and narrows its scripted sprite
-ownership only after validating the exact B42.20.3 closed-sprite set.
-]]
 local splitSpecs = {
     {
         id = "DoubleDoor",
@@ -226,7 +221,6 @@ function Build.prepareSplitVanillaLargeGates()
         return false
     end
 
-    --[[ Validate every vanilla source before mutating any of them. ]]
     local prepared = {}
     for _, spec in ipairs(splitSpecs) do
         local script = getScript(spec.id)
