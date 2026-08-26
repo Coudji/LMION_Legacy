@@ -10,7 +10,9 @@ runtime implementation only enables IndustrialGarageDoor. Other families should
 be added here only after the reference family has passed the full pickup/rotate/
 replacement validation.
 
-`parts` is engine identity: GarageDoor 1/2/3.
+`parts` is engine identity: normalized GarageDoor 1/2/3. Runtime tracing on
+B42.20.4 confirms Industrial W sprites map as 32=1, 33=2, 34=3.
+
 `gridPartOrder` is visual SpriteGrid order from local coordinate 0 toward +X/+Y.
 Those orders are identical in N and reversed in W because vanilla garage linkage
 advances from member 1 toward decreasing Y when west-facing.
@@ -27,7 +29,7 @@ local families = {
                 itemType = "Base.LMION_IndustrialGarageDoor_Part1",
                 faces = {
                     N = "industry_trucks_01_35",
-                    W = "industry_trucks_01_34",
+                    W = "industry_trucks_01_32",
                 },
             },
             {
@@ -41,7 +43,7 @@ local families = {
                 itemType = "Base.LMION_IndustrialGarageDoor_Part3",
                 faces = {
                     N = "industry_trucks_01_37",
-                    W = "industry_trucks_01_32",
+                    W = "industry_trucks_01_34",
                 },
             },
         },
