@@ -19,5 +19,7 @@ end
 
 addLeaf("DoubleWireGate", "Base.LMION_DoubleWireGateLeft_Part1")
 addLeaf("DoubleWireGateRight", "Base.LMION_DoubleWireGateRight_Part1")
+addLeaf("DoubleFenceGate", "Base.LMION_DoubleFenceGateLeft_Part1")
+addLeaf("DoubleFenceGateRight", "Base.LMION_DoubleFenceGateRight_Part1")
 
 return Profiles
