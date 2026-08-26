@@ -6,7 +6,6 @@ local LargeGate = Pickup.LargeGate
 local leafSpecs = LargeGate.Leaves
 local segmentBySprite = LargeGate.SegmentsBySprite
 
---[[ Resolve the exact two physical IsoDoor members that belong to one LMION leaf. ]]
 local function getDoubleDoorIndex(object)
     if object == nil or IsoDoor == nil or IsoDoor.getDoubleDoorIndex == nil then
         return nil
@@ -132,10 +131,6 @@ local function isLargeGateMoveProps(moveProps)
         and moveProps.lmionDoorFaces ~= nil
 end
 
---[[
-Decorate vanilla Moveables props with LMION leaf/parcel identity while preserving
-the original constructor for every unrelated moveable object.
-]]
 if Pickup._largeGateOriginalMoveableSpritePropsNew == nil then
     Pickup._largeGateOriginalMoveableSpritePropsNew = ISMoveableSpriteProps.new
 end
@@ -233,10 +228,6 @@ ISMoveableSpriteProps.findInInventoryMultiSprite = function(self, character, req
     return Pickup._largeGateOriginalFindInInventoryMultiSprite(self, character, requestedName)
 end
 
---[[
-Pickup validates the complete two-member leaf, then temporarily treats each member
-as a one-sprite object so vanilla creates one inventory parcel per physical door.
-]]
 if Pickup._largeGateOriginalCanPickUpMoveable == nil then
     Pickup._largeGateOriginalCanPickUpMoveable = ISMoveableSpriteProps.canPickUpMoveable
 end
