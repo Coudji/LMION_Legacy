@@ -36,6 +36,18 @@ Do not use Lua `--` / `--[[ ... ]]` syntax in `media/scripts`. B42.20.3 `ScriptP
 
 Comments should explain **why** something unusual exists, not narrate obvious assignments line by line. Deep engine archaeology still belongs in `Research/` rather than being duplicated into source files.
 
+## Core door-service boundaries
+
+`Doors.lua` remains the stable public/bootstrap entry point for `LMION.Doors`, but implementation is grouped under `LMION/Doors/` by responsibility:
+
+- `Doors/Registry.lua` — entity/profile lookup and SpriteConfig-derived sprite-to-profile cache;
+- `Doors/EngineProperties.lua` — alias-safe Material/Sound property application and tile-definition reapplication;
+- `Doors/Durability.lua` — construction max-health math, logical max helpers, repair primitive and world-door adoption;
+- `Doors/Placement.lua` — orientation extraction and frame/door occupancy validation;
+- `Doors/Construction.lua` — `IsoThumpable -> IsoDoor` normalization after construction.
+
+All focused modules extend the same `LMION.Doors` table. This keeps existing callers stable while preventing the public entry point from becoming an implementation bucket.
+
 ## Pickup 1x1 door boundaries
 
 The normal 1x1 Moveables path is grouped under `LMION/Pickup/Doors/`:
@@ -72,8 +84,6 @@ The established `Pickup.LargeGateLeafSpecs` alias remains available so existing 
 Profile derivation and SpriteConfig rewriting stay separate because they deliberately run at different lifecycle moments.
 
 ## Files deliberately not split yet
-
-`Doors.lua` is still a good candidate for a future split, but it is lower-risk to do that after the current structural pass is regression-tested. The natural boundaries are profile/sprite lookup, engine-property application, durability/world adoption, placement validation and construction normalization.
 
 `DoorProfiles.lua` is mostly declarative data. It can be grouped by catalog-style families later if navigation becomes painful, but family files should all feed one shared profile registry rather than duplicating profile-construction logic.
 
