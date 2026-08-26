@@ -10,43 +10,93 @@ local function getSegment(object)
     return spriteName and segmentsBySprite[spriteName] or nil
 end
 
+local function findGarageMember(square, north, expectedIndex, familyId)
+    if square == nil then
+        return nil
+    end
+
+    local objects = square:getSpecialObjects()
+    for i = 0, objects:size() - 1 do
+        local object = objects:get(i)
+        if object ~= nil
+            and instanceof(object, "IsoDoor")
+            and not object:IsOpen()
+            and object:getNorth() == north
+            and IsoDoor.getGarageDoorIndex(object) == expectedIndex then
+            local segment = getSegment(object)
+            if segment ~= nil and segment.familyId == familyId then
+                return object
+            end
+        end
+    end
+
+    return nil
+end
+
+--[[
+GarageDoor = 1/2/3 on the world sprite is the authoritative member identity.
+Do not infer that identity from LMION's rotation slots: west-facing SpriteGrid
+ordering is intentionally different from the engine's logical garage ordering.
+
+This resolver mirrors IsoDoor.getGarageDoorPrev/Next geometry directly. Starting
+from any selected member, it computes member 1's square and then resolves all
+three expected indices. That keeps pickup independent from Moveables SpriteGrid
+ordering and from the selected panel.
+]]
 local function getGarageMembers(source, familyId)
     if source == nil or not instanceof(source, "IsoDoor") or source:IsOpen() then
         return nil
     end
 
-    local first = IsoDoor.getGarageDoorFirst(source)
-    if first == nil or IsoDoor.getGarageDoorIndex(first) ~= 1 then
+    local sourceIndex = IsoDoor.getGarageDoorIndex(source)
+    if sourceIndex == nil or sourceIndex < 1 or sourceIndex > 3 then
         return nil
     end
 
-    local members = {}
-    local current = first
+    local sourceSegment = getSegment(source)
+    if sourceSegment == nil or sourceSegment.familyId ~= familyId then
+        return nil
+    end
 
+    local sourceSquare = source:getSquare()
+    if sourceSquare == nil then
+        return nil
+    end
+
+    local north = source:getNorth()
+    local firstX = sourceSquare:getX()
+    local firstY = sourceSquare:getY()
+    local z = sourceSquare:getZ()
+
+    if north then
+        firstX = firstX - (sourceIndex - 1)
+    else
+        firstY = firstY + (sourceIndex - 1)
+    end
+
+    local members = {}
     for expectedIndex = 1, 3 do
-        if current == nil
-            or not instanceof(current, "IsoDoor")
-            or current:IsOpen()
-            or IsoDoor.getGarageDoorIndex(current) ~= expectedIndex then
-            return nil
+        local x = firstX
+        local y = firstY
+
+        if north then
+            x = x + (expectedIndex - 1)
+        else
+            y = y - (expectedIndex - 1)
         end
 
-        local segment = getSegment(current)
-        if segment == nil
-            or segment.familyId ~= familyId
-            or segment.partIndex ~= expectedIndex then
+        local square = getCell():getGridSquare(x, y, z)
+        local object = findGarageMember(square, north, expectedIndex, familyId)
+        if object == nil then
             return nil
         end
 
         members[expectedIndex] = {
-            object = current,
-            square = current:getSquare(),
-            spriteName = current:getSprite():getName(),
+            object = object,
+            square = square,
+            spriteName = object:getSprite():getName(),
+            engineIndex = expectedIndex,
         }
-
-        if expectedIndex < 3 then
-            current = IsoDoor.getGarageDoorNext(current)
-        end
     end
 
     return members
@@ -78,9 +128,17 @@ ISMoveableSpriteProps.canPickUpMoveable = function(self, character, square, obje
         return false
     end
 
+    --[[
+    GarageDoorMoveables is responsible for Moveables metadata, not whole-garage
+    topology validation. Call the pre-garage Moveables validator here so pickup
+    has one authoritative garage validator and cannot disagree with itself in W.
+    ]]
+    local previousCanPickUp = Pickup._garageDoorPreviousCanPickUpMoveable
+        or Pickup._garageDoorPickupPreviousCanPickUpMoveable
+
     local wasMultiSprite = self.isMultiSprite
     self.isMultiSprite = false
-    local canPickUp = Pickup._garageDoorPickupPreviousCanPickUpMoveable(self, character, square, selected)
+    local canPickUp = previousCanPickUp(self, character, square, selected)
     self.isMultiSprite = wasMultiSprite
 
     if not canPickUp then
@@ -129,10 +187,19 @@ ISMoveableSpriteProps.pickUpMoveable = function(self, character, square, createI
         return false
     end
 
+    local family = GarageDoor.Families[self.lmionGarageFamily]
     local items = {}
+
     for partIndex, member in ipairs(members) do
         local moveProps = ISMoveableSpriteProps.new(member.spriteName)
         moveProps.isMultiSprite = false
+
+        -- Engine index, not SpriteGrid slot, defines parcel (1/3), (2/3), (3/3).
+        moveProps.lmionGaragePart = partIndex
+        if family ~= nil and family.parts[partIndex] ~= nil then
+            moveProps.customItem = family.parts[partIndex].itemType
+        end
+
         items[partIndex] = moveProps:pickUpMoveableInternal(
             character,
             member.square,
