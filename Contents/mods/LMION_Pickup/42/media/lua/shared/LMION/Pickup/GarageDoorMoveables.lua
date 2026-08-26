@@ -165,9 +165,20 @@ ISMoveableSpriteProps.findInInventoryMultiSprite = function(self, character, req
         return Pickup._garageDoorPreviousFindInInventoryMultiSprite(self, character, requestedName)
     end
 
-    local index = tonumber(string.match(requestedName or "", "%((%d+)/3%)$"))
+    local gridIndex = tonumber(string.match(requestedName or "", "%((%d+)/3%)$"))
     local family = GarageDoor.Families[self.lmionGarageFamily]
-    local part = family and index and family.parts[index] or nil
+
+    --[[
+    The W runtime grid is stored in reverse Y order because vanilla garage linkage
+    advances from member 1 toward decreasing Y. Convert the Moveables grid index
+    back to the logical GarageDoor member before choosing its parcel.
+    ]]
+    local partIndex = gridIndex
+    if self.lmionGarageFacing == "W" and gridIndex ~= nil then
+        partIndex = 4 - gridIndex
+    end
+
+    local part = family and partIndex and family.parts[partIndex] or nil
     if part == nil or character == nil then
         return nil
     end
