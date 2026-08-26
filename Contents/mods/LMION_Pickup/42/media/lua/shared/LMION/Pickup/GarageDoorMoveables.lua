@@ -36,7 +36,7 @@ local function setMovePropsIdentity(moveProps, segment)
     moveProps.canBreak = false
     moveProps.lmionGarageFamily = segment.familyId
     moveProps.lmionGaragePart = segment.partIndex
-    moveProps.lmionGarageFaces = segment.faces
+    moveProps.lmionGarageFaces = segment.rotationFaces or segment.faces
     moveProps.lmionGarageFacing = segment.facing
     moveProps.facing = segment.facing
 
@@ -171,10 +171,12 @@ ISMoveableSpriteProps.findInInventoryMultiSprite = function(self, character, req
     --[[
     The W runtime grid is stored in reverse Y order because vanilla garage linkage
     advances from member 1 toward decreasing Y. Convert the Moveables grid index
-    back to the logical GarageDoor member before choosing its parcel.
+    back to the logical GarageDoor member before choosing its parcel. `facing` is
+    the cursor's current orientation, while `lmionGarageFacing` is only the source
+    sprite orientation captured when these Moveables properties were created.
     ]]
     local partIndex = gridIndex
-    if self.lmionGarageFacing == "W" and gridIndex ~= nil then
+    if self.facing == "W" and gridIndex ~= nil then
         partIndex = 4 - gridIndex
     end
 
