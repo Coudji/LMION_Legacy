@@ -4,6 +4,11 @@ require "LMION/Pickup/LargeGateMoveables"
 local Pickup = LMION.Pickup
 local leafSpecs = Pickup.LargeGateLeafSpecs or {}
 
+local renderAllPartsByLeaf = {
+    largeFarmLeft = true,
+    largeFarmRight = true,
+}
+
 local function isLargeGateMoveProps(moveProps)
     return moveProps ~= nil
         and moveProps.lmionLargeGateLeaf ~= nil
@@ -52,6 +57,28 @@ ISMoveableCursor.renderSpriteGrid = function(self, x, y, z, color)
     end
 
     local leafId = self.currentMoveProps.lmionLargeGateLeaf
+    if renderAllPartsByLeaf[leafId] then
+        for gridX = 0, spriteGrid:getWidth() - 1 do
+            for gridY = 0, spriteGrid:getHeight() - 1 do
+                local objectSprite = spriteGrid:getSprite(gridX, gridY)
+                if objectSprite ~= nil then
+                    objectSprite:RenderGhostTileColor(
+                        wx + gridX,
+                        wy + gridY,
+                        z,
+                        0,
+                        self.yOffset * Core.getTileScale(),
+                        color.r,
+                        color.g,
+                        color.b,
+                        0.8
+                    )
+                end
+            end
+        end
+        return
+    end
+
     local leaf = leafSpecs[leafId]
     local facing = self.currentMoveProps.lmionDoorFacing
     local visualPartIndex = leaf and leaf.visualPartIndex or nil
