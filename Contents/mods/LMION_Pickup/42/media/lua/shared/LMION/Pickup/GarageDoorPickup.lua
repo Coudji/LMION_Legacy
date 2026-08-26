@@ -93,14 +93,13 @@ ISMoveableSpriteProps.canPickUpMoveable = function(self, character, square, obje
         end
     end
 
-    if character ~= nil and not ISMoveableDefinitions.cheat and not character:isMovablesCheat() then
-        local family = GarageDoor.Families[self.lmionGarageFamily]
-        local totalWeight = family and (family.partWeight * 3) or 60
-        if not character:getInventory():hasRoomFor(character, totalWeight) then
-            return false
-        end
-    end
-
+    --[[
+    A complete garage weighs 60 kg as three 20 kg parcels. Requiring 60 kg of free
+    capacity would make the action practically unusable for normal characters.
+    Vanilla already validates that the selected 20 kg parcel is individually
+    movable; LMION deliberately allows the completed action to overload inventory
+    with the three resulting parcels, just like other scripted transfers can.
+    ]]
     return true
 end
 
