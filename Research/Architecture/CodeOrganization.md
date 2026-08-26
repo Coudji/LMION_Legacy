@@ -36,6 +36,23 @@ Do not use Lua `--` / `--[[ ... ]]` syntax in `media/scripts`. B42.20.3 `ScriptP
 
 Comments should explain **why** something unusual exists, not narrate obvious assignments line by line. Deep engine archaeology still belongs in `Research/` rather than being duplicated into source files.
 
+## Core profile-family boundaries
+
+`DoorProfiles.lua` owns the single profile registry shape and profile-construction helper. Declarative values are grouped under `LMION/DoorProfiles/` by gameplay family:
+
+- `GarageDoors.lua`;
+- `LargeGates.lua`;
+- `PairedDoors.lua`;
+- `Gates.lua`;
+- `SlidingDoors.lua`;
+- `WoodenDoors.lua`;
+- `MetalDoors.lua`;
+- `SpecialDoors.lua`.
+
+Family modules receive the shared registry writer rather than constructing competing registries. This keeps profile shape/semantics centralized while making the catalog-sized data set navigable.
+
+`PairedDoors.lua` groups synchronized 1x1 double-door leaves because their vanilla pairing is an important structural property. It does **not** mean Pickup should transport them as a pair. Each physical 1x1 leaf remains an independent gameplay/transport unit; future Pickup support should allow either leaf to be removed and replaced independently.
+
 ## Core door-service boundaries
 
 `Doors.lua` remains the stable public/bootstrap entry point for `LMION.Doors`, but implementation is grouped under `LMION/Doors/` by responsibility:
@@ -57,6 +74,8 @@ The normal 1x1 Moveables path is grouped under `LMION/Pickup/Doors/`:
 - `DoorMoveables.lua` — compatibility/bootstrap entry point that loads the focused modules above.
 
 The compatibility entry point remains intentionally tiny so existing `require "LMION/Pickup/DoorMoveables"` callers do not need to know the internal layout.
+
+Future paired-door Pickup can live under a dedicated `LMION/Pickup/PairedDoors/` boundary if vanilla partner-link behavior requires specialized handling. That specialization must preserve independent per-leaf transport rather than forcing both leaves into one Pickup action.
 
 ## Pickup large-gate boundaries
 
@@ -85,9 +104,9 @@ Profile derivation and SpriteConfig rewriting stay separate because they deliber
 
 ## Files deliberately not split yet
 
-`DoorProfiles.lua` is mostly declarative data. It can be grouped by catalog-style families later if navigation becomes painful, but family files should all feed one shared profile registry rather than duplicating profile-construction logic.
-
 The Debug module is already divided into focused `Inspect`, `TestZone`, `UI`, `Util` and `World` areas and is not a priority for further fragmentation.
+
+Further splitting should be driven by a real ownership boundary, not by an arbitrary line-count target. Small bootstrap/registry files are useful; chains of tiny pass-through modules are not.
 
 ## Revalidation after structural changes
 
