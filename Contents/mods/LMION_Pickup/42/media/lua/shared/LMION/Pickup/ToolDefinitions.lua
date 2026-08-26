@@ -8,7 +8,6 @@ local function registerToolDefinitions()
 
     definitions.removeToolDefinition("LMIONMetalCrowbar")
     definitions.removeToolDefinition("LMIONMetalHammer")
-    definitions.removeToolDefinition("LMIONMetalBlowTorch")
 
     definitions.addToolDefinition(
         "LMIONMetalCrowbar",
