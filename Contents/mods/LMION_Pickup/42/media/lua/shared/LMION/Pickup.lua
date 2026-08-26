@@ -7,10 +7,6 @@ Pickup.ID = "LMION_Pickup"
 Pickup.VERSION = "0.0.8-dev"
 Pickup.Strategies = Pickup.Strategies or {}
 
---[[
-The strategy registry is kept as an existing Pickup extension point even though
-the current built-in door paths use direct Moveables hooks.
-]]
 function Pickup.registerStrategy(id, strategy, priority)
     if type(id) ~= "string" or id == "" then
         LMION.error("Pickup", "registerStrategy(): invalid strategy id")
@@ -76,7 +72,6 @@ function Pickup.getRegisteredStrategyCount()
     return #Pickup.Strategies
 end
 
---[[ Keep the bootstrap explicit so hook ownership and load order stay visible. ]]
 require "LMION/Pickup/DoorProfiles"
 require "LMION/Pickup/ToolDefinitions"
 require "LMION/Pickup/DoorMoveables"
