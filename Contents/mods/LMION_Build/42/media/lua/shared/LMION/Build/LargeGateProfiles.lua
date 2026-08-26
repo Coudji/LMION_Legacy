@@ -1,11 +1,6 @@
 local Build = LMION.Build
 local Doors = LMION.Doors
 
---[[
-Construction splits some large-gate families into separate left/right entities.
-Both leaves intentionally inherit the same gameplay profile data as the original
-family; only identity and fallback display name differ.
-]]
 local function cloneProfile(source, id, fallbackName)
     if source == nil then
         return nil
