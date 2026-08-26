@@ -148,21 +148,28 @@ The deterministic Test Zone currently contains 83 explicit entries.
 
 The vanilla Destroy action still destroys the complete linked portal. LMION intentionally does not override that behavior at this stage.
 
-### Large Chain-Link Gate Pickup
+### Large-gate Pickup
 
-`Large Chain-Link Gate` / `DoubleWireGate` is the validated multi-tile Pickup reference implementation.
+The two-segment leaf transport architecture is now runtime-validated for **all six current large-gate families**:
 
-Validated closed-leaf behavior:
+- Large Farm Gate;
+- Large Wrought Iron Gate;
+- Large Hardened Wooden Gate;
+- Large Chain-Link Gate;
+- Large Scrap Metal Gate;
+- Large Wooden Gate.
+
+Validated closed-leaf behavior across the set:
 
 - either physical segment of a leaf can be targeted;
 - only the selected two-segment leaf is removed;
 - Pickup creates two localized parcels `(1/2)` and `(2/2)`;
 - both parcels are required for replacement;
 - both physical `IsoDoor` members are rebuilt in one placement action;
-- left and right leaves place correctly in original orientation and after N/W rotation;
-- restored leaves resume vanilla synchronized opening;
-- pickup/placement preview is clean in both orientations for both leaves;
-- each physical segment preserves its **exact current health and `lmionDoorMaxHealth` independently** through pickup and replacement, including when different segments are damaged by different amounts and the leaf is reinstalled in the other orientation.
+- left and right leaves place correctly in both N and W orientations, including rotation before replacement;
+- restored leaves resume vanilla synchronized opening/closing;
+- each physical segment preserves its exact current health and `lmionDoorMaxHealth` independently through pickup and replacement, including pre-existing unequal damage;
+- placement previews are clean for every current family.
 
 Design identity:
 
@@ -172,11 +179,9 @@ one leaf = two physical IsoDoor segments = two parcels = one placement action
 
 The logical runtime SpriteGrid keeps both segments for Moveables semantics. Final placement is explicit LMION per-segment reconstruction because generic vanilla multisprite placement does not preserve rotated DoubleDoor geometry correctly.
 
-Preview rendering is specialized because the gate sprites are not authored like ordinary two-tile furniture: the complete visible member is `Part1` on the left leaf and `Part2` on the right leaf. The other member remains logically present in the SpriteGrid but is not redundantly ghost-rendered.
+Preview rendering is family-aware. Chain-Link, Scrap Metal, Wooden, Hardened Wooden and Wrought Iron use the configured single complete visual member (`visualPartIndex`) to avoid duplicated artwork. **Large Farm Gate is the validated exception:** its two member sprites are complementary, so its placement preview intentionally renders both SpriteGrid members.
 
-Full evidence and failed hypotheses: `Research/Moveables/LargeGateLeaves.md`.
-
-Current scope guardrail: **do not blindly copy the Chain-Link sprite/index/visual mapping to the other five gate families.** Reuse the architecture, then inspect each family's actual DoubleDoor indices and artwork.
+Full architecture/evidence: `Research/Moveables/LargeGateLeaves.md`. Scrap Metal's first generalization validation is also recorded in `Research/Moveables/LargeScrapMetalGateValidation.md`.
 
 Open-state Pickup is not yet the reference path.
 
@@ -245,7 +250,7 @@ Different mutations intentionally happen at different lifecycle points:
 
 - Lua load — useful for already-running/hot-reload sessions, including reconstruction of runtime-derived split profiles;
 - `OnGameBoot` — scripted entities are available and vanilla SpriteConfig ownership can be adjusted before later consumers rely on it;
-- `OnLoadedTileDefinitions` — tile/sprite definitions have finished rebuilding; runtime sprite mutations such as Chain-Link `IsoSpriteGrid` attachment must be re-applied here;
+- `OnLoadedTileDefinitions` — tile/sprite definitions have finished rebuilding; runtime sprite mutations such as large-gate `IsoSpriteGrid` attachment must be re-applied here;
 - `LoadGridsquare` — adopt matching existing world doors as squares stream in;
 - `OnObjectAdded` — adopt newly created doors too.
 
@@ -304,8 +309,7 @@ A new save did not reproduce the warning, including after interacting with natur
 
 ## Next intended milestones
 
-1. Generalize the proven leaf transport architecture to the other five large-gate families, validating each family's index geometry, sprite authoring and per-segment state preservation independently.
-2. Research/implement garage-door transport as its own multi-tile system.
-3. Build a real `LMION_Repair` gameplay module after transport/material/craft rules are stable enough. Core should keep only the low-level logical-health primitives.
+1. Research/implement garage-door transport as its own multi-tile system.
+2. Build a real `LMION_Repair` gameplay module after transport/material/craft rules are stable enough. Core should keep only the low-level logical-health primitives.
 
 Potential locksmith/access-control systems remain future scope and must not distort the current transport architecture prematurely.
