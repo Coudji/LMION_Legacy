@@ -22,7 +22,7 @@ local families = {
                 itemType = "Base.LMION_IndustrialGarageDoor_Part1",
                 faces = {
                     N = "industry_trucks_01_35",
-                    W = "industry_trucks_01_34",
+                    W = "industry_trucks_01_32",
                 },
             },
             {
@@ -36,7 +36,7 @@ local families = {
                 itemType = "Base.LMION_IndustrialGarageDoor_Part3",
                 faces = {
                     N = "industry_trucks_01_37",
-                    W = "industry_trucks_01_32",
+                    W = "industry_trucks_01_34",
                 },
             },
         },
