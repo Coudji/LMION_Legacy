@@ -1,0 +1,11 @@
+return function(add)
+    add("BlackRestroomStallDoor", "Black Restroom Stall Door", "wood", 150, "Woodwork", 150, 0, "Wood", "Screws", nil, "Wood", "WoodDoor", "ZombieThumpWood", "standard")
+    add("BlueRestroomStallDoor", "Blue Restroom Stall Door", "wood", 150, "Woodwork", 150, 0, "Wood", "Screws", nil, "Wood", "WoodDoor", "ZombieThumpWood", "standard")
+    add("BrownRestroomStallDoor", "Brown Restroom Stall Door", "wood", 150, "Woodwork", 150, 0, "Wood", "Screws", nil, "Wood", "WoodDoor", "ZombieThumpWood", "standard")
+    add("PinkRestroomStallDoor", "Pink Restroom Stall Door", "wood", 150, "Woodwork", 150, 0, "Wood", "Screws", nil, "Wood", "WoodDoor", "ZombieThumpWood", "standard")
+    add("WhiteRestroomStallDoor", "White Restroom Stall Door", "wood", 150, "Woodwork", 150, 0, "Wood", "Screws", nil, "Wood", "WoodDoor", "ZombieThumpWood", "standard")
+    add("BlueRestroomDoor", "Blue Restroom Door", "wood", 200, "Woodwork", 200, 0, "Wood", "Screws", nil, "Plastic", "MetalDoor", "ZombieThumpGeneric", "standard")
+    add("LogDoor", "Log Door", "heavy_wood", 700, "Woodwork", 700, 0, "Log", nil, nil, "Wood_Solid", "WoodDoor", "ZombieThumpWood", "standard")
+    add("JailDoor", "Jail Door", "jail", 2000, "MetalWelding", 1000, 500, "MetalBars", "MetalPlates", "Screws", "Metal_Solid", "PrisonMetalDoor", "ZombieThumpMetal", "standard")
+    add("SecurityDoor", "Security Door", "security", 3000, "MetalWelding", 1250, 650, "MetalBars", "MetalPlates", "MetalWire", "Metal_Solid", "MetalDoor", "ZombieThumpMetal", "standard")
+end
