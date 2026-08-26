@@ -6,94 +6,98 @@ local Pickup = LMION.Pickup
 local leafSpecs = {
     doubleWireLeft = {
         visualPartIndex = 1,
-        indices = {
-            N = {1, 2},
-            W = {4, 3},
-        },
+        indices = {N = {1, 2}, W = {4, 3}},
         parts = {
-            [1] = {
-                itemType = "Base.LMION_DoubleWireGateLeft_Part1",
-                faces = {
-                    N = "fixtures_doors_fences_01_66",
-                    W = "fixtures_doors_fences_01_65",
-                },
-            },
-            [2] = {
-                itemType = "Base.LMION_DoubleWireGateLeft_Part2",
-                faces = {
-                    N = "fixtures_doors_fences_01_67",
-                    W = "fixtures_doors_fences_01_64",
-                },
-            },
+            [1] = {itemType = "Base.LMION_DoubleWireGateLeft_Part1", faces = {N = "fixtures_doors_fences_01_66", W = "fixtures_doors_fences_01_65"}},
+            [2] = {itemType = "Base.LMION_DoubleWireGateLeft_Part2", faces = {N = "fixtures_doors_fences_01_67", W = "fixtures_doors_fences_01_64"}},
         },
     },
     doubleWireRight = {
         visualPartIndex = 2,
-        indices = {
-            N = {3, 4},
-            W = {2, 1},
-        },
+        indices = {N = {3, 4}, W = {2, 1}},
         parts = {
-            [1] = {
-                itemType = "Base.LMION_DoubleWireGateRight_Part1",
-                faces = {
-                    N = "fixtures_doors_fences_01_74",
-                    W = "fixtures_doors_fences_01_73",
-                },
-            },
-            [2] = {
-                itemType = "Base.LMION_DoubleWireGateRight_Part2",
-                faces = {
-                    N = "fixtures_doors_fences_01_75",
-                    W = "fixtures_doors_fences_01_72",
-                },
-            },
+            [1] = {itemType = "Base.LMION_DoubleWireGateRight_Part1", faces = {N = "fixtures_doors_fences_01_74", W = "fixtures_doors_fences_01_73"}},
+            [2] = {itemType = "Base.LMION_DoubleWireGateRight_Part2", faces = {N = "fixtures_doors_fences_01_75", W = "fixtures_doors_fences_01_72"}},
         },
     },
     doubleFenceLeft = {
         visualPartIndex = 1,
-        indices = {
-            N = {1, 2},
-            W = {4, 3},
-        },
+        indices = {N = {1, 2}, W = {4, 3}},
         parts = {
-            [1] = {
-                itemType = "Base.LMION_DoubleFenceGateLeft_Part1",
-                faces = {
-                    N = "fixtures_doors_fences_01_82",
-                    W = "fixtures_doors_fences_01_81",
-                },
-            },
-            [2] = {
-                itemType = "Base.LMION_DoubleFenceGateLeft_Part2",
-                faces = {
-                    N = "fixtures_doors_fences_01_83",
-                    W = "fixtures_doors_fences_01_80",
-                },
-            },
+            [1] = {itemType = "Base.LMION_DoubleFenceGateLeft_Part1", faces = {N = "fixtures_doors_fences_01_82", W = "fixtures_doors_fences_01_81"}},
+            [2] = {itemType = "Base.LMION_DoubleFenceGateLeft_Part2", faces = {N = "fixtures_doors_fences_01_83", W = "fixtures_doors_fences_01_80"}},
         },
     },
     doubleFenceRight = {
         visualPartIndex = 2,
-        indices = {
-            N = {3, 4},
-            W = {2, 1},
-        },
+        indices = {N = {3, 4}, W = {2, 1}},
         parts = {
-            [1] = {
-                itemType = "Base.LMION_DoubleFenceGateRight_Part1",
-                faces = {
-                    N = "fixtures_doors_fences_01_90",
-                    W = "fixtures_doors_fences_01_89",
-                },
-            },
-            [2] = {
-                itemType = "Base.LMION_DoubleFenceGateRight_Part2",
-                faces = {
-                    N = "fixtures_doors_fences_01_91",
-                    W = "fixtures_doors_fences_01_88",
-                },
-            },
+            [1] = {itemType = "Base.LMION_DoubleFenceGateRight_Part1", faces = {N = "fixtures_doors_fences_01_90", W = "fixtures_doors_fences_01_89"}},
+            [2] = {itemType = "Base.LMION_DoubleFenceGateRight_Part2", faces = {N = "fixtures_doors_fences_01_91", W = "fixtures_doors_fences_01_88"}},
+        },
+    },
+    doubleDoorLeft = {
+        visualPartIndex = 1,
+        indices = {N = {1, 2}, W = {4, 3}},
+        parts = {
+            [1] = {itemType = "Base.LMION_DoubleDoorLeft_Part1", faces = {N = "fixtures_doors_fences_01_98", W = "fixtures_doors_fences_01_97"}},
+            [2] = {itemType = "Base.LMION_DoubleDoorLeft_Part2", faces = {N = "fixtures_doors_fences_01_99", W = "fixtures_doors_fences_01_96"}},
+        },
+    },
+    doubleDoorRight = {
+        visualPartIndex = 2,
+        indices = {N = {3, 4}, W = {2, 1}},
+        parts = {
+            [1] = {itemType = "Base.LMION_DoubleDoorRight_Part1", faces = {N = "fixtures_doors_fences_01_106", W = "fixtures_doors_fences_01_105"}},
+            [2] = {itemType = "Base.LMION_DoubleDoorRight_Part2", faces = {N = "fixtures_doors_fences_01_107", W = "fixtures_doors_fences_01_104"}},
+        },
+    },
+    largeFarmLeft = {
+        visualPartIndex = 1,
+        indices = {N = {1, 2}, W = {4, 3}},
+        parts = {
+            [1] = {itemType = "Base.LMION_LargeFarmGateLeft_Part1", faces = {N = "fixtures_doors_fences_01_114", W = "fixtures_doors_fences_01_113"}},
+            [2] = {itemType = "Base.LMION_LargeFarmGateLeft_Part2", faces = {N = "fixtures_doors_fences_01_115", W = "fixtures_doors_fences_01_112"}},
+        },
+    },
+    largeFarmRight = {
+        visualPartIndex = 2,
+        indices = {N = {3, 4}, W = {2, 1}},
+        parts = {
+            [1] = {itemType = "Base.LMION_LargeFarmGateRight_Part1", faces = {N = "fixtures_doors_fences_01_122", W = "fixtures_doors_fences_01_121"}},
+            [2] = {itemType = "Base.LMION_LargeFarmGateRight_Part2", faces = {N = "fixtures_doors_fences_01_123", W = "fixtures_doors_fences_01_120"}},
+        },
+    },
+    largeHardenedWoodLeft = {
+        visualPartIndex = 1,
+        indices = {N = {1, 2}, W = {4, 3}},
+        parts = {
+            [1] = {itemType = "Base.LMION_LargeHardenedWoodenGateLeft_Part1", faces = {N = "fixtures_doors_fences_01_50", W = "fixtures_doors_fences_01_49"}},
+            [2] = {itemType = "Base.LMION_LargeHardenedWoodenGateLeft_Part2", faces = {N = "fixtures_doors_fences_01_51", W = "fixtures_doors_fences_01_48"}},
+        },
+    },
+    largeHardenedWoodRight = {
+        visualPartIndex = 2,
+        indices = {N = {3, 4}, W = {2, 1}},
+        parts = {
+            [1] = {itemType = "Base.LMION_LargeHardenedWoodenGateRight_Part1", faces = {N = "fixtures_doors_fences_01_58", W = "fixtures_doors_fences_01_57"}},
+            [2] = {itemType = "Base.LMION_LargeHardenedWoodenGateRight_Part2", faces = {N = "fixtures_doors_fences_01_59", W = "fixtures_doors_fences_01_56"}},
+        },
+    },
+    largeWroughtIronLeft = {
+        visualPartIndex = 1,
+        indices = {N = {1, 2}, W = {4, 3}},
+        parts = {
+            [1] = {itemType = "Base.LMION_LargeWroughtIronGateLeft_Part1", faces = {N = "fixtures_doors_fences_01_34", W = "fixtures_doors_fences_01_33"}},
+            [2] = {itemType = "Base.LMION_LargeWroughtIronGateLeft_Part2", faces = {N = "fixtures_doors_fences_01_35", W = "fixtures_doors_fences_01_32"}},
+        },
+    },
+    largeWroughtIronRight = {
+        visualPartIndex = 2,
+        indices = {N = {3, 4}, W = {2, 1}},
+        parts = {
+            [1] = {itemType = "Base.LMION_LargeWroughtIronGateRight_Part1", faces = {N = "fixtures_doors_fences_01_42", W = "fixtures_doors_fences_01_41"}},
+            [2] = {itemType = "Base.LMION_LargeWroughtIronGateRight_Part2", faces = {N = "fixtures_doors_fences_01_43", W = "fixtures_doors_fences_01_40"}},
         },
     },
 }
@@ -116,16 +120,8 @@ for leafId, leaf in pairs(leafSpecs) do
 end
 
 local gridFacingSpecs = {
-    N = {
-        width = 2,
-        height = 1,
-        partOrder = {1, 2},
-    },
-    W = {
-        width = 1,
-        height = 2,
-        partOrder = {1, 2},
-    },
+    N = {width = 2, height = 1, partOrder = {1, 2}},
+    W = {width = 1, height = 2, partOrder = {1, 2}},
 }
 
 Pickup._largeGateOriginalSpriteGrids = Pickup._largeGateOriginalSpriteGrids or {}
@@ -155,10 +151,7 @@ local function installRuntimeSpriteGrid(leafId, facing)
         local x = gridSpec.width > 1 and position - 1 or 0
         local y = gridSpec.height > 1 and position - 1 or 0
         grid:setSprite(x, y, sprite)
-        members[position] = {
-            spriteName = spriteName,
-            sprite = sprite,
-        }
+        members[position] = {spriteName = spriteName, sprite = sprite}
     end
 
     if not grid:validate() then
@@ -197,14 +190,7 @@ local function installAllRuntimeSpriteGrids(reason)
         return true
     end
 
-    LMION.error(
-        "Pickup",
-        "failed to install all large-gate runtime sprite grids: "
-            .. tostring(installedGridCount)
-            .. "/"
-            .. tostring(expectedGridCount)
-            .. suffix
-    )
+    LMION.error("Pickup", "failed to install all large-gate runtime sprite grids: " .. tostring(installedGridCount) .. "/" .. tostring(expectedGridCount) .. suffix)
     return false
 end
 
@@ -288,18 +274,11 @@ local function getLeafMembers(source, leafId)
         local sprite = object:getSprite()
         local spriteName = sprite and sprite:getName() or nil
         local segment = spriteName and segmentBySprite[spriteName] or nil
-        if segment == nil
-            or segment.leafId ~= leafId
-            or segment.partIndex ~= partIndex
-            or segment.facing ~= facing then
+        if segment == nil or segment.leafId ~= leafId or segment.partIndex ~= partIndex or segment.facing ~= facing then
             return nil
         end
 
-        members[partIndex] = {
-            object = object,
-            square = object:getSquare(),
-            spriteName = spriteName,
-        }
+        members[partIndex] = {object = object, square = object:getSquare(), spriteName = spriteName}
     end
 
     return members
@@ -349,10 +328,7 @@ local function findInventoryItem(character, fullType)
 end
 
 local function isLargeGateMoveProps(moveProps)
-    return moveProps ~= nil
-        and moveProps.lmionLargeGateLeaf ~= nil
-        and moveProps.lmionLargeGatePart ~= nil
-        and moveProps.lmionDoorFaces ~= nil
+    return moveProps ~= nil and moveProps.lmionLargeGateLeaf ~= nil and moveProps.lmionLargeGatePart ~= nil and moveProps.lmionDoorFaces ~= nil
 end
 
 if Pickup._largeGateOriginalMoveableSpritePropsNew == nil then
@@ -382,10 +358,7 @@ end
 
 ISMoveableSpriteProps.getFaces = function(self)
     if isLargeGateMoveProps(self) then
-        return {
-            N = self.lmionDoorFaces.N,
-            W = self.lmionDoorFaces.W,
-        }
+        return {N = self.lmionDoorFaces.N, W = self.lmionDoorFaces.W}
     end
 
     return Pickup._largeGateOriginalGetFaces(self)
@@ -492,10 +465,7 @@ ISMoveableSpriteProps.canPickUpMoveable = function(self, character, square, obje
         end
     end
 
-    if character ~= nil
-        and not ISMoveableDefinitions.cheat
-        and not character:isMovablesCheat()
-        and not character:getInventory():hasRoomFor(character, 24) then
+    if character ~= nil and not ISMoveableDefinitions.cheat and not character:isMovablesCheat() and not character:getInventory():hasRoomFor(character, 24) then
         return false
     end
 
@@ -516,10 +486,7 @@ ISMoveableSpriteProps.pickUpMoveable = function(self, character, square, createI
         return false
     end
 
-    if not forceAllow
-        and not character:isMovablesCheat()
-        and not ISMoveableDefinitions.cheat
-        and not self:canPickUpMoveable(character, square, selected) then
+    if not forceAllow and not character:isMovablesCheat() and not ISMoveableDefinitions.cheat and not self:canPickUpMoveable(character, square, selected) then
         return false
     end
 
@@ -532,15 +499,7 @@ ISMoveableSpriteProps.pickUpMoveable = function(self, character, square, createI
     for partIndex, member in ipairs(members) do
         local moveProps = ISMoveableSpriteProps.new(member.spriteName)
         moveProps.isMultiSprite = false
-        local item = moveProps:pickUpMoveableInternal(
-            character,
-            member.square,
-            member.object,
-            nil,
-            member.spriteName,
-            createItem,
-            forceAllow
-        )
+        local item = moveProps:pickUpMoveableInternal(character, member.square, member.object, nil, member.spriteName, createItem, forceAllow)
         items[partIndex] = item
     end
 
