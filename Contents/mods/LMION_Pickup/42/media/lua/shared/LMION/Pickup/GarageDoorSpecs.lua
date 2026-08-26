@@ -40,12 +40,33 @@ local families = {
                 },
             },
         },
+        rotationSlots = {
+            {
+                N = "industry_trucks_01_35",
+                W = "industry_trucks_01_32",
+            },
+            {
+                N = "industry_trucks_01_36",
+                W = "industry_trucks_01_33",
+            },
+            {
+                N = "industry_trucks_01_37",
+                W = "industry_trucks_01_34",
+            },
+        },
     },
 }
 
 local segmentsBySprite = {}
 
 for familyId, family in pairs(families) do
+    local rotationFacesBySprite = {}
+    for _, rotationFaces in ipairs(family.rotationSlots or {}) do
+        for _, spriteName in pairs(rotationFaces) do
+            rotationFacesBySprite[spriteName] = rotationFaces
+        end
+    end
+
     for partIndex, part in ipairs(family.parts) do
         for facing, spriteName in pairs(part.faces) do
             segmentsBySprite[spriteName] = {
@@ -54,6 +75,7 @@ for familyId, family in pairs(families) do
                 partIndex = partIndex,
                 itemType = part.itemType,
                 faces = part.faces,
+                rotationFaces = rotationFacesBySprite[spriteName] or part.faces,
                 facing = facing,
                 spriteName = spriteName,
             }
