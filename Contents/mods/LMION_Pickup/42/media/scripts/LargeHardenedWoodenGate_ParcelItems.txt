@@ -1,0 +1,38 @@
+module Base
+{
+    item LMION_LargeHardenedWoodenGateLeft_Part1
+    {
+        DisplayCategory = Furniture,
+        ItemType = base:moveable,
+        Icon = default,
+        Weight = 12.0,
+        Tags = base:usedisplayname,
+    }
+
+    item LMION_LargeHardenedWoodenGateLeft_Part2
+    {
+        DisplayCategory = Furniture,
+        ItemType = base:moveable,
+        Icon = default,
+        Weight = 12.0,
+        Tags = base:usedisplayname,
+    }
+
+    item LMION_LargeHardenedWoodenGateRight_Part1
+    {
+        DisplayCategory = Furniture,
+        ItemType = base:moveable,
+        Icon = default,
+        Weight = 12.0,
+        Tags = base:usedisplayname,
+    }
+
+    item LMION_LargeHardenedWoodenGateRight_Part2
+    {
+        DisplayCategory = Furniture,
+        ItemType = base:moveable,
+        Icon = default,
+        Weight = 12.0,
+        Tags = base:usedisplayname,
+    }
+}
