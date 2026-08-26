@@ -190,6 +190,25 @@ This intentionally separates **world removal/parcel creation** from the **multis
 
 The result is two parcels that vanilla can still group as one logical 2-tile Moveables object later.
 
+## Per-segment state preservation
+
+Runtime validation confirmed that the two physical members of each leaf preserve state independently rather than collapsing to a single shared condition value.
+
+The test deliberately damaged some portal segments while leaving others intact, then picked up both leaves and reinstalled them in the opposite N/W orientation. After replacement, every segment retained its exact pre-pickup current health and its own `lmionDoorMaxHealth`.
+
+This matters because one leaf is transported as two parcels and the replacement path places two exact physical members. State must therefore stay attached to the corresponding parcel/member instead of being averaged, normalized to a percentage, copied from Part1 to Part2, or recomputed from the player's current skill at placement time.
+
+Validated contract for the Chain-Link reference path:
+
+```text
+Part1 current health -> Part1 parcel -> restored Part1 current health
+Part2 current health -> Part2 parcel -> restored Part2 current health
+
+lmionDoorMaxHealth is preserved per physical member as well.
+```
+
+Rotation changes which sprite/index represents Part1/Part2 in world geometry, but it must not change the stored durability state associated with the logical parcel part.
+
 ## Failed approach: rely completely on vanilla multisprite placement
 
 After adding the runtime SpriteGrid, the first attempt let generic vanilla placement reconstruct the leaf.
@@ -311,7 +330,7 @@ Multi-square pickup can log:
 GameEntityFactory.TransferComponents> Cannot transfer components for multi-square objects.
 ```
 
-No concrete state-loss bug has been reproduced from this warning in the validated Chain-Link closed-leaf cycle. The two parcels are created and can be restored successfully.
+No concrete state-loss bug has been reproduced from this warning in the validated Chain-Link closed-leaf cycle. The two parcels are created and can be restored successfully, including independently damaged per-segment health/logical-max state.
 
 Do not add speculative compensation until a specific missing component/state is demonstrated.
 
@@ -326,6 +345,7 @@ Before generalizing another family, inspect at least:
 - Part1/Part2 spatial geometry;
 - whether open-state normalization behaves identically;
 - which SpriteGrid member(s) contain the complete visible artwork;
+- whether per-segment durability/state survives the family-specific pickup/replacement path unchanged;
 - whether the family has two-member leaves at all.
 
 In particular, **do not copy `visualPartIndex` blindly**. The left/right asymmetry on DoubleWireGate was discovered only by controlled rendering.
@@ -351,6 +371,8 @@ For the current Chain-Link implementation, addon authors should treat these as i
 
 - one LMION gate leaf is the transport unit;
 - one leaf currently requires two parcel items;
+- each parcel corresponds to one physical member and carries that member's durability state independently;
+- exact current health and `lmionDoorMaxHealth` must survive pickup/replacement, including rotation;
 - global Chain-Link closed sprites receive runtime `IsoSpriteGrid` attachments;
 - those grids are reinstalled after `OnLoadedTileDefinitions`;
 - final physical placement is LMION-controlled even though individual segment creation delegates to vanilla internals;
@@ -368,4 +390,5 @@ Recheck this research when:
 - vanilla Moveables changes its multisprite anchor or rendering logic;
 - LMION generalizes beyond DoubleWireGate;
 - open-state pickup becomes a supported reference path;
+- parcel state serialization/restoration changes;
 - a formal LMION large-opening registration API replaces hardcoded leaf specs.
