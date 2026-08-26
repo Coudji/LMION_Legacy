@@ -1,6 +1,6 @@
 # Garage-door topology
 
-Status: **Bytecode-verified B42.20.3; runtime-observed B42.20.4; Industrial placement runtime-validated**
+Status: **Bytecode-verified B42.20.3; runtime-observed B42.20.4; Industrial Pickup runtime-validated**
 
 This note records how Project Zomboid links and operates three-panel garage doors. Garage doors are a separate engine topology from `DoubleDoor` large gates and from ordinary paired 1x1 doors.
 
@@ -119,7 +119,15 @@ This exactly matches the bytecode linkage rule for W: `next` advances toward `y 
 
 This runtime evidence corrects an earlier LMION implementation mistake where W sprite identities were assigned as `_34=1`, `_33=2`, `_32=3`. That mistake caused Pickup parcels to swap Part 1 and Part 3 and caused replacement to create valid sprites with the wrong `GarageDoor` indices.
 
-The corrected implementation has now been runtime-validated for Industrial garage replacement, including west-facing placement after pickup and rotated placement. The placed sprites match their engine `GarageDoor` identities instead of only matching the visual footprint.
+The corrected Industrial implementation is runtime-validated end to end:
+
+- pickup from either N or W orientation;
+- exactly three parcels `(1/3)`, `(2/3)`, `(3/3)`;
+- replacement in N and W;
+- rotation before placement;
+- restored vanilla synchronized opening/closing;
+- pickup again after replacement;
+- exact per-segment current-health and `lmionDoorMaxHealth` preservation, including unequal damage.
 
 ## Current LMION SpriteConfig evidence
 
@@ -174,38 +182,37 @@ W SpriteGrid local +Y order:
 
 This is the same direction used by vanilla `getGarageDoorNext()`.
 
-LMION should resolve an arbitrary selected garage member back to logical member `1`, then enumerate the three members through vanilla garage topology rather than infer membership from family sprite names alone.
+LMION resolves an arbitrary selected garage member back to logical member `1`, then enumerates the three members through vanilla garage topology rather than infer membership from family sprite names alone.
 
-## Proposed transport identity
+## Transport identity
 
-The catalog already models garage transport as three 20 kg packages. The engine topology gives a natural interpretation:
+The catalog models garage transport as three 20 kg packages, which matches the engine topology naturally:
 
 ```text
 one garage = three physical IsoDoor segments = three parcels = one placement action
 ```
 
-This transport identity is now runtime-validated for the Industrial reference family through pickup and replacement. Full behavioral validation still includes synchronized opening/closing and per-segment durability preservation.
+This transport identity is runtime-validated for the Industrial reference family.
 
-Each parcel should preserve the exact current health and `lmionDoorMaxHealth` of its corresponding physical segment. Placement should reconstruct all three closed `IsoDoor` members with the correct orientation and closed sprites. If geometry and `GarageDoor` properties are correct, vanilla previous/next discovery should immediately restore synchronized opening/closing without LMION storing custom links.
+Each parcel preserves the exact current health and `lmionDoorMaxHealth` of its corresponding physical segment. Placement reconstructs all three closed `IsoDoor` members with the correct orientation and engine-index sprite. Vanilla previous/next discovery then restores synchronized opening/closing without LMION storing custom links.
 
-## Initial implementation scope
+## Industrial reference validation
 
-Use `IndustrialGarageDoor` as the reference family first.
+The reference family now passes the complete closed-state validation set:
 
-The first runtime validation should cover:
-
-1. target logical member 1, 2 and 3 independently;
+1. target logical member 1, 2 or 3;
 2. obtain exactly three `(1/3)`, `(2/3)`, `(3/3)` parcels;
-3. remove exactly the selected garage and no adjacent unrelated opening;
+3. remove exactly the selected garage;
 4. require all three parcels for replacement;
-5. place correctly in N and W — **validated**;
-6. rotate before placement — **validated**;
+5. place correctly in N and W;
+6. rotate before placement;
 7. open any restored panel and confirm all three synchronize through vanilla;
-8. preserve exact per-segment current health and logical max, including unequal damage.
+8. preserve exact per-segment current health and logical max, including unequal damage;
+9. pick up the restored garage again successfully.
 
-Open-state Pickup is not part of the initial reference path unless runtime testing shows it comes for free without ambiguity.
+Open-state Pickup is not part of the reference path.
 
-Only after the Industrial family passes should the remaining garage families be generalized as data.
+The Industrial family is therefore the approved reference for generalizing the remaining garage families as data.
 
 ## Revalidation trigger
 
