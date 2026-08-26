@@ -56,5 +56,9 @@
   "Base.LMION_DoubleWireGateLeft_Part1": "Large Chain-Link Gate - Left Leaf (1/2)",
   "Base.LMION_DoubleWireGateLeft_Part2": "Large Chain-Link Gate - Left Leaf (2/2)",
   "Base.LMION_DoubleWireGateRight_Part1": "Large Chain-Link Gate - Right Leaf (1/2)",
-  "Base.LMION_DoubleWireGateRight_Part2": "Large Chain-Link Gate - Right Leaf (2/2)"
+  "Base.LMION_DoubleWireGateRight_Part2": "Large Chain-Link Gate - Right Leaf (2/2)",
+  "Base.LMION_DoubleFenceGateLeft_Part1": "Large Scrap Metal Gate - Left Leaf (1/2)",
+  "Base.LMION_DoubleFenceGateLeft_Part2": "Large Scrap Metal Gate - Left Leaf (2/2)",
+  "Base.LMION_DoubleFenceGateRight_Part1": "Large Scrap Metal Gate - Right Leaf (1/2)",
+  "Base.LMION_DoubleFenceGateRight_Part2": "Large Scrap Metal Gate - Right Leaf (2/2)"
 }
