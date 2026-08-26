@@ -2,6 +2,7 @@ require "BuildingObjects/ISMoveableCursor"
 require "LMION/Pickup/GarageDoorPickup"
 
 local Pickup = LMION.Pickup
+local GarageDoor = Pickup.GarageDoor
 
 local function isGarageMoveProps(moveProps)
     return moveProps ~= nil and moveProps.lmionGarageFamily ~= nil
@@ -22,14 +23,34 @@ local function clearLegacyOutline(cursor)
     cursor.lmionGarageOutlinedObjects = nil
 end
 
+local function renderFloorFootprint(members)
+    for _, member in ipairs(members) do
+        local square = member.square
+        local floor = square and square:getFloor() or nil
+        local floorSprite = floor and floor:getSprite() or nil
+
+        if floorSprite ~= nil then
+            floorSprite:RenderGhostTileColor(
+                square:getX(),
+                square:getY(),
+                square:getZ(),
+                0.75,
+                1,
+                0.75,
+                0.25
+            )
+        end
+    end
+end
+
 if Pickup._garageDoorOriginalRenderSpriteGrid == nil then
     Pickup._garageDoorOriginalRenderSpriteGrid = ISMoveableCursor.renderSpriteGrid
 end
 
 --[[
-Pickup mode is intentionally visually neutral. The garage runtime SpriteGrid is
-needed for placement and rotation, but vanilla's multi-sprite ghost rendering
-must not redraw an existing garage while the player is merely selecting it.
+Pickup keeps the existing garage sprites untouched. Only the three floor squares
+belonging to the resolved engine members are tinted, matching the usual Moveables
+"this footprint will be taken" feedback without ghost-rendering the door itself.
 ]]
 ISMoveableCursor.renderSpriteGrid = function(self, x, y, z, color)
     clearLegacyOutline(self)
@@ -38,6 +59,13 @@ ISMoveableCursor.renderSpriteGrid = function(self, x, y, z, color)
     if mode == "pickup"
         and isGarageMoveProps(self.origMoveProps)
         and isGarageMoveProps(self.currentMoveProps) then
+        local square = self.currentSquare or getCell():getGridSquare(x, y, z)
+        local selected = square and self.currentMoveProps:findOnSquare(square, self.currentMoveProps.spriteName) or nil
+        local members = selected and GarageDoor.getMembers(selected, self.currentMoveProps.lmionGarageFamily) or nil
+
+        if members ~= nil then
+            renderFloorFootprint(members)
+        end
         return
     end
 
@@ -53,4 +81,4 @@ if Pickup._garageDoorOriginalCursorClearCache ~= nil then
     ISMoveableCursor.clearCache = Pickup._garageDoorOriginalCursorClearCache
 end
 
-return Pickup.GarageDoor
+return GarageDoor
