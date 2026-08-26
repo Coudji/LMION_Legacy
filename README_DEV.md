@@ -1,6 +1,6 @@
 # Let Me In... Or Not — Development & handoff
 
-Last updated: 2026-08-25
+Last updated: 2026-08-26
 
 This is the **single authoritative development/handoff document** for LMION. It is intentionally responsible for the information that must survive between development sessions: project structure, current validated state, design guardrails, workflow rules and the next intended milestones.
 
@@ -161,7 +161,8 @@ Validated closed-leaf behavior:
 - both physical `IsoDoor` members are rebuilt in one placement action;
 - left and right leaves place correctly in original orientation and after N/W rotation;
 - restored leaves resume vanilla synchronized opening;
-- pickup/placement preview is clean in both orientations for both leaves.
+- pickup/placement preview is clean in both orientations for both leaves;
+- each physical segment preserves its **exact current health and `lmionDoorMaxHealth` independently** through pickup and replacement, including when different segments are damaged by different amounts and the leaf is reinstalled in the other orientation.
 
 Design identity:
 
@@ -303,9 +304,8 @@ A new save did not reproduce the warning, including after interacting with natur
 
 ## Next intended milestones
 
-1. Confirm per-segment health / `lmionDoorMaxHealth` preservation through the validated Chain-Link leaf pickup cycle.
-2. Generalize the proven leaf transport architecture to the other five large-gate families, validating each family's index geometry and sprite authoring independently.
-3. Research/implement garage-door transport as its own multi-tile system.
-4. Build a real `LMION_Repair` gameplay module after transport/material/craft rules are stable enough. Core should keep only the low-level logical-health primitives.
+1. Generalize the proven leaf transport architecture to the other five large-gate families, validating each family's index geometry, sprite authoring and per-segment state preservation independently.
+2. Research/implement garage-door transport as its own multi-tile system.
+3. Build a real `LMION_Repair` gameplay module after transport/material/craft rules are stable enough. Core should keep only the low-level logical-health primitives.
 
 Potential locksmith/access-control systems remain future scope and must not distort the current transport architecture prematurely.
