@@ -15,7 +15,7 @@ local families = {
         id = "IndustrialGarageDoor",
         pickUpTool = "LMIONMetalCrowbar",
         placeTool = "LMIONMetalHammer",
-        pickUpLevel = 0,
+        pickUpLevel = 3,
         partWeight = 20,
         parts = {
             {
