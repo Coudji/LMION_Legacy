@@ -4,11 +4,6 @@ require "LMION/Pickup/LargeGateMoveables"
 local Pickup = LMION.Pickup
 local leafSpecs = Pickup.LargeGateLeafSpecs or {}
 
-local renderAllPartsByLeaf = {
-    largeFarmLeft = true,
-    largeFarmRight = true,
-}
-
 local function isLargeGateMoveProps(moveProps)
     return moveProps ~= nil
         and moveProps.lmionLargeGateLeaf ~= nil
@@ -20,6 +15,10 @@ if Pickup._largeGateOriginalRenderSpriteGrid == nil then
     Pickup._largeGateOriginalRenderSpriteGrid = ISMoveableCursor.renderSpriteGrid
 end
 
+--[[
+Large-gate previews always keep the two-square footprint. Most families render
+one complete artwork member; the Farm Gate explicitly opts into both members.
+]]
 ISMoveableCursor.renderSpriteGrid = function(self, x, y, z, color)
     if not isLargeGateMoveProps(self.origMoveProps)
         or not isLargeGateMoveProps(self.currentMoveProps) then
@@ -57,7 +56,8 @@ ISMoveableCursor.renderSpriteGrid = function(self, x, y, z, color)
     end
 
     local leafId = self.currentMoveProps.lmionLargeGateLeaf
-    if renderAllPartsByLeaf[leafId] then
+    local leaf = leafSpecs[leafId]
+    if leaf ~= nil and leaf.previewAllParts then
         for gridX = 0, spriteGrid:getWidth() - 1 do
             for gridY = 0, spriteGrid:getHeight() - 1 do
                 local objectSprite = spriteGrid:getSprite(gridX, gridY)
@@ -79,7 +79,6 @@ ISMoveableCursor.renderSpriteGrid = function(self, x, y, z, color)
         return
     end
 
-    local leaf = leafSpecs[leafId]
     local facing = self.currentMoveProps.lmionDoorFacing
     local visualPartIndex = leaf and leaf.visualPartIndex or nil
     local fullSpriteName = leaf
