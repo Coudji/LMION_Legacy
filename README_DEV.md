@@ -277,7 +277,7 @@ French:       <base> - vantail gauche / vantail droit
 - Prefer Java/API/vanilla-source/runtime verification over guessed engine behavior.
 - Avoid speculative Java/reflection calls in production or Debug. Kahlua/Debug Mode may surface Java exceptions even inside `pcall`.
 - Runtime classification should prefer strong engine structure (`GameEntityScript`, SpriteConfig, DoubleDoor index, object type/properties) over sprite-name guessing when available.
-- Game-loaded LMION Lua/script files intentionally contain no `--` line comments. Rationale belongs in documentation.
+- Comments are allowed and encouraged when they clarify non-obvious behavior, but they must use the syntax of the file's parser: Lua long comments `--[[ ... ]]` in `.lua`; PZ script block comments `/* ... */` in `media/scripts`. Never use Lua comment syntax inside PZ script files. Keep deep rationale in `Research/` rather than duplicating it into source.
 - `media/scripts` changes require a full game/server restart.
 - New Lua files, load-order changes, mod metadata changes and stale monkey-patch closures may also require a full restart.
 - Lua-only edits to already-loaded files can often use the LMION Debug reload path, but active cursors/actions may hold stale state. Re-enter the mode first; if behavior still looks stale, cold restart before concluding the code path is wrong.
