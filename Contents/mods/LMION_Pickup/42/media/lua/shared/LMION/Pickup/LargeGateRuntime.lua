@@ -8,11 +8,6 @@ local gridFacingSpecs = LargeGate.GridFacingSpecs
 Pickup._largeGateOriginalSpriteGrids = Pickup._largeGateOriginalSpriteGrids or {}
 Pickup.LargeGateRuntimeSpriteGrids = {}
 
---[[
-Runtime SpriteGrids are Moveables metadata, not world-object state. They must be
-reinstalled after tile definitions load because Project Zomboid can rebuild the
-global IsoSprite objects after the initial Lua load.
-]]
 local function installRuntimeSpriteGrid(leafId, facing)
     local leaf = leafSpecs[leafId]
     local gridSpec = gridFacingSpecs[facing]
