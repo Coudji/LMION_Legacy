@@ -51,7 +51,7 @@ Comments should explain **why** something unusual exists, not narrate obvious as
 
 Family modules receive the shared registry writer rather than constructing competing registries. This keeps profile shape/semantics centralized while making the catalog-sized data set navigable.
 
-`PairedDoors.lua` groups synchronized 1x1 double-door leaves because their vanilla pairing is an important structural property. It does **not** mean Pickup should transport them as a pair. Each physical 1x1 leaf remains an independent gameplay/transport unit; future Pickup support should allow either leaf to be removed and replaced independently.
+`PairedDoors.lua` groups 1x1 leaves that visually/construction-wise form a double-door set. Their open state is **not synchronized** in vanilla gameplay: opening one leaf does not open the other. Each physical 1x1 leaf is therefore an independent gameplay/transport unit, and future Pickup support should allow either leaf to be removed and replaced independently.
 
 ## Core door-service boundaries
 
@@ -75,7 +75,7 @@ The normal 1x1 Moveables path is grouped under `LMION/Pickup/Doors/`:
 
 The compatibility entry point remains intentionally tiny so existing `require "LMION/Pickup/DoorMoveables"` callers do not need to know the internal layout.
 
-Future paired-door Pickup can live under a dedicated `LMION/Pickup/PairedDoors/` boundary if vanilla partner-link behavior requires specialized handling. That specialization must preserve independent per-leaf transport rather than forcing both leaves into one Pickup action.
+Future paired-door Pickup can live under a dedicated `LMION/Pickup/PairedDoors/` boundary if those entities require specialized handling. That specialization must preserve independent per-leaf transport; it must not introduce artificial open-state synchronization or force both leaves into one Pickup action.
 
 ## Pickup large-gate boundaries
 
