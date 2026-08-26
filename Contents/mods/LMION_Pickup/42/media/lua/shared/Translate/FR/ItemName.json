@@ -60,5 +60,21 @@
   "Base.LMION_DoubleFenceGateLeft_Part1": "Grand portail en ferraille - vantail gauche (1/2)",
   "Base.LMION_DoubleFenceGateLeft_Part2": "Grand portail en ferraille - vantail gauche (2/2)",
   "Base.LMION_DoubleFenceGateRight_Part1": "Grand portail en ferraille - vantail droit (1/2)",
-  "Base.LMION_DoubleFenceGateRight_Part2": "Grand portail en ferraille - vantail droit (2/2)"
+  "Base.LMION_DoubleFenceGateRight_Part2": "Grand portail en ferraille - vantail droit (2/2)",
+  "Base.LMION_DoubleDoorLeft_Part1": "Grand portail en bois - vantail gauche (1/2)",
+  "Base.LMION_DoubleDoorLeft_Part2": "Grand portail en bois - vantail gauche (2/2)",
+  "Base.LMION_DoubleDoorRight_Part1": "Grand portail en bois - vantail droit (1/2)",
+  "Base.LMION_DoubleDoorRight_Part2": "Grand portail en bois - vantail droit (2/2)",
+  "Base.LMION_LargeFarmGateLeft_Part1": "Grand portail de ferme - vantail gauche (1/2)",
+  "Base.LMION_LargeFarmGateLeft_Part2": "Grand portail de ferme - vantail gauche (2/2)",
+  "Base.LMION_LargeFarmGateRight_Part1": "Grand portail de ferme - vantail droit (1/2)",
+  "Base.LMION_LargeFarmGateRight_Part2": "Grand portail de ferme - vantail droit (2/2)",
+  "Base.LMION_LargeHardenedWoodenGateLeft_Part1": "Grand portail en bois durci - vantail gauche (1/2)",
+  "Base.LMION_LargeHardenedWoodenGateLeft_Part2": "Grand portail en bois durci - vantail gauche (2/2)",
+  "Base.LMION_LargeHardenedWoodenGateRight_Part1": "Grand portail en bois durci - vantail droit (1/2)",
+  "Base.LMION_LargeHardenedWoodenGateRight_Part2": "Grand portail en bois durci - vantail droit (2/2)",
+  "Base.LMION_LargeWroughtIronGateLeft_Part1": "Grand portail en fer forgé - vantail gauche (1/2)",
+  "Base.LMION_LargeWroughtIronGateLeft_Part2": "Grand portail en fer forgé - vantail gauche (2/2)",
+  "Base.LMION_LargeWroughtIronGateRight_Part1": "Grand portail en fer forgé - vantail droit (1/2)",
+  "Base.LMION_LargeWroughtIronGateRight_Part2": "Grand portail en fer forgé - vantail droit (2/2)"
 }
