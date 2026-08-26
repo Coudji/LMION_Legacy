@@ -56,5 +56,9 @@
   "Base.LMION_DoubleWireGateLeft_Part1": "Grand portail grillagé - vantail gauche (1/2)",
   "Base.LMION_DoubleWireGateLeft_Part2": "Grand portail grillagé - vantail gauche (2/2)",
   "Base.LMION_DoubleWireGateRight_Part1": "Grand portail grillagé - vantail droit (1/2)",
-  "Base.LMION_DoubleWireGateRight_Part2": "Grand portail grillagé - vantail droit (2/2)"
+  "Base.LMION_DoubleWireGateRight_Part2": "Grand portail grillagé - vantail droit (2/2)",
+  "Base.LMION_DoubleFenceGateLeft_Part1": "Grand portail en ferraille - vantail gauche (1/2)",
+  "Base.LMION_DoubleFenceGateLeft_Part2": "Grand portail en ferraille - vantail gauche (2/2)",
+  "Base.LMION_DoubleFenceGateRight_Part1": "Grand portail en ferraille - vantail droit (1/2)",
+  "Base.LMION_DoubleFenceGateRight_Part2": "Grand portail en ferraille - vantail droit (2/2)"
 }
