@@ -4,10 +4,6 @@ local Pickup = LMION.Pickup
 local LargeGate = Pickup.LargeGate or {}
 Pickup.LargeGate = LargeGate
 
---[[
-Large-gate transport data lives here so sprite/index topology stays separate from
-Moveables hooks, runtime SpriteGrid lifecycle and placement code.
-]]
 local leaves = {
     doubleWireLeft = {
         visualPartIndex = 1,
@@ -131,7 +127,6 @@ LargeGate.GridFacingSpecs = {
     W = {width = 1, height = 2, partOrder = {1, 2}},
 }
 
---[[ Keep the established public alias used by placement, cursor and debug code. ]]
 Pickup.LargeGateLeafSpecs = leaves
 
 return LargeGate
