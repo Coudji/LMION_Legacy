@@ -36,6 +36,16 @@ Do not use Lua `--` / `--[[ ... ]]` syntax in `media/scripts`. B42.20.3 `ScriptP
 
 Comments should explain **why** something unusual exists, not narrate obvious assignments line by line. Deep engine archaeology still belongs in `Research/` rather than being duplicated into source files.
 
+## Pickup 1x1 door boundaries
+
+The normal 1x1 Moveables path is grouped under `LMION/Pickup/Doors/`:
+
+- `Doors/Registry.lua` — resolves GameEntity/SpriteConfig ownership into Pickup profiles, derives N/W Moveables faces and marks known sprites moveable at the tile-definition lifecycle point;
+- `Doors/Hooks.lua` — owns the actual `ISMoveableSpriteProps` hooks, including face handling, health serialization, placement validation and state restoration;
+- `DoorMoveables.lua` — compatibility/bootstrap entry point that loads the focused modules above.
+
+The compatibility entry point remains intentionally tiny so existing `require "LMION/Pickup/DoorMoveables"` callers do not need to know the internal layout.
+
 ## Pickup large-gate boundaries
 
 The large-gate implementation is intentionally split by responsibility:
@@ -63,11 +73,9 @@ Profile derivation and SpriteConfig rewriting stay separate because they deliber
 
 ## Files deliberately not split yet
 
-`DoorMoveables.lua` is a reasonable next candidate because it currently contains sprite/profile discovery, Moveables decoration, durability serialization and placement restoration. Split it only if the resulting files have clear ownership and the monkey-patch order remains obvious.
+`Doors.lua` is still a good candidate for a future split, but it is lower-risk to do that after the current structural pass is regression-tested. The natural boundaries are profile/sprite lookup, engine-property application, durability/world adoption, placement validation and construction normalization.
 
-`Doors.lua` is also sizeable, but much of it forms one coherent low-level door service. Possible future boundaries are engine-property application, durability/world adoption and construction normalization. Do not split it solely on line count.
-
-`DoorProfiles.lua` is mostly declarative data; its size alone is not a refactoring problem.
+`DoorProfiles.lua` is mostly declarative data. It can be grouped by catalog-style families later if navigation becomes painful, but family files should all feed one shared profile registry rather than duplicating profile-construction logic.
 
 The Debug module is already divided into focused `Inspect`, `TestZone`, `UI`, `Util` and `World` areas and is not a priority for further fragmentation.
 
