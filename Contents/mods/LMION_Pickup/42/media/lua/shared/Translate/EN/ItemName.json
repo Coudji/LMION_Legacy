@@ -60,5 +60,21 @@
   "Base.LMION_DoubleFenceGateLeft_Part1": "Large Scrap Metal Gate - Left Leaf (1/2)",
   "Base.LMION_DoubleFenceGateLeft_Part2": "Large Scrap Metal Gate - Left Leaf (2/2)",
   "Base.LMION_DoubleFenceGateRight_Part1": "Large Scrap Metal Gate - Right Leaf (1/2)",
-  "Base.LMION_DoubleFenceGateRight_Part2": "Large Scrap Metal Gate - Right Leaf (2/2)"
+  "Base.LMION_DoubleFenceGateRight_Part2": "Large Scrap Metal Gate - Right Leaf (2/2)",
+  "Base.LMION_DoubleDoorLeft_Part1": "Large Wooden Gate - Left Leaf (1/2)",
+  "Base.LMION_DoubleDoorLeft_Part2": "Large Wooden Gate - Left Leaf (2/2)",
+  "Base.LMION_DoubleDoorRight_Part1": "Large Wooden Gate - Right Leaf (1/2)",
+  "Base.LMION_DoubleDoorRight_Part2": "Large Wooden Gate - Right Leaf (2/2)",
+  "Base.LMION_LargeFarmGateLeft_Part1": "Large Farm Gate - Left Leaf (1/2)",
+  "Base.LMION_LargeFarmGateLeft_Part2": "Large Farm Gate - Left Leaf (2/2)",
+  "Base.LMION_LargeFarmGateRight_Part1": "Large Farm Gate - Right Leaf (1/2)",
+  "Base.LMION_LargeFarmGateRight_Part2": "Large Farm Gate - Right Leaf (2/2)",
+  "Base.LMION_LargeHardenedWoodenGateLeft_Part1": "Large Hardened Wooden Gate - Left Leaf (1/2)",
+  "Base.LMION_LargeHardenedWoodenGateLeft_Part2": "Large Hardened Wooden Gate - Left Leaf (2/2)",
+  "Base.LMION_LargeHardenedWoodenGateRight_Part1": "Large Hardened Wooden Gate - Right Leaf (1/2)",
+  "Base.LMION_LargeHardenedWoodenGateRight_Part2": "Large Hardened Wooden Gate - Right Leaf (2/2)",
+  "Base.LMION_LargeWroughtIronGateLeft_Part1": "Large Wrought Iron Gate - Left Leaf (1/2)",
+  "Base.LMION_LargeWroughtIronGateLeft_Part2": "Large Wrought Iron Gate - Left Leaf (2/2)",
+  "Base.LMION_LargeWroughtIronGateRight_Part1": "Large Wrought Iron Gate - Right Leaf (1/2)",
+  "Base.LMION_LargeWroughtIronGateRight_Part2": "Large Wrought Iron Gate - Right Leaf (2/2)"
 }
