@@ -1,0 +1,11 @@
+return function(add)
+    add("SmallWhiteWoodenGate", "Small White Wooden Gate", "wood", 425, "Woodwork", 225, 175, "Wood", "Nails", nil, "Wood", "WoodGateSmall", "ZombieThumpWood", "none")
+    add("WoodFenceGate", "Wooden Gate", "wood", 500, "Woodwork", 300, 225, "Wood", "Nails", nil, "Wood_Solid", "WoodGate", "ZombieThumpWood", "none")
+    add("HardenedWoodenGate", "Hardened Wooden Gate", "wood", 600, "Woodwork", 400, 275, "Wood", "Nails", "Screws", "Wood_Solid", "WoodGate", "ZombieThumpWood", "none")
+    add("MetalWireFenceGateSmall", "Small Chain-Link Gate", "metal", 450, "MetalWelding", 250, 175, "MetalPipe", "MetalWire", nil, "Metal_Light", "MetalGate", "ZombieThumpChainlinkFence", "none")
+    add("MetalWireFenceGate", "Chain-Link Gate", "metal", 600, "MetalWelding", 300, 225, "MetalPipe", "MetalWire", nil, "Metal_Light", "MetalGate", "ZombieThumpChainlinkFence", "none")
+    add("MetalPoleFenceGateSmall", "Small Scrap Metal Gate", "metal", 450, "MetalWelding", 250, 175, "MetalPipe", "MetalScrap", nil, "Metal_Light", "MetalPoleGateSmall", "ZombieThumpMetalPoleGate", "none")
+    add("MetalPoleFenceGate", "Scrap Metal Gate", "metal", 600, "MetalWelding", 300, 225, "MetalPipe", "MetalScrap", nil, "Metal_Light", "MetalPoleGate", "ZombieThumpMetalPoleGate", "none")
+    add("SmallWroughtIronGate", "Small Wrought Iron Gate", "metal", 650, "MetalWelding", 325, 250, "MetalBars", "MetalPipe", nil, "Metal_Solid", "MetalPoleGateSmall", "ZombieThumpMetalPoleGate", "none")
+    add("WroughtIronGate", "Wrought Iron Gate", "metal", 850, "MetalWelding", 400, 300, "MetalBars", "MetalPipe", nil, "Metal_Solid", "MetalPoleGate", "ZombieThumpMetalPoleGate", "none")
+end
