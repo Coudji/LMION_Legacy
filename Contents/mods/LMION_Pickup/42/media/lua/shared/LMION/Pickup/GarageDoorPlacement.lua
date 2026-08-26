@@ -48,56 +48,48 @@ local function getCurrentFacing(moveProps)
 end
 
 --[[
-The cursor square belongs to the current Moveables grid member, not necessarily
-GarageDoor member 1. Convert that selected member back to the engine anchor.
+The square passed by Moveables corresponds to `self.sprite` inside the current
+SpriteGrid. Derive the grid's local 0,0 square first, exactly like vanilla does,
+then map visual grid slots back to GarageDoor member identities.
 
-B42.20.3 garage topology:
-N: member 1 -> 2 -> 3 advances along +X.
-W: member 1 -> 2 -> 3 advances along -Y.
-
-The Industrial W artwork is therefore laid out in world +Y order as sprites
-32, 33, 34 while their engine identities are members 3, 2, 1 respectively.
+This avoids using lmionGaragePart as a spatial offset. That value is engine
+identity and is deliberately reversed relative to visual grid order in W.
 ]]
 local function getPlacementSquares(moveProps, square)
     if not isGarageMoveProps(moveProps) or square == nil then
         return nil
     end
 
+    local family = GarageDoor.Families[moveProps.lmionGarageFamily]
     local facing = getCurrentFacing(moveProps)
-    local partIndex = tonumber(moveProps.lmionGaragePart)
-    if facing == nil or partIndex == nil or partIndex < 1 or partIndex > 3 then
+    local sprite = moveProps.sprite
+    local grid = sprite and sprite:getSpriteGrid() or nil
+    local order = family and family.gridPartOrder and family.gridPartOrder[facing] or nil
+
+    if family == nil or facing == nil or grid == nil or order == nil then
         return nil
     end
 
-    local firstX = square:getX()
-    local firstY = square:getY()
+    local gridX = grid:getSpriteGridPosX(sprite)
+    local gridY = grid:getSpriteGridPosY(sprite)
+    if gridX == nil or gridY == nil or gridX < 0 or gridY < 0 then
+        return nil
+    end
+
+    local originX = square:getX() - gridX
+    local originY = square:getY() - gridY
     local z = square:getZ()
-
-    if facing == "N" then
-        firstX = firstX - (partIndex - 1)
-    elseif facing == "W" then
-        firstY = firstY + (partIndex - 1)
-    else
-        return nil
-    end
-
     local squares = {}
-    for expectedIndex = 1, 3 do
-        local x = firstX
-        local y = firstY
 
-        if facing == "N" then
-            x = x + (expectedIndex - 1)
-        else
-            y = y - (expectedIndex - 1)
-        end
-
+    for slot, partIndex in ipairs(order) do
+        local x = originX + (facing == "N" and slot - 1 or 0)
+        local y = originY + (facing == "W" and slot - 1 or 0)
         local targetSquare = getCell():getGridSquare(x, y, z)
         if targetSquare == nil then
             return nil
         end
 
-        squares[expectedIndex] = targetSquare
+        squares[partIndex] = targetSquare
     end
 
     return squares
