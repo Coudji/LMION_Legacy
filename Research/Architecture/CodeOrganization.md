@@ -10,15 +10,31 @@ A file should be split when it owns several independently understandable respons
 
 Existing public/runtime behavior should be preserved during structural refactors. Refactoring is not an opportunity to silently remove extension points, alter lifecycle timing or change validated gameplay behavior.
 
-## Lua comments
+## Parser-safe comments
 
-Game-loaded Lua may contain comments when they materially improve comprehension, but LMION uses only Lua block comments:
+Comments are encouraged when they explain a non-obvious invariant, lifecycle constraint, engine workaround or ownership boundary. The important rule is to use the comment syntax of the parser that actually owns the file.
+
+For game-loaded **Lua**, use Lua long comments when a comment is useful:
 
 ```lua
---[[ explanatory text ]]
+--[[
+explanatory text
+]]
 ```
 
-Do not use single-line `-- comment` syntax in game-loaded files.
+Avoid ordinary one-line `-- comment` comments in LMION game-loaded Lua so comments remain visually distinct and multi-line-safe. B42.20.3's bundled Lua lexer explicitly recognizes `--[[ ... ]]` as a long comment.
+
+For Project Zomboid **script files** under `media/scripts`, use the scripting parser's block-comment form:
+
+```text
+/*
+explanatory text
+*/
+```
+
+Do not use Lua `--` / `--[[ ... ]]` syntax in `media/scripts`. B42.20.3 `ScriptParser.stripComments()` explicitly strips `/* ... */`; using a comment syntax that the scripting parser does not own can alter how the following script text is interpreted without producing an obvious error. `/** ... */` is also matched because it begins with `/*`, but LMION uses the simpler canonical `/* ... */` form.
+
+Comments should explain **why** something unusual exists, not narrate obvious assignments line by line. Deep engine archaeology still belongs in `Research/` rather than being duplicated into source files.
 
 ## Pickup large-gate boundaries
 
