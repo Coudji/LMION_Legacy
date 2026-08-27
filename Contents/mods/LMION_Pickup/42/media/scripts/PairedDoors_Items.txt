@@ -1,0 +1,92 @@
+module Base
+{
+    item LMION_BlackTwoPaneDoubleDoorLeft
+    {
+        DisplayCategory = Furniture,
+        ItemType = base:moveable,
+        Icon = default,
+        Weight = 21.0,
+        Tags = base:usedisplayname,
+    }
+
+    item LMION_BlackTwoPaneDoubleDoorRight
+    {
+        DisplayCategory = Furniture,
+        ItemType = base:moveable,
+        Icon = default,
+        Weight = 21.0,
+        Tags = base:usedisplayname,
+    }
+
+    item LMION_GreyMetalDoubleDoorLeft
+    {
+        DisplayCategory = Furniture,
+        ItemType = base:moveable,
+        Icon = default,
+        Weight = 24.0,
+        Tags = base:usedisplayname,
+    }
+
+    item LMION_GreyMetalDoubleDoorRight
+    {
+        DisplayCategory = Furniture,
+        ItemType = base:moveable,
+        Icon = default,
+        Weight = 24.0,
+        Tags = base:usedisplayname,
+    }
+
+    item LMION_YellowServiceDoubleDoorLeft
+    {
+        DisplayCategory = Furniture,
+        ItemType = base:moveable,
+        Icon = default,
+        Weight = 17.0,
+        Tags = base:usedisplayname,
+    }
+
+    item LMION_YellowServiceDoubleDoorRight
+    {
+        DisplayCategory = Furniture,
+        ItemType = base:moveable,
+        Icon = default,
+        Weight = 17.0,
+        Tags = base:usedisplayname,
+    }
+
+    item LMION_BlueChurchDoubleDoorLeft
+    {
+        DisplayCategory = Furniture,
+        ItemType = base:moveable,
+        Icon = default,
+        Weight = 17.0,
+        Tags = base:usedisplayname,
+    }
+
+    item LMION_BlueChurchDoubleDoorRight
+    {
+        DisplayCategory = Furniture,
+        ItemType = base:moveable,
+        Icon = default,
+        Weight = 17.0,
+        Tags = base:usedisplayname,
+    }
+
+    item LMION_BrownChurchDoubleDoorLeft
+    {
+        DisplayCategory = Furniture,
+        ItemType = base:moveable,
+        Icon = default,
+        Weight = 17.0,
+        Tags = base:usedisplayname,
+    }
+
+    item LMION_BrownChurchDoubleDoorRight
+    {
+        DisplayCategory = Furniture,
+        ItemType = base:moveable,
+        Icon = default,
+        Weight = 17.0,
+        Tags = base:usedisplayname,
+    }
+}

@@ -76,6 +76,19 @@ add("LogDoor", nil, 0, 25)
 add("JailDoor", "Metal", 5, 30)
 add("SecurityDoor", "Metal", 5, 35)
 
+-- Paired double doors are independent 1x1 leaves. Pickup treats each leaf exactly
+-- like its closest regular-door counterpart; a normal door frame is still required.
+add("BlackTwoPaneDoubleDoorLeft", "Metal", 2, 21)
+add("BlackTwoPaneDoubleDoorRight", "Metal", 2, 21)
+add("GreyMetalDoubleDoorLeft", "Metal", 2, 24)
+add("GreyMetalDoubleDoorRight", "Metal", 2, 24)
+add("YellowServiceDoubleDoorLeft", "Metal", 1, 17)
+add("YellowServiceDoubleDoorRight", "Metal", 1, 17)
+add("BlueChurchDoubleDoorLeft", "Screwdriver", 3, 17)
+add("BlueChurchDoubleDoorRight", "Screwdriver", 3, 17)
+add("BrownChurchDoubleDoorLeft", "Screwdriver", 3, 17)
+add("BrownChurchDoubleDoorRight", "Screwdriver", 3, 17)
+
 addGate("SmallWhiteWoodenGate", "Crowbar", "Hammer", 1, 7)
 addGate("WoodFenceGate", "Crowbar", "Hammer", 1, 14)
 addGate("HardenedWoodenGate", "Crowbar", "Hammer", 2, 18)

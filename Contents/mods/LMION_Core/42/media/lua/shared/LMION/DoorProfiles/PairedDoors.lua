@@ -3,7 +3,8 @@ return function(add)
     These entities are grouped as paired doors because they form visual/construction
     double-door sets, not because their open state is synchronized. Each physical
     1x1 leaf is independent in vanilla gameplay: opening one does not open the other.
-    Future Pickup support should therefore transport and replace each leaf separately.
+    Pickup therefore transports and replaces each leaf separately through the normal
+    framed 1x1 door path.
     ]]
     add("BlackTwoPaneDoubleDoorLeft", "Black Two-Pane Double Door", "metal_glazed", 650, "MetalWelding", 350, 225, "MetalPlates", "MetalBars", nil, "Metal_Solid", "MetalDoor", "ZombieThumpWindow", "paired")
     add("BlackTwoPaneDoubleDoorRight", "Black Two-Pane Double Door", "metal_glazed", 650, "MetalWelding", 350, 225, "MetalPlates", "MetalBars", nil, "Metal_Solid", "MetalDoor", "ZombieThumpWindow", "paired")

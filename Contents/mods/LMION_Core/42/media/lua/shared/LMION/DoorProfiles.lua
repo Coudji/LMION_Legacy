@@ -6,7 +6,7 @@ local function add(id, name, durabilityClass, worldMaxHealth, skill, health, ski
         fallbackName = name,
         class = durabilityClass,
         frame = frame,
-        requiresFrame = frame == "standard",
+        requiresFrame = frame == "standard" or frame == "paired",
         durability = {
             worldMaxHealth = worldMaxHealth,
             health = health,
