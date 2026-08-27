@@ -20,13 +20,13 @@ local function getProfile(self)
     return gameScript and LMION.Doors.getProfile(gameScript:getName()) or nil
 end
 
-local function isPairedFrameValid(self, square)
+local function isLmionFrameValid(self, square)
     if not isLmionBuild(self) then
         return true
     end
 
     local profile = getProfile(self)
-    if profile == nil or profile.pairedFrameSide == nil then
+    if profile == nil or profile.requiresFrame ~= true then
         return true
     end
 
@@ -66,16 +66,15 @@ if Build._originalIsValid == nil then
     Build._originalIsValid = ISBuildIsoEntity.isValid
 end
 
--- Paired LMION doors use the same strict structural frame rule as Pickup:
--- Left -> DoubleDoor1, Right -> DoubleDoor2. Vanilla's original build validity
--- still runs first so materials, collision, safehouse and all other rules remain
--- authoritative. This hook only tightens LMION paired-frame compatibility.
+-- LMION framed doors use a stricter frame-class rule than vanilla:
+-- standard doors reject DoubleDoor1/2 frames, paired Left requires DoubleDoor1,
+-- paired Right requires DoubleDoor2. Vanilla validity still runs first.
 ISBuildIsoEntity.isValid = function(self, square)
     if not Build._originalIsValid(self, square) then
         return false
     end
 
-    return isPairedFrameValid(self, square)
+    return isLmionFrameValid(self, square)
 end
 
 if Build._originalIsValidPerSquare == nil then
@@ -84,13 +83,13 @@ end
 
 -- Vanilla colors the floor cursor through isValidPerSquare(), independently of
 -- the final isValid() result used for the object ghost / actual construction.
--- Mirror the paired-frame rule here so a wrong DoubleDoor side is visibly red.
+-- Mirror the same frame-class rule here so invalid frames are visibly red.
 ISBuildIsoEntity.isValidPerSquare = function(self, square, tileInfo, requiresFloor, extendsN, extendsW)
     if not Build._originalIsValidPerSquare(self, square, tileInfo, requiresFloor, extendsN, extendsW) then
         return false
     end
 
-    return isPairedFrameValid(self, square)
+    return isLmionFrameValid(self, square)
 end
 
 if Build._originalSetInfo == nil then
