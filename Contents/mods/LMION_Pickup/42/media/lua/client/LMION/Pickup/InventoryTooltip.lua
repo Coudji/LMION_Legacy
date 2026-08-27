@@ -20,135 +20,104 @@ local function getStoredDoorHealth(item)
     return current, maximum
 end
 
-local function appendDoorHealth(tooltip, item)
-    local current, maximum = getStoredDoorHealth(item)
-    if current == nil or maximum == nil then
-        return
-    end
-
-    local text = getText("UI_LMION_HitPoints")
-        .. " : " .. tostring(current)
-        .. " / " .. tostring(maximum)
-
-    local y = tooltip:getHeight() - tooltip.padBottom
-    tooltip:DrawText(
-        tooltip:getFont(),
-        text,
-        tooltip.padLeft,
-        y,
-        1,
-        1,
-        0.8,
-        1
-    )
-    tooltip:adjustWidth(tooltip.padLeft, text)
-    tooltip:setHeight(tooltip:getHeight() + tooltip:getLineSpacing())
-end
-
 --[[
-InventoryItem:DoTooltip() is Java-owned in B42, so LMION extends the client
-inventory tooltip at the surrounding ISToolTipInv render layer. Keep the vanilla
-render flow intact and append one line after both the measurement and draw passes.
-This makes the panel size include the extra line without changing item scripts or
-reimplementing any of vanilla's per-item tooltip content.
+InventoryItem:DoTooltip() is Java-owned in B42. Do not try to draw directly on
+ObjectTooltip: some of its padding members are Java-side accessors rather than
+plain Lua numbers in B42.20.4.
+
+Instead, keep vanilla's ISToolTipInv rendering completely intact, then extend the
+already-rendered inventory panel by one small line. This is the same stable UI
+pattern used by VHSInsight: vanilla owns the original tooltip, LMION only owns
+its appended block.
 ]]
 if Pickup._originalInventoryTooltipRender == nil then
     Pickup._originalInventoryTooltipRender = ISToolTipInv.render
 end
 
 ISToolTipInv.render = function(self)
-    if ISContextMenu.instance and ISContextMenu.instance.visibleCheck then
+    Pickup._originalInventoryTooltipRender(self)
+
+    local current, maximum = getStoredDoorHealth(self.item)
+    if current == nil or maximum == nil then
         return
     end
 
-    local mx = getMouseX() + 24
-    local my = getMouseY() + 24
-    if not self.followMouse then
-        mx = self:getX()
-        my = self:getY()
-        if self.anchorBottomLeft then
-            mx = self.anchorBottomLeft.x
-            my = self.anchorBottomLeft.y
-        end
+    local font = UIFont.Small
+    local lineHeight = getTextManager():getFontFromEnum(font):getLineHeight()
+    local padX = 7
+    local padY = 5
+    local extensionHeight = lineHeight + (padY * 2)
+
+    local text = getText("UI_LMION_HitPoints")
+        .. " : " .. tostring(current)
+        .. " / " .. tostring(maximum)
+
+    local oldWidth = self:getWidth()
+    local oldHeight = self:getHeight()
+
+    -- Keep the appended block on-screen when the vanilla tooltip is near the
+    -- bottom edge, matching the behavior used by VHSInsight.
+    local screenHeight = getCore():getScreenHeight()
+    if self:getY() + oldHeight + extensionHeight > screenHeight - 2 then
+        self:setY(math.max(0, self:getY() - extensionHeight))
     end
 
-    local PADX = 0
+    self:setHeight(oldHeight + extensionHeight)
 
-    self.tooltip:setX(mx + PADX)
-    self.tooltip:setY(my)
-
-    self.tooltip:setWidth(50)
-    self.tooltip:setMeasureOnly(true)
-    if self.item then
-        self.item:DoTooltip(self.tooltip)
-        appendDoorHealth(self.tooltip, self.item)
-    end
-    self.tooltip:setMeasureOnly(false)
-
-    local myCore = getCore()
-    local maxX = myCore:getScreenWidth()
-    local maxY = myCore:getScreenHeight()
-
-    local tw = self.tooltip:getWidth()
-    local th = self.tooltip:getHeight()
-
-    self.tooltip:setX(math.max(0, math.min(mx + PADX, maxX - tw - 1)))
-    if not self.followMouse and self.anchorBottomLeft then
-        self.tooltip:setY(math.max(0, math.min(my - th, maxY - th - 1)))
-    else
-        self.tooltip:setY(math.max(0, math.min(my, maxY - th - 1)))
-    end
-
-    if self.contextMenu and self.contextMenu.joyfocus then
-        local playerNum = self.contextMenu.player
-        self.tooltip:setX(getPlayerScreenLeft(playerNum) + 60)
-        self.tooltip:setY(getPlayerScreenTop(playerNum) + 60)
-    elseif self.contextMenu and self.contextMenu.currentOptionRect then
-        if self.contextMenu.currentOptionRect.height > 32 then
-            self:setY(my + self.contextMenu.currentOptionRect.height)
-        end
-        self:adjustPositionToAvoidOverlap(self.contextMenu.currentOptionRect)
-    end
-
-    self:setX(self.tooltip:getX() - PADX)
-    self:setY(self.tooltip:getY())
-    self:setWidth(tw + PADX)
-    self:setHeight(th)
-
-    if self.followMouse and self.contextMenu == nil then
-        self:adjustPositionToAvoidOverlap({
-            x = mx - 24 * 2,
-            y = my - 24 * 2,
-            width = 24 * 2,
-            height = 24 * 2,
-        })
-    end
+    local joinY = oldHeight - 1
+    local extensionDrawHeight = extensionHeight + 1
 
     self:drawRect(
-        0,
-        0,
-        self.width,
-        self.height,
+        1,
+        joinY,
+        oldWidth - 2,
+        extensionDrawHeight,
         self.backgroundColor.a,
         self.backgroundColor.r,
         self.backgroundColor.g,
         self.backgroundColor.b
     )
-    self:drawRectBorder(
+    self:drawRect(
         0,
+        joinY,
+        1,
+        extensionDrawHeight,
+        self.borderColor.a,
+        self.borderColor.r,
+        self.borderColor.g,
+        self.borderColor.b
+    )
+    self:drawRect(
+        oldWidth - 1,
+        joinY,
+        1,
+        extensionDrawHeight,
+        self.borderColor.a,
+        self.borderColor.r,
+        self.borderColor.g,
+        self.borderColor.b
+    )
+    self:drawRect(
         0,
-        self.width,
-        self.height,
+        oldHeight + extensionHeight - 1,
+        oldWidth,
+        1,
         self.borderColor.a,
         self.borderColor.r,
         self.borderColor.g,
         self.borderColor.b
     )
 
-    if self.item then
-        self.item:DoTooltip(self.tooltip)
-        appendDoorHealth(self.tooltip, self.item)
-    end
+    self:drawText(
+        text,
+        padX,
+        oldHeight + padY,
+        1.0,
+        1.0,
+        0.8,
+        1.0,
+        font
+    )
 end
 
 return Pickup
