@@ -1,8 +1,8 @@
 # Vanilla Moveables behavior relevant to LMION
 
-Status: **B42.20.3/B42 current-source behavior researched; LMION parcel destination policy aligned with vanilla and runtime-validated on garage + large-gate reference paths**.
+Status: **B42.20.3/B42 current-source behavior researched; LMION parcel destination, durability presentation and transport-weight handling runtime-validated on current reference paths**.
 
-This note records vanilla Moveables rules that matter for LMION's remaining Pickup polish work: action duration, parcel count/destination, sounds and animation behavior.
+This note records vanilla Moveables rules that matter for LMION's remaining Pickup polish work: action duration, parcel count/destination, transport weight, sounds and animation behavior.
 
 ## Action duration
 
@@ -103,7 +103,7 @@ The 60 kg garage total is retained as a plausible steel sectional-garage-door ma
 
 ### Runtime validation
 
-The vanilla-style destination change is now confirmed in game:
+The vanilla-style destination change is confirmed in game:
 
 - garage Pickup produces three parcels on the ground;
 - large-gate leaf Pickup produces two parcels on the ground;
@@ -111,7 +111,7 @@ The vanilla-style destination change is now confirmed in game:
 - placement works after N/W rotation;
 - exact current health and `lmionDoorMaxHealth` remain preserved through the new ground-parcel path.
 
-### Multiple identical parcel sets
+## Interchangeable parcels
 
 Current parcel lookup is by required LMION part item type, not by an assembly/bundle identifier. Runtime testing confirms that compatible parcels from multiple identical garages are deliberately interchangeable.
 
@@ -132,7 +132,41 @@ Part1 parcel state + Part2 parcel state + Part3 parcel state
 
 Durability remains attached to each parcel through `lmionDoorHealth` / `lmionDoorMaxHealth`. This behavior is accepted and useful; no bundle identity should be added unless a future gameplay requirement specifically needs it.
 
-Because parcels from otherwise identical structures can differ materially in durability, inventory/world-item presentation should expose each parcel's current/max health or condition clearly enough for the player to choose which part to use.
+## Durability presentation
+
+Because interchangeable parcels can have materially different durability, LMION now appends the authoritative logical durability to inventory tooltips:
+
+```text
+FR: PV : current / max
+EN: HP : current / max
+```
+
+No percentage is shown by design.
+
+The tooltip reads `lmionDoorHealth` and `lmionDoorMaxHealth` from item `modData`, so it follows the same logical-health model used during replacement instead of engine `getMaxHealth()`.
+
+Runtime validation confirms the tooltip works on garage parcels and transport items without replacing vanilla's tooltip content. The implementation extends `ISToolTipInv` after vanilla rendering rather than drawing directly through Java-owned `ObjectTooltip` internals.
+
+## Transport weight synchronization
+
+LMION owns explicit gameplay weights through MoveProps/profiles. Vanilla `ISMoveableSpriteProps:instanceItem()` calls `ReadFromWorldSprite()`, then restores `actualWeight`, but B42 inventory presentation can still expose the other `InventoryItem.weight` field. This produced a visible 1.0 kg garage parcel even though its script/profile weight was 20 kg.
+
+LMION now normalizes both fields after the complete specialized `instanceItem()` chain:
+
+```text
+item:setActualWeight(moveProps.weight)
+item:setWeight(moveProps.weight)
+```
+
+This is limited to LMION transport MoveProps.
+
+Runtime validation confirms correct displayed/effective weights for:
+
+- garage parcels (20 kg per current garage segment);
+- ordinary 1x1 LMION door transport items;
+- the shared normalization path used by large-gate parcels.
+
+Do not reduce these real transport weights as a workaround for excessive action duration; timing is a separate policy problem.
 
 ## Moveables sounds
 
@@ -191,9 +225,8 @@ LMION profiles already declare `DoorSound` and `ThumpSound`, and Core attempts t
 Before considering Pickup presentation complete:
 
 1. define an LMION-specific Pickup/Place duration policy that does not inherit the excessive `rawWeight * 2` penalty unchanged;
-2. expose parcel/door durability clearly in inventory/world-item presentation;
-3. decide the visual/naming treatment of simple 1x1 inventory parcels if LMION should present them explicitly as packaged doors rather than ordinary Moveable items;
-4. fix missing Pickup/Place action sounds;
-5. diagnose/fix door weapon-hit and zombie-thump sounds;
-6. audit Build timed-action sounds and animations;
-7. decide whether LMION should add explicit Pickup/Place animations beyond vanilla Moveables behavior.
+2. decide the visual/naming treatment of simple 1x1 inventory parcels if LMION should present them explicitly as packaged doors rather than ordinary Moveable items;
+3. fix missing Pickup/Place action sounds;
+4. diagnose/fix door weapon-hit and zombie-thump sounds;
+5. audit Build timed-action sounds and animations;
+6. decide whether LMION should add explicit Pickup/Place animations beyond vanilla Moveables behavior.
