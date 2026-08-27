@@ -109,7 +109,7 @@ local function restartBlowTorchSound(action)
     end
 
     stopActionSound(action)
-    action.sound = character:getEmitter():playSound("BlowTorch")
+    action.sound = character:getEmitter():playSound("BeginRemoveBarricadeMetal")
 
     local radius = 20 * character:getWeldingSoundMod()
     addSound(character, character:getX(), character:getY(), character:getZ(), radius, radius)
@@ -199,7 +199,7 @@ ScrapDefinition. It separately checks character:hasEquippedTag(ItemTag.BLOW_TORC
 and falls back to Disassemble + a fake Screwdriver model when the check fails.
 Therefore, when the actual ScrapDefinition requires Base.BlowTorch, LMION equips the
 real usable torch before vanilla start(), then re-applies BlowTorch/BlowTorchFloor,
-the real hand model and the same BlowTorch emitter sound used by vanilla welding
+the real hand model and the metal-barricade welding sound used by vanilla removal
 actions. The ScrapDefinition remains the gameplay authority.
 ]]
 if Pickup._pickupPresentationOriginalActionStart == nil then
