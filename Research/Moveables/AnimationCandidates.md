@@ -33,9 +33,11 @@ Earlier candidate. The motion reads as pulling/prying a door or panel and is mor
 
 ### `IdleMakingLow`
 
-Current fallback/preferred candidate to compare against `Disassemble` for hinge work.
+**Current preferred visual candidate for screwdriver hinge work.**
 
-The low hand-working posture looks suitable for unscrewing/rescrewing door hinges without implying electronics or a destructive dismantling action. Candidate uses:
+The low hand-working posture fits unscrewing/rescrewing hinges while the door remains the object being worked on. In Animation Viewer it reads more naturally for LMION than `Disassemble`.
+
+Candidate uses:
 
 - normal wooden door Pickup;
 - normal wooden door Place;
@@ -43,13 +45,17 @@ The low hand-working posture looks suitable for unscrewing/rescrewing door hinge
 - normal metal door Place;
 - paired-door equivalents.
 
-`Disassemble` remains the current production animation until this clip is mapped to a usable AnimNode / PerformingAction and runtime-tested with the real screwdriver in hand.
+`Disassemble` is visually weaker for LMION hinge work because its motion reads as if the character is dismantling/manipulating an object held in the other hand rather than working on a fixed hinge. It remains the current production animation only until `IdleMakingLow` is mapped to a usable AnimNode / PerformingAction and runtime-tested with the real screwdriver in hand.
 
 ## Rejected / weak candidates
 
 ### `DismantleElectrical` / `disassembleElectrical`
 
 Rejected for LMION hinge work. B42 timed-action data explicitly supplies both a screwdriver and an electronics/receiver prop, so the action visually carries electronics semantics rather than clean one-tool hinge work.
+
+### `Disassemble`
+
+Not rejected as a valid engine action, but no longer preferred for LMION screwdriver Pickup/Place. The visual language suggests dismantling an object held/manipulated in front of the character, which is less suitable for door hinges than `IdleMakingLow`.
 
 ## Validation rule
 
