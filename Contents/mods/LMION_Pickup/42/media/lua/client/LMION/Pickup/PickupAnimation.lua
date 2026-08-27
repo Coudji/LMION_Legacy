@@ -77,6 +77,14 @@ local function stopActionSound(action)
     action.sound = nil
 end
 
+local function hardStopActionSound(action)
+    local character = action and action.character or nil
+    if character ~= nil and action.sound ~= nil and action.sound ~= 0 then
+        character:getEmitter():stopSound(action.sound)
+    end
+    action.sound = nil
+end
+
 local function restartConfiguredToolSound(action)
     local character = action and action.character or nil
     local toolName = getActionToolName(action)
@@ -137,9 +145,11 @@ local function startMetalHammerSound(action)
         return
     end
 
-    -- Vanilla Moveables has already produced its initial world-noise pulse via
-    -- getSoundFromTool(). Remove only the audible carpentry Hammering loop.
-    stopActionSound(action)
+    -- Vanilla Moveables starts the LMIONMetalHammer tool sound before LMION
+    -- applies its metal presentation. stopOrTriggerSound() can let that FMOD
+    -- event reach its cue/release, so kill it immediately here to prevent the
+    -- carpentry Hammering sound from overlapping SmithingHammerHit.
+    hardStopActionSound(action)
 
     local now = getTimestampMs()
     action.lmionMetalHammerNextWorldSound = now + METAL_HAMMER_WORLD_SOUND_INTERVAL_MS
