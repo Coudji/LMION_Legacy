@@ -38,6 +38,8 @@ local function setMovePropsIdentity(moveProps, segment)
     moveProps.lmionGaragePart = segment.partIndex
     moveProps.lmionGarageFaces = segment.rotationFaces or segment.faces
     moveProps.lmionGarageFacing = segment.facing
+    moveProps.lmionGarageIsOpen = segment.isOpen == true
+    moveProps.lmionGarageClosedSprite = segment.closedSpriteName
     moveProps.facing = segment.facing
 
     local scriptItem = ScriptManager.instance:FindItem(segment.itemType)
@@ -61,11 +63,13 @@ local function markKnownSpritesMoveable()
             for partIndex = 1, 3 do
                 local part = family.parts[partIndex]
                 for _, facing in ipairs({"N", "W"}) do
-                    local sprite = getSprite(part.faces[facing])
-                    local properties = sprite and sprite:getProperties() or nil
-                    if properties ~= nil then
-                        properties:set("IsMoveAble")
-                        configured = configured + 1
+                    for _, spriteName in ipairs({part.faces[facing], part.openFaces[facing]}) do
+                        local sprite = spriteName and getSprite(spriteName) or nil
+                        local properties = sprite and sprite:getProperties() or nil
+                        if properties ~= nil then
+                            properties:set("IsMoveAble")
+                            configured = configured + 1
+                        end
                     end
                 end
             end
@@ -159,9 +163,10 @@ ISMoveableSpriteProps.instanceItem = function(self, spriteNameOverride)
         return Pickup._garageDoorPreviousInstanceItem(self, spriteNameOverride)
     end
 
+    local canonicalSpriteName = segment.closedSpriteName or spriteNameOverride or self.spriteName
     local previousCustomItem = self.customItem
     self.customItem = segment.itemType
-    local item = Pickup._garageDoorPreviousInstanceItem(self, spriteNameOverride)
+    local item = Pickup._garageDoorPreviousInstanceItem(self, canonicalSpriteName)
     self.customItem = previousCustomItem
 
     if item ~= nil then
@@ -192,13 +197,6 @@ ISMoveableSpriteProps.findInInventoryMultiSprite = function(self, character, req
     local gridIndex = tonumber(string.match(requestedName or "", "%((%d+)/3%)$"))
     local family = GarageDoor.Families[self.lmionGarageFamily]
 
-    --[[
-    The W runtime grid is stored in reverse Y order because vanilla garage linkage
-    advances from member 1 toward decreasing Y. Convert the Moveables grid index
-    back to the logical GarageDoor member before choosing its parcel. `facing` is
-    the cursor's current orientation, while `lmionGarageFacing` is only the source
-    sprite orientation captured when these Moveables properties were created.
-    ]]
     local partIndex = gridIndex
     if self.facing == "W" and gridIndex ~= nil then
         partIndex = 4 - gridIndex
@@ -225,11 +223,6 @@ ISMoveableSpriteProps.findInInventoryMultiSprite = function(self, character, req
     return nil
 end
 
---[[
-The reference implementation deliberately accepts only a complete closed garage.
-Open-state transport can be added later only if runtime validation proves that it
-has an unambiguous parcel and rotation contract.
-]]
 if Pickup._garageDoorPreviousCanPickUpMoveable == nil then
     Pickup._garageDoorPreviousCanPickUpMoveable = ISMoveableSpriteProps.canPickUpMoveable
 end
@@ -244,7 +237,7 @@ ISMoveableSpriteProps.canPickUpMoveable = function(self, character, square, obje
         selected = self:findOnSquare(square, self.spriteName)
     end
 
-    if selected == nil or not instanceof(selected, "IsoDoor") or selected:IsOpen() then
+    if selected == nil or not instanceof(selected, "IsoDoor") then
         return false
     end
 
@@ -253,11 +246,12 @@ ISMoveableSpriteProps.canPickUpMoveable = function(self, character, square, obje
         return false
     end
 
+    local expectedOpen = selected:IsOpen()
     local current = first
     for expectedIndex = 1, 3 do
         if current == nil
             or not instanceof(current, "IsoDoor")
-            or current:IsOpen()
+            or current:IsOpen() ~= expectedOpen
             or IsoDoor.getGarageDoorIndex(current) ~= expectedIndex then
             return false
         end
@@ -266,7 +260,8 @@ ISMoveableSpriteProps.canPickUpMoveable = function(self, character, square, obje
         local segment = getSegment(sprite)
         if segment == nil
             or segment.familyId ~= self.lmionGarageFamily
-            or segment.partIndex ~= expectedIndex then
+            or segment.partIndex ~= expectedIndex
+            or segment.isOpen ~= expectedOpen then
             return false
         end
 
@@ -296,13 +291,14 @@ ISMoveableSpriteProps.pickUpMoveableInternal = function(self, character, square,
         end
     end
 
+    local canonicalSpriteName = segment and segment.closedSpriteName or spriteName
     local item = Pickup._garageDoorPreviousPickUpMoveableInternal(
         self,
         character,
         square,
         object,
         sprInstance,
-        spriteName,
+        canonicalSpriteName,
         createItem,
         rotating
     )
@@ -330,7 +326,7 @@ ISMoveableSpriteProps.placeMoveableInternal = function(self, square, item, sprit
         savedMaxHealth = tonumber(modData.lmionDoorMaxHealth)
     end
 
-    local result = Pickup._garageDoorPreviousPlaceMoveableInternal(self, square, item, spriteName)
+    local result = Pickup._garageDoorPreviousPlaceMoveableInternal(self, square, item, segment.closedSpriteName or spriteName)
     local door = result
 
     if door ~= nil and instanceof(door, "IsoDoor") then
