@@ -10,6 +10,16 @@ local function isLmionBuild(self)
         and self.craftRecipe:getModID() == "LMION_Build"
 end
 
+local function getGameScript(self)
+    local spriteScript = self and self.objectInfo and self.objectInfo:getScript() or nil
+    return spriteScript and spriteScript:getParent() or nil
+end
+
+local function getProfile(self)
+    local gameScript = getGameScript(self)
+    return gameScript and LMION.Doors.getProfile(gameScript:getName()) or nil
+end
+
 local function normalizeBuiltDoor(square, gameScript, effectiveMaxHealth)
     if square == nil or gameScript == nil then
         return
@@ -34,15 +44,42 @@ local function normalizeBuiltDoor(square, gameScript, effectiveMaxHealth)
     end
 end
 
+if Build._originalIsValid == nil then
+    Build._originalIsValid = ISBuildIsoEntity.isValid
+end
+
+-- Paired LMION doors use the same strict structural frame rule as Pickup:
+-- Left -> DoubleDoor1, Right -> DoubleDoor2. Vanilla's original build validity
+-- still runs first so materials, collision, safehouse and all other rules remain
+-- authoritative. This hook only tightens LMION paired-frame compatibility.
+ISBuildIsoEntity.isValid = function(self, square)
+    if not Build._originalIsValid(self, square) then
+        return false
+    end
+
+    if not isLmionBuild(self) then
+        return true
+    end
+
+    local profile = getProfile(self)
+    if profile == nil or profile.pairedFrameSide == nil then
+        return true
+    end
+
+    return LMION.Doors.canPlaceDoorAt(
+        square,
+        self.north == true,
+        true,
+        profile.pairedFrameSide
+    )
+end
+
 if Build._originalSetInfo == nil then
     Build._originalSetInfo = ISBuildIsoEntity.setInfo
 end
 
 ISBuildIsoEntity.setInfo = function(self, square, north, sprite, openSprite)
-    local gameScriptBefore = nil
-    if self ~= nil and self.objectInfo ~= nil and self.objectInfo:getScript() ~= nil then
-        gameScriptBefore = self.objectInfo:getScript():getParent()
-    end
+    local gameScriptBefore = getGameScript(self)
 
     if isLmionBuild(self) then
         local profile = gameScriptBefore and LMION.Doors.getProfile(gameScriptBefore:getName()) or nil
@@ -65,8 +102,7 @@ ISBuildIsoEntity.setInfo = function(self, square, north, sprite, openSprite)
         error(result)
     end
 
-    local spriteScript = self.objectInfo and self.objectInfo:getScript() or nil
-    local gameScript = spriteScript and spriteScript:getParent() or gameScriptBefore
+    local gameScript = getGameScript(self) or gameScriptBefore
 
     if isLmionBuild(self) then
         local profile = gameScript and LMION.Doors.getProfile(gameScript:getName()) or nil
