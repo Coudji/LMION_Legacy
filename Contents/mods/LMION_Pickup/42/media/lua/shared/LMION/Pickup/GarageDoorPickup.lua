@@ -10,7 +10,7 @@ local function getSegment(object)
     return spriteName and segmentsBySprite[spriteName] or nil
 end
 
-local function findGarageMember(square, north, expectedIndex, familyId)
+local function findGarageMember(square, north, expectedIndex, familyId, expectedOpen)
     if square == nil then
         return nil
     end
@@ -20,11 +20,14 @@ local function findGarageMember(square, north, expectedIndex, familyId)
         local object = objects:get(i)
         if object ~= nil
             and instanceof(object, "IsoDoor")
-            and not object:IsOpen()
+            and object:IsOpen() == expectedOpen
             and object:getNorth() == north
             and IsoDoor.getGarageDoorIndex(object) == expectedIndex then
             local segment = getSegment(object)
-            if segment ~= nil and segment.familyId == familyId then
+            if segment ~= nil
+                and segment.familyId == familyId
+                and segment.partIndex == expectedIndex
+                and segment.isOpen == expectedOpen then
                 return object
             end
         end
@@ -34,12 +37,13 @@ local function findGarageMember(square, north, expectedIndex, familyId)
 end
 
 --[[
-GarageDoor index 1/2/3 is the authoritative member identity. Starting from any
-selected closed member, resolve member 1's square and then reconstruct the full
-three-member chain using the same geometry as vanilla IsoDoor garage traversal.
+GarageDoor index 1/2/3 is the authoritative member identity. Open and closed
+states occupy the same three squares; only the sprite/state changes. Starting
+from any selected member, reconstruct the complete chain and require every
+member to belong to the same family and the same open/closed state.
 ]]
 local function getGarageMembers(source, familyId)
-    if source == nil or not instanceof(source, "IsoDoor") or source:IsOpen() then
+    if source == nil or not instanceof(source, "IsoDoor") then
         return nil
     end
 
@@ -50,6 +54,11 @@ local function getGarageMembers(source, familyId)
 
     local sourceSegment = getSegment(source)
     if sourceSegment == nil or sourceSegment.familyId ~= familyId then
+        return nil
+    end
+
+    local expectedOpen = source:IsOpen()
+    if sourceSegment.isOpen ~= expectedOpen then
         return nil
     end
 
@@ -81,16 +90,19 @@ local function getGarageMembers(source, familyId)
         end
 
         local square = getCell():getGridSquare(x, y, z)
-        local object = findGarageMember(square, north, expectedIndex, familyId)
+        local object = findGarageMember(square, north, expectedIndex, familyId, expectedOpen)
         if object == nil then
             return nil
         end
 
+        local segment = getSegment(object)
         members[expectedIndex] = {
             object = object,
             square = square,
             spriteName = object:getSprite():getName(),
+            closedSpriteName = segment and segment.closedSpriteName or nil,
             engineIndex = expectedIndex,
+            isOpen = expectedOpen,
         }
     end
 
@@ -118,11 +130,6 @@ ISMoveableSpriteProps.canPickUpMoveable = function(self, character, square, obje
         return false
     end
 
-    --[[
-    Whole-garage topology is validated above. Run the pre-garage Moveables
-    validator in single-sprite mode so it checks the selected 20 kg parcel rather
-    than imposing vanilla multisprite assumptions on the three-member structure.
-    ]]
     local previousCanPickUp = Pickup._garageDoorPreviousCanPickUpMoveable
         or Pickup._garageDoorPickupPreviousCanPickUpMoveable
 
@@ -141,11 +148,6 @@ ISMoveableSpriteProps.canPickUpMoveable = function(self, character, square, obje
         end
     end
 
-    --[[
-    The three resulting parcels total 60 kg. LMION intentionally does not require
-    60 kg of free capacity up front; vanilla still validates the selected 20 kg
-    member and the completed scripted transfer may leave the character overloaded.
-    ]]
     return true
 end
 
@@ -192,7 +194,7 @@ ISMoveableSpriteProps.pickUpMoveable = function(self, character, square, createI
             member.square,
             member.object,
             nil,
-            member.spriteName,
+            member.closedSpriteName or member.spriteName,
             createItem,
             forceAllow
         )
