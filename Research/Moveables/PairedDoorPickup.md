@@ -1,6 +1,6 @@
 # Paired-door Pickup
 
-Status: **generic framed 1x1 Pickup path runtime-validated; corrected Left/Right N/W face mapping runtime-validated; open-state canonical closed placement pending runtime validation**.
+Status: **generic framed 1x1 Pickup path runtime-validated; corrected Left/Right N/W face mapping runtime-validated; strict paired-frame placement implemented, pending runtime validation**.
 
 ## Gameplay contract
 
@@ -14,11 +14,32 @@ LMION paired doors are visual/construction double-door sets, not synchronized tr
 
 ## Frame rule
 
-Core keeps `frame = "paired"` as a semantic classification, but paired profiles require a frame exactly like `frame = "standard"` profiles.
+Vanilla Tile Report runtime evidence on B42.20.3 confirms dedicated structural markers on paired double-door frames:
 
-B42 does not currently provide LMION with a useful distinction between an ordinary door frame and a paired/double-door frame. LMION therefore deliberately accepts any vanilla-compatible frame of the correct N/W orientation instead of maintaining a custom sprite catalog for paired frames.
+```text
+Left frame  -> DoubleDoor1
+Right frame -> DoubleDoor2
+```
 
-This is an intentional simplification: a player may place one paired leaf in a visually imperfect ordinary frame, but Pickup remains aligned with the engine's normal framed-door rules.
+The same tiles also expose `CutawayHint=DoubleDoorLeft/DoubleDoorRight`, but LMION does not use that as a production fallback. `DoubleDoor1/2` is the strict structural requirement.
+
+Paired placement therefore requires both:
+
+- the existing correct N/W frame orientation;
+- the matching structural paired-frame side on the same frame object.
+
+Consequences:
+
+```text
+paired Left  -> only a DoubleDoor1 frame
+paired Right -> only a DoubleDoor2 frame
+ordinary frame -> rejected for paired leaves
+wrong paired side -> rejected
+```
+
+Ordinary 1x1 framed doors keep the existing generic frame rule unchanged.
+
+Runtime marker evidence is recorded in `Research/Moveables/PairedDoorFrames.md`.
 
 ## Left/Right face identity
 
@@ -51,19 +72,22 @@ The generic 1x1 registry therefore recovers N/W orientation for any known open s
 
 ## Implementation
 
-The ten current paired entities are registered in `LMION_Pickup`'s normal `DoorProfiles` table. No paired-specific Moveables hooks, neighbor resolution, multi-item transport, SpriteGrid or synchronization code is used.
+The ten current paired entities are registered in `LMION_Pickup`'s normal `DoorProfiles` table, with `pairedFrameSide=1` for Left and `pairedFrameSide=2` for Right. The shared placement helper accepts that optional side requirement and checks the corresponding `IsoFlagType.DoubleDoor1/DoubleDoor2` flag on the orientation-matching frame object.
+
+No paired-specific neighbor resolution, multi-item transport, SpriteGrid or synchronization code is used.
 
 Dedicated `Base.LMION_<Entity>` Moveable items exist for each Left/Right leaf so inventory identity remains unambiguous.
 
-Because paired face definitions live under `media/scripts`, a full game/server restart is required after paired SpriteConfig face-mapping changes before runtime validation. The generic open-state canonicalization itself is Lua-only, but a cold restart remains the safest validation path after the preceding script changes.
-
 ## Runtime validation target
 
-Verify at least one paired leaf and one ordinary 1x1 door through:
+Verify at least one paired family in both orientations:
 
-- pickup while closed -> rotate -> replace closed;
+- Left on matching `DoubleDoor1` frame -> allowed;
+- Left on `DoubleDoor2` frame -> rejected;
+- Right on matching `DoubleDoor2` frame -> allowed;
+- Right on `DoubleDoor1` frame -> rejected;
+- either paired leaf on a normal frame -> rejected;
+- rotate N/W and repeat the side checks;
 - pickup while open -> inventory/placement preview uses the closed face;
-- open-picked item can rotate N/W normally;
 - replacement is always closed;
-- current health and `lmionDoorMaxHealth` survive pickup/replacement;
-- paired Left/Right identity remains stable across N/W rotation.
+- current health and `lmionDoorMaxHealth` survive pickup/replacement.
