@@ -85,6 +85,7 @@ require "LMION/Pickup/LargeGateSpecs"
 require "LMION/Pickup/LargeGateRuntime"
 require "LMION/Pickup/LargeGateMoveables"
 require "LMION/Pickup/LargeGatePlacement"
+require "LMION/Pickup/LargeGateOpenState"
 
 LMION.registerModule(Pickup.ID, Pickup)
 LMION.log("Pickup", "loaded " .. Pickup.VERSION)
