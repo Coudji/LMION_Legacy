@@ -20,6 +20,24 @@ local function getProfile(self)
     return gameScript and LMION.Doors.getProfile(gameScript:getName()) or nil
 end
 
+local function isPairedFrameValid(self, square)
+    if not isLmionBuild(self) then
+        return true
+    end
+
+    local profile = getProfile(self)
+    if profile == nil or profile.pairedFrameSide == nil then
+        return true
+    end
+
+    return LMION.Doors.canPlaceDoorAt(
+        square,
+        self.north == true,
+        true,
+        profile.pairedFrameSide
+    )
+end
+
 local function normalizeBuiltDoor(square, gameScript, effectiveMaxHealth)
     if square == nil or gameScript == nil then
         return
@@ -57,21 +75,22 @@ ISBuildIsoEntity.isValid = function(self, square)
         return false
     end
 
-    if not isLmionBuild(self) then
-        return true
+    return isPairedFrameValid(self, square)
+end
+
+if Build._originalIsValidPerSquare == nil then
+    Build._originalIsValidPerSquare = ISBuildIsoEntity.isValidPerSquare
+end
+
+-- Vanilla colors the floor cursor through isValidPerSquare(), independently of
+-- the final isValid() result used for the object ghost / actual construction.
+-- Mirror the paired-frame rule here so a wrong DoubleDoor side is visibly red.
+ISBuildIsoEntity.isValidPerSquare = function(self, square, tileInfo, requiresFloor, extendsN, extendsW)
+    if not Build._originalIsValidPerSquare(self, square, tileInfo, requiresFloor, extendsN, extendsW) then
+        return false
     end
 
-    local profile = getProfile(self)
-    if profile == nil or profile.pairedFrameSide == nil then
-        return true
-    end
-
-    return LMION.Doors.canPlaceDoorAt(
-        square,
-        self.north == true,
-        true,
-        profile.pairedFrameSide
-    )
+    return isPairedFrameValid(self, square)
 end
 
 if Build._originalSetInfo == nil then
