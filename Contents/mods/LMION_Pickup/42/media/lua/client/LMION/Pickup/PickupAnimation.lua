@@ -102,21 +102,6 @@ local function restartCrowbarSound(action)
     addSound(character, character:getX(), character:getY(), character:getZ(), 10, 1)
 end
 
-local function playBlowTorchWorldSound(action)
-    local moveProps = action and action.moveProps or nil
-    local object = moveProps and moveProps.object or nil
-    local square = object and object:getSquare() or (action and action.square or nil)
-    if square == nil then
-        return
-    end
-
-    -- Vanilla object-oriented actions such as ISRemoveBrokenGlass play their
-    -- audible sound from the target square instead of the player's emitter.
-    -- Use the metal-barricade welding alias here so the torch is spatialized
-    -- on the garage/gate being cut.
-    square:playSound("BeginRemoveBarricadeMetal")
-end
-
 local function isScrewdriverTool(toolName)
     return toolName == "Screwdriver" or toolName == "LMIONMetalScrewdriver"
 end
@@ -193,8 +178,8 @@ Transport:
 
 Scrap:
 Vanilla Moveables gets the ScrapDefinition from moveProps.material, so LMION keeps
-that definition authoritative for tools, skill, duration, welding protection and
-tool consumption.
+that definition authoritative for tools, skill, duration, welding protection, sound
+lifecycle and tool consumption.
 
 However, ISMoveablesAction.start() does NOT choose its welding animation from that
 ScrapDefinition. It separately checks character:hasEquippedTag(ItemTag.BLOW_TORCH)
@@ -203,11 +188,9 @@ Therefore, when the actual ScrapDefinition requires Base.BlowTorch, LMION equips
 real usable torch before vanilla start(), then re-applies BlowTorch/BlowTorchFloor
 and the real hand model after vanilla start().
 
-The vanilla Moveables player-emitter BlowTorch sound is stopped and replaced by a
-world sound played from the target object's square. This follows the active vanilla
-pattern used by object-oriented actions and avoids the silent player-emitter path
-observed at runtime for LMION Scrap. Zombie attraction remains owned by vanilla
-getScrapSound()/addSound().
+Runtime testing in unmodded B42.20.4 confirmed that vanilla metal welding/removal can
+be inaudible to the player while still generating world noise that attracts zombies.
+LMION therefore does not override or synthesize a separate blowtorch sound here.
 ]]
 if Pickup._pickupPresentationOriginalActionStart == nil then
     Pickup._pickupPresentationOriginalActionStart = ISMoveablesAction.start
@@ -219,8 +202,6 @@ ISMoveablesAction.start = function(self)
         equipResolvedToolNow(self, blowTorch)
         Pickup._pickupPresentationOriginalActionStart(self)
         forceBlowTorchPresentation(self, blowTorch)
-        stopActionSound(self)
-        playBlowTorchWorldSound(self)
         return
     end
 
