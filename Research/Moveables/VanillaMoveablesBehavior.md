@@ -1,8 +1,8 @@
 # Vanilla Moveables behavior relevant to LMION
 
-Status: **B42.20.3/B42 current-source behavior researched; LMION parcel destination, durability presentation and transport-weight handling runtime-validated on current reference paths**.
+Status: **B42.20.3/B42 current-source behavior researched; LMION parcel destination, durability presentation, transport-weight handling and current presentation baseline runtime-validated on current reference paths**.
 
-This note records vanilla Moveables rules that matter for LMION's remaining Pickup polish work: action duration, parcel count/destination, transport weight, sounds and animation behavior.
+This note records vanilla Moveables rules that matter for LMION's Pickup polish work: action duration, parcel count/destination, transport weight, sounds and animation behavior.
 
 ## Action duration
 
@@ -134,7 +134,7 @@ Durability remains attached to each parcel through `lmionDoorHealth` / `lmionDoo
 
 ## Durability presentation
 
-Because interchangeable parcels can have materially different durability, LMION now appends the authoritative logical durability to inventory tooltips:
+Because interchangeable parcels can have materially different durability, LMION appends the authoritative logical durability to inventory tooltips:
 
 ```text
 FR: PV : current / max
@@ -151,7 +151,7 @@ Runtime validation confirms the tooltip works on garage parcels and transport it
 
 LMION owns explicit gameplay weights through MoveProps/profiles. Vanilla `ISMoveableSpriteProps:instanceItem()` calls `ReadFromWorldSprite()`, then restores `actualWeight`, but B42 inventory presentation can still expose the other `InventoryItem.weight` field. This produced a visible 1.0 kg garage parcel even though its script/profile weight was 20 kg.
 
-LMION now normalizes both fields after the complete specialized `instanceItem()` chain:
+LMION normalizes both fields after the complete specialized `instanceItem()` chain:
 
 ```text
 item:setActualWeight(moveProps.weight)
@@ -172,7 +172,7 @@ Do not reduce these real transport weights as a workaround for excessive action 
 
 `ISMoveablesAction:start()` calls `setActionSound()`. Pickup/Place resolve their action sound through `ISMoveableSpriteProps:getSoundFromTool()`.
 
-Vanilla tool definitions for Hammer and Crowbar both currently use the `Hammering` sound. LMION's custom Hammer/Crowbar definitions also request `Hammering`, so completely silent LMION Pickup/Place is not the expected vanilla behavior and should be treated as a bug/integration issue rather than a design choice.
+Vanilla tool definitions for Hammer and Crowbar currently use `Hammering`. LMION's custom metal Hammer/Crowbar definitions also request `Hammering`. Crowbar Pickup presentation then replaces that audible event with `BeginRemoveBarricadePlankCrowbar`.
 
 On completion vanilla additionally plays UI sounds:
 
@@ -182,11 +182,49 @@ Place  -> UIObjectMenuObjectPlace
 Rotate -> UIObjectMenuObjectRotate
 ```
 
+### Audio QA: Invisible cheat
+
+Earlier reports that LMION Pickup/Place, blowtorch Scrap and door hits were generically silent were contaminated by Debug/Cheat **Invisible** mode.
+
+Runtime testing established that with Invisible enabled, some audible action/object sounds may be suppressed even in a completely unmodded solo game. Blowtorch and door-hit sounds were affected, while hammering could still remain audible.
+
+After disabling Invisible, the supposedly missing sounds returned.
+
+Therefore:
+
+> **Disable Invisible before diagnosing any LMION sound problem.**
+
+There is currently no reproduced generic missing-sound defect for blowtorch or door impacts with Invisible off.
+
+Material-specific fidelity remains separate from sound correctness:
+
+- current crowbar Pickup uses a wood-barricade crowbar event for both wooden and metal openings;
+- current Hammer Place uses configured `Hammering` for both wooden and metal openings;
+- material-specific metal alternatives are optional polish and should be selected by listening to candidate vanilla events in game rather than guessing from names.
+
+A temporary `SmithingHammerHit` pulse experiment for metal Hammer Place was removed because it still appeared to overlap with the wood-like sound and required an extra `ISMoveablesAction.update()` wrapper. It is not part of the current production path.
+
 ## Moveables animations
 
 Vanilla `ISMoveablesAction:start()` explicitly assigns action animations for Scrap/Repair paths, but does not assign a dedicated action animation for ordinary Pickup/Place.
 
-Therefore adding visible dismantle/place animations for LMION doors would be an intentional LMION presentation improvement rather than merely restoring a missing vanilla Moveables animation.
+LMION intentionally improves that presentation:
+
+```text
+Screwdriver Pickup/Place -> LMION_ScrewdriverHinge -> Bob_IdleMakingLow
+Crowbar Pickup           -> LMION_CrowbarPickupLow -> Bob_IdleLeverOpenLow
+Hammer Place             -> vanilla Build
+```
+
+The two custom AnimNode mappings have been runtime validated with their real tools in hand.
+
+### Blowtorch Scrap presentation trap
+
+Vanilla's ScrapDefinition may correctly require `Base.BlowTorch`, yet `ISMoveablesAction.start()` separately checks the currently equipped tool to choose the animation. If the torch is not equipped at that exact point, vanilla can fall through to `Disassemble + Screwdriver`.
+
+LMION therefore equips the actual usable blowtorch before vanilla `start()` when the active ScrapDefinition requires `Base.BlowTorch`, then re-applies `BlowTorch` / `BlowTorchFloor` and the real torch hand model afterward.
+
+This is runtime validated. Vanilla remains authoritative for requirements, welding protection, duration, sound lifecycle, consumption and scrap yields.
 
 ## Construction timed-action reference
 
@@ -206,7 +244,7 @@ BuildWoodenStructureMedium:
   completionSound = BuildWoodenStructureMedium
 ```
 
-LMION construction recipes that use these timed actions should therefore not be globally silent. Missing construction sounds/animations require a separate Build pipeline audit.
+LMION construction recipes that use these timed actions inherit that presentation path. Audit Build separately only when a concrete construction presentation issue is reproduced.
 
 ## Door impact/thump sound engine behavior
 
@@ -218,15 +256,17 @@ B42.20.3 `IsoDoor` Java behavior distinguishes three concepts:
 
 `MaterialType` is not the selector used by `IsoDoor:WeaponHit()` for the door-hit surface.
 
-LMION profiles already declare `DoorSound` and `ThumpSound`, and Core attempts to apply them to SpriteConfig sprites. Since runtime LMION doors are reported as silent when struck, the next diagnostic should verify the actual closed sprite's `DoorSound` / `ThumpSound` and the runtime values returned by `door:getSoundPrefix()` / `door:getThumpSound()`.
+LMION profiles declare `DoorSound` and `ThumpSound`, and Core applies them through its alias-safe property path. The previous claim that LMION doors were silent when struck is no longer considered a reproduced defect because the tests were performed with Invisible enabled. With Invisible disabled, impact audio is audible.
+
+If a specific door family later has an incorrect impact/thump sound, inspect that family's actual closed-sprite `DoorSound` / `ThumpSound` and runtime `door:getSoundPrefix()` / `door:getThumpSound()` before changing global behavior.
 
 ## Remaining design/work items
 
-Before considering Pickup presentation complete:
+Before considering Pickup presentation fully polished:
 
 1. define an LMION-specific Pickup/Place duration policy that does not inherit the excessive `rawWeight * 2` penalty unchanged;
-2. decide the visual/naming treatment of simple 1x1 inventory parcels if LMION should present them explicitly as packaged doors rather than ordinary Moveable items;
-3. fix missing Pickup/Place action sounds;
-4. diagnose/fix door weapon-hit and zombie-thump sounds;
-5. audit Build timed-action sounds and animations;
-6. decide whether LMION should add explicit Pickup/Place animations beyond vanilla Moveables behavior.
+2. decide the visual/naming treatment of simple 1x1 inventory items if explicit package presentation is desired;
+3. optionally add material-specific crowbar/hammer sounds after auditioning suitable vanilla events;
+4. audit Build timed-action presentation only if a concrete issue is reproduced.
+
+The custom screwdriver/crowbar animations, blowtorch Scrap presentation, current sounds with Invisible disabled, parcel logistics, durability and transport weights are no longer open generic defects.
