@@ -45,25 +45,71 @@ ISMoveableSpriteProps.getFaces = function(self)
     return Pickup._largeGatePlacementPreviousGetFaces(self)
 end
 
-local function findInventoryItem(character, fullType)
+local function findParcel(character, fullType)
     if character == nil or fullType == nil then
         return nil, nil
     end
 
     local inventory = character:getInventory()
-    if inventory == nil then
+    local items = inventory and inventory:getItems() or nil
+    if items ~= nil then
+        for i = 0, items:size() - 1 do
+            local item = items:get(i)
+            if item ~= nil and item:getFullType() == fullType then
+                return item, inventory
+            end
+        end
+    end
+
+    local square = character:getSquare()
+    if square == nil then
         return nil, nil
     end
 
-    local items = inventory:getItems()
-    for i = 0, items:size() - 1 do
-        local item = items:get(i)
-        if item ~= nil and item:getFullType() == fullType then
-            return item, inventory
+    local radius = ISMoveableSpriteProps.multiSpriteFloorRadius or 3
+    local sx = square:getX()
+    local sy = square:getY()
+    local sz = square:getZ()
+
+    for x = sx - radius, sx + radius do
+        for y = sy - radius, sy + radius do
+            local candidateSquare = getCell():getGridSquare(x, y, sz)
+            local worldObjects = candidateSquare and candidateSquare:getWorldObjects() or nil
+            if worldObjects ~= nil then
+                for i = 0, worldObjects:size() - 1 do
+                    local worldObject = worldObjects:get(i)
+                    if instanceof(worldObject, "IsoWorldInventoryObject") then
+                        local item = worldObject:getItem()
+                        if item ~= nil and item:getFullType() == fullType then
+                            return item, "floor"
+                        end
+                    end
+                end
+            end
         end
     end
 
     return nil, nil
+end
+
+local function consumeParcel(item, source)
+    if item == nil or source == nil then
+        return
+    end
+
+    if source == "floor" then
+        local worldItem = item:getWorldItem()
+        local square = worldItem and worldItem:getSquare() or nil
+        if square ~= nil and worldItem ~= nil then
+            square:transmitRemoveItemFromSquare(worldItem)
+            square:removeWorldObject(worldItem)
+            item:setWorldItem(nil)
+        end
+        return
+    end
+
+    source:Remove(item)
+    sendRemoveItemFromContainer(source, item)
 end
 
 local function getPlacementSquares(moveProps, square)
@@ -121,15 +167,15 @@ local function buildPlacementPlan(moveProps, character, square)
     local plan = {}
     for partIndex = 1, 2 do
         local part = leaf.parts[partIndex]
-        local item, inventory = findInventoryItem(character, part.itemType)
+        local item, source = findParcel(character, part.itemType)
         local spriteName = part.faces[facing]
-        if item == nil or inventory == nil or spriteName == nil then
+        if item == nil or source == nil or spriteName == nil then
             return nil
         end
 
         plan[partIndex] = {
             item = item,
-            inventory = inventory,
+            source = source,
             square = squares[partIndex],
             spriteName = spriteName,
         }
@@ -214,8 +260,7 @@ ISMoveableSpriteProps.placeMoveable = function(self, character, square, origSpri
 
     for partIndex = 1, 2 do
         local entry = plan[partIndex]
-        entry.inventory:Remove(entry.item)
-        sendRemoveItemFromContainer(entry.inventory, entry.item)
+        consumeParcel(entry.item, entry.source)
     end
 
     if ISMoveableCursor ~= nil and ISMoveableCursor.clearCacheForAllPlayers ~= nil then
