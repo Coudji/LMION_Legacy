@@ -103,25 +103,51 @@ local function setParcelIdentity(moveProps, segment)
     end
 end
 
-local function findInventoryItem(character, fullType)
+local function findParcel(character, fullType)
     if character == nil or fullType == nil then
-        return nil
+        return nil, nil
     end
 
     local inventory = character:getInventory()
-    if inventory == nil then
-        return nil
-    end
-
-    local items = inventory:getItems()
-    for i = 0, items:size() - 1 do
-        local item = items:get(i)
-        if item ~= nil and item:getFullType() == fullType then
-            return item, inventory
+    local items = inventory and inventory:getItems() or nil
+    if items ~= nil then
+        for i = 0, items:size() - 1 do
+            local item = items:get(i)
+            if item ~= nil and item:getFullType() == fullType then
+                return item, inventory
+            end
         end
     end
 
-    return nil
+    local square = character:getSquare()
+    if square == nil then
+        return nil, nil
+    end
+
+    local radius = ISMoveableSpriteProps.multiSpriteFloorRadius or 3
+    local sx = square:getX()
+    local sy = square:getY()
+    local sz = square:getZ()
+
+    for x = sx - radius, sx + radius do
+        for y = sy - radius, sy + radius do
+            local candidateSquare = getCell():getGridSquare(x, y, sz)
+            local worldObjects = candidateSquare and candidateSquare:getWorldObjects() or nil
+            if worldObjects ~= nil then
+                for i = 0, worldObjects:size() - 1 do
+                    local worldObject = worldObjects:get(i)
+                    if instanceof(worldObject, "IsoWorldInventoryObject") then
+                        local item = worldObject:getItem()
+                        if item ~= nil and item:getFullType() == fullType then
+                            return item, "floor"
+                        end
+                    end
+                end
+            end
+        end
+    end
+
+    return nil, nil
 end
 
 local function isLargeGateMoveProps(moveProps)
@@ -220,7 +246,7 @@ ISMoveableSpriteProps.findInInventoryMultiSprite = function(self, character, req
         local leaf = leafSpecs[self.lmionLargeGateLeaf]
         local part = leaf and gridIndex and leaf.parts[gridIndex] or nil
         if part ~= nil then
-            return findInventoryItem(character, part.itemType)
+            return findParcel(character, part.itemType)
         end
         return nil
     end
@@ -265,10 +291,6 @@ ISMoveableSpriteProps.canPickUpMoveable = function(self, character, square, obje
         end
     end
 
-    if character ~= nil and not ISMoveableDefinitions.cheat and not character:isMovablesCheat() and not character:getInventory():hasRoomFor(character, 24) then
-        return false
-    end
-
     return true
 end
 
@@ -298,7 +320,9 @@ ISMoveableSpriteProps.pickUpMoveable = function(self, character, square, createI
     local items = {}
     for partIndex, member in ipairs(members) do
         local moveProps = ISMoveableSpriteProps.new(member.spriteName)
-        moveProps.isMultiSprite = false
+        -- Vanilla multisprite Pickup leaves one parcel per member on the ground.
+        -- Keep the custom per-leaf identity, but preserve multisprite delivery.
+        moveProps.isMultiSprite = true
         local item = moveProps:pickUpMoveableInternal(character, member.square, member.object, nil, member.spriteName, createItem, forceAllow)
         items[partIndex] = item
     end
