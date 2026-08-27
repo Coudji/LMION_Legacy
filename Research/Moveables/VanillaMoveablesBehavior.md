@@ -113,9 +113,26 @@ The vanilla-style destination change is now confirmed in game:
 
 ### Multiple identical parcel sets
 
-Current parcel lookup is by required LMION part item type, not by an assembly/bundle identifier. Therefore if several identical gates/garages have compatible Part1/Part2(/Part3) parcels within search range, placement may legally combine parts that originated from different physical structures.
+Current parcel lookup is by required LMION part item type, not by an assembly/bundle identifier. Runtime testing confirms that compatible parcels from multiple identical garages are deliberately interchangeable.
 
-Durability is stored per parcel, so such a mixed assembly should inherit each selected parcel's own stored health/max-health. This is currently considered acceptable/undefined vanilla-like behavior rather than a blocker. A future runtime test can decide whether LMION needs explicit bundle identity or deterministic nearest-item selection.
+Validated scenario:
+
+1. Pick up two identical garages, producing six floor parcels.
+2. Reinstall one garage from the mixed pool: only one Part1, one Part2 and one Part3 are consumed, leaving three parcels on the floor.
+3. Damage Part1 of one garage and Part3 of another.
+4. Pick up both garages, discard one undamaged Part3, substitute the damaged Part3 from the second garage, then rebuild.
+5. The rebuilt garage correctly has both Part1 and Part3 damaged.
+
+So LMION currently treats the parcels as independent physical replacement parts rather than preserving a hidden assembly identity:
+
+```text
+Part1 parcel state + Part2 parcel state + Part3 parcel state
+    -> rebuilt garage carrying those exact three per-part states
+```
+
+Durability remains attached to each parcel through `lmionDoorHealth` / `lmionDoorMaxHealth`. This behavior is accepted and useful; no bundle identity should be added unless a future gameplay requirement specifically needs it.
+
+Because parcels from otherwise identical structures can differ materially in durability, inventory/world-item presentation should expose each parcel's current/max health or condition clearly enough for the player to choose which part to use.
 
 ## Moveables sounds
 
@@ -174,8 +191,9 @@ LMION profiles already declare `DoorSound` and `ThumpSound`, and Core attempts t
 Before considering Pickup presentation complete:
 
 1. define an LMION-specific Pickup/Place duration policy that does not inherit the excessive `rawWeight * 2` penalty unchanged;
-2. decide the visual/naming treatment of simple 1x1 inventory parcels if LMION should present them explicitly as packaged doors rather than ordinary Moveable items;
-3. fix missing Pickup/Place action sounds;
-4. diagnose/fix door weapon-hit and zombie-thump sounds;
-5. audit Build timed-action sounds and animations;
-6. decide whether LMION should add explicit Pickup/Place animations beyond vanilla Moveables behavior.
+2. expose parcel/door durability clearly in inventory/world-item presentation;
+3. decide the visual/naming treatment of simple 1x1 inventory parcels if LMION should present them explicitly as packaged doors rather than ordinary Moveable items;
+4. fix missing Pickup/Place action sounds;
+5. diagnose/fix door weapon-hit and zombie-thump sounds;
+6. audit Build timed-action sounds and animations;
+7. decide whether LMION should add explicit Pickup/Place animations beyond vanilla Moveables behavior.
