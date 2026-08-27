@@ -1,6 +1,6 @@
 # Garage-door topology
 
-Status: **Bytecode-verified B42.20.3; runtime-observed B42.20.4; Industrial Pickup runtime-validated; all current LMION garage families implemented**
+Status: **Bytecode-verified B42.20.3; runtime-observed B42.20.4; Industrial fully runtime-validated; all current LMION garage families pickup/replacement runtime-validated in N/W**
 
 This note records how Project Zomboid links and operates three-panel garage doors. Garage doors are a separate engine topology from `DoubleDoor` large gates and from ordinary paired 1x1 doors.
 
@@ -206,7 +206,7 @@ The catalog models garage transport as three 20 kg packages, which matches the e
 one garage = three physical IsoDoor segments = three parcels = one placement action
 ```
 
-This transport identity is runtime-validated for the Industrial reference family and is now implemented for all seven current LMION garage families.
+Pickup and replacement in both N and W orientations are now runtime-validated across all seven current LMION garage families. `IndustrialGarageDoor` remains the full reference family for the broader behavior matrix.
 
 Each parcel preserves the exact current health and `lmionDoorMaxHealth` of its corresponding physical segment. Placement reconstructs all three closed `IsoDoor` members with the correct orientation and engine-index sprite. Vanilla previous/next discovery then restores synchronized opening/closing without LMION storing custom links.
 
@@ -239,7 +239,9 @@ The Industrial reference architecture has been extended as data to:
 
 Each family has three dedicated 20 kg parcel items and EN/FR localized names. The shared Pickup, rotation, placement and durability code is unchanged in principle; only family data and fail-closed sprite-index validation were added.
 
-These six families still require the same end-to-end in-game validation matrix as Industrial before they should be described as runtime-validated. A valid startup/runtime property check proves that their configured closed sprites carry the expected `GarageDoor = 1/2/3` identities, but it does not replace interaction testing for pickup, rotation, replacement, synchronization and durability preservation.
+Runtime testing now confirms that every generalized family can be picked up and replaced successfully in both N and W orientations. Combined with the Industrial reference, the complete current garage set therefore has runtime-validated orientation coverage for pickup and replacement.
+
+The six generalized families are not yet claimed to have passed every Industrial reference check. Remaining explicit validation includes targeting each logical member independently, rotation before placement as a cursor operation, restored synchronized opening/closing, exact unequal per-segment durability preservation and re-pickup after replacement. The startup/runtime `GarageDoor` property check remains a fail-closed guard against invalid member mappings; it complements but does not replace those interaction tests.
 
 ## Revalidation trigger
 

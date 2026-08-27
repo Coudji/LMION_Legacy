@@ -213,11 +213,13 @@ Design identity:
 one garage = three physical IsoDoor segments = three 20 kg parcels = one placement action
 ```
 
-`IndustrialGarageDoor` is the runtime-validated reference. Its complete closed-state path passes pickup from N/W, targeting any member, exact `(1/3)` / `(2/3)` / `(3/3)` parcel identity, N/W replacement, rotation before placement, restored vanilla synchronized opening/closing, re-pickup after replacement and exact per-segment current-health / `lmionDoorMaxHealth` preservation.
+Pickup and replacement are runtime-validated for **all seven current garage families in both N and W orientations**.
 
-The six remaining families are now implemented through the same data-driven path, with dedicated localized parcel items. Before a configured family is enabled for Moveables, LMION checks every closed sprite's live `GarageDoor` property against the expected engine member `1/2/3`; an inconsistent family fails closed instead of risking a Part 1 / Part 3 swap.
+`IndustrialGarageDoor` remains the full reference family. Its complete closed-state path additionally passes targeting any member, exact `(1/3)` / `(2/3)` / `(3/3)` parcel identity, rotation before placement, restored vanilla synchronized opening/closing, re-pickup after replacement and exact per-segment current-health / `lmionDoorMaxHealth` preservation.
 
-Those six generalized families still require the Industrial end-to-end runtime validation matrix before the whole garage set should be called runtime-validated. Open-state Pickup remains intentionally outside the reference path.
+The six generalized families use the same data-driven path with dedicated localized parcel items. Before a configured family is enabled for Moveables, LMION checks every closed sprite's live `GarageDoor` property against the expected engine member `1/2/3`; an inconsistent family fails closed instead of risking a Part 1 / Part 3 swap.
+
+For those six generalized families, the remaining explicit reference-matrix checks are targeting each logical member independently, rotation before placement as a cursor operation, synchronized opening/closing after replacement, unequal per-segment durability preservation and re-pickup after replacement. Open-state Pickup remains intentionally outside the reference path.
 
 Full architecture/evidence: `Research/Moveables/GarageDoorTopology.md`.
 
@@ -331,7 +333,7 @@ A new save did not reproduce the warning, including after interacting with natur
 
 ## Next intended milestones
 
-1. Runtime-validate the six generalized garage-door families against the Industrial reference matrix and close the garage Pickup milestone.
+1. Finish the remaining Industrial reference-matrix checks on the six generalized garage-door families: target-member coverage, cursor rotation, restored synchronized opening/closing, unequal per-segment durability preservation and re-pickup; then close the garage Pickup milestone.
 2. Build a real `LMION_Repair` gameplay module after transport/material/craft rules are stable enough. Core should keep only the low-level logical-health primitives.
 
 Potential locksmith/access-control systems remain future scope and must not distort the current transport architecture prematurely.
