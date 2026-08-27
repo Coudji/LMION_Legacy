@@ -147,7 +147,7 @@ ISMoveableSpriteProps.canPlaceMoveableInternal = function(self, character, squar
 
     local canonicalSpriteName = getCanonicalClosedSpriteName(self, profile, self.sprite and self.sprite:getName() or nil)
     local north = Doors.getNorthFromSprite(canonicalSpriteName)
-    if not Doors.canPlaceDoorAt(square, north, profile.requiresFrame) then
+    if not Doors.canPlaceDoorAt(square, north, profile.requiresFrame, profile.pairedFrameSide) then
         return false
     end
 
