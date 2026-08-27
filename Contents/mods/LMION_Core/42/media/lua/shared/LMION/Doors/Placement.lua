@@ -25,22 +25,19 @@ function Doors.getNorthFromSprite(sprite)
     return nil
 end
 
-local function hasPairedFrameSide(properties, pairedFrameSide)
-    if pairedFrameSide == nil then
-        return true
-    end
-    if properties == nil then
-        return false
-    end
+local function matchesFrameClass(properties, pairedFrameSide)
+    local isDoubleDoor1 = properties ~= nil and properties:has(IsoFlagType.DoubleDoor1)
+    local isDoubleDoor2 = properties ~= nil and properties:has(IsoFlagType.DoubleDoor2)
 
     if pairedFrameSide == 1 then
-        return properties:has(IsoFlagType.DoubleDoor1)
+        return isDoubleDoor1
     end
     if pairedFrameSide == 2 then
-        return properties:has(IsoFlagType.DoubleDoor2)
+        return isDoubleDoor2
     end
 
-    return false
+    -- Standard framed doors must not consume either half of a paired frame.
+    return not isDoubleDoor1 and not isDoubleDoor2
 end
 
 function Doors.canPlaceDoorAt(square, north, requiresFrame, pairedFrameSide)
@@ -59,7 +56,7 @@ function Doors.canPlaceDoorAt(square, north, requiresFrame, pairedFrameSide)
             if object:isDoorFrame() and object:getNorth() == north then
                 local sprite = object:getSprite()
                 local properties = sprite and sprite:getProperties() or nil
-                if hasPairedFrameSide(properties, pairedFrameSide) then
+                if matchesFrameClass(properties, pairedFrameSide) then
                     hasFrame = true
                 end
             end
@@ -90,7 +87,7 @@ function Doors.canPlaceDoorAt(square, north, requiresFrame, pairedFrameSide)
                 end
             end
 
-            if matchesOrientation and hasPairedFrameSide(properties, pairedFrameSide) then
+            if matchesOrientation and matchesFrameClass(properties, pairedFrameSide) then
                 hasFrame = true
             end
         end
