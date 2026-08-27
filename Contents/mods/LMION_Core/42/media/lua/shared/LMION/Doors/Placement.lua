@@ -25,7 +25,25 @@ function Doors.getNorthFromSprite(sprite)
     return nil
 end
 
-function Doors.canPlaceDoorAt(square, north, requiresFrame)
+local function hasPairedFrameSide(properties, pairedFrameSide)
+    if pairedFrameSide == nil then
+        return true
+    end
+    if properties == nil then
+        return false
+    end
+
+    if pairedFrameSide == 1 then
+        return properties:has(IsoFlagType.DoubleDoor1)
+    end
+    if pairedFrameSide == 2 then
+        return properties:has(IsoFlagType.DoubleDoor2)
+    end
+
+    return false
+end
+
+function Doors.canPlaceDoorAt(square, north, requiresFrame, pairedFrameSide)
     if square == nil or north == nil then
         return false
     end
@@ -39,7 +57,11 @@ function Doors.canPlaceDoorAt(square, north, requiresFrame)
 
         if instanceof(object, "IsoThumpable") then
             if object:isDoorFrame() and object:getNorth() == north then
-                hasFrame = true
+                local sprite = object:getSprite()
+                local properties = sprite and sprite:getProperties() or nil
+                if hasPairedFrameSide(properties, pairedFrameSide) then
+                    hasFrame = true
+                end
             end
             if object:isDoor() and object:getNorth() == north then
                 hasDoor = true
@@ -52,20 +74,24 @@ function Doors.canPlaceDoorAt(square, north, requiresFrame)
         local object = objects:get(i)
 
         if instanceof(object, "IsoObject") then
-            if north and object:getType() == IsoObjectType.doorFrN then
-                hasFrame = true
-            elseif not north and object:getType() == IsoObjectType.doorFrW then
-                hasFrame = true
-            end
-
             local sprite = object:getSprite()
             local properties = sprite and sprite:getProperties() or nil
-            if properties ~= nil then
+            local matchesOrientation = false
+
+            if north and object:getType() == IsoObjectType.doorFrN then
+                matchesOrientation = true
+            elseif not north and object:getType() == IsoObjectType.doorFrW then
+                matchesOrientation = true
+            elseif properties ~= nil then
                 if north and properties:has("DoorWallN") then
-                    hasFrame = true
+                    matchesOrientation = true
                 elseif not north and properties:has("DoorWallW") then
-                    hasFrame = true
+                    matchesOrientation = true
                 end
+            end
+
+            if matchesOrientation and hasPairedFrameSide(properties, pairedFrameSide) then
+                hasFrame = true
             end
         end
 
