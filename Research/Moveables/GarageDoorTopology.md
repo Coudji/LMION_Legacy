@@ -1,6 +1,6 @@
 # Garage-door topology
 
-Status: **Bytecode-verified B42.20.3; runtime-observed B42.20.4; Industrial Pickup runtime-validated**
+Status: **Bytecode-verified B42.20.3; runtime-observed B42.20.4; Industrial Pickup runtime-validated; all current LMION garage families implemented**
 
 This note records how Project Zomboid links and operates three-panel garage doors. Garage doors are a separate engine topology from `DoubleDoor` large gates and from ordinary paired 1x1 doors.
 
@@ -131,7 +131,23 @@ The corrected Industrial implementation is runtime-validated end to end:
 
 ## Current LMION SpriteConfig evidence
 
-LMION Core already owns garage-door `SpriteConfig` entities for construction. The current `Base.IndustrialGarageDoor` configuration declares three closed tiles in each orientation:
+LMION Core owns the seven current garage-door `SpriteConfig` entities used for construction. Every current family declares three closed tiles in each orientation and the same 3-wide topology.
+
+The engine-identity mappings encoded by Pickup are:
+
+| Family | W member 1 / 2 / 3 | N member 1 / 2 / 3 |
+|---|---|---|
+| `IndustrialGarageDoor` | `industry_trucks_01_32` / `_33` / `_34` | `industry_trucks_01_35` / `_36` / `_37` |
+| `GreenGarageDoor` | `walls_garage_01_16` / `_17` / `_18` | `walls_garage_01_19` / `_20` / `_21` |
+| `WhiteGarageDoor` | `walls_garage_01_0` / `_1` / `_2` | `walls_garage_01_3` / `_4` / `_5` |
+| `GreyGarageDoor` | `walls_garage_01_48` / `_49` / `_50` | `walls_garage_01_51` / `_52` / `_53` |
+| `RollingGarageDoor` | `walls_garage_02_0` / `_1` / `_2` | `walls_garage_02_3` / `_4` / `_5` |
+| `RedWindowGarageDoor` | `walls_garage_02_32` / `_33` / `_34` | `walls_garage_02_35` / `_36` / `_37` |
+| `RollingWindowGarageDoor` | `walls_garage_02_48` / `_49` / `_50` | `walls_garage_02_51` / `_52` / `_53` |
+
+The Industrial mapping is directly runtime-observed. The six generalized families use the same vanilla garage closed-tile convention reflected by their Core SpriteConfigs. To prevent another silent Part 1 / Part 3 inversion, Pickup validates every configured closed sprite against its live `GarageDoor` property before enabling Moveables or installing its runtime `IsoSpriteGrid`. A family whose raw property does not match the expected logical member is rejected rather than transported with an uncertain topology.
+
+For every current family, Core's W `SpriteConfig` visual/local-grid order is reversed relative to engine identity. For example, `IndustrialGarageDoor` declares:
 
 ```text
 W visual/local-grid order: industry_trucks_01_34
@@ -141,9 +157,7 @@ W visual/local-grid order: industry_trucks_01_34
 N visual/local-grid order: industry_trucks_01_35 industry_trucks_01_36 industry_trucks_01_37
 ```
 
-The W visual/local-grid order must not be confused with engine identity. The engine identities are `_32=1`, `_33=2`, `_34=3`.
-
-The resulting dimensions are `1x3` for W and `3x1` for N.
+The W visual/local-grid order must not be confused with engine identity. The resulting dimensions are `1x3` for W and `3x1` for N.
 
 ## Geometry contract for LMION Pickup
 
@@ -192,13 +206,13 @@ The catalog models garage transport as three 20 kg packages, which matches the e
 one garage = three physical IsoDoor segments = three parcels = one placement action
 ```
 
-This transport identity is runtime-validated for the Industrial reference family.
+This transport identity is runtime-validated for the Industrial reference family and is now implemented for all seven current LMION garage families.
 
 Each parcel preserves the exact current health and `lmionDoorMaxHealth` of its corresponding physical segment. Placement reconstructs all three closed `IsoDoor` members with the correct orientation and engine-index sprite. Vanilla previous/next discovery then restores synchronized opening/closing without LMION storing custom links.
 
 ## Industrial reference validation
 
-The reference family now passes the complete closed-state validation set:
+The reference family passes the complete closed-state validation set:
 
 1. target logical member 1, 2 or 3;
 2. obtain exactly three `(1/3)`, `(2/3)`, `(3/3)` parcels;
@@ -212,8 +226,21 @@ The reference family now passes the complete closed-state validation set:
 
 Open-state Pickup is not part of the reference path.
 
-The Industrial family is therefore the approved reference for generalizing the remaining garage families as data.
+## Generalized family state
+
+The Industrial reference architecture has been extended as data to:
+
+- `GreenGarageDoor`;
+- `WhiteGarageDoor`;
+- `GreyGarageDoor`;
+- `RollingGarageDoor`;
+- `RedWindowGarageDoor`;
+- `RollingWindowGarageDoor`.
+
+Each family has three dedicated 20 kg parcel items and EN/FR localized names. The shared Pickup, rotation, placement and durability code is unchanged in principle; only family data and fail-closed sprite-index validation were added.
+
+These six families still require the same end-to-end in-game validation matrix as Industrial before they should be described as runtime-validated. A valid startup/runtime property check proves that their configured closed sprites carry the expected `GarageDoor = 1/2/3` identities, but it does not replace interaction testing for pickup, rotation, replacement, synchronization and durability preservation.
 
 ## Revalidation trigger
 
-Recheck this note if Project Zomboid changes the `GarageDoor` property scheme, `IsoDoor.getGarageDoor*` methods, `IsoDoor` constructor sprite offsets, or garage SpriteConfig topology.
+Recheck this note if Project Zomboid changes the `GarageDoor` property scheme, `IsoDoor.getGarageDoor*` methods, `IsoDoor` constructor sprite offsets, garage SpriteConfig topology, or the closed-sprite `GarageDoor` identities of any supported family.

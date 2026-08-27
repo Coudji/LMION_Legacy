@@ -70,9 +70,22 @@ local function installAllRuntimeSpriteGrids()
     local expected = 0
 
     for _, family in pairs(GarageDoor.Families) do
+        local valid = true
+        local reason = nil
+        if GarageDoor.validateFamily ~= nil then
+            valid, reason = GarageDoor.validateFamily(family)
+        end
+
+        if not valid then
+            LMION.error(
+                "Pickup",
+                "garage door family " .. tostring(family.id) .. " disabled: " .. tostring(reason)
+            )
+        end
+
         for _, facing in ipairs({"N", "W"}) do
             expected = expected + 1
-            if installGrid(family, facing) then
+            if valid and installGrid(family, facing) then
                 installed = installed + 1
             end
         end

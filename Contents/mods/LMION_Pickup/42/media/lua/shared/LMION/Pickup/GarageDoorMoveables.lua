@@ -48,16 +48,40 @@ end
 
 local function markKnownSpritesMoveable()
     local configured = 0
-    for spriteName, _ in pairs(segmentsBySprite) do
-        local sprite = getSprite(spriteName)
-        local properties = sprite and sprite:getProperties() or nil
-        if properties ~= nil then
-            properties:set("IsMoveAble")
-            configured = configured + 1
+    local rejectedFamilies = 0
+
+    for _, family in pairs(GarageDoor.Families) do
+        local valid = true
+        local reason = nil
+        if GarageDoor.validateFamily ~= nil then
+            valid, reason = GarageDoor.validateFamily(family)
+        end
+
+        if valid then
+            for partIndex = 1, 3 do
+                local part = family.parts[partIndex]
+                for _, facing in ipairs({"N", "W"}) do
+                    local sprite = getSprite(part.faces[facing])
+                    local properties = sprite and sprite:getProperties() or nil
+                    if properties ~= nil then
+                        properties:set("IsMoveAble")
+                        configured = configured + 1
+                    end
+                end
+            end
+        else
+            rejectedFamilies = rejectedFamilies + 1
+            LMION.error(
+                "Pickup",
+                "garage door family " .. tostring(family.id) .. " is not Moveables-safe: " .. tostring(reason)
+            )
         end
     end
 
-    LMION.log("Pickup", "configured " .. tostring(configured) .. " industrial garage door sprites for Moveables")
+    LMION.log("Pickup", "configured " .. tostring(configured) .. " garage door sprites for Moveables")
+    if rejectedFamilies > 0 then
+        LMION.error("Pickup", tostring(rejectedFamilies) .. " garage door families rejected by sprite-index validation")
+    end
 end
 
 if Pickup._garageDoorPreviousNew == nil then

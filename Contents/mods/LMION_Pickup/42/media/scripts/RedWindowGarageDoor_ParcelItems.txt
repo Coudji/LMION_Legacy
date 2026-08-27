@@ -1,0 +1,33 @@
+module Base
+{
+    /*
+    One garage door is transported as three physical parcels. The Lua garage
+    topology layer binds each parcel to one logical GarageDoor segment.
+    */
+    item LMION_RedWindowGarageDoor_Part1
+    {
+        DisplayCategory = Furniture,
+        ItemType = base:moveable,
+        Icon = default,
+        Weight = 20.0,
+        Tags = base:usedisplayname,
+    }
+
+    item LMION_RedWindowGarageDoor_Part2
+    {
+        DisplayCategory = Furniture,
+        ItemType = base:moveable,
+        Icon = default,
+        Weight = 20.0,
+        Tags = base:usedisplayname,
+    }
+
+    item LMION_RedWindowGarageDoor_Part3
+    {
+        DisplayCategory = Furniture,
+        ItemType = base:moveable,
+        Icon = default,
+        Weight = 20.0,
+        Tags = base:usedisplayname,
+    }
+}

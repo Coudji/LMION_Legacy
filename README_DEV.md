@@ -1,6 +1,6 @@
 # Let Me In... Or Not — Development & handoff
 
-Last updated: 2026-08-26
+Last updated: 2026-08-27
 
 This is the **single authoritative development/handoff document** for LMION. It is intentionally responsible for the information that must survive between development sessions: project structure, current validated state, design guardrails, workflow rules and the next intended milestones.
 
@@ -193,11 +193,33 @@ GameEntityFactory.TransferComponents> Cannot transfer components for multi-squar
 
 No concrete state-loss bug has been reproduced from it. Do not add a workaround until one is demonstrated.
 
-### Garage doors
+### Garage-door Pickup
 
-Garage doors remain a separate multi-tile problem. Their linkage uses `garageDoorIndex`, `garage.first`, `garage.prev`, `garage.next`, etc., rather than DoubleDoor logical indices.
+Garage doors use their own three-member engine topology and do not reuse the `DoubleDoor` large-gate leaf model.
 
-Do not generalize the two-segment leaf model to garage doors without separate research/validation.
+The current specialized Pickup implementation supports all seven LMION garage families:
+
+- Industrial Garage Door;
+- Green Garage Door;
+- White Garage Door;
+- Grey Garage Door;
+- Rolling Garage Door;
+- Red Window Garage Door;
+- Rolling Window Garage Door.
+
+Design identity:
+
+```text
+one garage = three physical IsoDoor segments = three 20 kg parcels = one placement action
+```
+
+`IndustrialGarageDoor` is the runtime-validated reference. Its complete closed-state path passes pickup from N/W, targeting any member, exact `(1/3)` / `(2/3)` / `(3/3)` parcel identity, N/W replacement, rotation before placement, restored vanilla synchronized opening/closing, re-pickup after replacement and exact per-segment current-health / `lmionDoorMaxHealth` preservation.
+
+The six remaining families are now implemented through the same data-driven path, with dedicated localized parcel items. Before a configured family is enabled for Moveables, LMION checks every closed sprite's live `GarageDoor` property against the expected engine member `1/2/3`; an inconsistent family fails closed instead of risking a Part 1 / Part 3 swap.
+
+Those six generalized families still require the Industrial end-to-end runtime validation matrix before the whole garage set should be called runtime-validated. Open-state Pickup remains intentionally outside the reference path.
+
+Full architecture/evidence: `Research/Moveables/GarageDoorTopology.md`.
 
 ## Core technical guardrails
 
@@ -309,7 +331,7 @@ A new save did not reproduce the warning, including after interacting with natur
 
 ## Next intended milestones
 
-1. Research/implement garage-door transport as its own multi-tile system.
+1. Runtime-validate the six generalized garage-door families against the Industrial reference matrix and close the garage Pickup milestone.
 2. Build a real `LMION_Repair` gameplay module after transport/material/craft rules are stable enough. Core should keep only the low-level logical-health primitives.
 
 Potential locksmith/access-control systems remain future scope and must not distort the current transport architecture prematurely.
