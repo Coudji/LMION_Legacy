@@ -114,28 +114,74 @@ local function isHammerTool(toolName)
     return toolName == "Hammer" or toolName == "LMIONMetalHammer"
 end
 
---[[
-LMION transport presentation follows the gameplay tool contract instead of using
-whatever item happened to remain in the character's hands from the previous move:
+local function getScrapDefinition(action)
+    local moveProps = action and action.moveProps or nil
+    local material = moveProps and moveProps.material or nil
+    if material == nil then
+        return nil
+    end
 
+    local definitions = ISMoveableDefinitions and ISMoveableDefinitions:getInstance() or nil
+    return definitions and definitions.getScrapDefinition(material) or nil
+end
+
+local function scrapUsesBlowTorch(action)
+    local scrapDef = getScrapDefinition(action)
+    local tools = scrapDef and scrapDef.tools or nil
+    if tools == nil then
+        return false
+    end
+
+    for _, fullType in ipairs(tools) do
+        if fullType == "Base.BlowTorch" then
+            return true
+        end
+    end
+
+    return false
+end
+
+local function findUsableBlowTorch(character)
+    local inventory = character and character:getInventory() or nil
+    if inventory == nil then
+        return nil
+    end
+
+    return inventory:getFirstTypeEvalRecurse("Base.BlowTorch", function(item)
+        return item ~= nil and item:getCurrentUsesFloat() >= 0.1
+    end)
+end
+
+--[[
+LMION presentation follows the gameplay tool contract instead of whatever item
+happened to remain in the character's hands from the previous Moveables action.
+
+Transport:
 - Screwdriver Pickup/Place: Disassemble animation with the real screwdriver.
 - Crowbar Pickup: vanilla RemoveBarricade/CrowbarMid animation and crowbar sound.
 - Hammer Place: vanilla Build animation and configured Hammering sound.
 
-walkToAndEquip() normally queues the required Moveables tool before the action, but
-specialized multi-part placement can leave the previous tool visible until that
-queued equip completes. Resolve the configured tool again when ISMoveablesAction
-starts and make it the real primary-hand item immediately; the queued vanilla equip
-then becomes harmless/idempotent.
-
-Scrap remains fully vanilla. Metal scrap definitions already own BlowTorch animation,
-sound, and the welding-mask requirement.
+Scrap:
+Vanilla ISMoveablesAction chooses BlowTorch only when a blowtorch is already
+EQUIPPED when start() runs. A metal Scrap definition may correctly require a
+blowtorch + welding protection yet visually fall through to Disassemble/Screwdriver
+if the queued equip has not completed. For LMION openings whose actual Scrap
+definition requires Base.BlowTorch, equip the real usable torch immediately before
+vanilla evaluates its animation branch. Vanilla still owns Scrap eligibility,
+secondary welding-mask/goggles validation, duration, sound and tool consumption.
 ]]
 if Pickup._pickupPresentationOriginalActionStart == nil then
     Pickup._pickupPresentationOriginalActionStart = ISMoveablesAction.start
 end
 
 ISMoveablesAction.start = function(self)
+    if isLmionTransportAction(self) and self.mode == "scrap" and scrapUsesBlowTorch(self) then
+        local blowTorch = findUsableBlowTorch(self.character)
+        equipResolvedToolNow(self, blowTorch)
+        Pickup._pickupPresentationOriginalActionStart(self)
+        return
+    end
+
     if not isLmionTransportAction(self)
         or (self.mode ~= "pickup" and self.mode ~= "place") then
         Pickup._pickupPresentationOriginalActionStart(self)
