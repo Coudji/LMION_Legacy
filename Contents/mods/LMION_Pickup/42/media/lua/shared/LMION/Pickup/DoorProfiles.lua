@@ -18,6 +18,11 @@ local function add(entityName, tool, level, weightKg)
     }
 end
 
+local function addPaired(entityName, tool, level, weightKg, frameSide)
+    add(entityName, tool, level, weightKg)
+    Profiles.entities[entityName].pairedFrameSide = frameSide
+end
+
 local function addGate(entityName, pickUpTool, placeTool, level, weightKg)
     Profiles.entities[entityName] = {
         id = entityName,
@@ -76,18 +81,19 @@ add("LogDoor", nil, 0, 25)
 add("JailDoor", "Metal", 5, 30)
 add("SecurityDoor", "Metal", 5, 35)
 
--- Paired double doors are independent 1x1 leaves. Pickup treats each leaf exactly
--- like its closest regular-door counterpart; a normal door frame is still required.
-add("BlackTwoPaneDoubleDoorLeft", "Metal", 2, 21)
-add("BlackTwoPaneDoubleDoorRight", "Metal", 2, 21)
-add("GreyMetalDoubleDoorLeft", "Metal", 2, 24)
-add("GreyMetalDoubleDoorRight", "Metal", 2, 24)
-add("YellowServiceDoubleDoorLeft", "Metal", 1, 17)
-add("YellowServiceDoubleDoorRight", "Metal", 1, 17)
-add("BlueChurchDoubleDoorLeft", "Screwdriver", 3, 17)
-add("BlueChurchDoubleDoorRight", "Screwdriver", 3, 17)
-add("BrownChurchDoubleDoorLeft", "Screwdriver", 3, 17)
-add("BrownChurchDoubleDoorRight", "Screwdriver", 3, 17)
+-- Paired double doors remain independent 1x1 leaves, but replacement is only
+-- valid in the matching structural double-door frame side reported by B42:
+-- Left -> DoubleDoor1, Right -> DoubleDoor2.
+addPaired("BlackTwoPaneDoubleDoorLeft", "Metal", 2, 21, 1)
+addPaired("BlackTwoPaneDoubleDoorRight", "Metal", 2, 21, 2)
+addPaired("GreyMetalDoubleDoorLeft", "Metal", 2, 24, 1)
+addPaired("GreyMetalDoubleDoorRight", "Metal", 2, 24, 2)
+addPaired("YellowServiceDoubleDoorLeft", "Metal", 1, 17, 1)
+addPaired("YellowServiceDoubleDoorRight", "Metal", 1, 17, 2)
+addPaired("BlueChurchDoubleDoorLeft", "Screwdriver", 3, 17, 1)
+addPaired("BlueChurchDoubleDoorRight", "Screwdriver", 3, 17, 2)
+addPaired("BrownChurchDoubleDoorLeft", "Screwdriver", 3, 17, 1)
+addPaired("BrownChurchDoubleDoorRight", "Screwdriver", 3, 17, 2)
 
 addGate("SmallWhiteWoodenGate", "Crowbar", "Hammer", 1, 7)
 addGate("WoodFenceGate", "Crowbar", "Hammer", 1, 14)
