@@ -5,6 +5,31 @@ local Pickup = LMION.Pickup
 local Doors = LMION.Doors
 local DoorMoveables = Pickup.DoorMoveables
 
+local function getCanonicalClosedSpriteName(moveProps, profile, fallbackSpriteName)
+    if moveProps == nil or profile == nil or profile.moveFaces == nil then
+        return fallbackSpriteName
+    end
+
+    local facing = moveProps.facing or moveProps.lmionDoorFacing
+    if facing == "N" and profile.moveFaces.N ~= nil then
+        return profile.moveFaces.N
+    end
+    if facing == "W" and profile.moveFaces.W ~= nil then
+        return profile.moveFaces.W
+    end
+
+    local sprite = fallbackSpriteName and getSprite(fallbackSpriteName) or moveProps.sprite
+    local north = Doors.getNorthFromSprite(sprite)
+    if north == true and profile.moveFaces.N ~= nil then
+        return profile.moveFaces.N
+    end
+    if north == false and profile.moveFaces.W ~= nil then
+        return profile.moveFaces.W
+    end
+
+    return fallbackSpriteName
+end
+
 if Pickup._originalMoveableSpritePropsNew == nil then
     Pickup._originalMoveableSpritePropsNew = ISMoveableSpriteProps.new
 end
@@ -54,14 +79,19 @@ end
 Vanilla serializes a Moveable through instanceItem(). LMION captures door health
 just before vanilla removes the IsoDoor, then injects that state into the item
 created by vanilla instead of inventing a parallel serialization path.
+
+Door inventory identity is always canonicalized to the CLOSED N/W SpriteConfig
+face. Picking up an open 1x1 door must never preserve its open sprite in the
+Moveable item because that breaks rotation and would reinstall the door open.
 ]]
 if Pickup._originalMoveableInstanceItem == nil then
     Pickup._originalMoveableInstanceItem = ISMoveableSpriteProps.instanceItem
 end
 
 ISMoveableSpriteProps.instanceItem = function(self, spriteNameOverride)
-    local item = Pickup._originalMoveableInstanceItem(self, spriteNameOverride)
     local profile = self and (self.lmionDoorProfile or DoorMoveables.getProfileForMoveProps(self)) or nil
+    local canonicalSpriteName = getCanonicalClosedSpriteName(self, profile, spriteNameOverride)
+    local item = Pickup._originalMoveableInstanceItem(self, canonicalSpriteName)
 
     if item ~= nil and profile ~= nil then
         if self.lmionPendingHealth ~= nil then
@@ -115,7 +145,8 @@ ISMoveableSpriteProps.canPlaceMoveableInternal = function(self, character, squar
         return false
     end
 
-    local north = Doors.getNorthFromSprite(self.sprite)
+    local canonicalSpriteName = getCanonicalClosedSpriteName(self, profile, self.sprite and self.sprite:getName() or nil)
+    local north = Doors.getNorthFromSprite(canonicalSpriteName)
     if not Doors.canPlaceDoorAt(square, north, profile.requiresFrame) then
         return false
     end
@@ -148,7 +179,8 @@ ISMoveableSpriteProps.placeMoveableInternal = function(self, square, item, sprit
         savedMaxHealth = tonumber(modData.lmionDoorMaxHealth)
     end
 
-    local result = Pickup._originalPlaceMoveableInternal(self, square, item, spriteName)
+    local canonicalSpriteName = getCanonicalClosedSpriteName(self, profile, spriteName)
+    local result = Pickup._originalPlaceMoveableInternal(self, square, item, canonicalSpriteName)
 
     if profile ~= nil and (savedHealth ~= nil or savedMaxHealth ~= nil) then
         local door = nil
@@ -156,7 +188,7 @@ ISMoveableSpriteProps.placeMoveableInternal = function(self, square, item, sprit
         if result ~= nil and instanceof(result, "IsoDoor") then
             door = result
         else
-            door = DoorMoveables.findPlacedDoor(square, spriteName)
+            door = DoorMoveables.findPlacedDoor(square, canonicalSpriteName)
         end
 
         if door ~= nil then

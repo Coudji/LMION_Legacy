@@ -1,6 +1,6 @@
 # Paired-door Pickup
 
-Status: **generic framed 1x1 Pickup path runtime-validated; corrected Left/Right N/W face mapping pending targeted runtime revalidation**.
+Status: **generic framed 1x1 Pickup path runtime-validated; corrected Left/Right N/W face mapping runtime-validated; open-state canonical closed placement pending runtime validation**.
 
 ## Gameplay contract
 
@@ -36,19 +36,34 @@ Right: N closed/open = fixtures_doors_02_45 / 47
 
 The same eight-sprite layout is used by all five current paired families, so their W and W_OPEN faces are crossed between Left and Right while N and N_OPEN remain unchanged. This keeps the semantic leaf identity stable when rotating between N and W.
 
+## Open-state transport invariant
+
+All generic LMION 1x1 doors, framed or frameless, use a **closed canonical inventory identity**.
+
+```text
+closed world door -> Pickup -> closed Moveable face -> placement closed
+open world door   -> Pickup -> closed Moveable face -> placement closed
+```
+
+An open SpriteConfig face may be the world sprite selected for Pickup, but it is never meant to survive as the Moveable item's placement sprite. Keeping the open sprite in the item breaks the normal N/W face rotation path and allows a door to be reinstalled already open.
+
+The generic 1x1 registry therefore recovers N/W orientation for any known open sprite through the engine `doorN` / `doorW` flags. Inventory serialization and placement then canonicalize that orientation back to the profile's closed `N` / `W` face. This also lets previously serialized open-sprite items recover their normal closed-face rotation/placement path when they are loaded through the corrected registry.
+
 ## Implementation
 
 The ten current paired entities are registered in `LMION_Pickup`'s normal `DoorProfiles` table. No paired-specific Moveables hooks, neighbor resolution, multi-item transport, SpriteGrid or synchronization code is used.
 
 Dedicated `Base.LMION_<Entity>` Moveable items exist for each Left/Right leaf so inventory identity remains unambiguous.
 
-Because the face definitions live under `media/scripts`, a full game/server restart is required after face-mapping changes before runtime validation.
+Because paired face definitions live under `media/scripts`, a full game/server restart is required after paired SpriteConfig face-mapping changes before runtime validation. The generic open-state canonicalization itself is Lua-only, but a cold restart remains the safest validation path after the preceding script changes.
 
 ## Runtime validation target
 
-After the corrected face mapping, verify at least one pair through:
+Verify at least one paired leaf and one ordinary 1x1 door through:
 
-- construct Left and Right in N and confirm visual identity;
-- rotate/place each in W and confirm Left remains Left and Right remains Right;
-- open/close both orientations and confirm the open face matches the same leaf;
-- pickup/replacement still preserves current health and `lmionDoorMaxHealth`.
+- pickup while closed -> rotate -> replace closed;
+- pickup while open -> inventory/placement preview uses the closed face;
+- open-picked item can rotate N/W normally;
+- replacement is always closed;
+- current health and `lmionDoorMaxHealth` survive pickup/replacement;
+- paired Left/Right identity remains stable across N/W rotation.

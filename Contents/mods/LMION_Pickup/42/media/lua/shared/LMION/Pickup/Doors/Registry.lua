@@ -148,14 +148,32 @@ function DoorMoveables.applyProfileToMoveProps(moveProps, sprite)
     moveProps.lmionDoorFaces = profile.moveFaces
     moveProps.lmionDoorFacing = nil
 
-    local spriteName = moveProps.sprite and moveProps.sprite:getName() or nil
+    local resolvedSprite = sprite or moveProps.sprite
+    if type(resolvedSprite) == "string" then
+        resolvedSprite = getSprite(resolvedSprite)
+    end
+
+    local spriteName = resolvedSprite and resolvedSprite:getName() or nil
     if profile.moveFaces ~= nil and spriteName ~= nil then
         if spriteName == profile.moveFaces.N then
             moveProps.lmionDoorFacing = "N"
-            moveProps.facing = "N"
         elseif spriteName == profile.moveFaces.W then
             moveProps.lmionDoorFacing = "W"
-            moveProps.facing = "W"
+        else
+            -- Open SpriteConfig faces are also owned by the same profile. Their
+            -- sprite name is not one of the canonical closed Moveables faces, so
+            -- recover orientation from the engine door flags and canonicalize
+            -- them later during inventory serialization / placement.
+            local north = LMION.Doors.getNorthFromSprite(resolvedSprite)
+            if north == true then
+                moveProps.lmionDoorFacing = "N"
+            elseif north == false then
+                moveProps.lmionDoorFacing = "W"
+            end
+        end
+
+        if moveProps.lmionDoorFacing ~= nil then
+            moveProps.facing = moveProps.lmionDoorFacing
         end
     end
 
