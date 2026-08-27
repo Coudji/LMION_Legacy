@@ -4,12 +4,24 @@ local Pickup = LMION.Pickup
 local GarageDoor = Pickup.GarageDoor or {}
 Pickup.GarageDoor = GarageDoor
 
+local function offsetSpriteName(spriteName, delta)
+    local prefix, id = string.match(spriteName or "", "^(.*_)(%d+)$")
+    id = tonumber(id)
+    if prefix == nil or id == nil then
+        return nil
+    end
+    return prefix .. tostring(id + delta)
+end
+
 --[[
 Garage-door transport is data-driven. `parts` is engine identity: normalized
-GarageDoor 1/2/3. Runtime tracing on B42.20.4 confirms Industrial W sprites map
-as 32=1, 33=2, 34=3; the remaining LMION garage SpriteConfigs use the same
-vanilla closed-tile ordering and are validated against their live `GarageDoor`
-properties before Moveables is enabled.
+GarageDoor 1/2/3. Runtime validation on B42.20.3 confirms the vanilla garage
+contract is stable in N/W and open/closed states:
+
+- closed members use GarageDoor 1/2/3;
+- open sprites are the corresponding closed sprite +8;
+- opening does not move or recreate any member;
+- normalized engine member identity stays 1/2/3.
 
 `gridPartOrder` is visual SpriteGrid order from local coordinate 0 toward +X/+Y.
 It is identical to engine order in N and reversed in W because vanilla garage
@@ -23,6 +35,10 @@ local function makeFamily(id, nSprites, wSprites)
             faces = {
                 N = nSprites[partIndex],
                 W = wSprites[partIndex],
+            },
+            openFaces = {
+                N = offsetSpriteName(nSprites[partIndex], 8),
+                W = offsetSpriteName(wSprites[partIndex], 8),
             },
         }
     end
@@ -99,17 +115,40 @@ for familyId, family in pairs(families) do
     end
 
     for partIndex, part in ipairs(family.parts) do
-        for facing, spriteName in pairs(part.faces) do
-            segmentsBySprite[spriteName] = {
+        for _, facing in ipairs({"N", "W"}) do
+            local closedSpriteName = part.faces[facing]
+            local openSpriteName = part.openFaces[facing]
+            local rotationFaces = rotationFacesBySprite[closedSpriteName] or part.faces
+
+            segmentsBySprite[closedSpriteName] = {
                 familyId = familyId,
                 family = family,
                 partIndex = partIndex,
                 itemType = part.itemType,
                 faces = part.faces,
-                rotationFaces = rotationFacesBySprite[spriteName] or part.faces,
+                rotationFaces = rotationFaces,
                 facing = facing,
-                spriteName = spriteName,
+                spriteName = closedSpriteName,
+                closedSpriteName = closedSpriteName,
+                openSpriteName = openSpriteName,
+                isOpen = false,
             }
+
+            if openSpriteName ~= nil then
+                segmentsBySprite[openSpriteName] = {
+                    familyId = familyId,
+                    family = family,
+                    partIndex = partIndex,
+                    itemType = part.itemType,
+                    faces = part.faces,
+                    rotationFaces = rotationFaces,
+                    facing = facing,
+                    spriteName = openSpriteName,
+                    closedSpriteName = closedSpriteName,
+                    openSpriteName = openSpriteName,
+                    isOpen = true,
+                }
+            end
         end
     end
 end
@@ -121,7 +160,7 @@ local function validateFamily(family)
 
     for partIndex = 1, 3 do
         local part = family.parts[partIndex]
-        if part == nil or part.faces == nil then
+        if part == nil or part.faces == nil or part.openFaces == nil then
             return false, "missing part " .. tostring(partIndex)
         end
 
@@ -140,6 +179,11 @@ local function validateFamily(family)
                     tostring(spriteName)
                     .. " GarageDoor=" .. tostring(rawIndex)
                     .. ", expected " .. tostring(partIndex)
+            end
+
+            local openSpriteName = part.openFaces[facing]
+            if openSpriteName == nil or getSprite(openSpriteName) == nil then
+                return false, "missing open alias " .. tostring(openSpriteName)
             end
         end
     end
