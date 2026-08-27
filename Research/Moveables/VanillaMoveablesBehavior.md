@@ -1,6 +1,6 @@
 # Vanilla Moveables behavior relevant to LMION
 
-Status: **B42.20.3/B42 current-source behavior researched; LMION policy changes not decided yet**.
+Status: **B42.20.3/B42 current-source behavior researched; LMION parcel destination policy now aligned with vanilla**.
 
 This note records vanilla Moveables rules that matter for LMION's remaining Pickup polish work: action duration, parcel count/destination, sounds and animation behavior.
 
@@ -80,11 +80,26 @@ single resulting item -> character inventory
 
 Capacity checks follow the same policy. Normal multisprites do not require room for the complete resulting structure because their packages are left in the world. A single-sprite or `ForceSingleItem` pickup must fit the resulting item in inventory.
 
-### Current LMION divergence
+### LMION policy
 
-Large-gate and garage Pickup currently force their member MoveProps into single-sprite mode before calling `pickUpMoveableInternal()`. This intentionally made the custom parcels enter character inventory, but it diverges from vanilla multisprite parcel behavior and can overload the player with the complete 24-60 kg result.
+LMION now follows that destination model:
 
-This should be revisited. If LMION keeps multi-parcel transport identity, the vanilla-consistent default is likely to leave those parcels on the ground rather than inject all of them into inventory.
+- simple 1x1 doors / paired 1x1 leaves remain single inventory items;
+- a two-segment large-gate leaf produces two parcels on the ground;
+- a three-segment garage produces three parcels on the ground.
+
+The specialized large-gate and garage placement paths search for required parcels first in character inventory and then on nearby ground, using the same 3-tile Moveables search radius as vanilla. A placement may therefore consume one parcel carried by the player and the remaining required parcels from the floor.
+
+This preserves realistic transport weight without requiring the player to hold the complete 24 kg large-gate leaf or 60 kg garage at once.
+
+Current transport weights remain:
+
+```text
+large-gate leaf: 2 x 12 kg = 24 kg
+garage:          3 x 20 kg = 60 kg
+```
+
+The 60 kg garage total is retained as a plausible steel sectional-garage-door mass and is no longer a placement blocker because floor parcels are directly consumable.
 
 ## Moveables sounds
 
@@ -143,7 +158,7 @@ LMION profiles already declare `DoorSound` and `ThumpSound`, and Core attempts t
 Before considering Pickup presentation complete:
 
 1. define an LMION-specific Pickup/Place duration policy that does not inherit the excessive `rawWeight * 2` penalty unchanged;
-2. decide whether multi-parcel large gates and garages should follow vanilla and drop parcels on the ground;
+2. decide the visual/naming treatment of simple 1x1 inventory parcels if LMION should present them explicitly as packaged doors rather than ordinary Moveable items;
 3. fix missing Pickup/Place action sounds;
 4. diagnose/fix door weapon-hit and zombie-thump sounds;
 5. audit Build timed-action sounds and animations;
