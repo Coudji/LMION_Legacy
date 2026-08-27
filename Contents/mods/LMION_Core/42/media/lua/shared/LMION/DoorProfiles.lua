@@ -1,12 +1,13 @@
 local Profiles = {}
 
-local function add(id, name, durabilityClass, worldMaxHealth, skill, health, skillBaseHealth, material1, material2, material3, materialType, doorSound, thumpSound, frame)
+local function add(id, name, durabilityClass, worldMaxHealth, skill, health, skillBaseHealth, material1, material2, material3, materialType, doorSound, thumpSound, frame, pairedFrameSide)
     Profiles[id] = {
         id = id,
         fallbackName = name,
         class = durabilityClass,
         frame = frame,
         requiresFrame = frame == "standard" or frame == "paired",
+        pairedFrameSide = pairedFrameSide,
         durability = {
             worldMaxHealth = worldMaxHealth,
             health = health,
