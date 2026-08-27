@@ -1,7 +1,8 @@
 require "BuildingObjects/ISMoveableCursor"
-require "LMION/Pickup/LargeGateMoveables"
+require "LMION/Pickup/LargeGateOpenState"
 
 local Pickup = LMION.Pickup
+local LargeGate = Pickup.LargeGate
 local leafSpecs = Pickup.LargeGateLeafSpecs or {}
 
 local function isLargeGateMoveProps(moveProps)
@@ -11,15 +12,55 @@ local function isLargeGateMoveProps(moveProps)
         and moveProps.lmionDoorFaces ~= nil
 end
 
+local function renderFloorFootprint(members)
+    for _, member in ipairs(members) do
+        local square = member.square
+        local floor = square and square:getFloor() or nil
+        local floorSprite = floor and floor:getSprite() or nil
+
+        if floorSprite ~= nil then
+            floorSprite:RenderGhostTileColor(
+                square:getX(),
+                square:getY(),
+                square:getZ(),
+                0.75,
+                1,
+                0.75,
+                0.25
+            )
+        end
+    end
+end
+
 if Pickup._largeGateOriginalRenderSpriteGrid == nil then
     Pickup._largeGateOriginalRenderSpriteGrid = ISMoveableCursor.renderSpriteGrid
 end
 
 --[[
-Large-gate previews always keep the two-square footprint. Most families render
-one complete artwork member; the Farm Gate explicitly opts into both members.
+Open large gates do not occupy their closed SpriteGrid footprint. During Pickup,
+resolve the real two-member leaf through the engine-aware open-state resolver and
+highlight only those physical floor squares. Closed Pickup and placement keep the
+existing tested SpriteGrid rendering path.
 ]]
 ISMoveableCursor.renderSpriteGrid = function(self, x, y, z, color)
+    local mode = ISMoveableCursor.mode and ISMoveableCursor.mode[self.player] or nil
+    if mode == "pickup"
+        and self.currentMoveProps ~= nil
+        and self.currentMoveProps.lmionLargeGateIsOpen == true
+        and isLargeGateMoveProps(self.currentMoveProps) then
+        local square = self.currentSquare or getCell():getGridSquare(x, y, z)
+        local selected = square and self.currentMoveProps:findOnSquare(square, self.currentMoveProps.spriteName) or nil
+        local members = selected
+            and LargeGate.getOpenAwareLeafMembers
+            and LargeGate.getOpenAwareLeafMembers(selected, self.currentMoveProps.lmionLargeGateLeaf)
+            or nil
+
+        if members ~= nil then
+            renderFloorFootprint(members)
+        end
+        return
+    end
+
     if not isLargeGateMoveProps(self.origMoveProps)
         or not isLargeGateMoveProps(self.currentMoveProps) then
         return Pickup._largeGateOriginalRenderSpriteGrid(self, x, y, z, color)
