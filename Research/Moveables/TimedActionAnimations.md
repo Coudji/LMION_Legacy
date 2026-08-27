@@ -40,6 +40,7 @@ Useful current vanilla Lua source snapshot used by LMION research:
 - `ISMoveableSpriteProps.lua`: https://github.com/Project-Zomboid-Community-Modding/ProjectZomboid-Vanilla-Lua/blob/8a906692ac56f9d40c078d654eea6c70491cbc62/shared/Moveables/ISMoveableSpriteProps.lua
 - `ISUnbarricadeAction.lua`: https://github.com/Project-Zomboid-Community-Modding/ProjectZomboid-Vanilla-Lua/blob/8a906692ac56f9d40c078d654eea6c70491cbc62/shared/TimedActions/ISUnbarricadeAction.lua
 - `ISDismantleAction.lua`: https://github.com/Project-Zomboid-Community-Modding/ProjectZomboid-Vanilla-Lua/blob/8a906692ac56f9d40c078d654eea6c70491cbc62/shared/TimedActions/ISDismantleAction.lua
+- `AnimationClipViewer.lua`: https://github.com/Project-Zomboid-Community-Modding/ProjectZomboid-Vanilla-Lua/blob/8a906692ac56f9d40c078d654eea6c70491cbc62/client/DebugUIs/AnimationClipViewer.lua
 
 LMION runtime is currently B42.20.4. The local extracted script reference used during this research is B42.20.3, so exact installed B42.20.4 AnimSets outrank this note if they disagree.
 
@@ -105,12 +106,21 @@ Current evidence:
 1. **`Disassemble` is the generic vanilla Moveables screwdriver-looking action.**
    `ISMoveablesAction:start()` falls back to `CharacterActionAnims.Disassemble` and forces the hand model `"Screwdriver"` when Scrap is not recognized as blowtorch or hammer work.
 
-2. **`disassembleElectrical` is a distinct action family.**
+2. **`disassembleElectrical` is a distinct action family with its own props.**
    The current depot contains:
    - `disassembleElectrical.xml`
    - `disassembleElectrical_Sat.xml`
 
-   B42 script recipes using `timedAction = DismantleElectrical` commonly require `base:screwdriver`.
+   B42.20.3 `timedactions.txt` defines `DismantleElectrical` with:
+
+   ```text
+   actionAnim = disassembleElectrical
+   sound = Dismantle
+   prop1 = Base.Screwdriver
+   prop2 = Base.Receiver
+   ```
+
+   This confirms it is not a clean one-tool hinge animation: it explicitly puts a receiver/electronics prop in the other hand. It is therefore a poor LMION door candidate despite using a screwdriver.
 
 3. **`MakingElectrical` is another distinct screwdriver-capable family.**
    B42 recipes such as improvised electrical devices use `timedAction = MakingElectrical` with a screwdriver as one of the props/tools.
@@ -125,11 +135,40 @@ Current evidence:
 In priority order:
 
 1. `Disassemble` — already confirmed working and semantically close.
-2. `disassembleElectrical` / `DismantleElectrical` — worth an in-game comparison; may look like finer screwdriver work, but is semantically electrical.
-3. `MakingElectrical` — possible alternative if its hand motion fits, but likely looks more like workbench crafting.
-4. `Loot` with `LootPosition` variants — neutral fallback if height control is more valuable than explicit screwdriver motion.
+2. `Loot` with `LootPosition` variants — neutral fallback if height control is more valuable than explicit screwdriver motion.
+3. `MakingElectrical` — possible experiment, but likely too craft/bench-like.
+
+`DismantleElectrical` is no longer considered a good candidate because its timedAction explicitly supplies `Base.Receiver` as a second-hand prop.
 
 Do not switch production behavior based only on the action name. Test the animation in game with a real screwdriver model in hand.
+
+## Vanilla Animation Viewer / debug tooling
+
+Project Zomboid ships an in-game `AnimationClipViewer` in debug builds. The current Lua implementation is `client/DebugUIs/AnimationClipViewer.lua`, backed by Java `zombie.gameStates.AnimationViewerState`.
+
+The viewer can:
+
+- list animation clips;
+- play a selected clip on a 3D character/animal preview;
+- pause playback;
+- scrub the animation timeline;
+- inspect keyframe positions;
+- rotate the camera;
+- toggle viewer options such as grid, bones and deferred movement;
+- audition game sounds at chosen fractions of the clip.
+
+Historical/current debug UI references expose it under the debug developer tools as **Animation Viewer**. An older documented shortcut is **Ctrl+F7** while running with `-debug`; if that shortcut has changed in a later B42 build, use the debug menu entry instead.
+
+Important limitation: `AnimationClipViewer` calls `setCharacterAnimationClip` directly. It previews **raw animation clips**, not the complete gameplay `PerformingAction -> AnimNode conditions -> anim variables -> timed-action props` state machine. It is excellent for comparing body motions, but a clip that looks correct there can still behave differently when driven through `setActionAnim()` in gameplay.
+
+For LMION animation research use this workflow:
+
+1. use Animation Viewer to quickly browse candidate raw clips;
+2. note promising clip/action names;
+3. inspect corresponding `media/AnimSets/player/actions/*.xml` to find the PerformingAction and required variables;
+4. verify the real result through an LMION timed action with the intended tool model and sound.
+
+The separate **Anim Monitor** debug tool is useful for observing the live character animation state while a real action runs. For LMION, Animation Viewer is better for browsing candidates; Anim Monitor is better for understanding which state/node/variables the real action selected.
 
 ## Vanilla Scrap animation trap
 
