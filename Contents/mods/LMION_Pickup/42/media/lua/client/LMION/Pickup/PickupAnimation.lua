@@ -102,17 +102,19 @@ local function restartCrowbarSound(action)
     addSound(character, character:getX(), character:getY(), character:getZ(), 10, 1)
 end
 
-local function restartBlowTorchSound(action)
-    local character = action and action.character or nil
-    if character == nil then
+local function playBlowTorchWorldSound(action)
+    local moveProps = action and action.moveProps or nil
+    local object = moveProps and moveProps.object or nil
+    local square = object and object:getSquare() or (action and action.square or nil)
+    if square == nil then
         return
     end
 
-    stopActionSound(action)
-    action.sound = character:getEmitter():playSound("BeginRemoveBarricadeMetal")
-
-    local radius = 20 * character:getWeldingSoundMod()
-    addSound(character, character:getX(), character:getY(), character:getZ(), radius, radius)
+    -- Vanilla object-oriented actions such as ISRemoveBrokenGlass play their
+    -- audible sound from the target square instead of the player's emitter.
+    -- Use the metal-barricade welding alias here so the torch is spatialized
+    -- on the garage/gate being cut.
+    square:playSound("BeginRemoveBarricadeMetal")
 end
 
 local function isScrewdriverTool(toolName)
@@ -198,9 +200,14 @@ However, ISMoveablesAction.start() does NOT choose its welding animation from th
 ScrapDefinition. It separately checks character:hasEquippedTag(ItemTag.BLOW_TORCH)
 and falls back to Disassemble + a fake Screwdriver model when the check fails.
 Therefore, when the actual ScrapDefinition requires Base.BlowTorch, LMION equips the
-real usable torch before vanilla start(), then re-applies BlowTorch/BlowTorchFloor,
-the real hand model and the metal-barricade welding sound used by vanilla removal
-actions. The ScrapDefinition remains the gameplay authority.
+real usable torch before vanilla start(), then re-applies BlowTorch/BlowTorchFloor
+and the real hand model after vanilla start().
+
+The vanilla Moveables player-emitter BlowTorch sound is stopped and replaced by a
+world sound played from the target object's square. This follows the active vanilla
+pattern used by object-oriented actions and avoids the silent player-emitter path
+observed at runtime for LMION Scrap. Zombie attraction remains owned by vanilla
+getScrapSound()/addSound().
 ]]
 if Pickup._pickupPresentationOriginalActionStart == nil then
     Pickup._pickupPresentationOriginalActionStart = ISMoveablesAction.start
@@ -212,7 +219,8 @@ ISMoveablesAction.start = function(self)
         equipResolvedToolNow(self, blowTorch)
         Pickup._pickupPresentationOriginalActionStart(self)
         forceBlowTorchPresentation(self, blowTorch)
-        restartBlowTorchSound(self)
+        stopActionSound(self)
+        playBlowTorchWorldSound(self)
         return
     end
 
