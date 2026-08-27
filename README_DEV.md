@@ -102,7 +102,8 @@ The durability tooltip intentionally shows **no percentage**.
 Current profile-specific facts:
 
 - `LogDoor` intentionally has no Pickup/place tools;
-- sliding doors use Crowbar for pickup and Hammer for placement through custom Moveables tool definitions.
+- normal wooden and metal doors use screwdriver for both Pickup and Place (hinge unscrew/rescrew semantics);
+- sliding doors and gates use Crowbar for Pickup and Hammer for placement through custom Moveables tool definitions.
 
 The simple 1x1 transport item still visually/naming-wise behaves like a Moveable door rather than an explicitly packaged parcel. That presentation choice remains optional polish.
 
@@ -205,18 +206,36 @@ Current total garage transport weight is **3 × 20 kg = 60 kg**. This remains pl
 
 Detailed behavior: `Research/Moveables/GarageDoorTopology.md`, `Research/Moveables/GarageDoorValidation.md`, `Research/Moveables/VanillaMoveablesBehavior.md`.
 
-## Pickup presentation / fidelity still unfinished
+## Pickup presentation / fidelity
 
-Mechanics/topology are largely validated, but Pickup is **not finished**. Remaining polish work:
+Pickup presentation now has a stable runtime-validated baseline:
+
+- screwdriver Pickup/Place uses `LMION_ScrewdriverHinge` -> vanilla `Bob_IdleMakingLow`, with the real screwdriver in hand;
+- crowbar Pickup uses `LMION_CrowbarPickupLow` -> vanilla `Bob_IdleLeverOpenLow`, with the real crowbar kept one-handed;
+- Hammer Place uses vanilla `Build` with the real hammer;
+- metal Scrap whose actual ScrapDefinition requires `Base.BlowTorch` is forced onto vanilla `BlowTorch` / `BlowTorchFloor` with the real usable torch in hand;
+- vanilla still owns Scrap requirements, welding protection, duration, consumption, sound lifecycle and yields.
+
+The previous visual bug where metal garage/gate Scrap could show `Disassemble + Screwdriver` is fixed and runtime validated.
+
+### Audio QA rule
+
+A major false diagnostic was traced to Debug/Cheat **Invisible** mode. With Invisible enabled, some sounds such as blowtorch work and door weapon hits can be inaudible even in a completely unmodded solo game, while other sounds such as hammering may still play.
+
+> **Disable Invisible before any sound validation.**
+
+With Invisible disabled, no current generic defect is reproduced for blowtorch or door-hit audio. Do not re-open those investigations unless silence is reproduced with Invisible off.
+
+### Remaining presentation polish
 
 1. **Action duration** — current vanilla formula includes `rawWeight * 2`, making heavy LMION doors/garages much slower to Pickup/place than desired. Keep real item weights; solve timing separately.
-2. **Pickup/Place sounds** — vanilla Moveables tool definitions request action sounds, but LMION Pickup/Place is reported silent and needs diagnosis/fix.
-3. **Door hit/thump sounds** — LMION doors are reported silent when struck. Diagnose actual closed-sprite `DoorSound`, `ThumpSound`, `door:getSoundPrefix()` and `door:getThumpSound()` before changing behavior.
-4. **Build sounds/animations** — construction timed-action presentation needs a separate audit.
-5. **Pickup/Place animations** — ordinary vanilla Moveables has no dedicated Pickup/Place action animation, so any LMION animation here is an intentional enhancement.
-6. Optional: explicit package naming/visual presentation for simple 1x1 transported doors.
+2. **Material-specific tool sounds** — current crowbar Pickup uses the wooden barricade crowbar event for both wood and metal, and Hammer Place uses configured `Hammering` for both. Metal-specific alternatives are optional polish and should only be implemented after suitable vanilla events are auditioned in game.
+3. **Build presentation audit** — construction timed-action sounds/animations remain a separate subsystem to review if a concrete issue is observed.
+4. Optional: explicit package naming/visual presentation for simple 1x1 transported doors.
 
-See `Research/Moveables/VanillaMoveablesBehavior.md` for verified vanilla timing, parcel, sound and animation behavior.
+A temporary metal-Hammer sound experiment (`SmithingHammerHit` pulses plus an `ISMoveablesAction.update()` wrapper) was not validated and has been removed. Do not resurrect that exact approach without new evidence.
+
+See `Research/Moveables/AnimationCandidates.md` and `Research/Moveables/VanillaMoveablesBehavior.md`.
 
 ## Core technical guardrails
 
@@ -278,6 +297,7 @@ Do not move code between phases for tidiness without checking engine state.
 - Prefer strong engine structures/properties over sprite-name guessing where possible.
 - Lua comments: `--[[ ... ]]`. PZ `media/scripts`: `/* ... */`.
 - `media/scripts` changes require full restart.
+- AnimSet XML changes require full game restart for validation.
 - New Lua files/load-order changes/stale monkey-patch closures may also require full restart.
 - Do not add speculative abstractions/workarounds without a reproduced need.
 - **Do not modify the door catalog unless the current task explicitly concerns it.**
@@ -290,6 +310,7 @@ Do not move code between phases for tidiness without checking engine state.
 4. Document durable decisions, not every commit.
 5. Preserve the reason for engine/lifecycle workarounds in Research.
 6. Current code + runtime validation outrank stale prose; fix documentation when they disagree.
+7. For sound QA, verify Debug/Cheat Invisible is disabled before concluding that audio is broken.
 
 ## Known compatibility note
 
@@ -303,16 +324,14 @@ A new save did not reproduce this. Treat old-save migration separately rather th
 
 ## Next intended milestones
 
-Pickup mechanics are sufficiently validated to move into fidelity/presentation work rather than more topology redesign.
+Pickup mechanics and core presentation are sufficiently validated to avoid more topology/presentation redesign without a reproduced issue.
 
-Recommended next Pickup tasks, in order:
+Recommended next Pickup tasks:
 
 1. define/fix Pickup/Place duration without changing real transport weights;
-2. diagnose/fix Pickup/Place action sounds;
-3. diagnose/fix door impact/thump sounds;
-4. audit Build sounds/animations;
-5. decide whether to add explicit Pickup/Place animations;
-6. optionally package-style presentation for simple 1x1 items.
+2. optionally revisit material-specific crowbar/hammer sounds after auditioning candidate vanilla events;
+3. audit Build presentation only if a concrete issue is reproduced;
+4. optionally package-style presentation for simple 1x1 items.
 
 A future `LMION_Repair` gameplay module remains planned after transport/material/craft rules are stable enough. Core should keep only low-level logical-health primitives.
 
