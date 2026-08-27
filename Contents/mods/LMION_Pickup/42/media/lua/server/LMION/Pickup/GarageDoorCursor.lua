@@ -43,15 +43,42 @@ local function renderFloorFootprint(members)
     end
 end
 
+local function renderOpenPickupFootprint(self, x, y, z)
+    local mode = ISMoveableCursor.mode and ISMoveableCursor.mode[self.player] or nil
+    if mode ~= "pickup"
+        or not isGarageMoveProps(self.currentMoveProps)
+        or self.currentMoveProps.lmionGarageIsOpen ~= true then
+        return
+    end
+
+    local square = self.currentSquare or getCell():getGridSquare(x, y, z)
+    local selected = square and self.currentMoveProps:findOnSquare(square, self.currentMoveProps.spriteName) or nil
+    local members = selected and GarageDoor.getMembers(selected, self.currentMoveProps.lmionGarageFamily) or nil
+
+    if members ~= nil then
+        renderFloorFootprint(members)
+    end
+end
+
+-- Open garage sprites intentionally have no synthetic closed SpriteGrid. Vanilla
+-- therefore does not call renderSpriteGrid() for them; tint their real unchanged
+-- three-square footprint from the cursor's general render path.
+if Pickup._garageDoorOriginalRender == nil then
+    Pickup._garageDoorOriginalRender = ISMoveableCursor.render
+end
+
+ISMoveableCursor.render = function(self, x, y, z, square)
+    local result = Pickup._garageDoorOriginalRender(self, x, y, z, square)
+    renderOpenPickupFootprint(self, x, y, z)
+    return result
+end
+
 if Pickup._garageDoorOriginalRenderSpriteGrid == nil then
     Pickup._garageDoorOriginalRenderSpriteGrid = ISMoveableCursor.renderSpriteGrid
 end
 
---[[
-Pickup keeps the existing garage sprites untouched. Only the three floor squares
-belonging to the resolved engine members are tinted, matching the usual Moveables
-"this footprint will be taken" feedback without ghost-rendering the door itself.
-]]
+-- Closed garage pickup keeps the tested synthetic SpriteGrid path. Only the three
+-- floor squares belonging to the resolved engine members are tinted.
 ISMoveableCursor.renderSpriteGrid = function(self, x, y, z, color)
     clearLegacyOutline(self)
 
@@ -72,11 +99,6 @@ ISMoveableCursor.renderSpriteGrid = function(self, x, y, z, color)
     return Pickup._garageDoorOriginalRenderSpriteGrid(self, x, y, z, color)
 end
 
---[[
-An earlier experiment hooked clearCache to manage outlines. Restore the original
-method when this file is hot-reloaded so that failed experiment leaves no cursor
-behavior behind.
-]]
 if Pickup._garageDoorOriginalCursorClearCache ~= nil then
     ISMoveableCursor.clearCache = Pickup._garageDoorOriginalCursorClearCache
 end
