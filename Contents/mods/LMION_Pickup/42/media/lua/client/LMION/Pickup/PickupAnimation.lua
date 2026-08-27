@@ -152,6 +152,19 @@ local function findUsableBlowTorch(character)
     end)
 end
 
+local function forceBlowTorchPresentation(action, blowTorch)
+    if action == nil or blowTorch == nil then
+        return
+    end
+
+    local moveProps = action.moveProps
+    local object = moveProps and moveProps.object or nil
+    local isFloor = object ~= nil and object:isFloor()
+
+    action:setActionAnim(isFloor and "BlowTorchFloor" or "BlowTorch")
+    action:setOverrideHandModels(blowTorch, nil)
+end
+
 --[[
 LMION presentation follows the gameplay tool contract instead of whatever item
 happened to remain in the character's hands from the previous Moveables action.
@@ -164,13 +177,17 @@ Transport:
 - Hammer Place: vanilla Build animation and configured Hammering sound.
 
 Scrap:
-Vanilla ISMoveablesAction chooses BlowTorch only when a blowtorch is already
-EQUIPPED when start() runs. A metal Scrap definition may correctly require a
-blowtorch + welding protection yet visually fall through to Disassemble/Screwdriver
-if the queued equip has not completed. For LMION openings whose actual Scrap
-definition requires Base.BlowTorch, equip the real usable torch immediately before
-vanilla evaluates its animation branch. Vanilla still owns Scrap eligibility,
-secondary welding-mask/goggles validation, duration, sound and tool consumption.
+Vanilla Moveables gets the ScrapDefinition from moveProps.material, so LMION keeps
+that definition authoritative for tools, skill, duration, sound, welding protection
+and tool consumption.
+
+However, ISMoveablesAction.start() does NOT choose its welding animation from that
+ScrapDefinition. It separately checks character:hasEquippedTag(ItemTag.BLOW_TORCH)
+and falls back to Disassemble + a fake Screwdriver model when the check fails.
+Therefore, when the actual ScrapDefinition requires Base.BlowTorch, LMION equips the
+real usable torch before vanilla start(), then re-applies BlowTorch/BlowTorchFloor
+and that real hand model after vanilla start(). This changes presentation only; the
+vanilla ScrapDefinition remains the gameplay authority.
 ]]
 if Pickup._pickupPresentationOriginalActionStart == nil then
     Pickup._pickupPresentationOriginalActionStart = ISMoveablesAction.start
@@ -181,6 +198,7 @@ ISMoveablesAction.start = function(self)
         local blowTorch = findUsableBlowTorch(self.character)
         equipResolvedToolNow(self, blowTorch)
         Pickup._pickupPresentationOriginalActionStart(self)
+        forceBlowTorchPresentation(self, blowTorch)
         return
     end
 
