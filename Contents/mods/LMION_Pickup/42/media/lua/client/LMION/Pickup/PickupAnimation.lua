@@ -32,24 +32,39 @@ local function isLmionHammerPlace(action)
         and (moveProps.placeTool == "Hammer" or moveProps.placeTool == "LMIONMetalHammer")
 end
 
-local function ensureHammerSound(action)
-    if action.sound ~= nil and action.sound ~= 0 then
+local function getResolvedPlaceTool(action)
+    local moveProps = action and action.moveProps or nil
+    local character = action and action.character or nil
+    if moveProps == nil or character == nil then
+        return nil
+    end
+
+    local tool = moveProps:hasTool(character, "place")
+    if tool == nil or tool == false or tool == true then
+        return nil
+    end
+
+    return tool
+end
+
+local function restartHammerSound(action)
+    local moveProps = action and action.moveProps or nil
+    local character = action and action.character or nil
+    local toolName = moveProps and moveProps.placeTool or nil
+    if character == nil or toolName == nil then
         return
     end
 
-    local moveProps = action.moveProps
-    local toolName = moveProps and moveProps.placeTool or nil
-    if toolName == nil then
-        return
+    if action.sound ~= nil and action.sound ~= 0 then
+        character:stopOrTriggerSound(action.sound)
+        action.sound = nil
     end
 
     local definitions = ISMoveableDefinitions and ISMoveableDefinitions:getInstance() or nil
     local toolDef = definitions and definitions.getToolDefinition(toolName) or nil
-    if toolDef == nil or toolDef.sound == nil then
-        return
+    if toolDef ~= nil and toolDef.sound ~= nil then
+        action.sound = character:playSound(toolDef.sound)
     end
-
-    action.sound = action.character:playSound(toolDef.sound)
 end
 
 --[[
@@ -59,13 +74,14 @@ LMION adds presentation only when the configured tool strongly implies one:
 - Screwdriver Pickup reuses the vanilla Disassemble animation.
 - Hammer Place reuses the vanilla Build animation.
 
-walkToAndEquip() has already equipped the configured Pickup/Place tool before the
-ISMoveablesAction starts. Keep that real primary-hand item visible rather than
-forcing a decorative model.
+For placement, walkToAndEquip() may leave the previously held pickup tool visible
+until its queued equip action finishes. Do not copy the current primary-hand model
+for the animation. Resolve the actual configured place tool through Moveables and
+use that item as the hand model during the placement action.
 
-Vanilla also starts the configured tool sound in ISMoveablesAction:start(). The
-hammer path below only supplies the same tool-definition sound as a fallback if
-that vanilla call returned no active sound handle, avoiding duplicate playback.
+Vanilla starts the configured Moveables sound before LMION applies presentation.
+B42 can return a non-zero sound handle even when no audible hammer loop is heard,
+so LMION explicitly restarts the same configured hammer sound for hammer placement.
 ]]
 if Pickup._pickupPresentationOriginalActionStart == nil then
     Pickup._pickupPresentationOriginalActionStart = ISMoveablesAction.start
@@ -80,9 +96,14 @@ ISMoveablesAction.start = function(self)
     end
 
     if isLmionHammerPlace(self) then
+        local hammer = getResolvedPlaceTool(self)
+
         self:setActionAnim("Build")
-        self:setOverrideHandModels(self.character:getPrimaryHandItem(), nil)
-        ensureHammerSound(self)
+        if hammer ~= nil then
+            self:setOverrideHandModels(hammer, nil)
+        end
+
+        restartHammerSound(self)
     end
 end
 
