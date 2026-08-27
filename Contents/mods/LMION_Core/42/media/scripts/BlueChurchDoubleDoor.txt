@@ -12,7 +12,7 @@ module Base
             {
                 layer
                 {
-                    row = location_community_church_small_01_24,
+                    row = location_community_church_small_01_28,
                 }
             }
 
@@ -28,7 +28,7 @@ module Base
             {
                 layer
                 {
-                    row = location_community_church_small_01_26,
+                    row = location_community_church_small_01_30,
                 }
             }
 
@@ -54,7 +54,7 @@ module Base
             {
                 layer
                 {
-                    row = location_community_church_small_01_28,
+                    row = location_community_church_small_01_24,
                 }
             }
 
@@ -70,7 +70,7 @@ module Base
             {
                 layer
                 {
-                    row = location_community_church_small_01_30,
+                    row = location_community_church_small_01_26,
                 }
             }
 

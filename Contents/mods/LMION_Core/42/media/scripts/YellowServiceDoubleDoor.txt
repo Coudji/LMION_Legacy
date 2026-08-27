@@ -12,7 +12,7 @@ module Base
             {
                 layer
                 {
-                    row = fixtures_doors_02_56,
+                    row = fixtures_doors_02_60,
                 }
             }
 
@@ -28,7 +28,7 @@ module Base
             {
                 layer
                 {
-                    row = fixtures_doors_02_58,
+                    row = fixtures_doors_02_62,
                 }
             }
 
@@ -54,7 +54,7 @@ module Base
             {
                 layer
                 {
-                    row = fixtures_doors_02_60,
+                    row = fixtures_doors_02_56,
                 }
             }
 
@@ -70,7 +70,7 @@ module Base
             {
                 layer
                 {
-                    row = fixtures_doors_02_62,
+                    row = fixtures_doors_02_58,
                 }
             }
 
