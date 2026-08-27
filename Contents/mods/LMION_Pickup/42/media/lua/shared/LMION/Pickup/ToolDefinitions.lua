@@ -6,8 +6,21 @@ local Pickup = LMION.Pickup
 local function registerToolDefinitions()
     local definitions = ISMoveableDefinitions:getInstance()
 
+    definitions.removeToolDefinition("LMIONMetalScrewdriver")
     definitions.removeToolDefinition("LMIONMetalCrowbar")
     definitions.removeToolDefinition("LMIONMetalHammer")
+
+    -- Metal doors are still removed/reinstalled through their hinges with a real
+    -- screwdriver. Keep MetalWelding as the governing transport perk without
+    -- inheriting vanilla's Woodwork-based Screwdriver tool definition.
+    definitions.addToolDefinition(
+        "LMIONMetalScrewdriver",
+        {"Base.Screwdriver"},
+        Perks.MetalWelding,
+        100,
+        "Dismantle",
+        true
+    )
 
     definitions.addToolDefinition(
         "LMIONMetalCrowbar",
