@@ -2,6 +2,9 @@ require "Moveables/ISMoveablesAction"
 
 local Pickup = LMION.Pickup
 
+local METAL_HAMMER_HIT_INTERVAL_MS = 900
+local METAL_HAMMER_WORLD_SOUND_INTERVAL_MS = 6000
+
 local function isLmionTransportAction(action)
     local moveProps = action and action.moveProps or nil
     if moveProps == nil then
@@ -114,6 +117,58 @@ local function isHammerTool(toolName)
     return toolName == "Hammer" or toolName == "LMIONMetalHammer"
 end
 
+local function isMetalHammerTool(toolName)
+    return toolName == "LMIONMetalHammer"
+end
+
+local function playMetalHammerHit(action)
+    local character = action and action.character or nil
+    if character == nil then
+        return
+    end
+
+    character:playSound("SmithingHammerHit")
+    action.lmionMetalHammerNextHit = getTimestampMs() + METAL_HAMMER_HIT_INTERVAL_MS
+end
+
+local function startMetalHammerSound(action)
+    local character = action and action.character or nil
+    if character == nil then
+        return
+    end
+
+    -- Vanilla Moveables has already produced its initial world-noise pulse via
+    -- getSoundFromTool(). Remove only the audible carpentry Hammering loop.
+    stopActionSound(action)
+
+    local now = getTimestampMs()
+    action.lmionMetalHammerNextWorldSound = now + METAL_HAMMER_WORLD_SOUND_INTERVAL_MS
+    playMetalHammerHit(action)
+end
+
+local function updateMetalHammerSound(action)
+    if not isLmionTransportAction(action)
+        or action.mode ~= "place"
+        or not isMetalHammerTool(getActionToolName(action)) then
+        return
+    end
+
+    local character = action.character
+    if character == nil then
+        return
+    end
+
+    local now = getTimestampMs()
+    if action.lmionMetalHammerNextHit == nil or now >= action.lmionMetalHammerNextHit then
+        playMetalHammerHit(action)
+    end
+
+    if action.lmionMetalHammerNextWorldSound == nil or now >= action.lmionMetalHammerNextWorldSound then
+        addSound(character, character:getX(), character:getY(), character:getZ(), 10, 5)
+        action.lmionMetalHammerNextWorldSound = now + METAL_HAMMER_WORLD_SOUND_INTERVAL_MS
+    end
+end
+
 local function getScrapDefinition(action)
     local moveProps = action and action.moveProps or nil
     local material = moveProps and moveProps.material or nil
@@ -173,8 +228,12 @@ Transport:
 - Screwdriver Pickup/Place: LMION_ScrewdriverHinge -> vanilla Bob_IdleMakingLow,
   with the real screwdriver in the primary hand.
 - Crowbar Pickup: LMION_CrowbarPickupLow -> vanilla Bob_IdleLeverOpenLow,
-  with the real crowbar kept one-handed and the crowbar sound.
-- Hammer Place: vanilla Build animation and configured Hammering sound.
+  with the real crowbar kept one-handed and the vanilla crowbar sound. Wood/metal
+  crowbar sound differentiation is intentionally deferred until an event is chosen.
+- Wooden Hammer Place: vanilla Build animation and configured Hammering sound.
+- Metal Hammer Place: vanilla Build animation with SmithingHammerHit pulses instead
+  of the carpentry Hammering loop. The initial Moveables world-noise pulse is kept,
+  then refreshed periodically for zombie attraction.
 
 Scrap:
 Vanilla Moveables gets the ScrapDefinition from moveProps.material, so LMION keeps
@@ -187,13 +246,18 @@ and falls back to Disassemble + a fake Screwdriver model when the check fails.
 Therefore, when the actual ScrapDefinition requires Base.BlowTorch, LMION equips the
 real usable torch before vanilla start(), then re-applies BlowTorch/BlowTorchFloor
 and the real hand model after vanilla start().
-
-Runtime testing in unmodded B42.20.4 confirmed that vanilla metal welding/removal can
-be inaudible to the player while still generating world noise that attracts zombies.
-LMION therefore does not override or synthesize a separate blowtorch sound here.
 ]]
 if Pickup._pickupPresentationOriginalActionStart == nil then
     Pickup._pickupPresentationOriginalActionStart = ISMoveablesAction.start
+end
+
+if Pickup._pickupPresentationOriginalActionUpdate == nil then
+    Pickup._pickupPresentationOriginalActionUpdate = ISMoveablesAction.update
+end
+
+ISMoveablesAction.update = function(self)
+    Pickup._pickupPresentationOriginalActionUpdate(self)
+    updateMetalHammerSound(self)
 end
 
 ISMoveablesAction.start = function(self)
@@ -239,7 +303,12 @@ ISMoveablesAction.start = function(self)
         if tool ~= nil then
             self:setOverrideHandModels(tool, nil)
         end
-        restartConfiguredToolSound(self)
+
+        if isMetalHammerTool(toolName) then
+            startMetalHammerSound(self)
+        else
+            restartConfiguredToolSound(self)
+        end
     end
 end
 
