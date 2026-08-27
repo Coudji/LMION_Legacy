@@ -1,6 +1,6 @@
 # Garage-door Pickup validation
 
-Status: **runtime-validated across all seven current LMION garage families for the complete closed-state Pickup path; open-state Pickup implemented and pending runtime validation**.
+Status: **runtime-validated for the complete closed-state Pickup path across all seven current LMION garage families; open-state Pickup runtime-validated on the reference garage path in both N and W**.
 
 Validated closed-state families:
 
@@ -53,16 +53,19 @@ Placement remains the existing closed-state path, including N/W rotation and dur
 
 The runtime `GarageDoor = 1/2/3` validation remains intentionally in place as a fail-closed guard against future tile-definition or engine changes.
 
-## Open-state validation target
+## Runtime validation result
 
-Runtime validation should confirm at minimum on `IndustrialGarageDoor`:
+The open-state path is now confirmed in game on the reference garage workflow:
 
-- N open: Pickup can target part 1, 2 or 3;
-- W open: same;
+- N open Pickup works;
+- W open Pickup works;
+- targeting the open garage resolves the complete three-member structure;
 - all three floor squares are highlighted in Pickup mode;
 - exactly three parcels are produced;
-- parcel identities are Part1 / Part2 / Part3 and use closed world sprites;
-- rotation N/W remains correct;
+- parcel identities remain Part1 / Part2 / Part3 and use closed canonical world sprites;
+- N/W rotation remains correct;
 - replacement is always closed;
 - current health and `lmionMaxHealth` survive open -> Pickup -> replace;
-- restored garage still opens/closes normally as a synchronized vanilla garage.
+- the restored garage resumes normal synchronized vanilla opening/closing behavior.
+
+Because all seven LMION garage families share the same vanilla `GarageDoor` 1/2/3 topology and the same closed-to-open `+8` sprite layout used by the generalized implementation, no separate open-state code path exists per family.
