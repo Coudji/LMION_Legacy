@@ -36,12 +36,6 @@ local function findGarageMember(square, north, expectedIndex, familyId, expected
     return nil
 end
 
---[[
-GarageDoor index 1/2/3 is the authoritative member identity. Open and closed
-states occupy the same three squares; only the sprite/state changes. Starting
-from any selected member, reconstruct the complete chain and require every
-member to belong to the same family and the same open/closed state.
-]]
 local function getGarageMembers(source, familyId)
     if source == nil or not instanceof(source, "IsoDoor") then
         return nil
@@ -182,7 +176,9 @@ ISMoveableSpriteProps.pickUpMoveable = function(self, character, square, createI
 
     for partIndex, member in ipairs(members) do
         local moveProps = ISMoveableSpriteProps.new(member.spriteName)
-        moveProps.isMultiSprite = false
+        -- Preserve the multisprite delivery rule: one parcel per physical member,
+        -- left on that member's square instead of injected into character inventory.
+        moveProps.isMultiSprite = true
         moveProps.lmionGaragePart = partIndex
 
         if family ~= nil and family.parts[partIndex] ~= nil then
