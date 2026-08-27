@@ -157,8 +157,10 @@ LMION presentation follows the gameplay tool contract instead of whatever item
 happened to remain in the character's hands from the previous Moveables action.
 
 Transport:
-- Screwdriver Pickup/Place: Disassemble animation with the real screwdriver.
-- Crowbar Pickup: vanilla RemoveBarricade/CrowbarMid animation and crowbar sound.
+- Screwdriver Pickup/Place: LMION_ScrewdriverHinge -> vanilla Bob_IdleMakingLow,
+  with the real screwdriver in the primary hand.
+- Crowbar Pickup: LMION_CrowbarPickupLow -> vanilla Bob_IdleLeverOpenLow,
+  with the real crowbar kept one-handed and the crowbar sound.
 - Hammer Place: vanilla Build animation and configured Hammering sound.
 
 Scrap:
@@ -195,7 +197,7 @@ ISMoveablesAction.start = function(self)
     Pickup._pickupPresentationOriginalActionStart(self)
 
     if isScrewdriverTool(toolName) then
-        self:setActionAnim(CharacterActionAnims.Disassemble)
+        self:setActionAnim("LMION_ScrewdriverHinge")
         if tool ~= nil then
             self:setOverrideHandModels(tool, nil)
         end
@@ -203,8 +205,7 @@ ISMoveablesAction.start = function(self)
     end
 
     if self.mode == "pickup" and isCrowbarTool(toolName) then
-        self:setActionAnim("RemoveBarricade")
-        self:setAnimVariable("RemoveBarricade", "CrowbarMid")
+        self:setActionAnim("LMION_CrowbarPickupLow")
         if tool ~= nil then
             self:setOverrideHandModels(tool, nil)
         end
