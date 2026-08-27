@@ -5,12 +5,14 @@ local Profiles = {
 }
 
 local function add(entityName, tool, level, weightKg)
+    local placeTool = tool == "Screwdriver" and "Hammer" or tool
+
     Profiles.entities[entityName] = {
         id = entityName,
         itemType = "Base.LMION_" .. entityName,
         moveType = "Object",
         pickUpTool = tool,
-        placeTool = tool,
+        placeTool = placeTool,
         pickUpLevel = level,
         pickUpWeight = weightKg * 10,
         canBreak = false,
