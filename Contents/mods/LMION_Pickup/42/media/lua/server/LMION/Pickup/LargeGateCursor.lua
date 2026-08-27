@@ -32,35 +32,52 @@ local function renderFloorFootprint(members)
     end
 end
 
+local function renderOpenPickupFootprint(self, x, y, z)
+    local mode = ISMoveableCursor.mode and ISMoveableCursor.mode[self.player] or nil
+    if mode ~= "pickup"
+        or self.currentMoveProps == nil
+        or self.currentMoveProps.lmionLargeGateIsOpen ~= true
+        or not isLargeGateMoveProps(self.currentMoveProps) then
+        return
+    end
+
+    local square = self.currentSquare or getCell():getGridSquare(x, y, z)
+    local selected = square and self.currentMoveProps:findOnSquare(square, self.currentMoveProps.spriteName) or nil
+    local members = selected
+        and LargeGate.getOpenAwareLeafMembers
+        and LargeGate.getOpenAwareLeafMembers(selected, self.currentMoveProps.lmionLargeGateLeaf)
+        or nil
+
+    if members ~= nil then
+        renderFloorFootprint(members)
+    end
+end
+
+-- Open large-gate sprites deliberately are not multisprite Moveables. Vanilla
+-- therefore never calls renderSpriteGrid() for them; hook the cursor's general
+-- render path and add the true two-square open footprint after vanilla renders
+-- the selected object normally.
+if Pickup._largeGateOriginalRender == nil then
+    Pickup._largeGateOriginalRender = ISMoveableCursor.render
+end
+
+ISMoveableCursor.render = function(self, x, y, z, square)
+    local result = Pickup._largeGateOriginalRender(self, x, y, z, square)
+    renderOpenPickupFootprint(self, x, y, z)
+    return result
+end
+
 if Pickup._largeGateOriginalRenderSpriteGrid == nil then
     Pickup._largeGateOriginalRenderSpriteGrid = ISMoveableCursor.renderSpriteGrid
 end
 
 --[[
-Open large gates do not occupy their closed SpriteGrid footprint. During Pickup,
-resolve the real two-member leaf through the engine-aware open-state resolver and
-highlight only those physical floor squares. Closed Pickup and placement keep the
-existing tested SpriteGrid rendering path.
+Closed large-gate previews always keep the two-square footprint. Most families
+render one complete artwork member; the Farm Gate explicitly opts into both.
+Open Pickup highlighting is handled by the general render() hook above because
+open sprites intentionally do not carry a fake closed SpriteGrid.
 ]]
 ISMoveableCursor.renderSpriteGrid = function(self, x, y, z, color)
-    local mode = ISMoveableCursor.mode and ISMoveableCursor.mode[self.player] or nil
-    if mode == "pickup"
-        and self.currentMoveProps ~= nil
-        and self.currentMoveProps.lmionLargeGateIsOpen == true
-        and isLargeGateMoveProps(self.currentMoveProps) then
-        local square = self.currentSquare or getCell():getGridSquare(x, y, z)
-        local selected = square and self.currentMoveProps:findOnSquare(square, self.currentMoveProps.spriteName) or nil
-        local members = selected
-            and LargeGate.getOpenAwareLeafMembers
-            and LargeGate.getOpenAwareLeafMembers(selected, self.currentMoveProps.lmionLargeGateLeaf)
-            or nil
-
-        if members ~= nil then
-            renderFloorFootprint(members)
-        end
-        return
-    end
-
     if not isLargeGateMoveProps(self.origMoveProps)
         or not isLargeGateMoveProps(self.currentMoveProps) then
         return Pickup._largeGateOriginalRenderSpriteGrid(self, x, y, z, color)

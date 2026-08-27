@@ -2,12 +2,14 @@ require "ISUI/ISPanel"
 require "ISUI/ISLabel"
 require "ISUI/ISButton"
 require "LMION/Debug/Inspect/Door"
+require "LMION/Debug/Inspect/Frame"
 require "LMION/Debug/World/Selection"
 require "LMION/Debug/World/SquareScanner"
 
 LMION.Debug.UI = LMION.Debug.UI or {}
 
 local Door = LMION.Debug.Inspect.Door
+local Frame = LMION.Debug.Inspect.Frame
 local Selection = LMION.Debug.World.Selection
 local SquareScanner = LMION.Debug.World.SquareScanner
 local ObjectPanel = ISPanel:derive("LMIONDebugObjectPanel")
@@ -59,7 +61,7 @@ function ObjectPanel:createChildren()
 
     self.titleLabel = ISLabel:new(
         pad, pad, 18,
-        "Doors / gates in selected squares",
+        "Doors / gates / frames in selected squares",
         1, 1, 1, 1,
         UIFont.Small,
         true
@@ -69,7 +71,7 @@ function ObjectPanel:createChildren()
 
     self.infoLabel = ISLabel:new(
         pad, 28, 18,
-        "0 doors",
+        "0 objects",
         0.8, 0.8, 0.8, 1,
         UIFont.Small,
         true
@@ -98,51 +100,19 @@ function ObjectPanel:createChildren()
 
     local controlY = rowY + ROWS_PER_PAGE * (rowH + 2) + 4
 
-    self.prevButton = ISButton:new(
-        pad,
-        controlY,
-        56,
-        22,
-        "Prev",
-        self,
-        ObjectPanel.onPrev
-    )
+    self.prevButton = ISButton:new(pad, controlY, 56, 22, "Prev", self, ObjectPanel.onPrev)
     self.prevButton:initialise()
     self:addChild(self.prevButton)
 
-    self.nextButton = ISButton:new(
-        pad + 60,
-        controlY,
-        56,
-        22,
-        "Next",
-        self,
-        ObjectPanel.onNext
-    )
+    self.nextButton = ISButton:new(pad + 60, controlY, 56, 22, "Next", self, ObjectPanel.onNext)
     self.nextButton:initialise()
     self:addChild(self.nextButton)
 
-    self.selectAllButton = ISButton:new(
-        pad,
-        controlY + 24,
-        116,
-        22,
-        "Select shown",
-        self,
-        ObjectPanel.onSelectAll
-    )
+    self.selectAllButton = ISButton:new(pad, controlY + 24, 116, 22, "Select shown", self, ObjectPanel.onSelectAll)
     self.selectAllButton:initialise()
     self:addChild(self.selectAllButton)
 
-    self.clearSelectionButton = ISButton:new(
-        130,
-        controlY + 24,
-        130,
-        22,
-        "Clear selection",
-        self,
-        ObjectPanel.onClearSelection
-    )
+    self.clearSelectionButton = ISButton:new(130, controlY + 24, 130, 22, "Clear selection", self, ObjectPanel.onClearSelection)
     self.clearSelectionButton:initialise()
     self:addChild(self.clearSelectionButton)
 end
@@ -151,7 +121,7 @@ function ObjectPanel:refresh()
     self.entries = {}
 
     for _, entry in ipairs(SquareScanner.flattenObjects(Selection.getSquares())) do
-        if Door.isDoorLike(entry.object) then
+        if Door.isDoorLike(entry.object) or (Frame ~= nil and Frame.isFrameLike(entry.object)) then
             self.entries[#self.entries + 1] = entry
         end
     end
@@ -166,7 +136,7 @@ function ObjectPanel:refresh()
 
     self.infoLabel:setName(
         tostring(count)
-            .. " doors | "
+            .. " objects | "
             .. tostring(selectedCount)
             .. " selected | page "
             .. tostring(self.page)
@@ -183,45 +153,17 @@ function ObjectPanel:refresh()
         if entry ~= nil then
             local selected = Selection.isObjectSelected(entry)
             local sprite = entry.spriteName or "<no sprite>"
-            local shortSquare = tostring(entry.square:getX())
-                .. ","
-                .. tostring(entry.square:getY())
+            local shortSquare = tostring(entry.square:getX()) .. "," .. tostring(entry.square:getY())
 
-            button:setTitle(
-                shortSquare
-                    .. " | "
-                    .. tostring(entry.classShort)
-                    .. " | "
-                    .. tostring(sprite)
-            )
+            button:setTitle(shortSquare .. " | " .. tostring(entry.classShort) .. " | " .. tostring(sprite))
             button.entry = entry
 
             if selected then
-                button.backgroundColor = {
-                    r = 0.35,
-                    g = 0.35,
-                    b = 0.35,
-                    a = 0.90
-                }
-                button.backgroundColorMouseOver = {
-                    r = 0.45,
-                    g = 0.45,
-                    b = 0.45,
-                    a = 0.95
-                }
+                button.backgroundColor = { r = 0.35, g = 0.35, b = 0.35, a = 0.90 }
+                button.backgroundColorMouseOver = { r = 0.45, g = 0.45, b = 0.45, a = 0.95 }
             else
-                button.backgroundColor = {
-                    r = 0,
-                    g = 0,
-                    b = 0,
-                    a = 0.35
-                }
-                button.backgroundColorMouseOver = {
-                    r = 0.25,
-                    g = 0.25,
-                    b = 0.25,
-                    a = 0.60
-                }
+                button.backgroundColor = { r = 0, g = 0, b = 0, a = 0.35 }
+                button.backgroundColorMouseOver = { r = 0.25, g = 0.25, b = 0.25, a = 0.60 }
             end
 
             button:setVisible(true)

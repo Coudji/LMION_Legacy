@@ -46,7 +46,8 @@ local function frameOrientation(object, properties)
     return nil
 end
 
-local function isRelevantFrameSprite(object, properties)
+function Frame.isFrameLike(object)
+    local properties = spriteProperties(object)
     if object == nil or properties == nil then
         return false
     end
@@ -62,15 +63,15 @@ local function isRelevantFrameSprite(object, properties)
         or hasProperty(properties, "DoorWallW")
         or hasFlag(properties, IsoFlagType.DoubleDoor1)
         or hasFlag(properties, IsoFlagType.DoubleDoor2)
-        or hasProperty(properties, "DoubleDoor")
+        or hasProperty(properties, "DoubleDoor1")
+        or hasProperty(properties, "DoubleDoor2")
         or hasProperty(properties, "CutawayHint")
-        or hasProperty(properties, "WallStyle")
         or hasProperty(properties, "WallObjectAllowDoorframe")
 end
 
 Debug.registerInspector("frame.runtime", 15, function(object, report)
     local properties = spriteProperties(object)
-    if not isRelevantFrameSprite(object, properties) then
+    if not Frame.isFrameLike(object) then
         return
     end
 
@@ -79,20 +80,10 @@ Debug.registerInspector("frame.runtime", 15, function(object, report)
         return object:getType()
     end, nil))
     report:field("orientationHint", frameOrientation(object, properties) or "<unset>")
-
-    -- TileZed exposes human-facing double-doorframe choices. B42.20.3 runtime
-    -- registers the concrete DoubleDoor1 / DoubleDoor2 flags, so report both
-    -- directly and keep CutawayHint visible until the editor mapping is proven.
-    report:field("DoubleDoor", hasProperty(properties, "DoubleDoor"))
     report:field("DoubleDoor1", hasFlag(properties, IsoFlagType.DoubleDoor1) or hasProperty(properties, "DoubleDoor1"))
     report:field("DoubleDoor2", hasFlag(properties, IsoFlagType.DoubleDoor2) or hasProperty(properties, "DoubleDoor2"))
     report:field("CutawayHint", propertyValue(properties, "CutawayHint") or "<unset>")
-
-    -- WallStyle is visible in TileZed but is not a B42.20.3 TilePropertyKey in
-    -- the inspected game JAR. Reporting it here lets runtime evidence decide
-    -- whether tile definitions still carry it as editor-authored metadata.
     report:field("WallStyle", propertyValue(properties, "WallStyle") or "<unset>")
-
     report:field("WallObjectAllowDoorframe", hasProperty(properties, "WallObjectAllowDoorframe"))
     report:field("DoorWallN", hasProperty(properties, "DoorWallN"))
     report:field("DoorWallW", hasProperty(properties, "DoorWallW"))
