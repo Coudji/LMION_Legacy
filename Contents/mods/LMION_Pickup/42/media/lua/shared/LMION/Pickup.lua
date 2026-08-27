@@ -87,6 +87,39 @@ require "LMION/Pickup/LargeGateMoveables"
 require "LMION/Pickup/LargeGatePlacement"
 require "LMION/Pickup/LargeGateOpenState"
 
+--[[
+Vanilla Moveables calls ReadFromWorldSprite() while creating the inventory item.
+That can overwrite InventoryItem.weight from world-sprite data; vanilla restores
+only actualWeight afterward. LMION already owns an explicit gameplay weight for
+all supported doors and multi-part parcels, so keep both InventoryItem weight
+fields synchronized with the resolved MoveProps value after the complete
+specialized instanceItem chain has finished.
+]]
+local function isLmionTransportMoveProps(moveProps)
+    return moveProps ~= nil
+        and (moveProps.lmionDoorProfile ~= nil
+            or moveProps.lmionGarageFamily ~= nil
+            or moveProps.lmionLargeGateLeaf ~= nil)
+end
+
+if Pickup._weightNormalizedPreviousInstanceItem == nil then
+    Pickup._weightNormalizedPreviousInstanceItem = ISMoveableSpriteProps.instanceItem
+end
+
+ISMoveableSpriteProps.instanceItem = function(self, spriteNameOverride)
+    local item = Pickup._weightNormalizedPreviousInstanceItem(self, spriteNameOverride)
+
+    if item ~= nil and isLmionTransportMoveProps(self) then
+        local weight = tonumber(self.weight)
+        if weight ~= nil and weight > 0 then
+            item:setActualWeight(weight)
+            item:setWeight(weight)
+        end
+    end
+
+    return item
+end
+
 LMION.registerModule(Pickup.ID, Pickup)
 LMION.log("Pickup", "loaded " .. Pickup.VERSION)
 
