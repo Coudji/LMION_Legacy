@@ -1,6 +1,6 @@
 # Vanilla Moveables behavior relevant to LMION
 
-Status: **B42.20.3/B42 current-source behavior researched; LMION parcel destination policy now aligned with vanilla**.
+Status: **B42.20.3/B42 current-source behavior researched; LMION parcel destination policy aligned with vanilla and runtime-validated on garage + large-gate reference paths**.
 
 This note records vanilla Moveables rules that matter for LMION's remaining Pickup polish work: action duration, parcel count/destination, sounds and animation behavior.
 
@@ -82,7 +82,7 @@ Capacity checks follow the same policy. Normal multisprites do not require room 
 
 ### LMION policy
 
-LMION now follows that destination model:
+LMION follows that destination model:
 
 - simple 1x1 doors / paired 1x1 leaves remain single inventory items;
 - a two-segment large-gate leaf produces two parcels on the ground;
@@ -100,6 +100,22 @@ garage:          3 x 20 kg = 60 kg
 ```
 
 The 60 kg garage total is retained as a plausible steel sectional-garage-door mass and is no longer a placement blocker because floor parcels are directly consumable.
+
+### Runtime validation
+
+The vanilla-style destination change is now confirmed in game:
+
+- garage Pickup produces three parcels on the ground;
+- large-gate leaf Pickup produces two parcels on the ground;
+- both structures can be reinstalled successfully from nearby parcels;
+- placement works after N/W rotation;
+- exact current health and `lmionDoorMaxHealth` remain preserved through the new ground-parcel path.
+
+### Multiple identical parcel sets
+
+Current parcel lookup is by required LMION part item type, not by an assembly/bundle identifier. Therefore if several identical gates/garages have compatible Part1/Part2(/Part3) parcels within search range, placement may legally combine parts that originated from different physical structures.
+
+Durability is stored per parcel, so such a mixed assembly should inherit each selected parcel's own stored health/max-health. This is currently considered acceptable/undefined vanilla-like behavior rather than a blocker. A future runtime test can decide whether LMION needs explicit bundle identity or deterministic nearest-item selection.
 
 ## Moveables sounds
 
