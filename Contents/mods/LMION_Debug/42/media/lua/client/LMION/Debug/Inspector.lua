@@ -1,6 +1,7 @@
 require "ISUI/ISContextMenu"
 require "LMION/Debug/Registry"
 require "LMION/Debug/Inspect/Door"
+require "LMION/Debug/Inspect/Frame"
 require "LMION/Debug/Inspect/ObjectInspector"
 require "LMION/Debug/World/SquareScanner"
 require "LMION/Debug/World/Selection"
