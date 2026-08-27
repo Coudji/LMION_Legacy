@@ -102,6 +102,19 @@ local function restartCrowbarSound(action)
     addSound(character, character:getX(), character:getY(), character:getZ(), 10, 1)
 end
 
+local function restartBlowTorchSound(action)
+    local character = action and action.character or nil
+    if character == nil then
+        return
+    end
+
+    stopActionSound(action)
+    action.sound = character:getEmitter():playSound("BlowTorch")
+
+    local radius = 20 * character:getWeldingSoundMod()
+    addSound(character, character:getX(), character:getY(), character:getZ(), radius, radius)
+end
+
 local function isScrewdriverTool(toolName)
     return toolName == "Screwdriver" or toolName == "LMIONMetalScrewdriver"
 end
@@ -178,16 +191,16 @@ Transport:
 
 Scrap:
 Vanilla Moveables gets the ScrapDefinition from moveProps.material, so LMION keeps
-that definition authoritative for tools, skill, duration, sound, welding protection
-and tool consumption.
+that definition authoritative for tools, skill, duration, welding protection and
+tool consumption.
 
 However, ISMoveablesAction.start() does NOT choose its welding animation from that
 ScrapDefinition. It separately checks character:hasEquippedTag(ItemTag.BLOW_TORCH)
 and falls back to Disassemble + a fake Screwdriver model when the check fails.
 Therefore, when the actual ScrapDefinition requires Base.BlowTorch, LMION equips the
-real usable torch before vanilla start(), then re-applies BlowTorch/BlowTorchFloor
-and that real hand model after vanilla start(). This changes presentation only; the
-vanilla ScrapDefinition remains the gameplay authority.
+real usable torch before vanilla start(), then re-applies BlowTorch/BlowTorchFloor,
+the real hand model and the same BlowTorch emitter sound used by vanilla welding
+actions. The ScrapDefinition remains the gameplay authority.
 ]]
 if Pickup._pickupPresentationOriginalActionStart == nil then
     Pickup._pickupPresentationOriginalActionStart = ISMoveablesAction.start
@@ -199,6 +212,7 @@ ISMoveablesAction.start = function(self)
         equipResolvedToolNow(self, blowTorch)
         Pickup._pickupPresentationOriginalActionStart(self)
         forceBlowTorchPresentation(self, blowTorch)
+        restartBlowTorchSound(self)
         return
     end
 
