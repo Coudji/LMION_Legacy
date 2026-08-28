@@ -76,13 +76,12 @@ ISMoveableSpriteProps.getFaces = function(self)
 end
 
 --[[
-Vanilla serializes a Moveable through instanceItem(). LMION captures door health
-just before vanilla removes the IsoDoor, then injects that state into the item
-created by vanilla instead of inventing a parallel serialization path.
+Vanilla serializes a Moveable through instanceItem(). Pickup only transports the
+normalized state supplied by Core; it does not know whether the source object was
+an IsoDoor or an IsoThumpable door.
 
 Door inventory identity is always canonicalized to the CLOSED N/W SpriteConfig
-face. Picking up an open 1x1 door must never preserve its open sprite in the
-Moveable item because that breaks rotation and would reinstall the door open.
+face so an open door is reinstalled as the normal closed transport identity.
 ]]
 if Pickup._originalMoveableInstanceItem == nil then
     Pickup._originalMoveableInstanceItem = ISMoveableSpriteProps.instanceItem
@@ -94,12 +93,12 @@ ISMoveableSpriteProps.instanceItem = function(self, spriteNameOverride)
     local item = Pickup._originalMoveableInstanceItem(self, canonicalSpriteName)
 
     if item ~= nil and profile ~= nil then
+        local modData = item:getModData()
         if self.lmionPendingHealth ~= nil then
-            item:getModData().lmionDoorHealth = self.lmionPendingHealth
+            modData.lmionDoorHealth = self.lmionPendingHealth
         end
-
         if self.lmionPendingMaxHealth ~= nil then
-            item:getModData().lmionDoorMaxHealth = self.lmionPendingMaxHealth
+            modData.lmionDoorMaxHealth = self.lmionPendingMaxHealth
         end
     end
 
@@ -116,13 +115,9 @@ ISMoveableSpriteProps.pickUpMoveableInternal = function(self, character, square,
     self.lmionPendingHealth = nil
     self.lmionPendingMaxHealth = nil
 
-    if profile ~= nil and object ~= nil and instanceof(object, "IsoDoor") then
-        self.lmionPendingHealth = object:getHealth()
-
-        local modData = object:getModData()
-        if modData ~= nil then
-            self.lmionPendingMaxHealth = tonumber(modData[Doors.MaxHealthModDataKey])
-        end
+    if profile ~= nil and Doors.isDoorObject(object) then
+        self.lmionPendingHealth = Doors.getHealth(object)
+        self.lmionPendingMaxHealth = Doors.getEffectiveMaxHealth(object)
     end
 
     local item = Pickup._originalPickUpMoveableInternal(self, character, square, object, sprInstance, spriteName, createItem, rotating)
@@ -183,24 +178,17 @@ ISMoveableSpriteProps.placeMoveableInternal = function(self, square, item, sprit
     local result = Pickup._originalPlaceMoveableInternal(self, square, item, canonicalSpriteName)
 
     if profile ~= nil and (savedHealth ~= nil or savedMaxHealth ~= nil) then
-        local door = nil
-
-        if result ~= nil and instanceof(result, "IsoDoor") then
-            door = result
-        else
-            door = DoorMoveables.findPlacedDoor(square, canonicalSpriteName)
-        end
+        local door = Doors.isDoorObject(result) and result
+            or DoorMoveables.findPlacedDoor(square, canonicalSpriteName)
 
         if door ~= nil then
             if savedMaxHealth ~= nil then
                 Doors.setEffectiveMaxHealth(door, savedMaxHealth)
             end
-
             if savedHealth ~= nil then
-                door:setHealth(math.max(0, savedHealth))
+                Doors.setHealth(door, savedHealth)
             end
-
-            if isServer() then
+            if isServer() and door.transmitCompleteItemToClients ~= nil then
                 door:transmitCompleteItemToClients()
             end
         end
