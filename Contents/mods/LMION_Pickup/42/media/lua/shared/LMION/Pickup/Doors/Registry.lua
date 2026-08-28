@@ -218,7 +218,7 @@ function DoorMoveables.findPlacedDoor(square, spriteName)
     for i = objects:size() - 1, 0, -1 do
         local object = objects:get(i)
         local sprite = object and object:getSprite() or nil
-        if instanceof(object, "IsoDoor")
+        if LMION.Doors.isDoorObject(object)
             and sprite ~= nil
             and sprite:getName() == spriteName then
             return object
