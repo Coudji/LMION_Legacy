@@ -323,12 +323,22 @@ Debug/Cheat **Invisible** mode can suppress some sounds even in unmodded solo ga
 
 > **Disable Invisible before any sound validation.**
 
+### Action-duration balancing
+
+Current Pickup/Place actions are intentionally left as-is during active development. Runtime testing after the door-representation refactor found them much faster than the earlier implementation; the old path had become frustratingly slow during repeated development cycles.
+
+This is **not yet a final gameplay-balance decision**. A meaningful action time can be desirable because dismantling/reinstalling a heavy opening exposes the player to danger, and transporting doors/gates is expected to be an occasional operation rather than a constant action.
+
+Do not currently reintroduce a simple `rawWeight -> duration` scaling, especially the earlier/vanilla-style `rawWeight * 2`, without testing normal gameplay rather than repetitive debug workflows. Real parcel/item weight and action duration are separate balance concerns.
+
+If rapid iteration later needs an explicit shortcut, prefer a Debug-only fast-action aid rather than a gameplay sandbox option.
+
 ### Remaining presentation polish
 
-1. action duration currently includes vanilla `rawWeight * 2`; keep real weights and solve timing separately;
-2. optional material-specific tool sounds after auditioning suitable vanilla events;
-3. audit Build presentation only if a concrete issue is reproduced;
-4. optional package-style presentation for simple 1x1 transported doors.
+1. optional material-specific tool sounds after auditioning suitable vanilla events;
+2. audit Build presentation only if a concrete issue is reproduced;
+3. optional package-style presentation for simple 1x1 transported doors;
+4. revisit Pickup/Place duration only during a dedicated gameplay-balance pass.
 
 ## Core technical guardrails
 
@@ -414,7 +424,8 @@ Do not move code between phases for tidiness without checking engine state.
    - close the full gate before open Pickup;
    - force an existing partner leaf to change state at placement;
    - allow a closed/open hybrid and hope the next toggle repairs it.
-7. For sound QA, verify Debug/Cheat Invisible is disabled before concluding that audio is broken.
+7. Do not treat Pickup/Place action duration as an urgent defect. Current timings are acceptable for development; revisit them only in a gameplay-balance pass and do not tie them blindly to transport weight.
+8. For sound QA, verify Debug/Cheat Invisible is disabled before concluding that audio is broken.
 
 ## Known compatibility note
 
@@ -426,10 +437,11 @@ Large-gate transport/topology is currently runtime-validated enough that further
 
 Recommended next Pickup tasks:
 
-1. define/fix Pickup/Place duration without changing real transport weights;
-2. optionally revisit material-specific crowbar/hammer sounds after auditioning candidate vanilla events;
-3. audit Build presentation only if a concrete issue is reproduced;
-4. optionally package-style presentation for simple 1x1 items.
+1. optionally revisit material-specific crowbar/hammer sounds after auditioning candidate vanilla events;
+2. audit Build presentation only if a concrete issue is reproduced;
+3. optionally package-style presentation for simple 1x1 items.
+
+Action-duration balancing is deliberately deferred until a dedicated gameplay-balance pass.
 
 A future `LMION_Repair` gameplay module remains planned after transport/material/craft rules are stable enough. Core should keep only low-level logical-health primitives.
 
