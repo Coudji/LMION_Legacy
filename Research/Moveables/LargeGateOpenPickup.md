@@ -1,23 +1,115 @@
 # Large-gate open-state Pickup
 
-Status: **implemented; runtime validation pending**.
+Status: **runtime validated on B42.20.3**.
 
-## Contract
+This note records the final large-gate open-state transport behavior and, importantly, the approaches that were rejected during runtime testing.
 
-Large gates keep their existing two-parcel-per-leaf transport model. Open state is a world-only state and is never transported.
+## Final gameplay contract
+
+Large gates keep the existing two-parcel-per-leaf transport model.
+
+Open/closed state is **not stored in the parcels**. Instead, the world state at the target location decides how a leaf is reinstalled.
 
 ```text
-closed gate -> Pickup selected leaf -> 2 closed canonical parcels -> placement closed
-open gate   -> vanilla close -> reacquire selected leaf -> 2 closed canonical parcels -> placement closed
+Pickup
+------
+closed gate -> remove selected leaf directly -> 2 canonical closed parcels
+open gate   -> remove selected leaf directly -> 2 canonical closed parcels
+
+Placement
+---------
+no partner leaf present -> place selected leaf closed
+partner leaf closed     -> place selected leaf closed
+partner leaf open       -> place selected leaf open
+partner leaf incoherent -> refuse reconnection
 ```
 
-Pickup remains leaf-local: selecting either physical leaf removes only that leaf after the complete gate has been normalized to the closed layout.
+The untouched partner leaf is never toggled, moved or rebuilt merely to make Pickup/placement possible.
+
+## Runtime-validated behavior
+
+The reference `DoubleWireGate` path was validated with both world/map and player-built representations.
+
+Confirmed behavior:
+
+- a closed leaf can be picked up and reinstalled;
+- an open leaf can be picked up without closing the complete portal first;
+- the other leaf remains visually and logically untouched during open Pickup;
+- the two parcels always use the canonical closed transport identity;
+- placement with no matching partner produces a closed leaf;
+- placement beside a closed matching partner produces a closed leaf;
+- placement beside an open matching partner produces an open leaf in the correct open geometry;
+- after correct reassembly, vanilla DoubleDoor synchronization resumes normally;
+- current health/effective max survive Pickup/replacement;
+- durability survives N/W rotation before placement;
+- source Java representation survives Pickup/replacement (`IsoDoor` stays `IsoDoor`, `IsoThumpable` stays `IsoThumpable`);
+- when an open placement target is physically blocked, the Moveables preview becomes invalid/red and clicking does not place the leaf.
+
+That last point is important: LMION does not bypass world collision just to restore a logical gate state.
+
+## Why the old forced-close approach was removed
+
+The first open-Pickup implementation normalized the full gate to closed before removing one leaf:
+
+```text
+open gate
+-> snapshot state
+-> vanilla ToggleDoor()
+-> gate closes
+-> reacquire selected closed leaf
+-> Pickup
+```
+
+This worked mechanically but had a bad visible side effect: when the selected leaf disappeared, the untouched leaf could appear to close by itself. It also made Pickup depend on the complete gate being able to close.
+
+Runtime testing proved that vanilla Moveables does not require a door to be closed before removing the world object. LMION can therefore remove the selected open members directly.
+
+Final rule:
+
+> **Pickup must not change the visible open/closed state of the partner leaf.**
+
+`LargeGateOpenPickup.lua` suppresses the DoubleDoor toggle-recreation observer while its direct removals are in progress so `OnObjectAboutToBeRemoved` is not mistaken for a vanilla opening/closing transition.
+
+## Why placement adopts the partner state
+
+A transported parcel does not carry an `open=true/false` flag. That is intentional.
+
+A leaf placed alone is a new incomplete portal and therefore starts closed. When the complementary leaf already exists, however, forcing one state can create an impossible hybrid:
+
+```text
+A newly placed closed
+B already open
+```
+
+Runtime testing showed that this hybrid causes broken DoubleDoor movement/geometry when the player next operates the portal.
+
+Forcing B closed was considered and rejected because B may legitimately be unable to close: a vehicle, crate or other world object may occupy its closed footprint. Rebuilding B into that occupied space would bypass normal collision semantics.
+
+The final rule is therefore:
+
+> **A reinstalled leaf adopts the open/closed state of a valid matching partner. LMION never forces the partner to adopt the state of the new leaf.**
+
+This keeps placement local and respects the existing world geometry.
+
+## Partner detection
+
+Partner detection is geometric and strict.
+
+From the requested closed placement position, LMION derives the complete four-member DoubleDoor anchor and checks the complementary leaf against the known N/W layouts.
+
+The partner must resolve as exactly one of:
+
+- complete closed leaf;
+- complete open leaf;
+- absent.
+
+A partially matching or contradictory partner is treated as inconsistent and reconnection is refused rather than silently repaired.
+
+This prevents LMION from guessing through an already-corrupted topology.
 
 ## Runtime topology evidence
 
-Full N/W closed/open reports were captured for `DoubleWireGate` and `LargeFarmGate`. Both families use the same vanilla `DoubleDoor` topology.
-
-Closed layouts:
+Validated closed layouts:
 
 ```text
 N: 1 - 2 - 3 - 4
@@ -28,7 +120,7 @@ W: 4
    1
 ```
 
-Open layouts:
+Validated open layouts:
 
 ```text
 N: 2         3
@@ -39,64 +131,145 @@ W: 4 - 3
    1 - 2
 ```
 
-Members 1 and 4 stay on stable anchor squares. Members 2 and 3 are relocated perpendicular to the closed gate footprint and are recreated by vanilla.
+Equivalent coordinate tables used by the implementation:
 
-The runtime reports also confirm vanilla's stable open-sprite offsets by facing/logical index:
+```text
+N closed: 1=(0,0) 2=(1,0) 3=(2,0) 4=(3,0)
+N open:   1=(0,0) 2=(0,1) 3=(3,1) 4=(3,0)
+
+W closed: 1=(0,0) 2=(0,-1) 3=(0,-2) 4=(0,-3)
+W open:   1=(0,0) 2=(1,0) 3=(1,-3) 4=(0,-3)
+```
+
+Members 1 and 4 are stable anchors across the vanilla transition. Members 2 and 3 relocate perpendicular to the closed footprint and can be recreated by vanilla.
+
+Open sprite aliases are derived from the canonical closed leaf specs with the validated B42.20.3 offsets:
 
 ```text
 N: index 1 +5, index 2 +3, index 3 +4, index 4 +4
 W: index 1 +4, index 2 +4, index 3 +5, index 4 +3
 ```
 
-`LargeGateOpenState` derives the open aliases at runtime from the canonical closed leaf specs using this engine rule. Closed sprites remain the only inventory/placement identities.
+## Placement mechanics
 
-## Open Pickup
+LMION does not ask vanilla to perform a DoubleDoor transition while a leaf is incomplete.
 
-All known closed and open large-gate sprites are marked `IsMoveAble` at runtime. Open aliases inherit tool/skill/item metadata from their corresponding closed sprite, so the Moveables cursor can recognize any open member.
+For an open reinstallation:
 
-`canPickUpMoveable` remains read-only. Actual mutation happens only in `pickUpMoveable`:
+1. detect that the complementary leaf is fully open;
+2. compute the target open coordinates from the known layout;
+3. validate the actual target squares through the normal Moveables placement checks;
+4. create each transported member on its explicit target square using its canonical closed sprite identity;
+5. give the restored door its correct open sprite and logical open state **without invoking collective `ToggleDoor()` movement**;
+6. restore transported durability/representation state;
+7. after all four logical members exist with coherent geometry, vanilla DoubleDoor operation works normally again.
 
-1. identify the selected logical leaf from the open sprite;
-2. snapshot/normalize durability for all four logical members;
-3. resolve a stable logical member 1/4 anchor;
-4. call vanilla `ToggleDoor(character)` to close the complete gate;
-5. never reuse relocated member 2/3 references;
-6. reacquire the requested leaf from the now-closed gate;
-7. run the existing two-parcel closed-state pickup path.
+For restored `IsoThumpable` doors Core uses the explicit closed/open sprite pair and a silent per-object state change. This changes the object's own sprite/state only; it does not ask the engine to relocate DoubleDoor neighbors.
 
-If vanilla refuses to close the gate, Pickup aborts instead of removing an open geometry.
+## Physical representation preservation
 
-## Durability preservation
+A major runtime discovery was that vanilla Moveables `placeMoveableInternal()` creates an `IsoDoor` whenever the placed sprite has `doorN`/`doorW`, even if the picked-up source object was an `IsoThumpable` door.
 
-Vanilla `toggleDoubleDoorObject` recreates `IsoDoor` members 2 and 3 without copying their health/modData. This was visible in runtime reports as inner members reverting to `health=100`, `lmionMaxHealth=<unset>` while stable members 1/4 retained LMION durability.
+This caused:
 
-LMION now preserves this state at the toggle boundary:
+```text
+vanilla/player-built gate
+IsoThumpable
+-> Pickup
+-> vanilla Moveables placement
+-> IsoDoor
+```
 
-- `OnObjectAboutToBeRemoved` for logical member 2 occurs after its sprite/open flag has switched but before it leaves its previous-layout square;
-- using the known previous N/W layout, LMION resolves all four pre-toggle members and snapshots their health/effective max health;
-- vanilla completes the 1 -> 2 -> 3 -> 4 toggle/recreation;
-- `OnContainerUpdate` verifies the complete target layout and restores the four snapshots to the new objects.
+Historically, LMION also normalized doors toward `IsoDoor`, which made this behavior look convenient. The current architecture explicitly rejects that normalization.
 
-This preserves exact member durability for future open/close cycles, including members 2/3.
+Pickup already stores:
 
-### Recovery of already-tainted gates
+```text
+lmionDoorSourceRepresentation = IsoDoor | IsoThumpable
+```
 
-A gate that was opened before this fix may already have lost the exact historical durability of members 2/3. That information no longer exists in the world object and cannot be reconstructed exactly.
+Core now uses it after vanilla placement:
 
-For Pickup, LMION normalizes such a member using the surviving partner on the same leaf as the effective-max reference and scales the current engine condition onto that max. This prevents a vanilla `100/100` recreated member from becoming a permanent 100-HP parcel, but it cannot recover damage vanilla had already erased before LMION observed the gate.
+```text
+source IsoDoor      -> placed IsoDoor remains IsoDoor
+source IsoThumpable -> temporary vanilla IsoDoor is replaced by IsoThumpable
+```
 
-## Runtime validation
+The replacement reuses the engine-created object's GameEntity components, closed/open sprites and orientation, then Pickup restores the carried thumpable parameters and durability.
 
-Representative tests should cover `DoubleWireGate` and `LargeFarmGate` in N and W:
+Runtime validation confirmed that a constructed `IsoThumpable` gate remains `IsoThumpable` after Pickup/replacement, including after changing N/W orientation.
 
-- open any member, enter Pickup, and confirm the leaf is recognized;
-- pick from both an anchor member and a relocated inner member;
-- confirm the complete gate closes through vanilla before removal;
-- confirm exactly two parcels for the selected leaf;
-- rotate the parcels and place them; placement must always be closed;
-- confirm the untouched leaf remains closed and usable;
-- assign unequal health to members while closed, open/close, and verify the same four health/max values survive;
-- repeat open -> Pickup -> replace and verify parcel/replacement health preservation;
-- verify the existing Farm Gate closed pickup/placement previews remain clean in N/W.
+Do not revert to a universal `IsoDoor` representation merely to simplify DoubleDoor code.
 
-No `media/scripts` item definitions changed in this implementation; the behavioral changes are Lua/runtime-property based.
+## Durability preservation across vanilla opening/closing
+
+Vanilla opening/closing can remove/recreate DoubleDoor members 2 and 3. Object identity is therefore not stable across a transition.
+
+`LargeGateOpenState.lua` observes real vanilla transitions and uses Core state snapshots:
+
+```text
+Doors.captureDoorState(old members)
+-> vanilla recreation
+-> Doors.restoreDoorState(new members)
+```
+
+Runtime validation confirmed:
+
+- world/map `IsoDoor` gate members keep their engine durability through open/close;
+- constructed `IsoThumpable` gate members keep their native vanilla durability through open/close;
+- deliberately damaged members keep their damage after open/close;
+- `lmionDoorMaxHealth` remains unset when no logical override is actually required.
+
+This state-preservation observer is separate from direct Pickup removal. Do not make every object removal look like a DoubleDoor toggle.
+
+## Important vanilla durability finding
+
+For `DoubleWireGate`, the scripted entity defines:
+
+```text
+skillBaseHealth = 300
+```
+
+with no positive fixed base health.
+
+Vanilla build Lua calculates total health from the player's actual relevant skill level. Runtime examples:
+
+```text
+MetalWelding 0 -> constructed IsoThumpable 0/0
+MetalWelding 3 -> constructed IsoThumpable 900/900
+```
+
+The 0/0 result at skill level 0 is vanilla behavior, not LMION corruption.
+
+World/map versions of the same gate were observed as `IsoDoor` 100/100. Core must not silently replace those values with an LMION profile max merely because the object is recognized.
+
+## Rejected approaches
+
+Do not repeat these without new evidence:
+
+### 1. Normalize every transported door to `IsoDoor`
+
+Rejected. It discards a valid engine representation and native `IsoThumpable` capabilities/state.
+
+### 2. Close the full gate before open Pickup
+
+Rejected. It visibly mutates the untouched leaf and unnecessarily couples Pickup to the gate's ability to close.
+
+### 3. Reinstall closed, then force the existing open partner closed
+
+Rejected. The partner's closed footprint may be blocked by vehicles/objects. Forcing a rebuild would bypass world collision.
+
+### 4. Allow a closed/open hybrid and rely on the next click to fix it
+
+Rejected. Runtime testing produced broken DoubleDoor geometry/movement.
+
+## Revalidation triggers
+
+Recheck this note when:
+
+- PZ changes DoubleDoor open/closed offset logic;
+- `IsoDoor.getDoubleDoorObject()` / `toggleDoubleDoor` behavior changes;
+- Moveables stops automatically constructing `IsoDoor` for `doorN`/`doorW` sprites;
+- `IsoThumpable` open/closed sprite APIs change;
+- LMION changes parcel state serialization;
+- a new large-gate family proves different open-layout or sprite-offset semantics.
