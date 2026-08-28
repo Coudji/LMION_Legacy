@@ -1,10 +1,10 @@
 # Garage-door interaction on `IsoThumpable`
 
-Status: **B42.20.3 bytecode/API verified; B42.20.4 runtime failure reproduced; `IsoThumpable` garage representation rejected for LMION; `OnCreate` replacement lifecycle runtime-validated.**
+Status: **B42.20.3 bytecode/API verified; B42.20.4 runtime failure reproduced; `IsoThumpable` garage representation rejected; `OnCreate` lifecycle runtime-validated.**
 
 ## Decision
 
-LMION garage doors are a deliberate representation exception:
+Garage doors use the same canonical representation now adopted by LMION globally:
 
 ```text
 world/map garage      -> IsoDoor
@@ -12,7 +12,9 @@ LMION-built garage    -> temporary build IsoThumpable -> SpriteConfig OnCreate -
 Pickup/reinstallation -> IsoDoor
 ```
 
-Ordinary 1x1 doors and large DoubleDoor gates keep their representation-preservation rules. This exception applies only to the three-panel `GarageDoor` topology.
+The garage is therefore **not a representation exception anymore**. It is a timing exception: its temporary construction `IsoThumpable` must be canonicalized earlier than ordinary built doors because complete native GarageDoor mechanics exist on `IsoDoor`.
+
+See `Research/Architecture/DoorObjectAbstraction.md` for the global canonical policy.
 
 ## Validated construction lifecycle — B42.20.4
 
@@ -39,40 +41,27 @@ Observed members covered GarageDoor indices 3, 2 and 1.
 
 This proves:
 
-> **`SpriteConfig.OnCreate` is the actual and sufficient representation-conversion path on B42.20.4.**
+> **`SpriteConfig.OnCreate` is the actual and sufficient early representation-conversion path on B42.20.4.**
 
-The post-build scan does not need to convert garage representation. It remains useful as the generic LMION_Build initialization phase that locates the actual completed object by EntityScript and applies Build-owned gameplay stats.
+The post-build scan does not need to convert garage representation. It remains the generic LMION_Build finalization phase that locates the actual completed object by EntityScript and asks Core to apply the common canonical/build-state contract. For a garage it simply finds the `IsoDoor` already returned by OnCreate.
 
-Therefore the architecture is:
-
-```text
-ISBuildIsoEntity creates temporary garage IsoThumpable
--> SpriteConfig.OnCreate converts it once to IsoDoor
--> vanilla keeps that returned IsoDoor
--> BuildHook later finds the already-final IsoDoor
--> BuildHook/Core initialize Build-owned durability/name/state only
-```
-
-Do not reintroduce a second post-build garage conversion unless a future PZ version produces new runtime evidence that the OnCreate replacement no longer survives.
+Do not reintroduce a second garage-specific conversion unless a future PZ version produces new runtime evidence that the OnCreate replacement no longer survives.
 
 ## Construction lock-state caveat
 
-The temporary construction `IsoThumpable` must not be treated as authoritative for all persistent state during conversion.
+A temporary construction `IsoThumpable` must not be treated as authoritative for all persistent state during canonicalization.
 
-A refactor temporarily used the generic `Doors.captureDoorState()` / `restoreDoorState()` pair when converting the garage member. That also copied `locked` / `lockedByKey` from the temporary construction object and produced a freshly built garage that was unexpectedly locked.
+A refactor temporarily used the generic captured snapshot unchanged when converting a garage member. That copied `locked` / `lockedByKey` from the temporary construction object and produced a freshly built garage that was unexpectedly locked.
 
-The old validated garage conversion intentionally used a narrower state transfer:
+The validated intended construction result is:
 
 ```text
-preserve name
-preserve modData
-preserve keyId
-preserve current health
+preserve useful construction state (name/modData/keyId/health as applicable)
 force locked = false
 force lockedByKey = false
 ```
 
-LMION therefore keeps that garage-specific construction behavior. Generic state capture/restore remains appropriate for transport/recreation paths where the source object is a real gameplay door, but not blindly for a temporary build object.
+This lesson now applies to the **generic LMION construction canonicalization boundary**, not only garages. `Doors.ensureCanonicalDoor(..., { preserveLockState = false })` is used for fresh LMION construction. By contrast, state capture from a real gameplay source object remains appropriate for transport/recreation paths.
 
 ## Runtime evidence — rejected `IsoThumpable` garage representation
 
@@ -130,33 +119,33 @@ That would violate the project rule that vanilla owns physical opening mechanics
 
 The static `IsoDoor.getGarageDoor*` topology helpers can identify/traverse `IsoThumpable` garage members. That does **not** mean `IsoThumpable` is a complete garage representation.
 
-Likewise, directly using `IsoDoor.toggleGarageDoor(thumpable, ...)` is not adopted as a generic adapter. B42.20.3 bytecode contains class-specific/network handling that is authored around the native `IsoDoor` garage path. LMION should not depend on that mixed-class path merely because some topology helpers accept `IsoObject`.
+Likewise, directly using `IsoDoor.toggleGarageDoor(thumpable, ...)` is not adopted as a generic adapter. B42.20.3 bytecode contains class-specific/network handling authored around the native `IsoDoor` garage path. LMION should not depend on that mixed-class path merely because some topology helpers accept `IsoObject`.
 
-## Durability with the `IsoDoor` exception
+## Durability on canonical `IsoDoor`
 
 Using `IsoDoor` does not prevent LMION from owning constructed-garage durability.
 
-`IsoDoor` exposes current health but no useful native max-health setter. Core already handles this representation through:
+`IsoDoor` exposes current health but no useful native max-health setter. Core handles this through:
 
 ```text
 actual current health -> IsoDoor.setHealth(...)
-effective max health  -> modData.lmionDoorMaxHealth
+effective max health  -> modData.lmionDoorMaxHealth when native max cannot represent it
 ```
 
-After OnCreate returns the final IsoDoor, the generic Build post-build initialization applies the Build-owned durability to that actual object.
-
-Pickup captures/restores the same effective max and current health per segment.
+After OnCreate returns the final IsoDoor, generic Build finalization applies Build-owned durability to that actual object. Pickup captures/restores the same effective max and current health per segment.
 
 Thus the stable contract is:
 
-> **Vanilla `IsoDoor` owns garage mechanics; LMION modData/Core owns any logical durability state the native class cannot store.**
+> **Vanilla `IsoDoor` owns garage physical mechanics; LMION Core/modData owns gameplay state the native class cannot represent.**
 
 ## Rejected approaches
 
-Do not revive `garage = IsoThumpable` only for representation consistency with ordinary construction. The B42.20.3 JAR and B42.20.4 runtime failure show that garage doors are a genuine engine special case.
+Do not revive `garage = IsoThumpable`. The B42.20.3 JAR and B42.20.4 runtime failure show that garage doors are a genuine engine special case.
 
-Do not add a redundant second garage representation conversion in BuildHook while OnCreate remains runtime-validated. The post-build scan has a separate purpose: applying Build-owned state to the already-final object.
+Do not add a redundant second garage-specific conversion in BuildHook while OnCreate remains runtime-validated. The generic post-build phase has a separate role.
 
-Do not blindly reuse full generic door-state restoration when converting temporary build objects. Construction temporaries may contain lock flags that are not intended gameplay state.
+Do not blindly preserve lock flags from temporary construction objects.
 
-Reconsider these conclusions only if a later PZ build changes the observed lifecycle or adds complete native GarageDoor handling to `IsoThumpable`.
+The former project-wide representation-preservation policy is also intentionally retired. Garage research helped expose why two persistent physical backends are a poor long-term fit for LMION, but the global decision is documented separately in `Research/Architecture/DoorObjectAbstraction.md`.
+
+Reconsider the garage-specific engine conclusions only if a later PZ build changes the observed lifecycle or adds complete native GarageDoor handling to `IsoThumpable`.
