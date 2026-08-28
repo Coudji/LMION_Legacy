@@ -39,12 +39,13 @@ local function isLmionFrameValid(self, square)
 end
 
 --[[
-Post-build initialization scans the completed square by EntityScript and applies
-Build-owned gameplay state to the actual object that vanilla/OnCreate left there.
+Post-build finalization scans the completed square by EntityScript and delegates
+the final object contract to Core. Core canonicalizes any remaining temporary
+IsoThumpable door to IsoDoor, then applies the Build-owned gameplay durability.
 
-It does not change Java representation. Garage representation conversion is owned
-exclusively by the SpriteConfig OnCreate callback; B42.20.4 runtime tracing
-confirmed the returned IsoDoor survives into this post-build phase.
+Garage SpriteConfigs perform the same canonicalization earlier in OnCreate for
+engine-safety reasons, so this scan normally finds their already-final IsoDoor.
+Build never implements or chooses a Java representation itself.
 ]]
 local function initializeBuiltDoor(square, gameScript, effectiveMaxHealth)
     if square == nil or gameScript == nil then
