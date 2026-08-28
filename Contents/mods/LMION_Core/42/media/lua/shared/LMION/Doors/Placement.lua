@@ -30,37 +30,62 @@ Vanilla Moveables always creates an IsoDoor when the placed sprite has doorN/doo
 even when the object picked up was an IsoThumpable door. Pickup stores the source
 representation; Core owns restoring that representation after vanilla placement.
 
-The temporary IsoDoor is useful because PZ already resolved the correct closed/open
-sprites and GameEntity components for us. Recreate the final object as an
-IsoThumpable, transfer those engine components, then let Pickup restore transported
-state such as health and thumpable parameters.
+The temporary IsoDoor remains useful because PZ creates the engine-facing object
+and transfers its GameEntity components first. For normal closed placement its
+resolved sprites can be reused directly. Specialized placement, such as an open
+large-gate leaf, may provide explicit closed/open sprites so Core can preserve the
+same logical door state without invoking a visible ToggleDoor transition.
 ]]
-function Doors.restorePlacedRepresentation(object, representation)
+function Doors.restorePlacedRepresentation(object, representation, options)
     if representation ~= "IsoThumpable" or not Doors.isIsoDoor(object) then
         return object
     end
 
+    options = options or {}
+
     local square = object:getSquare()
-    local closedSprite = object:getSprite()
+    local currentSprite = object:getSprite()
+    local closedSprite = options.closedSpriteName and getSprite(options.closedSpriteName) or nil
+    local openSprite = options.openSpriteName and getSprite(options.openSpriteName) or nil
+    local shouldBeOpen = options.isOpen
+
+    if shouldBeOpen == nil then
+        shouldBeOpen = object:IsOpen()
+    end
+
+    if closedSprite == nil and not shouldBeOpen then
+        closedSprite = currentSprite
+    end
+    if openSprite == nil and object.getOpenSprite ~= nil then
+        openSprite = object:getOpenSprite()
+    end
+
     local spriteName = closedSprite and closedSprite:getName() or nil
-    local north = object.getNorth ~= nil and object:getNorth() or Doors.getNorthFromSprite(closedSprite)
+    local north = object.getNorth ~= nil and object:getNorth() or Doors.getNorthFromSprite(closedSprite or currentSprite)
     if square == nil or spriteName == nil or north == nil then
         return object
     end
 
     local insertIndex = object.getObjectIndex ~= nil and object:getObjectIndex() or -1
-    local openSprite = object.getOpenSprite ~= nil and object:getOpenSprite() or nil
     local objectName = object.getName ~= nil and object:getName() or nil
 
     local replacement = IsoThumpable.new(getCell(), square, spriteName, north)
+
+    if GameEntityFactory ~= nil and GameEntityFactory.TransferComponents ~= nil then
+        GameEntityFactory.TransferComponents(object, replacement)
+    end
+
     replacement:setIsDoor(true)
     replacement:setClosedSprite(closedSprite)
     if openSprite ~= nil then
         replacement:setOpenSprite(openSprite)
     end
 
-    if GameEntityFactory ~= nil and GameEntityFactory.TransferComponents ~= nil then
-        GameEntityFactory.TransferComponents(object, replacement)
+    -- ToggleDoorSilent only flips this object's logical state and sprite; unlike
+    -- ToggleDoor it does not move/recreate DoubleDoor members. This is exactly
+    -- what placement needs after the target square was already chosen explicitly.
+    if shouldBeOpen and openSprite ~= nil and not replacement:IsOpen() then
+        replacement:ToggleDoorSilent()
     end
 
     square:transmitRemoveItemFromSquare(object)
