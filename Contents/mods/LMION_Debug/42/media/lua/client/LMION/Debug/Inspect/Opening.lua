@@ -1,6 +1,8 @@
 require "LMION/Debug/Registry"
+require "LMION/Debug/Util/Safe"
 
 local Debug = LMION.Debug
+local Safe = Debug.Util.Safe
 local Openings = LMION.Openings
 
 local function propertyValue(object, name)
@@ -34,6 +36,39 @@ local function extensionLabel(extension)
         .. " (priority " .. tostring(extension.priority) .. ")"
 end
 
+local function containsIndex(indices, value)
+    for _, index in ipairs(indices or {}) do
+        if index == value then
+            return true
+        end
+    end
+    return false
+end
+
+local function getObservedLeaf(object, definition)
+    if definition == nil or definition.topology ~= "twoLeaves" or definition.leaves == nil then
+        return nil
+    end
+
+    local index = Safe.value("IsoDoor.getDoubleDoorIndex", function()
+        return IsoDoor.getDoubleDoorIndex(object)
+    end, -1)
+    if type(index) ~= "number" or index < 0 then
+        return nil
+    end
+
+    local facing = object:getNorth() and "N" or "W"
+    for _, leafId in ipairs({"A", "B"}) do
+        local leaf = definition.leaves[leafId]
+        local indices = leaf and leaf.doubleDoorIndices and leaf.doubleDoorIndices[facing] or nil
+        if containsIndex(indices, index) then
+            return leafId
+        end
+    end
+
+    return nil
+end
+
 Debug.registerInspector("opening.definition", 11, function(object, report)
     if Openings == nil or object == nil then
         return
@@ -57,9 +92,10 @@ Debug.registerInspector("opening.definition", 11, function(object, report)
     report:field("baseTopology", base and base.topology or nil)
     report:field("effectiveTopology", effective and effective.topology or nil)
 
-    if effective and effective.leaves then
-        report:field("leaf.left", effective.leaves.left)
-        report:field("leaf.right", effective.leaves.right)
+    if effective and effective.topology == "twoLeaves" and effective.leaves then
+        report:field("leaf", getObservedLeaf(object, effective) or "<unknown>")
+        report:field("leaf.A.entity", effective.leaves.A and effective.leaves.A.entity or nil)
+        report:field("leaf.B.entity", effective.leaves.B and effective.leaves.B.entity or nil)
     end
 
     if #extensions == 0 then
