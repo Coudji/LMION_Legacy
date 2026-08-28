@@ -79,8 +79,9 @@ end
 Vanilla serializes a Moveable through instanceItem(). Pickup transports Core's
 normalized door state, including the physical representation of the source door.
 
-Door inventory identity is always canonicalized to the CLOSED N/W SpriteConfig
-face so an open door is reinstalled as the normal closed transport identity.
+Inventory identity is normally canonicalized to the CLOSED N/W SpriteConfig face.
+A specialized placement path may explicitly preserve another target sprite (for
+example an open large-gate member) while still using the same transported item.
 ]]
 if Pickup._originalMoveableInstanceItem == nil then
     Pickup._originalMoveableInstanceItem = ISMoveableSpriteProps.instanceItem
@@ -152,8 +153,9 @@ ISMoveableSpriteProps.canPlaceMoveableInternal = function(self, character, squar
         return false
     end
 
-    local canonicalSpriteName = getCanonicalClosedSpriteName(self, profile, self.sprite and self.sprite:getName() or nil)
-    local north = Doors.getNorthFromSprite(canonicalSpriteName)
+    local placementSpriteName = self.lmionPlacementSpriteName
+    local spriteForPlacement = placementSpriteName or getCanonicalClosedSpriteName(self, profile, self.sprite and self.sprite:getName() or nil)
+    local north = Doors.getNorthFromSprite(spriteForPlacement)
     if not Doors.canPlaceDoorAt(square, north, profile.requiresFrame, profile.pairedFrameSide) then
         return false
     end
@@ -190,15 +192,16 @@ ISMoveableSpriteProps.placeMoveableInternal = function(self, square, item, sprit
         savedRepresentation = modData.lmionDoorSourceRepresentation
     end
 
-    local canonicalSpriteName = getCanonicalClosedSpriteName(self, profile, spriteName)
-    local result = Pickup._originalPlaceMoveableInternal(self, square, item, canonicalSpriteName)
+    local targetSpriteName = self.lmionPlacementSpriteName
+        or getCanonicalClosedSpriteName(self, profile, spriteName)
+    local result = Pickup._originalPlaceMoveableInternal(self, square, item, targetSpriteName)
 
     if profile == nil then
         return result
     end
 
     local door = Doors.isDoorObject(result) and result
-        or DoorMoveables.findPlacedDoor(square, canonicalSpriteName)
+        or DoorMoveables.findPlacedDoor(square, targetSpriteName)
 
     if door == nil then
         return result
@@ -206,7 +209,16 @@ ISMoveableSpriteProps.placeMoveableInternal = function(self, square, item, sprit
 
     if savedRepresentation ~= nil and Doors.restorePlacedRepresentation ~= nil then
         Pickup._largeGateSuppressToggleRemoval = true
-        local ok, restored = pcall(Doors.restorePlacedRepresentation, door, savedRepresentation)
+        local options = nil
+        if self.lmionPlacementClosedSpriteName ~= nil or self.lmionPlacementOpenSpriteName ~= nil then
+            options = {
+                closedSpriteName = self.lmionPlacementClosedSpriteName,
+                openSpriteName = self.lmionPlacementOpenSpriteName,
+                isOpen = self.lmionPlacementIsOpen == true,
+            }
+        end
+
+        local ok, restored = pcall(Doors.restorePlacedRepresentation, door, savedRepresentation, options)
         Pickup._largeGateSuppressToggleRemoval = false
 
         if not ok then
