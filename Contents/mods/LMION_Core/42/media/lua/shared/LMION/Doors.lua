@@ -17,6 +17,7 @@ require "LMION/Doors/Object"
 require "LMION/Doors/Durability"
 require "LMION/Doors/State"
 require "LMION/Doors/Representation"
+require "LMION/Doors/GarageTopology"
 require "LMION/Doors/Placement"
 require "LMION/Doors/Construction"
 
