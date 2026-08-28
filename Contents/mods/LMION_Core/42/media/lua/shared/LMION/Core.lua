@@ -1,6 +1,6 @@
 LMION = LMION or {}
 
-LMION.VERSION = "0.0.4-dev"
+LMION.VERSION = "0.0.5-dev"
 LMION.Modules = LMION.Modules or {}
 
 local function prefix(scope)
