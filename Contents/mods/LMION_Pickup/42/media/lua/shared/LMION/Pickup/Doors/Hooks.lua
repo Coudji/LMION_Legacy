@@ -76,9 +76,8 @@ ISMoveableSpriteProps.getFaces = function(self)
 end
 
 --[[
-Vanilla serializes a Moveable through instanceItem(). Pickup only transports the
-normalized state supplied by Core; it does not know whether the source object was
-an IsoDoor or an IsoThumpable door.
+Vanilla serializes a Moveable through instanceItem(). Pickup transports Core's
+normalized door state, including the physical representation of the source door.
 
 Door inventory identity is always canonicalized to the CLOSED N/W SpriteConfig
 face so an open door is reinstalled as the normal closed transport identity.
@@ -181,35 +180,65 @@ ISMoveableSpriteProps.placeMoveableInternal = function(self, square, item, sprit
     local savedHealth = nil
     local savedMaxHealth = nil
     local savedMaxWasLogical = false
+    local savedRepresentation = nil
 
     if profile ~= nil and item ~= nil and item:hasModData() then
         local modData = item:getModData()
         savedHealth = tonumber(modData.lmionDoorHealth)
         savedMaxHealth = tonumber(modData.lmionDoorMaxHealth)
         savedMaxWasLogical = modData.lmionDoorMaxWasLogical == true
+        savedRepresentation = modData.lmionDoorSourceRepresentation
     end
 
     local canonicalSpriteName = getCanonicalClosedSpriteName(self, profile, spriteName)
     local result = Pickup._originalPlaceMoveableInternal(self, square, item, canonicalSpriteName)
 
-    if profile ~= nil and (savedHealth ~= nil or savedMaxHealth ~= nil) then
-        local door = Doors.isDoorObject(result) and result
-            or DoorMoveables.findPlacedDoor(square, canonicalSpriteName)
+    if profile == nil then
+        return result
+    end
 
-        if door ~= nil then
-            if savedMaxHealth ~= nil then
-                Doors.restoreEffectiveMaxHealth(door, savedMaxHealth, savedMaxWasLogical)
-            end
-            if savedHealth ~= nil then
-                Doors.setHealth(door, savedHealth)
-            end
-            if isServer() and door.transmitCompleteItemToClients ~= nil then
-                door:transmitCompleteItemToClients()
-            end
+    local door = Doors.isDoorObject(result) and result
+        or DoorMoveables.findPlacedDoor(square, canonicalSpriteName)
+
+    if door == nil then
+        return result
+    end
+
+    if savedRepresentation ~= nil and Doors.restorePlacedRepresentation ~= nil then
+        Pickup._largeGateSuppressToggleRemoval = true
+        local ok, restored = pcall(Doors.restorePlacedRepresentation, door, savedRepresentation)
+        Pickup._largeGateSuppressToggleRemoval = false
+
+        if not ok then
+            LMION.error("Pickup", "failed to restore door representation: " .. tostring(restored))
+        elseif Doors.isDoorObject(restored) then
+            door = restored
         end
     end
 
-    return result
+    -- Vanilla saves additional IsoThumpable fields in the Moveable item. Because
+    -- vanilla initially created an IsoDoor for doorN/doorW, restore those fields
+    -- after Core has recreated the intended IsoThumpable representation.
+    if savedRepresentation == "IsoThumpable"
+        and item ~= nil
+        and item:hasModData()
+        and Doors.isThumpableDoor(door)
+        and self.restoreThumpableParameters ~= nil then
+        self:restoreThumpableParameters(item:getModData(), door)
+    end
+
+    if savedMaxHealth ~= nil then
+        Doors.restoreEffectiveMaxHealth(door, savedMaxHealth, savedMaxWasLogical)
+    end
+    if savedHealth ~= nil then
+        Doors.setHealth(door, savedHealth)
+    end
+
+    if isServer() and door.transmitCompleteItemToClients ~= nil then
+        door:transmitCompleteItemToClients()
+    end
+
+    return door
 end
 
 return DoorMoveables
