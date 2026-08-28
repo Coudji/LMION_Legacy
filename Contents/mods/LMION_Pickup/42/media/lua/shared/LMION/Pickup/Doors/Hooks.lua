@@ -101,6 +101,9 @@ ISMoveableSpriteProps.instanceItem = function(self, spriteNameOverride)
             modData.lmionDoorMaxHealth = self.lmionPendingMaxHealth
             modData.lmionDoorMaxWasLogical = self.lmionPendingMaxWasLogical == true
         end
+        if self.lmionPendingRepresentation ~= nil then
+            modData.lmionDoorSourceRepresentation = self.lmionPendingRepresentation
+        end
     end
 
     return item
@@ -116,6 +119,7 @@ ISMoveableSpriteProps.pickUpMoveableInternal = function(self, character, square,
     self.lmionPendingHealth = nil
     self.lmionPendingMaxHealth = nil
     self.lmionPendingMaxWasLogical = nil
+    self.lmionPendingRepresentation = nil
 
     if profile ~= nil and Doors.isDoorObject(object) then
         local state = Doors.captureDoorState(object)
@@ -123,6 +127,7 @@ ISMoveableSpriteProps.pickUpMoveableInternal = function(self, character, square,
             self.lmionPendingHealth = state.health
             self.lmionPendingMaxHealth = state.maxHealth
             self.lmionPendingMaxWasLogical = state.hasLogicalMaxOverride == true
+            self.lmionPendingRepresentation = state.representation
         end
     end
 
@@ -130,6 +135,7 @@ ISMoveableSpriteProps.pickUpMoveableInternal = function(self, character, square,
     self.lmionPendingHealth = nil
     self.lmionPendingMaxHealth = nil
     self.lmionPendingMaxWasLogical = nil
+    self.lmionPendingRepresentation = nil
     return item
 end
 
