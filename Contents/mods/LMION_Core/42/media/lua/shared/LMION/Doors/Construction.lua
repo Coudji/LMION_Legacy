@@ -13,6 +13,26 @@ local function getGarageDoorIndex(object)
     return index
 end
 
+local function describeGarageObject(object)
+    if object == nil then
+        return "<nil>"
+    end
+
+    local representation = Doors.getDoorRepresentation(object) or tostring(object:getObjectName())
+    local sprite = object.getSprite ~= nil and object:getSprite() or nil
+    local spriteName = sprite ~= nil and sprite:getName() or "<nil>"
+    local square = object.getSquare ~= nil and object:getSquare() or nil
+    local squareText = "<nil>"
+    if square ~= nil then
+        squareText = tostring(square:getX()) .. "," .. tostring(square:getY()) .. "," .. tostring(square:getZ())
+    end
+
+    return "class=" .. tostring(representation)
+        .. " sprite=" .. tostring(spriteName)
+        .. " square=" .. squareText
+        .. " garageIndex=" .. tostring(getGarageDoorIndex(object))
+end
+
 --[[
 Garage construction is the deliberate representation exception.
 
@@ -114,16 +134,22 @@ end
 --[[
 First-chance garage replacement used by the seven SpriteConfig OnCreate hooks.
 BuildHook still performs the historical post-build finalization pass because the
-callback alone is not reliable enough to guarantee the final representation.
+callback alone is not yet proven reliable enough to guarantee the final
+representation. Temporary instrumentation below will tell us whether this callback
+actually survives into the completed world object on B42.20.4.
 ]]
 function Doors.onCreateGarage(params)
     local thumpable = params and params.thumpable or nil
+    LMION.log("Core", "GARAGE TRACE OnCreate enter: " .. describeGarageObject(thumpable))
+
     if thumpable == nil or not Doors.isThumpableDoor(thumpable) then
         LMION.error("Core", "onCreateGarage(): missing temporary IsoThumpable door")
         return nil
     end
 
     local garageDoor = replaceGarageThumpable(thumpable)
+    LMION.log("Core", "GARAGE TRACE OnCreate replacement: " .. describeGarageObject(garageDoor))
+
     if not Doors.isIsoDoor(garageDoor) then
         return nil
     end
@@ -132,6 +158,8 @@ function Doors.onCreateGarage(params)
         object = garageDoor,
         effectiveMaxHealth = params and params.effectiveMaxHealth or nil,
     })
+
+    LMION.log("Core", "GARAGE TRACE OnCreate return: " .. describeGarageObject(garageDoor))
 
     return {
         replaceObject = true,
