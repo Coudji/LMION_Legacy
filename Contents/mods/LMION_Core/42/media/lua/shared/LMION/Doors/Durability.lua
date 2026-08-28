@@ -1,5 +1,28 @@
 local Doors = LMION.Doors
 
+function Doors.getHealth(object)
+    if not Doors.isDoorObject(object) or object.getHealth == nil then
+        return nil
+    end
+
+    return tonumber(object:getHealth())
+end
+
+function Doors.setHealth(object, value)
+    if not Doors.isDoorObject(object) or object.setHealth == nil then
+        return nil
+    end
+
+    local health = tonumber(value)
+    if health == nil then
+        return nil
+    end
+
+    health = math.max(0, math.floor(health))
+    object:setHealth(health)
+    return health
+end
+
 function Doors.getConstructionMaxHealth(profile, craftRecipe, character)
     local durability = profile and profile.durability or nil
     if durability == nil then
@@ -23,8 +46,22 @@ function Doors.getConstructionMaxHealth(profile, craftRecipe, character)
     return math.max(0, math.floor(baseHealth + skillBaseHealth * skillLevel))
 end
 
-function Doors.setEffectiveMaxHealth(object, value)
+function Doors.clearEffectiveMaxHealthOverride(object)
     if object == nil or object.getModData == nil then
+        return false
+    end
+
+    local modData = object:getModData()
+    if modData == nil then
+        return false
+    end
+
+    modData[Doors.MaxHealthModDataKey] = nil
+    return true
+end
+
+function Doors.setEffectiveMaxHealth(object, value)
+    if not Doors.isDoorObject(object) then
         return nil
     end
 
@@ -34,95 +71,58 @@ function Doors.setEffectiveMaxHealth(object, value)
     end
 
     maxHealth = math.max(0, math.floor(maxHealth))
-    object:getModData()[Doors.MaxHealthModDataKey] = maxHealth
-    return maxHealth
+
+    if Doors.isThumpableDoor(object) and object.setMaxHealth ~= nil then
+        object:setMaxHealth(maxHealth)
+        Doors.clearEffectiveMaxHealthOverride(object)
+        return maxHealth
+    end
+
+    if object.getModData ~= nil then
+        object:getModData()[Doors.MaxHealthModDataKey] = maxHealth
+        return maxHealth
+    end
+
+    return nil
 end
 
 function Doors.getEffectiveMaxHealth(object)
-    if object == nil then
+    if not Doors.isDoorObject(object) then
         return nil
     end
 
     if object.getModData ~= nil then
         local modData = object:getModData()
-        local maxHealth = modData and tonumber(modData[Doors.MaxHealthModDataKey]) or nil
-        if maxHealth ~= nil then
-            return maxHealth
+        local logicalMax = modData and tonumber(modData[Doors.MaxHealthModDataKey]) or nil
+        if logicalMax ~= nil then
+            return logicalMax
         end
     end
 
     if object.getMaxHealth ~= nil then
-        return object:getMaxHealth()
+        return tonumber(object:getMaxHealth())
     end
 
     return nil
 end
 
 function Doors.repairHealth(object, amount)
-    if object == nil or object.getHealth == nil or object.setHealth == nil then
-        return nil, 0
-    end
-
+    local currentHealth = Doors.getHealth(object)
     local maxHealth = Doors.getEffectiveMaxHealth(object)
     local repairAmount = tonumber(amount)
-    if maxHealth == nil or repairAmount == nil or repairAmount <= 0 then
-        return object:getHealth(), 0
+
+    if currentHealth == nil or maxHealth == nil or repairAmount == nil or repairAmount <= 0 then
+        return currentHealth, 0
     end
 
     repairAmount = math.floor(repairAmount)
-    local currentHealth = object:getHealth()
     if currentHealth >= maxHealth then
         return currentHealth, 0
     end
 
     local newHealth = math.min(maxHealth, currentHealth + repairAmount)
-    object:setHealth(newHealth)
+    Doors.setHealth(object, newHealth)
     return newHealth, newHealth - currentHealth
-end
-
-function Doors.adoptWorldDoor(object)
-    if object == nil or instanceof(object, "IsoDoor") == false then
-        return false
-    end
-
-    local profile = Doors.getProfileForSprite(object:getSprite())
-    local durability = profile and profile.durability or nil
-    local worldMaxHealth = durability and tonumber(durability.worldMaxHealth) or nil
-    if worldMaxHealth == nil or worldMaxHealth <= 0 then
-        return false
-    end
-
-    local modData = object:getModData()
-    if modData ~= nil and tonumber(modData[Doors.MaxHealthModDataKey]) ~= nil then
-        return false
-    end
-
-    local currentHealth = object:getHealth()
-    local engineMaxHealth = object:getMaxHealth()
-
-    Doors.setEffectiveMaxHealth(object, worldMaxHealth)
-
-    if currentHealth == engineMaxHealth then
-        object:setHealth(worldMaxHealth)
-    end
-
-    return true
-end
-
-function Doors.adoptWorldDoorsOnSquare(square)
-    if square == nil then
-        return 0
-    end
-
-    local adopted = 0
-    local objects = square:getObjects()
-    for i = 0, objects:size() - 1 do
-        if Doors.adoptWorldDoor(objects:get(i)) then
-            adopted = adopted + 1
-        end
-    end
-
-    return adopted
 end
 
 return Doors
