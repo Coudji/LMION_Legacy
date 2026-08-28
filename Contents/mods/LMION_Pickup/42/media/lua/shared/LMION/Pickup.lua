@@ -86,6 +86,7 @@ require "LMION/Pickup/LargeGateRuntime"
 require "LMION/Pickup/LargeGateMoveables"
 require "LMION/Pickup/LargeGatePlacement"
 require "LMION/Pickup/LargeGateOpenState"
+require "LMION/Pickup/LargeGateOpenPickup"
 
 --[[
 Vanilla Moveables calls ReadFromWorldSprite() while creating the inventory item.
