@@ -1,6 +1,7 @@
 require "LMION/Pickup/GarageDoorMoveables"
 
 local Pickup = LMION.Pickup
+local Doors = LMION.Doors
 local GarageDoor = Pickup.GarageDoor
 local segmentsBySprite = GarageDoor.SegmentsBySprite
 
@@ -10,94 +11,51 @@ local function getSegment(object)
     return spriteName and segmentsBySprite[spriteName] or nil
 end
 
-local function findGarageMember(square, north, expectedIndex, familyId, expectedOpen)
-    if square == nil then
-        return nil
-    end
-
-    local objects = square:getSpecialObjects()
-    for i = 0, objects:size() - 1 do
-        local object = objects:get(i)
-        if object ~= nil
-            and instanceof(object, "IsoDoor")
-            and object:IsOpen() == expectedOpen
-            and object:getNorth() == north
-            and IsoDoor.getGarageDoorIndex(object) == expectedIndex then
-            local segment = getSegment(object)
-            if segment ~= nil
-                and segment.familyId == familyId
-                and segment.partIndex == expectedIndex
-                and segment.isOpen == expectedOpen then
-                return object
-            end
-        end
-    end
-
-    return nil
-end
-
 local function getGarageMembers(source, familyId)
-    if source == nil or not instanceof(source, "IsoDoor") then
-        return nil
-    end
-
-    local sourceIndex = IsoDoor.getGarageDoorIndex(source)
-    if sourceIndex == nil or sourceIndex < 1 or sourceIndex > 3 then
-        return nil
-    end
-
-    local sourceSegment = getSegment(source)
-    if sourceSegment == nil or sourceSegment.familyId ~= familyId then
+    local chain = Doors.getGarageChain(source)
+    if chain == nil then
         return nil
     end
 
     local expectedOpen = source:IsOpen()
-    if sourceSegment.isOpen ~= expectedOpen then
-        return nil
-    end
-
-    local sourceSquare = source:getSquare()
-    if sourceSquare == nil then
-        return nil
-    end
-
-    local north = source:getNorth()
-    local firstX = sourceSquare:getX()
-    local firstY = sourceSquare:getY()
-    local z = sourceSquare:getZ()
-
-    if north then
-        firstX = firstX - (sourceIndex - 1)
-    else
-        firstY = firstY + (sourceIndex - 1)
-    end
-
     local members = {}
-    for expectedIndex = 1, 3 do
-        local x = firstX
-        local y = firstY
 
-        if north then
-            x = x + (expectedIndex - 1)
-        else
-            y = y - (expectedIndex - 1)
-        end
+    for position, object in ipairs(chain) do
+        local segment = getSegment(object)
+        local role = Doors.getGarageRole(object)
 
-        local square = getCell():getGridSquare(x, y, z)
-        local object = findGarageMember(square, north, expectedIndex, familyId, expectedOpen)
-        if object == nil then
+        if segment == nil
+            or segment.familyId ~= familyId
+            or segment.partIndex ~= role
+            or segment.isOpen ~= expectedOpen then
             return nil
         end
 
-        local segment = getSegment(object)
-        members[expectedIndex] = {
+        -- START and END are unique roles; every interior member must be MIDDLE.
+        if position == 1 then
+            if role ~= Doors.GarageRole.START then
+                return nil
+            end
+        elseif position == #chain then
+            if role ~= Doors.GarageRole.END_ then
+                return nil
+            end
+        elseif role ~= Doors.GarageRole.MIDDLE then
+            return nil
+        end
+
+        members[position] = {
             object = object,
-            square = square,
+            square = object:getSquare(),
             spriteName = object:getSprite():getName(),
-            closedSpriteName = segment and segment.closedSpriteName or nil,
-            engineIndex = expectedIndex,
+            closedSpriteName = segment.closedSpriteName,
+            role = role,
             isOpen = expectedOpen,
         }
+    end
+
+    if #members < 2 then
+        return nil
     end
 
     return members
@@ -172,20 +130,28 @@ ISMoveableSpriteProps.pickUpMoveable = function(self, character, square, createI
     end
 
     local family = GarageDoor.Families[self.lmionGarageFamily]
+    if family == nil then
+        return false
+    end
+
     local items = {}
+    local totalParts = #members
 
-    for partIndex, member in ipairs(members) do
-        local moveProps = ISMoveableSpriteProps.new(member.spriteName)
-        -- Preserve the multisprite delivery rule: one parcel per physical member,
-        -- left on that member's square instead of injected into character inventory.
-        moveProps.isMultiSprite = true
-        moveProps.lmionGaragePart = partIndex
-
-        if family ~= nil and family.parts[partIndex] ~= nil then
-            moveProps.customItem = family.parts[partIndex].itemType
+    for position, member in ipairs(members) do
+        local role = member.role
+        local part = family.parts[role]
+        if part == nil then
+            return false
         end
 
-        items[partIndex] = moveProps:pickUpMoveableInternal(
+        local moveProps = ISMoveableSpriteProps.new(member.spriteName)
+        -- One parcel per physical member. Repeated middle members intentionally
+        -- produce repeated Part2 items; there is no hidden garage bundle identity.
+        moveProps.isMultiSprite = true
+        moveProps.lmionGaragePart = role
+        moveProps.customItem = part.itemType
+
+        local item = moveProps:pickUpMoveableInternal(
             character,
             member.square,
             member.object,
@@ -194,6 +160,14 @@ ISMoveableSpriteProps.pickUpMoveable = function(self, character, square, createI
             createItem,
             forceAllow
         )
+
+        if item ~= nil and item.hasModData ~= nil and item:hasModData() then
+            local modData = item:getModData()
+            modData.lmionGaragePosition = position
+            modData.lmionGarageSourceLength = totalParts
+        end
+
+        items[position] = item
     end
 
     if ISMoveableCursor ~= nil and ISMoveableCursor.clearCacheForAllPlayers ~= nil then
