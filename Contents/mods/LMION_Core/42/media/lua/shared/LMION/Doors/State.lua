@@ -30,14 +30,11 @@ function Doors.captureDoorState(object)
         return nil
     end
 
-    local modData = object.getModData ~= nil and object:getModData() or nil
-    local logicalMax = modData and tonumber(modData[Doors.MaxHealthModDataKey]) or nil
-
     return {
         representation = Doors.getDoorRepresentation(object),
         health = Doors.getHealth(object),
         maxHealth = Doors.getEffectiveMaxHealth(object),
-        hasLogicalMaxOverride = logicalMax ~= nil,
+        hasLogicalMaxOverride = Doors.hasEffectiveMaxHealthOverride(object),
         keyId = getKeyId(object),
         locked = getLocked(object),
         lockedByKey = getLockedByKey(object),
@@ -55,20 +52,11 @@ function Doors.restoreDoorState(object, state)
     end
 
     if state.maxHealth ~= nil then
-        if Doors.isThumpableDoor(object) then
-            Doors.setEffectiveMaxHealth(object, state.maxHealth)
-        elseif state.hasLogicalMaxOverride then
-            Doors.setEffectiveMaxHealth(object, state.maxHealth)
-        else
-            local engineMax = object.getMaxHealth ~= nil and tonumber(object:getMaxHealth()) or nil
-            if engineMax ~= tonumber(state.maxHealth) then
-                -- IsoDoor cannot change its engine max. Preserve an exact state
-                -- only when recreation produced a different engine maximum.
-                Doors.setEffectiveMaxHealth(object, state.maxHealth)
-            else
-                Doors.clearEffectiveMaxHealthOverride(object)
-            end
-        end
+        Doors.restoreEffectiveMaxHealth(
+            object,
+            state.maxHealth,
+            state.hasLogicalMaxOverride == true
+        )
     end
 
     if state.health ~= nil then
