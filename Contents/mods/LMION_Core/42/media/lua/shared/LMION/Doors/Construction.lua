@@ -1,17 +1,17 @@
 local Doors = LMION.Doors
 
 --[[
-Construction recipes create IsoThumpable objects first. LMION normalizes completed
-door recipes into IsoDoor while preserving modData, key identity and logical max.
+Construction owns gameplay values, not the Java representation chosen by the
+engine. Vanilla GameEntity construction may produce an IsoThumpable door; keep it
+as-is and initialize only the state LMION_Build explicitly decided.
 ]]
-function Doors.onCreateDoor(params)
-    local thumpable = params and params.thumpable or nil
-    if thumpable == nil then
-        return nil
+function Doors.initializeConstructedDoor(params)
+    local object = params and params.object or nil
+    if not Doors.isDoorObject(object) then
+        return false
     end
 
-    local square = thumpable:getSquare()
-    local profile = Doors.getProfileForSprite(thumpable:getSprite())
+    local profile = Doors.getProfileForSprite(object:getSprite())
     local effectiveMaxHealth = params and tonumber(params.effectiveMaxHealth) or nil
 
     if effectiveMaxHealth == nil
@@ -20,46 +20,16 @@ function Doors.onCreateDoor(params)
         effectiveMaxHealth = tonumber(Doors.BuildContext.effectiveMaxHealth)
     end
 
-    if effectiveMaxHealth == nil then
-        effectiveMaxHealth = thumpable:getMaxHealth()
+    if profile ~= nil and object.setName ~= nil then
+        object:setName(Doors.getDisplayName(profile))
     end
-
-    local door = IsoDoor.new(
-        getCell(),
-        square,
-        thumpable:getSprite(),
-        thumpable:getNorth()
-    )
-
-    door:setName(profile and Doors.getDisplayName(profile) or thumpable:getName())
-    door:setModData(copyTable(thumpable:getModData()))
-    Doors.setEffectiveMaxHealth(door, effectiveMaxHealth)
-    door:setKeyId(thumpable:getKeyId())
-    door:setIsLocked(false)
-    door:setLockedByKey(false)
 
     if effectiveMaxHealth ~= nil then
-        door:setHealth(effectiveMaxHealth)
-    else
-        door:setHealth(thumpable:getHealth())
+        Doors.setEffectiveMaxHealth(object, effectiveMaxHealth)
+        Doors.setHealth(object, effectiveMaxHealth)
     end
 
-    if GameEntityFactory ~= nil then
-        local properties = door:getProperties()
-        if properties ~= nil and properties:has(IsoFlagType.EntityScript) then
-            GameEntityFactory.CreateIsoEntityFromCellLoading(door)
-        end
-    end
-
-    square:AddSpecialObject(door)
-    square:transmitRemoveItemFromSquare(thumpable)
-
-    return {
-        replaceObject = true,
-        object = door,
-    }
+    return true
 end
-
-Doors.onCreateGarage = Doors.onCreateDoor
 
 return Doors
