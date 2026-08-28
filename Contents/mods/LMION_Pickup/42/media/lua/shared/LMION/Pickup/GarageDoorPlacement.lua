@@ -2,7 +2,10 @@ require "Moveables/ISMoveableSpriteProps"
 require "LMION/Pickup/GarageDoorPickup"
 
 local Pickup = LMION.Pickup
+local Doors = LMION.Doors
 local GarageDoor = Pickup.GarageDoor
+
+GarageDoor.PlacementSelection = GarageDoor.PlacementSelection or {}
 
 local function isGarageMoveProps(moveProps)
     return moveProps ~= nil
@@ -10,9 +13,10 @@ local function isGarageMoveProps(moveProps)
         and moveProps.lmionGaragePart ~= nil
 end
 
-local function findParcel(character, fullType)
+local function collectParcels(character, fullType)
+    local found = {}
     if character == nil or fullType == nil then
-        return nil, nil
+        return found
     end
 
     local inventory = character:getInventory()
@@ -21,14 +25,14 @@ local function findParcel(character, fullType)
         for i = 0, items:size() - 1 do
             local item = items:get(i)
             if item ~= nil and item:getFullType() == fullType then
-                return item, inventory
+                found[#found + 1] = {item = item, source = inventory}
             end
         end
     end
 
     local square = character:getSquare()
     if square == nil then
-        return nil, nil
+        return found
     end
 
     local radius = ISMoveableSpriteProps.multiSpriteFloorRadius or 3
@@ -46,7 +50,7 @@ local function findParcel(character, fullType)
                     if instanceof(worldObject, "IsoWorldInventoryObject") then
                         local item = worldObject:getItem()
                         if item ~= nil and item:getFullType() == fullType then
-                            return item, "floor"
+                            found[#found + 1] = {item = item, source = "floor"}
                         end
                     end
                 end
@@ -54,10 +58,12 @@ local function findParcel(character, fullType)
         end
     end
 
-    return nil, nil
+    return found
 end
 
-local function consumeParcel(item, source)
+local function consumeParcel(entry)
+    local item = entry and entry.item or nil
+    local source = entry and entry.source or nil
     if item == nil or source == nil then
         return
     end
@@ -93,76 +99,184 @@ local function getCurrentFacing(moveProps)
     return nil
 end
 
-local function getPlacementSquares(moveProps, square)
-    if not isGarageMoveProps(moveProps) or square == nil then
+local function getAvailableParts(character, family)
+    if family == nil then
         return nil
     end
 
-    local family = GarageDoor.Families[moveProps.lmionGarageFamily]
+    return {
+        start = collectParcels(character, family.parts[Doors.GarageRole.START].itemType),
+        middle = collectParcels(character, family.parts[Doors.GarageRole.MIDDLE].itemType),
+        finish = collectParcels(character, family.parts[Doors.GarageRole.END_].itemType),
+    }
+end
+
+local function getMaximumAvailableLength(parts)
+    if parts == nil or #parts.start < 1 or #parts.finish < 1 then
+        return nil
+    end
+
+    local maximum = 2 + #parts.middle
+    local lmionMaximum = Doors.getGarageMaxLength()
+    if lmionMaximum ~= nil then
+        maximum = math.min(maximum, lmionMaximum)
+    end
+
+    return maximum
+end
+
+local function getPlayerNumber(character)
+    if character ~= nil and character.getPlayerNum ~= nil then
+        return character:getPlayerNum()
+    end
+    return 0
+end
+
+local function getSelectedLength(character, familyId, maximum)
+    if maximum == nil or maximum < 2 then
+        return nil
+    end
+
+    local playerNum = getPlayerNumber(character)
+    local selection = GarageDoor.PlacementSelection[playerNum]
+
+    if selection == nil or selection.familyId ~= familyId then
+        selection = {
+            familyId = familyId,
+            length = maximum,
+        }
+        GarageDoor.PlacementSelection[playerNum] = selection
+    end
+
+    selection.length = math.max(2, math.min(selection.length or maximum, maximum))
+    return selection.length
+end
+
+function GarageDoor.adjustPlacementLength(character, familyId, delta)
+    local family = familyId and GarageDoor.Families[familyId] or nil
+    local parts = getAvailableParts(character, family)
+    local maximum = getMaximumAvailableLength(parts)
+    if family == nil or maximum == nil then
+        return nil
+    end
+
+    local playerNum = getPlayerNumber(character)
+    local current = getSelectedLength(character, familyId, maximum)
+    local nextLength = math.max(2, math.min(maximum, current + delta))
+
+    GarageDoor.PlacementSelection[playerNum] = {
+        familyId = familyId,
+        length = nextLength,
+    }
+
+    if ISMoveableCursor ~= nil and ISMoveableCursor.clearCacheForAllPlayers ~= nil then
+        ISMoveableCursor.clearCacheForAllPlayers()
+    end
+
+    return nextLength
+end
+
+function GarageDoor.clearPlacementLength(character)
+    GarageDoor.PlacementSelection[getPlayerNumber(character)] = nil
+end
+
+local function getAnchorPosition(role, length)
+    if role == Doors.GarageRole.START then
+        return 1
+    elseif role == Doors.GarageRole.END_ then
+        return length
+    elseif role == Doors.GarageRole.MIDDLE then
+        -- Repeated middle parcels have no unique bundle position. Treat a selected
+        -- Middle parcel as the first interior position; the whole assembly remains
+        -- freely placeable/rotatable from there.
+        return 2
+    end
+
+    return nil
+end
+
+local function buildPlacementPlan(moveProps, character, square)
+    local familyId = moveProps and moveProps.lmionGarageFamily or nil
+    local family = familyId and GarageDoor.Families[familyId] or nil
     local facing = getCurrentFacing(moveProps)
-    local sprite = moveProps.sprite
-    local grid = sprite and sprite:getSpriteGrid() or nil
-    local order = family and family.gridPartOrder and family.gridPartOrder[facing] or nil
-
-    if family == nil or facing == nil or grid == nil or order == nil then
+    local selectedRole = tonumber(moveProps and moveProps.lmionGaragePart)
+    if family == nil or facing == nil or selectedRole == nil or square == nil then
         return nil
     end
 
-    local gridX = grid:getSpriteGridPosX(sprite)
-    local gridY = grid:getSpriteGridPosY(sprite)
-    if gridX == nil or gridY == nil or gridX < 0 or gridY < 0 then
+    local parts = getAvailableParts(character, family)
+    local maximum = getMaximumAvailableLength(parts)
+    local length = getSelectedLength(character, familyId, maximum)
+    if length == nil then
         return nil
     end
 
-    local originX = square:getX() - gridX
-    local originY = square:getY() - gridY
+    local anchorPosition = getAnchorPosition(selectedRole, length)
+    if anchorPosition == nil then
+        return nil
+    end
+
+    local startX = square:getX()
+    local startY = square:getY()
     local z = square:getZ()
-    local squares = {}
 
-    for slot, partIndex in ipairs(order) do
-        local x = originX + (facing == "N" and slot - 1 or 0)
-        local y = originY + (facing == "W" and slot - 1 or 0)
+    if facing == "N" then
+        startX = startX - (anchorPosition - 1)
+    else
+        startY = startY + (anchorPosition - 1)
+    end
+
+    local plan = {}
+    local middleIndex = 1
+
+    for position = 1, length do
+        local role
+        local parcel
+
+        if position == 1 then
+            role = Doors.GarageRole.START
+            parcel = parts.start[1]
+        elseif position == length then
+            role = Doors.GarageRole.END_
+            parcel = parts.finish[1]
+        else
+            role = Doors.GarageRole.MIDDLE
+            parcel = parts.middle[middleIndex]
+            middleIndex = middleIndex + 1
+        end
+
+        local part = family.parts[role]
+        local spriteName = part and part.faces and part.faces[facing] or nil
+        if parcel == nil or spriteName == nil then
+            return nil
+        end
+
+        local x = startX + (facing == "N" and position - 1 or 0)
+        local y = startY - (facing == "W" and position - 1 or 0)
         local targetSquare = getCell():getGridSquare(x, y, z)
         if targetSquare == nil then
             return nil
         end
 
-        squares[partIndex] = targetSquare
-    end
-
-    return squares
-end
-
-local function buildPlacementPlan(moveProps, character, square)
-    local family = moveProps and GarageDoor.Families[moveProps.lmionGarageFamily] or nil
-    local facing = getCurrentFacing(moveProps)
-    local squares = getPlacementSquares(moveProps, square)
-    if family == nil or facing == nil or squares == nil then
-        return nil
-    end
-
-    local plan = {}
-    for partIndex = 1, 3 do
-        local part = family.parts[partIndex]
-        local item, source = findParcel(character, part and part.itemType)
-        local spriteName = part and part.faces and part.faces[facing] or nil
-        if item == nil or source == nil or spriteName == nil then
-            return nil
-        end
-
-        plan[partIndex] = {
-            item = item,
-            source = source,
-            square = squares[partIndex],
+        plan[position] = {
+            item = parcel.item,
+            source = parcel.source,
+            square = targetSquare,
             spriteName = spriteName,
+            role = role,
         }
     end
 
+    plan.length = length
+    plan.familyId = familyId
+    plan.facing = facing
     return plan
 end
 
-GarageDoor.getPlacementSquares = getPlacementSquares
 GarageDoor.buildPlacementPlan = buildPlacementPlan
+GarageDoor.getMaximumAvailableLength = function(character, familyId)
+    return getMaximumAvailableLength(getAvailableParts(character, GarageDoor.Families[familyId]))
+end
 
 if Pickup._garageDoorPlacementPreviousCanPlaceMoveable == nil then
     Pickup._garageDoorPlacementPreviousCanPlaceMoveable = ISMoveableSpriteProps.canPlaceMoveable
@@ -178,8 +292,8 @@ ISMoveableSpriteProps.canPlaceMoveable = function(self, character, square, item)
         return false
     end
 
-    for partIndex = 1, 3 do
-        local entry = plan[partIndex]
+    for position = 1, plan.length do
+        local entry = plan[position]
         local moveProps = ISMoveableSpriteProps.new(entry.spriteName)
         if moveProps == nil or not moveProps.isMoveable then
             return false
@@ -213,17 +327,16 @@ ISMoveableSpriteProps.placeMoveable = function(self, character, square, origSpri
         return false
     end
 
-    local selectedPart = tonumber(self.lmionGaragePart) or 1
     if not forceAllow
         and not character:isMovablesCheat()
         and not ISMoveableDefinitions.cheat
-        and not self:canPlaceMoveable(character, square, plan[selectedPart].item) then
+        and not self:canPlaceMoveable(character, square, plan[1].item) then
         return false
     end
 
     local placed = {}
-    for partIndex = 1, 3 do
-        local entry = plan[partIndex]
+    for position = 1, plan.length do
+        local entry = plan[position]
         local moveProps = ISMoveableSpriteProps.new(entry.spriteName)
         if moveProps == nil or not moveProps.isMoveable then
             LMION.error("Pickup", "garage target move props missing for " .. tostring(entry.spriteName))
@@ -236,23 +349,72 @@ ISMoveableSpriteProps.placeMoveable = function(self, character, square, origSpri
         moveProps.isMultiSprite = wasMultiSprite
 
         if object == nil then
-            LMION.error("Pickup", "garage failed placing part " .. tostring(partIndex))
+            LMION.error("Pickup", "garage failed placing position " .. tostring(position))
             return false
         end
 
-        placed[partIndex] = object
+        placed[position] = object
     end
 
-    for partIndex = 1, 3 do
-        local entry = plan[partIndex]
-        consumeParcel(entry.item, entry.source)
+    for position = 1, plan.length do
+        consumeParcel(plan[position])
     end
+
+    GarageDoor.clearPlacementLength(character)
 
     if ISMoveableCursor ~= nil and ISMoveableCursor.clearCacheForAllPlayers ~= nil then
         ISMoveableCursor.clearCacheForAllPlayers()
     end
 
     return placed
+end
+
+-- Vanilla's runtime garage SpriteGrid stays useful for inventory/facing discovery,
+-- but it is permanently L3. Override only its cursor rendering for LMION garages so
+-- the ghost reflects the actual selected variable-length placement plan.
+if ISMoveableCursor ~= nil and Pickup._garageDoorPreviousRenderSpriteGrid == nil then
+    Pickup._garageDoorPreviousRenderSpriteGrid = ISMoveableCursor.renderSpriteGrid
+
+    ISMoveableCursor.renderSpriteGrid = function(self, x, y, z, color)
+        local moveProps = self and self.currentMoveProps or nil
+        if not isGarageMoveProps(moveProps)
+            or ISMoveableCursor.mode[self.player] ~= "place" then
+            return Pickup._garageDoorPreviousRenderSpriteGrid(self, x, y, z, color)
+        end
+
+        local square = getCell():getGridSquare(x, y, z)
+        local plan = buildPlacementPlan(moveProps, self.character, square)
+        if plan == nil then
+            return Pickup._garageDoorPreviousRenderSpriteGrid(self, x, y, z, color)
+        end
+
+        for position = 1, plan.length do
+            local entry = plan[position]
+            local targetSquare = entry.square
+            local tx = targetSquare:getX()
+            local ty = targetSquare:getY()
+            local tz = targetSquare:getZ()
+
+            if targetSquare:getFloor() and targetSquare:getFloor():getSprite() then
+                targetSquare:getFloor():getSprite():RenderGhostTileColor(tx, ty, tz, 0.75, 1, 0.75, 0.25)
+            end
+
+            local sprite = getSprite(entry.spriteName)
+            if sprite ~= nil then
+                sprite:RenderGhostTileColor(
+                    tx,
+                    ty,
+                    tz,
+                    0,
+                    (self.yOffset or 0) * Core.getTileScale(),
+                    color.r,
+                    color.g,
+                    color.b,
+                    0.8
+                )
+            end
+        end
+    end
 end
 
 return GarageDoor
