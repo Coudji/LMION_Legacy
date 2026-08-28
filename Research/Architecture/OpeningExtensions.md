@@ -1,106 +1,126 @@
-# Opening extension registry
+# Opening definitions and extension registry
 
-Status: transitional architecture introduced 2026-08-28.
+Status: A/B large-gate topology refactor under runtime validation, 2026-08-28.
 
 ## Why this exists
 
-LMION sub-mods are intended to depend on `LMION_Core`, not on each other. A gameplay module may nevertheless change how an opening is represented for its own feature, and other modules need a way to observe that effective representation without requiring or naming the module that introduced it.
+LMION feature modules are intended to depend on `LMION_Core`, not on each other. Core therefore owns the shared description of openings, while feature modules consume that description and may contribute feature-specific extensions without requiring one another.
 
-The first concrete case is large gates:
+The important distinction is:
 
-- Core's base representation is a complete four-member large gate;
-- Build needs independent left/right construction leaves;
-- Pickup should eventually use the effective representation: complete gate when Build is absent, split leaves when Build contributes the split;
-- Debug should report the same effective state rather than duplicating detection logic.
+- **Core describes what the opening is.**
+- **Feature modules describe what they can do with it.**
 
-## Contract
+This avoids a Build decision silently becoming a Pickup rule, or a future Locks module depending directly on a future Windows module.
 
-`LMION.Openings` is owned by Core and currently exposes a deliberately small API:
+## Registry contract
+
+`LMION.Openings` is owned by Core and exposes a deliberately small API:
 
 - `registerDefinition(id, definition)` — register a Core base definition;
-- `registerExtension(targetId, extensionId, extension)` — contribute an extension without replacing the base definition;
-- `resolveId(id)` — resolve a base id or known alias to the Core base id;
+- `registerExtension(targetId, extensionId, extension)` — contribute feature-specific values without replacing the base definition;
+- `resolveId(id)` — resolve a base id or active alias to the Core family id;
 - `getBaseDefinition(id)` — read the unmodified Core definition;
 - `getEffectiveDefinition(id)` — read base + ordered extension values;
-- `getExtensions(id)` — inspect the ordered extensions contributing to the result.
+- `getExtensions(id)` — inspect extensions contributing to the effective result.
 
-Definitions and extension values are plain Lua tables. Readers receive copies, so consumers should treat the registry as read-only and must not mutate Core state directly.
+Definitions and extension values are plain Lua tables. Readers receive copies and must treat Core registry state as read-only.
 
-Extensions have:
+Extensions are deterministic: ascending numeric priority, then extension id.
 
-- an `id` unique for the target definition;
-- a `source` for diagnostics;
-- an optional numeric `priority`;
-- optional aliases;
-- a `values` table merged into the effective definition.
+## Large gates: permanent Core topology
 
-Extensions are resolved by ascending priority and then extension id for deterministic behavior.
+Large gates are no longer modeled as `complete` unless Build contributes a split.
 
-## Stable identity vs active topology
-
-Core must recognize persistent identities independently from whichever gameplay extension is active.
-
-This matters for existing saves: a world object may still carry a split-leaf entity id such as `LargeWroughtIronGateRight` after `LMION_Build` is disabled. That id still belongs to the `LargeWroughtIronGate` family even though split-leaf gameplay is no longer active.
-
-Therefore Core base definitions own the known left/right aliases. Build does **not** own recognition of those ids; Build only contributes the active topology change.
-
-Example without Build:
+Core now defines the physical/gameplay structure permanently as:
 
 ```text
-observed id        = LargeWroughtIronGateRight
-base id            = LargeWroughtIronGate
-base topology      = complete
-effective topology = complete
-extensions         = <none>
+large gate
+├── leaf A = two DoubleDoor members
+└── leaf B = two DoubleDoor members
 ```
 
-Example with Build active:
+The stable leaf identity is **A/B**, not Left/Right. Screen-side left/right changes between N and W orientation, while A/B remains tied to the same logical DoubleDoor members.
+
+Core mapping:
 
 ```text
-observed id        = LargeWroughtIronGateRight
-base id            = LargeWroughtIronGate
-base topology      = complete
-effective topology = splitLeaves
-extension source   = LMION_Build
+leaf A
+  N = indices 1,2
+  W = indices 4,3
+
+leaf B
+  N = indices 3,4
+  W = indices 2,1
 ```
 
-## Current large-gate model
-
-Core registers six base large-gate families with:
+All six supported large-gate families therefore use:
 
 ```text
 kind = largeGate
-topology = complete
+topology = twoLeaves
+leaves.A
+leaves.B
 ```
 
-Core also owns all currently known left/right entity ids as aliases of those families.
+Pickup consumes these Core indices instead of maintaining a second copy of the topology.
 
-Build registers `LMION_Build.largeGateSplit` for each family. Its effective values are:
+## Vanilla construction vs Build
+
+The permanent A/B topology does **not** mean Core replaces vanilla full-gate construction.
+
+Without `LMION_Build`:
 
 ```text
-topology = splitLeaves
-leaves.left = <left entity id>
-leaves.right = <right entity id>
+vanilla construction action
+        ↓
+complete four-member gate
+        ↓
+Core interprets members as A + B
 ```
 
-## Important transitional constraint
+The vanilla full GameEntity remains intact. Core does not narrow the vanilla SpriteConfig simply because the A/B topology exists.
 
-This first step does **not** change gameplay behavior.
+With `LMION_Build` enabled, Build exposes independent construction of A and B. For the three vanilla `DoubleDoor`, `DoubleWireGate` and `DoubleFenceGate` families, Build temporarily narrows the vanilla GameEntity SpriteConfig to leaf A and provides a separate B GameEntity. This is an engine adaptation required for Build's construction feature; it is **not** the source of the A/B topology.
 
-Build still installs its existing runtime-derived split `Doors.Profiles` and SpriteConfig ownership changes. Pickup still uses its existing leaf-based implementation. The registry currently describes that state in parallel so it can be validated before consumers migrate to it.
+The three other large-gate families use explicit Core GameEntities suffixed `A` and `B`, with Build adding CraftRecipe/UiConfig components to them.
 
-Do not remove the existing Build split implementation until Build/Pickup migration has been runtime-validated.
+## Pickup
 
-## Intended dependency rule
+Pickup always transports one logical leaf, regardless of whether Build is enabled:
 
-A module may contribute information to Core, but other modules must consume Core's effective state rather than detecting the contributing module directly.
+```text
+one leaf = two physical IsoDoor segments = two parcels = one placement action
+```
+
+Pickup does not ask whether Build is installed. It reads Core topology and maps the selected physical segment to leaf A or B.
+
+This naturally supports a gate where one leaf has been destroyed: the surviving valid two-member leaf remains independently transportable.
+
+## A/B naming rule
+
+For large gates only:
+
+- code concepts use `leaf`, `leafA`, `leafB`;
+- technical ids use `...GateA` / `...GateB` where a separate id is required;
+- in-game names use the compact suffix `A` / `B` (for example `Grand portail en fer forgé A`);
+- transport items use `... A (1/2)`, `... A (2/2)`, etc.
+
+Paired 1x1 double doors keep **Left/Right** because left/right is meaningful for their frame-side placement contract. Do not apply the large-gate A/B rename to those doors.
+
+## Dependency rule
 
 Correct:
 
 ```text
-Build -> Core registry <- Pickup
-                      <- Debug
+                 Core opening definitions
+                         ▲
+          ┌──────────────┼──────────────┐
+          │              │              │
+        Build          Pickup          Debug
 ```
+
+Build may register feature-specific capabilities in Core, but Pickup and Debug must consume Core state rather than directly inspecting `LMION.Build`.
 
 Avoid:
 
@@ -109,23 +129,24 @@ Pickup -> LMION.Build
 Debug  -> LMION.Build
 ```
 
-A future module such as access control should query shared capabilities/definitions from Core. If window support is later registered in Core with a compatible capability, the access-control module should be able to discover it without a hard dependency on the module that introduced windows.
+The same rule is intended for future systems such as Locks or Windows: shared identity/capability vocabulary belongs to Core; feature modules discover it through Core.
 
-## Current validation target
+## Development-save policy
 
-With Debug enabled, Inspector should expose an `LMION Opening` section for recognized large gates showing:
+This A/B refactor intentionally renames persistent development ids previously using `Left/Right` for large gates and their Pickup parcels.
 
-- observed id;
-- Core base id;
-- kind/family;
-- base topology;
-- effective topology;
-- left/right leaf ids when split;
-- contributing extensions.
+**Old development saves are not supported by this refactor. Use a new world for runtime validation.**
 
-Expected state for this transitional step:
+This is acceptable before public release. Once LMION is published, persistent ids must be treated as compatibility contracts and require migration/deprecation handling instead of destructive renames.
 
-- without Build: `baseTopology=complete`, `effectiveTopology=complete`, no extension;
-- with Build: `baseTopology=complete`, `effectiveTopology=splitLeaves`, source `LMION_Build`.
+## Runtime validation required before merge
 
-Pickup behavior is intentionally unchanged until this state has been verified.
+Use a new world and validate at minimum:
+
+1. **Core only** — vanilla full-gate construction still creates a complete working A+B gate with vanilla-equivalent health behavior.
+2. **Core + Build** — A and B can be constructed independently; assembling both resumes vanilla synchronized opening/closing.
+3. **Core + Pickup** — either A or B can be picked up/replaced independently from a full gate; two parcels are produced; N/W rotation and durability survive.
+4. **Core + Build + Pickup** — the same leaf transport works on Build-created A/B gates.
+5. **Destroyed leaf** — if one leaf is absent/destroyed, the surviving valid leaf can still be transported without inventing the missing one.
+
+Debug Inspector should report `topology = twoLeaves` and `leaf = A` or `B` on recognized large-gate members.
