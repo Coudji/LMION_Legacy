@@ -38,6 +38,16 @@ local function isLmionFrameValid(self, square)
     )
 end
 
+--[[
+Post-build finalization deliberately mirrors the old working LMION safety net:
+a SpriteConfig OnCreate callback may already have replaced the temporary object,
+but Build still rescans the completed square by EntityScript and asks Core to
+finalize the actual object present there.
+
+For ordinary doors/large gates Core preserves the engine-created representation.
+For garage members Core may replace a remaining IsoThumpable with IsoDoor because
+the native garage interaction path is implemented there.
+]]
 local function initializeBuiltDoor(square, gameScript, effectiveMaxHealth)
     if square == nil or gameScript == nil then
         return
@@ -49,11 +59,13 @@ local function initializeBuiltDoor(square, gameScript, effectiveMaxHealth)
         if LMION.Doors.isDoorObject(object)
             and object.getEntityScript ~= nil
             and object:getEntityScript() == gameScript then
-            if LMION.Doors.initializeConstructedDoor({
+            local finalObject = LMION.Doors.initializeConstructedDoor({
                 object = object,
                 effectiveMaxHealth = effectiveMaxHealth,
-            }) and object.transmitCompleteItemToClients ~= nil then
-                object:transmitCompleteItemToClients()
+            })
+
+            if finalObject ~= nil and finalObject.transmitCompleteItemToClients ~= nil then
+                finalObject:transmitCompleteItemToClients()
             end
             return
         end
