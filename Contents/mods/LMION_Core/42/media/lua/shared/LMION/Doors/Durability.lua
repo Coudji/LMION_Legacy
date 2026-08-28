@@ -46,6 +46,15 @@ function Doors.getConstructionMaxHealth(profile, craftRecipe, character)
     return math.max(0, math.floor(baseHealth + skillBaseHealth * skillLevel))
 end
 
+function Doors.hasEffectiveMaxHealthOverride(object)
+    if object == nil or object.getModData == nil then
+        return false
+    end
+
+    local modData = object:getModData()
+    return modData ~= nil and tonumber(modData[Doors.MaxHealthModDataKey]) ~= nil
+end
+
 function Doors.clearEffectiveMaxHealthOverride(object)
     if object == nil or object.getModData == nil then
         return false
@@ -104,6 +113,29 @@ function Doors.getEffectiveMaxHealth(object)
     end
 
     return nil
+end
+
+function Doors.restoreEffectiveMaxHealth(object, value, hadLogicalOverride)
+    if not Doors.isDoorObject(object) then
+        return nil
+    end
+
+    local maxHealth = tonumber(value)
+    if maxHealth == nil then
+        return nil
+    end
+
+    if Doors.isThumpableDoor(object) then
+        return Doors.setEffectiveMaxHealth(object, maxHealth)
+    end
+
+    local engineMaxHealth = object.getMaxHealth ~= nil and tonumber(object:getMaxHealth()) or nil
+    if hadLogicalOverride == true or engineMaxHealth ~= maxHealth then
+        return Doors.setEffectiveMaxHealth(object, maxHealth)
+    end
+
+    Doors.clearEffectiveMaxHealthOverride(object)
+    return engineMaxHealth
 end
 
 function Doors.repairHealth(object, amount)
