@@ -46,88 +46,31 @@ local function applyExplicitDoorState(object, options)
         return object
     end
 
-    if Doors.isThumpableDoor(object) then
-        if openSprite ~= nil then
-            object:setOpenSprite(openSprite)
-        end
-        if shouldBeOpen ~= object:IsOpen() then
-            object:ToggleDoorSilent()
-        end
-    end
-
     return object
 end
 
 --[[
-Vanilla Moveables always creates an IsoDoor when the placed sprite has doorN/doorW,
-even when the object picked up was an IsoThumpable door. Pickup stores the source
-representation; Core owns restoring that representation after vanilla placement.
+LMION reinstallation always ends with the canonical IsoDoor representation.
+Vanilla Moveables already creates IsoDoor for ordinary doorN/doorW placement in
+most cases; ensureCanonicalDoor is still the authoritative boundary in case an
+engine/specialized path returns a temporary IsoThumpable.
 
-Specialized placement may also request an explicit logical open state. The object
-is first created from its CLOSED sprite on the already-resolved target square, then
-Core applies the open sprite/state without calling the collective DoubleDoor toggle.
-That avoids moving or recreating neighbouring members during placement.
+Specialized placement may request an explicit logical open state. Core applies the
+open sprite/state directly on the final IsoDoor without invoking collective
+DoubleDoor toggles, so large-gate placement can recreate a coherent open leaf on
+its already-resolved target squares without moving neighbouring members.
 ]]
-function Doors.restorePlacedRepresentation(object, representation, options)
+function Doors.finalizePlacedDoor(object, options)
     if not Doors.isDoorObject(object) then
         return object
     end
 
-    options = options or {}
-
-    if representation ~= "IsoThumpable" or not Doors.isIsoDoor(object) then
-        return applyExplicitDoorState(object, options)
-    end
-
-    local square = object:getSquare()
-    local currentSprite = object:getSprite()
-    local closedSprite = options.closedSpriteName and getSprite(options.closedSpriteName) or currentSprite
-    local openSprite = options.openSpriteName and getSprite(options.openSpriteName) or nil
-    local spriteName = closedSprite and closedSprite:getName() or nil
-    local north = object.getNorth ~= nil and object:getNorth() or Doors.getNorthFromSprite(closedSprite)
-    if square == nil or spriteName == nil or north == nil then
+    local door = Doors.ensureCanonicalDoor(object)
+    if not Doors.isCanonicalDoor(door) then
         return object
     end
 
-    local insertIndex = object.getObjectIndex ~= nil and object:getObjectIndex() or -1
-    local objectName = object.getName ~= nil and object:getName() or nil
-
-    local replacement = IsoThumpable.new(getCell(), square, spriteName, north)
-
-    if GameEntityFactory ~= nil and GameEntityFactory.TransferComponents ~= nil then
-        GameEntityFactory.TransferComponents(object, replacement)
-    end
-
-    replacement:setIsDoor(true)
-    replacement:setClosedSprite(closedSprite)
-    if openSprite ~= nil then
-        replacement:setOpenSprite(openSprite)
-    elseif object.getOpenSprite ~= nil and object:getOpenSprite() ~= nil then
-        replacement:setOpenSprite(object:getOpenSprite())
-    end
-
-    applyExplicitDoorState(replacement, options)
-
-    square:transmitRemoveItemFromSquare(object)
-    if insertIndex >= 0 then
-        square:AddSpecialObject(replacement, insertIndex)
-    else
-        square:AddSpecialObject(replacement)
-    end
-
-    if objectName ~= nil and replacement.setName ~= nil then
-        replacement:setName(objectName)
-    end
-
-    if isServer ~= nil and isServer() and replacement.transmitCompleteItemToClients ~= nil then
-        replacement:transmitCompleteItemToClients()
-    end
-
-    square:RecalcProperties()
-    square:RecalcAllWithNeighbours(true)
-    triggerEvent("OnObjectAdded", replacement)
-
-    return replacement
+    return applyExplicitDoorState(door, options or {})
 end
 
 local function matchesFrameClass(properties, pairedFrameSide)
