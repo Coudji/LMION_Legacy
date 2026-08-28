@@ -2,6 +2,7 @@ require "Moveables/ISMoveableSpriteProps"
 require "LMION/Pickup/LargeGateRuntime"
 
 local Pickup = LMION.Pickup
+local Doors = LMION.Doors
 local LargeGate = Pickup.LargeGate
 local leafSpecs = LargeGate.Leaves
 local segmentBySprite = LargeGate.SegmentsBySprite
@@ -64,7 +65,7 @@ local function getLeafMembers(source, leafId)
     local members = {}
     for partIndex, logicalIndex in ipairs(logicalIndices) do
         local object = sourceIndex == logicalIndex and source or getDoubleDoorObject(source, logicalIndex)
-        if object == nil or not instanceof(object, "IsoDoor") then
+        if not Doors.isDoorObject(object) then
             return nil
         end
 
