@@ -76,8 +76,9 @@ ISMoveableSpriteProps.getFaces = function(self)
 end
 
 --[[
-Vanilla serializes a Moveable through instanceItem(). Pickup transports Core's
-normalized door state, including the physical representation of the source door.
+Vanilla serializes a Moveable through instanceItem(). Pickup transports gameplay
+state, not the Java class of the source object. An IsoThumpable source is accepted
+and captured normally, but reinstallation intentionally converges to IsoDoor.
 
 Inventory identity is normally canonicalized to the CLOSED N/W SpriteConfig face.
 A specialized placement path may explicitly preserve another target sprite (for
@@ -101,9 +102,6 @@ ISMoveableSpriteProps.instanceItem = function(self, spriteNameOverride)
             modData.lmionDoorMaxHealth = self.lmionPendingMaxHealth
             modData.lmionDoorMaxWasLogical = self.lmionPendingMaxWasLogical == true
         end
-        if self.lmionPendingRepresentation ~= nil then
-            modData.lmionDoorSourceRepresentation = self.lmionPendingRepresentation
-        end
     end
 
     return item
@@ -119,7 +117,6 @@ ISMoveableSpriteProps.pickUpMoveableInternal = function(self, character, square,
     self.lmionPendingHealth = nil
     self.lmionPendingMaxHealth = nil
     self.lmionPendingMaxWasLogical = nil
-    self.lmionPendingRepresentation = nil
 
     if profile ~= nil and Doors.isDoorObject(object) then
         local state = Doors.captureDoorState(object)
@@ -127,7 +124,6 @@ ISMoveableSpriteProps.pickUpMoveableInternal = function(self, character, square,
             self.lmionPendingHealth = state.health
             self.lmionPendingMaxHealth = state.maxHealth
             self.lmionPendingMaxWasLogical = state.hasLogicalMaxOverride == true
-            self.lmionPendingRepresentation = state.representation
         end
     end
 
@@ -135,7 +131,6 @@ ISMoveableSpriteProps.pickUpMoveableInternal = function(self, character, square,
     self.lmionPendingHealth = nil
     self.lmionPendingMaxHealth = nil
     self.lmionPendingMaxWasLogical = nil
-    self.lmionPendingRepresentation = nil
     return item
 end
 
@@ -182,14 +177,12 @@ ISMoveableSpriteProps.placeMoveableInternal = function(self, square, item, sprit
     local savedHealth = nil
     local savedMaxHealth = nil
     local savedMaxWasLogical = false
-    local savedRepresentation = nil
 
     if profile ~= nil and item ~= nil and item:hasModData() then
         local modData = item:getModData()
         savedHealth = tonumber(modData.lmionDoorHealth)
         savedMaxHealth = tonumber(modData.lmionDoorMaxHealth)
         savedMaxWasLogical = modData.lmionDoorMaxWasLogical == true
-        savedRepresentation = modData.lmionDoorSourceRepresentation
     end
 
     local targetSpriteName = self.lmionPlacementSpriteName
@@ -207,37 +200,28 @@ ISMoveableSpriteProps.placeMoveableInternal = function(self, square, item, sprit
         return result
     end
 
-    if savedRepresentation ~= nil and Doors.restorePlacedRepresentation ~= nil then
-        Pickup._largeGateSuppressToggleRemoval = true
-        local options = nil
-        if self.lmionPlacementClosedSpriteName ~= nil or self.lmionPlacementOpenSpriteName ~= nil then
-            options = {
-                closedSpriteName = self.lmionPlacementClosedSpriteName,
-                openSpriteName = self.lmionPlacementOpenSpriteName,
-                isOpen = self.lmionPlacementIsOpen == true,
-            }
-        end
-
-        local ok, restored = pcall(Doors.restorePlacedRepresentation, door, savedRepresentation, options)
-        Pickup._largeGateSuppressToggleRemoval = false
-
-        if not ok then
-            LMION.error("Pickup", "failed to restore door representation: " .. tostring(restored))
-        elseif Doors.isDoorObject(restored) then
-            door = restored
-        end
+    local options = nil
+    if self.lmionPlacementClosedSpriteName ~= nil or self.lmionPlacementOpenSpriteName ~= nil then
+        options = {
+            closedSpriteName = self.lmionPlacementClosedSpriteName,
+            openSpriteName = self.lmionPlacementOpenSpriteName,
+            isOpen = self.lmionPlacementIsOpen == true,
+        }
     end
 
-    -- Vanilla saves additional IsoThumpable fields in the Moveable item. Because
-    -- vanilla initially created an IsoDoor for doorN/doorW, restore those fields
-    -- after Core has recreated the intended IsoThumpable representation.
-    if savedRepresentation == "IsoThumpable"
-        and item ~= nil
-        and item:hasModData()
-        and Doors.isThumpableDoor(door)
-        and self.restoreThumpableParameters ~= nil then
-        self:restoreThumpableParameters(item:getModData(), door)
+    Pickup._largeGateSuppressToggleRemoval = true
+    local ok, finalized = pcall(Doors.finalizePlacedDoor, door, options)
+    Pickup._largeGateSuppressToggleRemoval = false
+
+    if not ok then
+        LMION.error("Pickup", "failed to finalize canonical door placement: " .. tostring(finalized))
+    elseif Doors.isDoorObject(finalized) then
+        door = finalized
     end
+
+    -- Stale development parcels may still contain lmionDoorSourceRepresentation
+    -- from the former representation-preservation architecture. It is ignored on
+    -- purpose: source class is no longer transported gameplay state.
 
     if savedMaxHealth ~= nil then
         Doors.restoreEffectiveMaxHealth(door, savedMaxHealth, savedMaxWasLogical)
