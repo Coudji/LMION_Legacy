@@ -82,7 +82,7 @@ local function getGateMembers(source)
     for index = 1, 4 do
         local object = getDoubleDoorObject(source, index)
         local segment = getSegment(object)
-        if object == nil or segment == nil or not instanceof(object, "IsoDoor") then
+        if object == nil or segment == nil or not Doors.isDoorObject(object) then
             return nil
         end
         members[index] = {object = object, segment = segment, square = object:getSquare()}
@@ -101,7 +101,7 @@ local function getLeafMembers(source, leafId)
     for partIndex, logicalIndex in ipairs(leaf.indices[sourceSegment.facing]) do
         local object = getDoubleDoorObject(source, logicalIndex)
         local segment = getSegment(object)
-        if object == nil or segment == nil
+        if object == nil or not Doors.isDoorObject(object) or segment == nil
             or segment.leafId ~= leafId
             or segment.partIndex ~= partIndex
             or segment.facing ~= sourceSegment.facing then
@@ -171,7 +171,7 @@ local function restoreStates(source, states)
     for index = 1, 4 do
         local object = getDoubleDoorObject(source, index)
         local state = states[index]
-        if object and state and instanceof(object, "IsoDoor") then
+        if object and state and Doors.isDoorObject(object) then
             if state.maxHealth and Doors and Doors.setEffectiveMaxHealth then
                 Doors.setEffectiveMaxHealth(object, state.maxHealth)
             end
@@ -206,7 +206,7 @@ end
 Pickup._largeGatePendingToggleDurability = Pickup._largeGatePendingToggleDurability or {}
 
 local function onAboutToRemove(object)
-    if object == nil or not instanceof(object, "IsoDoor") or getDoubleDoorIndex(object) ~= 2 then return end
+    if object == nil or not Doors.isDoorObject(object) or getDoubleDoorIndex(object) ~= 2 then return end
     local segment = getSegment(object)
     if segment == nil then return end
 
@@ -336,7 +336,7 @@ ISMoveableSpriteProps.canPickUpMoveable = function(self, character, square, obje
         return Pickup._largeGateOpenOriginalCanPickUp(self, character, square, object)
     end
     local selected = object or findSelected(self, square)
-    if selected == nil then return false end
+    if selected == nil or not Doors.isDoorObject(selected) then return false end
 
     local baseCanPick = Pickup._largeGateOriginalCanPickUpMoveable
     if baseCanPick then
@@ -366,7 +366,7 @@ ISMoveableSpriteProps.pickUpMoveable = function(self, character, square, createI
     end
 
     local selected = findSelected(self, square)
-    if selected == nil then return false end
+    if selected == nil or not Doors.isDoorObject(selected) then return false end
     if not forceAllow and not character:isMovablesCheat() and not ISMoveableDefinitions.cheat
         and not self:canPickUpMoveable(character, square, selected) then return false end
 
@@ -375,7 +375,7 @@ ISMoveableSpriteProps.pickUpMoveable = function(self, character, square, createI
     if segment == nil or states == nil then return false end
 
     local anchor = getDoubleDoorObject(selected, 1) or getDoubleDoorObject(selected, 4)
-    if anchor == nil then return false end
+    if anchor == nil or not Doors.isDoorObject(anchor) then return false end
     local ok, err = pcall(function() anchor:ToggleDoor(character) end)
     if not ok or anchor:IsOpen() then
         if not ok then LMION.error("Pickup", "failed to close large gate before Pickup: " .. tostring(err)) end
@@ -388,7 +388,7 @@ ISMoveableSpriteProps.pickUpMoveable = function(self, character, square, createI
     local leaf = leaves[segment.leafId]
     local sourceIndex = leaf and leaf.indices[segment.facing][1] or nil
     local closedSelected = sourceIndex and getDoubleDoorObject(anchor, sourceIndex) or nil
-    if closedSelected == nil then return false end
+    if closedSelected == nil or not Doors.isDoorObject(closedSelected) then return false end
 
     local closedSprite = closedSelected:getSprite()
     local closedProps = closedSprite and ISMoveableSpriteProps.new(closedSprite) or nil
