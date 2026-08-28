@@ -13,44 +13,23 @@ local function getGarageDoorIndex(object)
     return index
 end
 
-local function describeGarageObject(object)
-    if object == nil then
-        return "<nil>"
-    end
-
-    local representation = Doors.getDoorRepresentation(object) or tostring(object:getObjectName())
-    local sprite = object.getSprite ~= nil and object:getSprite() or nil
-    local spriteName = sprite ~= nil and sprite:getName() or "<nil>"
-    local square = object.getSquare ~= nil and object:getSquare() or nil
-    local squareText = "<nil>"
-    if square ~= nil then
-        squareText = tostring(square:getX()) .. "," .. tostring(square:getY()) .. "," .. tostring(square:getZ())
-    end
-
-    return "class=" .. tostring(representation)
-        .. " sprite=" .. tostring(spriteName)
-        .. " square=" .. squareText
-        .. " garageIndex=" .. tostring(getGarageDoorIndex(object))
-end
-
 --[[
 Garage construction is the deliberate representation exception.
 
-The pre-refactor implementation had two safeguards:
-1. SpriteConfig.OnCreate replaced the temporary IsoThumpable with an IsoDoor.
-2. BuildHook rescanned the completed construction and normalized it again if the
-   temporary IsoThumpable was still present.
+The seven garage SpriteConfigs call Doors.onCreateGarage while ISBuildIsoEntity is
+still constructing each temporary IsoThumpable member. B42.20.4 runtime tracing
+confirmed that the returned IsoDoor replacement survives into the completed world
+object for all three members of the tested garage.
 
-B42.20.4 runtime testing proved that keeping only the first safeguard is not
-sufficient: a completed garage can still remain an IsoThumpable. Keep the
-replacement primitive in Core and let Build call initializeConstructedDoor after
-construction as the second, authoritative finalization pass.
+Therefore OnCreate is the only garage representation-conversion path. The generic
+post-build BuildHook may still initialize Build-owned stats on the final object,
+but it must not perform a second representation conversion.
 
 Do not generalize this conversion to 1x1 doors or DoubleDoor large gates.
 ]]
 local function replaceGarageThumpable(thumpable)
     if not Doors.isThumpableDoor(thumpable) or getGarageDoorIndex(thumpable) == nil then
-        return thumpable
+        return nil
     end
 
     local square = thumpable:getSquare()
@@ -60,15 +39,32 @@ local function replaceGarageThumpable(thumpable)
         return nil
     end
 
-    local state = Doors.captureDoorState(thumpable)
     local garageDoor = IsoDoor.new(getCell(), square, sprite, thumpable:getNorth())
 
+    -- Preserve only the state the old validated garage path intentionally kept.
+    -- In particular, do NOT inherit the temporary IsoThumpable lock flags: the
+    -- pre-refactor implementation explicitly created constructed garages unlocked.
     if thumpable.getName ~= nil and garageDoor.setName ~= nil then
         garageDoor:setName(thumpable:getName())
     end
 
-    if state ~= nil then
-        Doors.restoreDoorState(garageDoor, state)
+    if thumpable.getModData ~= nil and garageDoor.setModData ~= nil then
+        garageDoor:setModData(copyTable(thumpable:getModData()))
+    end
+
+    if thumpable.getKeyId ~= nil and garageDoor.setKeyId ~= nil then
+        garageDoor:setKeyId(thumpable:getKeyId())
+    end
+
+    if garageDoor.setIsLocked ~= nil then
+        garageDoor:setIsLocked(false)
+    end
+    if garageDoor.setLockedByKey ~= nil then
+        garageDoor:setLockedByKey(false)
+    end
+
+    if thumpable.getHealth ~= nil and garageDoor.setHealth ~= nil then
+        garageDoor:setHealth(thumpable:getHealth())
     end
 
     -- Multi-square GameEntity components cannot be transferred safely through
@@ -88,26 +84,14 @@ local function replaceGarageThumpable(thumpable)
 end
 
 --[[
-Construction normally owns gameplay values, not the Java representation chosen by
-the engine. Vanilla GameEntity construction may produce an IsoThumpable door; keep
-it as-is and initialize only the state LMION_Build explicitly decided.
-
-Garage doors are the exception above: if the completed object is still an
-IsoThumpable garage member, finalize it as IsoDoor before applying Build-owned
-state. The returned value is always the final world object so callers do not keep
-a stale reference after replacement.
+Generic Build-owned state initialization. This function never changes Java
+representation. Ordinary doors/large gates keep their engine-created class, while
+garages have already been converted by their SpriteConfig OnCreate callback.
 ]]
 function Doors.initializeConstructedDoor(params)
     local object = params and params.object or nil
     if not Doors.isDoorObject(object) then
         return nil
-    end
-
-    if Doors.isThumpableDoor(object) and getGarageDoorIndex(object) ~= nil then
-        object = replaceGarageThumpable(object)
-        if not Doors.isDoorObject(object) then
-            return nil
-        end
     end
 
     local profile = Doors.getProfileForSprite(object:getSprite())
@@ -132,24 +116,20 @@ function Doors.initializeConstructedDoor(params)
 end
 
 --[[
-First-chance garage replacement used by the seven SpriteConfig OnCreate hooks.
-BuildHook still performs the historical post-build finalization pass because the
-callback alone is not yet proven reliable enough to guarantee the final
-representation. Temporary instrumentation below will tell us whether this callback
-actually survives into the completed world object on B42.20.4.
+Garage-specific SpriteConfig OnCreate callback.
+
+Runtime tracing on B42.20.4 confirmed this callback receives each temporary garage
+IsoThumpable, replaces it with IsoDoor, returns that replacement to vanilla, and
+the same IsoDoor is still present when Build performs its normal post-build scan.
 ]]
 function Doors.onCreateGarage(params)
     local thumpable = params and params.thumpable or nil
-    LMION.log("Core", "GARAGE TRACE OnCreate enter: " .. describeGarageObject(thumpable))
-
     if thumpable == nil or not Doors.isThumpableDoor(thumpable) then
         LMION.error("Core", "onCreateGarage(): missing temporary IsoThumpable door")
         return nil
     end
 
     local garageDoor = replaceGarageThumpable(thumpable)
-    LMION.log("Core", "GARAGE TRACE OnCreate replacement: " .. describeGarageObject(garageDoor))
-
     if not Doors.isIsoDoor(garageDoor) then
         return nil
     end
@@ -158,8 +138,6 @@ function Doors.onCreateGarage(params)
         object = garageDoor,
         effectiveMaxHealth = params and params.effectiveMaxHealth or nil,
     })
-
-    LMION.log("Core", "GARAGE TRACE OnCreate return: " .. describeGarageObject(garageDoor))
 
     return {
         replaceObject = true,
