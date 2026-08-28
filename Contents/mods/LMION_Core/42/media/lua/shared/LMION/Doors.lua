@@ -7,14 +7,16 @@ Doors.BuildContext = nil
 
 --[[
 Doors.lua is the public Core door bootstrap. Focused modules below extend the same
-LMION.Doors table so callers keep one stable API while engine-class differences
-remain contained inside Core.
+LMION.Doors table so callers keep one stable API. Core accepts engine door inputs
+from either Java representation, but LMION-created/reinstalled doors converge to
+its canonical IsoDoor representation.
 ]]
 require "LMION/Doors/Registry"
 require "LMION/Doors/EngineProperties"
 require "LMION/Doors/Object"
 require "LMION/Doors/Durability"
 require "LMION/Doors/State"
+require "LMION/Doors/Representation"
 require "LMION/Doors/Placement"
 require "LMION/Doors/Construction"
 
