@@ -25,6 +25,66 @@ function Doors.getNorthFromSprite(sprite)
     return nil
 end
 
+--[[
+Vanilla Moveables always creates an IsoDoor when the placed sprite has doorN/doorW,
+even when the object picked up was an IsoThumpable door. Pickup stores the source
+representation; Core owns restoring that representation after vanilla placement.
+
+The temporary IsoDoor is useful because PZ already resolved the correct closed/open
+sprites and GameEntity components for us. Recreate the final object as an
+IsoThumpable, transfer those engine components, then let Pickup restore transported
+state such as health and thumpable parameters.
+]]
+function Doors.restorePlacedRepresentation(object, representation)
+    if representation ~= "IsoThumpable" or not Doors.isIsoDoor(object) then
+        return object
+    end
+
+    local square = object:getSquare()
+    local closedSprite = object:getSprite()
+    local spriteName = closedSprite and closedSprite:getName() or nil
+    local north = object.getNorth ~= nil and object:getNorth() or Doors.getNorthFromSprite(closedSprite)
+    if square == nil or spriteName == nil or north == nil then
+        return object
+    end
+
+    local insertIndex = object.getObjectIndex ~= nil and object:getObjectIndex() or -1
+    local openSprite = object.getOpenSprite ~= nil and object:getOpenSprite() or nil
+    local objectName = object.getName ~= nil and object:getName() or nil
+
+    local replacement = IsoThumpable.new(getCell(), square, spriteName, north)
+    replacement:setIsDoor(true)
+    replacement:setClosedSprite(closedSprite)
+    if openSprite ~= nil then
+        replacement:setOpenSprite(openSprite)
+    end
+
+    if GameEntityFactory ~= nil and GameEntityFactory.TransferComponents ~= nil then
+        GameEntityFactory.TransferComponents(object, replacement)
+    end
+
+    square:transmitRemoveItemFromSquare(object)
+    if insertIndex >= 0 then
+        square:AddSpecialObject(replacement, insertIndex)
+    else
+        square:AddSpecialObject(replacement)
+    end
+
+    if objectName ~= nil and replacement.setName ~= nil then
+        replacement:setName(objectName)
+    end
+
+    if isServer ~= nil and isServer() and replacement.transmitCompleteItemToClients ~= nil then
+        replacement:transmitCompleteItemToClients()
+    end
+
+    square:RecalcProperties()
+    square:RecalcAllWithNeighbours(true)
+    triggerEvent("OnObjectAdded", replacement)
+
+    return replacement
+end
+
 local function matchesFrameClass(properties, pairedFrameSide)
     local isDoubleDoor1 = properties ~= nil and properties:has(IsoFlagType.DoubleDoor1)
     local isDoubleDoor2 = properties ~= nil and properties:has(IsoFlagType.DoubleDoor2)
