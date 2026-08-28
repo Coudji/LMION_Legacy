@@ -1,6 +1,6 @@
 # Garage-door topology
 
-Status: **Bytecode-verified B42.20.3; runtime-observed B42.20.4; variable-length topology confirmed; current LMION Pickup still assumes width 3 and must be generalized.**
+Status: **Bytecode-verified B42.20.3; runtime-observed B42.20.4; variable-length topology confirmed down to width 2; current LMION Pickup still assumes width 3 and must be generalized.**
 
 This note records how Project Zomboid links and operates garage doors. Garage doors are a separate engine topology from `DoubleDoor` large gates and from ordinary paired 1x1 doors.
 
@@ -18,16 +18,25 @@ The correct model is:
 
 ```text
 GarageDoor
-= start(1) + one-or-more middle(2) + end(3)
+= start(1) + zero-or-more middle(2) + end(3)
 ```
 
-The middle role may repeat an arbitrary number of times as long as the chain remains spatially valid and is terminated by the proper start/end members.
+The middle role may repeat an arbitrary number of times, including **zero**, as long as the chain remains spatially valid and is terminated by the proper start/end members.
 
 Runtime evidence on B42.20.4:
 
 - a vanilla world garage five tiles wide was observed with the same start/end pieces as the familiar three-tile garage and repeated middle pieces between them;
 - an earlier BrushTool experiment with a six-tile garage opened/closed correctly;
-- a new BrushTool experiment with a **12-tile garage** also opened and closed correctly as one native garage.
+- a BrushTool experiment with a **12-tile garage** also opened and closed correctly as one native garage;
+- a **two-tile garage made only from start + end** was runtime-tested and also opens/closes correctly.
+
+Therefore the currently observed native range is at least:
+
+```text
+L2 = start + end
+L3 = start + middle + end
+L4+ = start + repeated middle + end
+```
 
 No engine maximum width has been established. LMION must therefore not encode an arbitrary maximum without separate evidence.
 
@@ -57,7 +66,7 @@ For an open object, raw `4..6` normalize to the same roles by returning `raw - 3
 
 Therefore normalized values `1,2,3` describe **topological roles**, not “member 1 of exactly 3 / member 2 of exactly 3 / member 3 of exactly 3”.
 
-### Why repeated middle members work
+### Why repeated middle members — or no middle at all — work
 
 `IsoDoor.getGarageDoorPrev(IsoObject)` and `getGarageDoorNext(IsoObject)` derive neighbors spatially from orientation and normalized role.
 
@@ -89,13 +98,14 @@ current index 1 -> no prev
 current index 3 -> no next
 ```
 
-That means a middle member (`2`) may legally link to another middle member (`2`) in either direction:
+That means both of these structures are valid:
 
 ```text
+1 -> 3
 1 -> 2 -> 2 -> 2 -> ... -> 2 -> 3
 ```
 
-This exactly explains the runtime L5/L6/L12 behavior.
+This exactly explains the runtime L2/L5/L6/L12 behavior.
 
 The candidate must still use the same door-object representation class (`IsoDoor` vs `IsoThumpable`) and same orientation.
 
@@ -103,7 +113,7 @@ The candidate must still use the same door-object representation class (`IsoDoor
 
 `IsoDoor.getGarageDoorFirst(IsoObject)` repeatedly follows `getGarageDoorPrev()` until it finds role `1`.
 
-There is no fixed “three-step” traversal in this helper. The chain length is determined by world geometry.
+There is no fixed traversal length. The chain length is determined by world geometry.
 
 ### Vanilla opening/closing synchronization
 
@@ -113,7 +123,7 @@ There is no fixed “three-step” traversal in this helper. The chain length is
 2. repeatedly follows `getGarageDoorPrev()` until no previous member remains;
 3. repeatedly follows `getGarageDoorNext()` until no next member remains.
 
-Therefore vanilla naturally operates the complete variable-length chain. The L12 runtime test is the expected consequence of the bytecode, not an accidental visual trick.
+Therefore vanilla naturally operates the complete variable-length chain. The L2 and L12 runtime tests are both expected consequences of the bytecode.
 
 ### Obstruction and destruction also traverse the chain
 
@@ -175,30 +185,35 @@ Their closed role mappings are:
 | `RedWindowGarageDoor` | `walls_garage_02_32` / `_33` / `_34` | `walls_garage_02_35` / `_36` / `_37` |
 | `RollingWindowGarageDoor` | `walls_garage_02_48` / `_49` / `_50` | `walls_garage_02_51` / `_52` / `_53` |
 
-These three sprites are now best understood as **role sprites**, not three unique physical-part identities.
+These three sprites are best understood as **role sprites**, not three unique physical-part identities.
 
-A width-5 White garage, for example, is conceptually:
+Examples for a White garage:
 
 ```text
-W: _0 / _1 / _1 / _1 / _2
-N: _3 / _4 / _4 / _4 / _5
+L2 W: _0 / _2
+L3 W: _0 / _1 / _2
+L5 W: _0 / _1 / _1 / _1 / _2
+
+L2 N: _3 / _5
+L3 N: _3 / _4 / _5
+L5 N: _3 / _4 / _4 / _4 / _5
 ```
 
 subject to orientation geometry.
 
 ## Geometry
 
-Starting from the role-1/start anchor, a closed garage of total width `L >= 3` occupies:
+Starting from the role-1/start anchor, a closed garage of total width `L >= 2` occupies:
 
 ```text
 N:
 position 1       -> (x,         y) role 1
-positions 2..L-1 -> (x + i - 1, y) role 2
+positions 2..L-1 -> (x + i - 1, y) role 2, if any
 position L       -> (x + L - 1, y) role 3
 
 W:
 position 1       -> (x, y)         role 1
-positions 2..L-1 -> (x, y - i + 1) role 2
+positions 2..L-1 -> (x, y - i + 1) role 2, if any
 position L       -> (x, y - L + 1) role 3
 ```
 
@@ -219,25 +234,41 @@ select any garage member
 -> capture every physical member in order
 -> parcel count = actual physical member count
 -> placement reconstructs:
-   start + repeated middle + end
+   start + zero-or-more middle + end
 -> vanilla spatial linkage resumes automatically
 ```
 
-Do not hardcode width `5`, `6`, `12`, or any other discovered example. The traversal itself should determine width.
+Do not hardcode width `2`, `5`, `6`, `12`, or any other discovered example. The traversal itself should determine width.
 
-### Parcel identity design point still to decide
+### Parcel identity design direction
 
-For a variable-width garage, the middle sprite/role repeats. Before implementation, decide how transport items represent repeated middle members while preserving per-segment health and allowing one placement action.
+Variable-width garages are physical-part assemblies rather than fixed bundles.
 
-The simplest likely model is positional parcels:
+The likely transport model is:
 
 ```text
-1/L       -> start
-2/L..L-1/L -> repeated middle physical segments
-L/L       -> end
+1 start piece
+0..N middle pieces
+1 end piece
 ```
 
-Each parcel can still carry the exact durability state of the corresponding physical segment. This is an LMION transport/UI choice, not an engine topology requirement.
+Each physical parcel keeps its own durability state. Reinstallation width can therefore depend on the number of compatible middle pieces the player chooses to consume.
+
+This also matches previous runtime evidence that same-family garage pieces can be interchanged between different physical garages.
+
+Cross-family mixing remains a separate gameplay-policy decision; native topology acceptance alone does not imply LMION should allow visual/family mixing.
+
+## Build design decisions discovered from variable width
+
+For future LMION_Build variable-width garage construction:
+
+- width is chosen visibly in the construction window before placement;
+- once placement mode begins, that width is frozen so material requirements cannot change invisibly;
+- build material requirements may scale with width;
+- BlowTorch usage should remain a fixed recipe cost rather than scale indefinitely with width, because tool charge capacity is finite;
+- the current exact per-material scaling formula is still a gameplay/balance design task.
+
+The engine-valid minimum is now known to be **L2**. Whether LMION_Build exposes L2 in its normal construction UI is a gameplay choice, not an engine limitation.
 
 ## Previously validated width-3 behavior
 
@@ -256,4 +287,4 @@ Recheck this note if Project Zomboid changes:
 - `IsoDoor` constructor sprite offsets;
 - SpriteConfig `OnCreate` replacement semantics;
 - garage role sprites;
-- or if runtime testing establishes an actual maximum/minimum chain length beyond the currently observed `>=3` pattern.
+- or if runtime testing establishes an actual maximum chain length or a native width below L2.
