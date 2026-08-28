@@ -1,6 +1,6 @@
 # Garage-door interaction on `IsoThumpable`
 
-Status: **B42.20.3 bytecode/API verified; B42.20.4 runtime failure reproduced; `IsoThumpable` garage representation rejected; `OnCreate` lifecycle runtime-validated.**
+Status: **B42.20.3 bytecode/API verified; B42.20.4 runtime failure reproduced; `IsoThumpable` garage representation rejected; canonical `IsoDoor` construction/opening/Pickup validated in both N/W orientations.**
 
 ## Decision
 
@@ -46,6 +46,52 @@ This proves:
 The post-build scan does not need to convert garage representation. It remains the generic LMION_Build finalization phase that locates the actual completed object by EntityScript and asks Core to apply the common canonical/build-state contract. For a garage it simply finds the `IsoDoor` already returned by OnCreate.
 
 Do not reintroduce a second garage-specific conversion unless a future PZ version produces new runtime evidence that the OnCreate replacement no longer survives.
+
+### Canonical migration regression: W-facing `false` must stay `false`
+
+During the global canonical `IsoDoor` migration, the first generic `Doors.ensureCanonicalDoor()` implementation read orientation with the Lua idiom:
+
+```lua
+local north = object.getNorth ~= nil and object:getNorth() or nil
+```
+
+That is invalid for Project Zomboid door orientation because `getNorth()` legitimately returns:
+
+```text
+true  -> N
+false -> W
+```
+
+Lua then evaluates `false or nil` to `nil`, so every valid W-facing temporary construction object was misclassified as incomplete. For a three-panel garage this left malformed temporary `IsoThumpable` members in the world; LightingJNI later crashed when one had `getSprite() == nil`.
+
+Runtime logging showed repeated:
+
+```text
+[LMION:Core] ERROR: ensureCanonicalDoor(): incomplete IsoThumpable door
+```
+
+followed by:
+
+```text
+LightingJNI.updateChunk
+-> IsoThumpable.getSprite() == null
+-> NullPointerException
+```
+
+The fix is to preserve the boolean explicitly:
+
+```lua
+local north = nil
+if object.getNorth ~= nil then
+    north = object:getNorth()
+end
+```
+
+General rule:
+
+> **Never use `a and booleanValue or fallback` when `false` is a valid engine value.**
+
+After this fix, fresh LMION-built garages were runtime-validated in **both N and W orientations**: all members finalize as `IsoDoor`, native synchronized opening works, and Pickup/reinstallation works.
 
 ## Construction lock-state caveat
 
