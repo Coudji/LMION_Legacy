@@ -1,7 +1,6 @@
 require "LMION/Pickup/GarageDoorMoveables"
 
 local Pickup = LMION.Pickup
-local Doors = LMION.Doors
 local GarageDoor = Pickup.GarageDoor
 local segmentsBySprite = GarageDoor.SegmentsBySprite
 
@@ -11,7 +10,7 @@ local function getSegment(object)
     return spriteName and segmentsBySprite[spriteName] or nil
 end
 
-local function findGarageMember(square, north, expectedIndex, familyId, expectedOpen, expectedRepresentation)
+local function findGarageMember(square, north, expectedIndex, familyId, expectedOpen)
     if square == nil then
         return nil
     end
@@ -19,8 +18,8 @@ local function findGarageMember(square, north, expectedIndex, familyId, expected
     local objects = square:getSpecialObjects()
     for i = 0, objects:size() - 1 do
         local object = objects:get(i)
-        if Doors.isDoorObject(object)
-            and Doors.getDoorRepresentation(object) == expectedRepresentation
+        if object ~= nil
+            and instanceof(object, "IsoDoor")
             and object:IsOpen() == expectedOpen
             and object:getNorth() == north
             and IsoDoor.getGarageDoorIndex(object) == expectedIndex then
@@ -38,12 +37,7 @@ local function findGarageMember(square, north, expectedIndex, familyId, expected
 end
 
 local function getGarageMembers(source, familyId)
-    if source == nil or not Doors.isDoorObject(source) then
-        return nil
-    end
-
-    local sourceRepresentation = Doors.getDoorRepresentation(source)
-    if sourceRepresentation == nil then
+    if source == nil or not instanceof(source, "IsoDoor") then
         return nil
     end
 
@@ -90,14 +84,7 @@ local function getGarageMembers(source, familyId)
         end
 
         local square = getCell():getGridSquare(x, y, z)
-        local object = findGarageMember(
-            square,
-            north,
-            expectedIndex,
-            familyId,
-            expectedOpen,
-            sourceRepresentation
-        )
+        local object = findGarageMember(square, north, expectedIndex, familyId, expectedOpen)
         if object == nil then
             return nil
         end
@@ -110,7 +97,6 @@ local function getGarageMembers(source, familyId)
             closedSpriteName = segment and segment.closedSpriteName or nil,
             engineIndex = expectedIndex,
             isOpen = expectedOpen,
-            representation = sourceRepresentation,
         }
     end
 

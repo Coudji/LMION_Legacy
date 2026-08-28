@@ -6,7 +6,7 @@ This note records how Project Zomboid links and operates three-panel garage door
 
 ## Question
 
-LMION needs to transport garage doors through Pickup without inventing a linkage model that conflicts with vanilla opening/closing behavior.
+LMION needs to transport and construct garage doors without inventing a linkage or representation model that conflicts with vanilla opening/closing behavior.
 
 The relevant questions are:
 
@@ -15,6 +15,7 @@ The relevant questions are:
 - whether linkage is stored or reconstructed;
 - how neighboring members are found;
 - how open and closed sprite states are represented;
+- what representation the GameEntity construction path must leave in the world;
 - what must be restored after Pickup for vanilla synchronization to resume.
 
 ## B42.20.3 Java evidence
@@ -96,6 +97,74 @@ Pickup must therefore use intentional per-segment removal rather than calling a 
 `IsoDoor.getRenderEffectMaster()` resolves `getGarageDoorFirst()` for garage doors, and the render-object count/index logic traverses the linked members.
 
 This is additional confirmation that garage identity is reconstructed from the three-member spatial chain.
+
+## Garage construction representation contract
+
+Garage construction is a deliberate exception to the general LMION rule that Build should preserve whatever door representation the engine initially creates.
+
+The seven LMION garage `SpriteConfig` components declare:
+
+```text
+OnCreate = LMION.Doors.onCreateGarage
+```
+
+The GameEntity build path first creates an `IsoThumpable` for each SpriteConfig member and adds it to the world. Vanilla `ISBuildIsoEntity` then invokes the SpriteConfig `OnCreate` callback. The callback may return:
+
+```lua
+{
+    replaceObject = true,
+    object = replacement,
+}
+```
+
+When that happens, vanilla continues the construction/transmission path with the replacement object.
+
+LMION's garage callback intentionally performs:
+
+```text
+temporary build IsoThumpable
+-> create IsoDoor from the same square/sprite/orientation
+-> copy relevant construction state
+-> recreate GameEntity components from the scripted entity
+-> remove temporary IsoThumpable
+-> return IsoDoor as replaceObject
+```
+
+This behavior existed before the generic door-representation refactor and is required by LMION's current garage construction contract.
+
+Important distinction:
+
+> **Garage construction converting its temporary `IsoThumpable` to `IsoDoor` is a topology-specific construction rule, not a justification for normalizing ordinary doors or large DoubleDoor gates to `IsoDoor`.**
+
+Ordinary 1x1 and large-gate construction should continue preserving their engine-created representation.
+
+### Regression found after the door abstraction refactor — B42.20.4
+
+During Build-enabled integration testing on B42.20.4, constructing a garage produced three errors:
+
+```text
+no such function "LMION.Doors.onCreateGarage"
+```
+
+The callback reference remained in every garage SpriteConfig, but the Lua function had been accidentally lost when the old monolithic `Doors.lua` was split into focused Core modules.
+
+Without the callback, the temporary construction `IsoThumpable` objects remained behind in an invalid state. The same runtime session then crashed in engine code because one of those thumpables had a nil sprite:
+
+```text
+LightingJNI.updateChunk
+-> IsoThumpable.getSprite() == nil
+-> NullPointerException
+
+IsoThumpable.ToggleDoorActual
+-> getSprite() == nil
+-> NullPointerException
+```
+
+This establishes a strong guardrail for future refactors:
+
+> **Do not remove a SpriteConfig `OnCreate` callback merely because its representation conversion looks inconsistent with the generic door policy. First verify whether the SpriteConfig construction lifecycle depends on it.**
+
+The callback was restored to `LMION/Doors/Construction.lua` and documented as a garage-only exception.
 
 ## Runtime evidence — B42.20.4
 
@@ -206,7 +275,7 @@ The catalog models garage transport as three 20 kg packages, which matches the e
 one garage = three physical IsoDoor segments = three parcels = one placement action
 ```
 
-Pickup and replacement in both N and W orientations are now runtime-validated across all seven current LMION garage families. `IndustrialGarageDoor` remains the full reference family for the broader behavior matrix.
+Pickup and replacement in both N and W orientations are runtime-validated across all seven current LMION garage families. `IndustrialGarageDoor` remains the full reference family for the broader behavior matrix.
 
 Each parcel preserves the exact current health and `lmionDoorMaxHealth` of its corresponding physical segment. Placement reconstructs all three closed `IsoDoor` members with the correct orientation and engine-index sprite. Vanilla previous/next discovery then restores synchronized opening/closing without LMION storing custom links.
 
@@ -224,7 +293,7 @@ The reference family passes the complete closed-state validation set:
 8. preserve exact per-segment current health and logical max, including unequal damage;
 9. pick up the restored garage again successfully.
 
-Open-state Pickup is not part of the reference path.
+Open-state Pickup is not part of the original closed reference path; see `GarageDoorValidation.md` for the separately validated open Pickup behavior.
 
 ## Generalized family state
 
@@ -239,10 +308,17 @@ The Industrial reference architecture has been extended as data to:
 
 Each family has three dedicated 20 kg parcel items and EN/FR localized names. The shared Pickup, rotation, placement and durability code is unchanged in principle; only family data and fail-closed sprite-index validation were added.
 
-Runtime testing now confirms that every generalized family can be picked up and replaced successfully in both N and W orientations. Combined with the Industrial reference, the complete current garage set therefore has runtime-validated orientation coverage for pickup and replacement.
+Runtime testing confirms that every generalized family can be picked up and replaced successfully in both N and W orientations. Combined with the Industrial reference, the complete current garage set therefore has runtime-validated orientation coverage for pickup and replacement.
 
-The six generalized families are not yet claimed to have passed every Industrial reference check. Remaining explicit validation includes targeting each logical member independently, rotation before placement as a cursor operation, restored synchronized opening/closing, exact unequal per-segment durability preservation and re-pickup after replacement. The startup/runtime `GarageDoor` property check remains a fail-closed guard against invalid member mappings; it complements but does not replace those interaction tests.
+The six generalized families are not claimed to have passed every Industrial reference check individually. The startup/runtime `GarageDoor = 1/2/3` property check remains a fail-closed guard against invalid member mappings; it complements but does not replace interaction tests.
 
 ## Revalidation trigger
 
-Recheck this note if Project Zomboid changes the `GarageDoor` property scheme, `IsoDoor.getGarageDoor*` methods, `IsoDoor` constructor sprite offsets, garage SpriteConfig topology, or the closed-sprite `GarageDoor` identities of any supported family.
+Recheck this note if Project Zomboid changes:
+
+- the `GarageDoor` property scheme;
+- `IsoDoor.getGarageDoor*` methods;
+- `IsoDoor` constructor sprite offsets;
+- SpriteConfig `OnCreate` replacement semantics;
+- garage SpriteConfig topology;
+- or the closed-sprite `GarageDoor` identities of any supported family.

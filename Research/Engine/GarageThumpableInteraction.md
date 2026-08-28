@@ -1,140 +1,96 @@
 # Garage-door interaction on `IsoThumpable`
 
-Status: **B42.20.3 bytecode/API verified; B42.20.4 runtime symptom reproduced; LMION bridge awaiting runtime validation.**
+Status: **B42.20.3 bytecode/API verified; B42.20.4 runtime failure reproduced; `IsoThumpable` garage representation rejected for LMION.**
 
-## Symptom
+## Decision
 
-After LMION stopped forcing constructed garage doors from `IsoThumpable` into `IsoDoor`, a constructed three-panel garage could be picked up and reinstalled while preserving its `IsoThumpable` representation. Opening the restored garage then changed only the selected panel instead of all three.
-
-The observed world state was a mixed garage: one panel open while the two neighboring panels remained closed.
-
-This is not evidence that the three-member topology was lost. It is an engine behavior difference between the two valid door representations.
-
-## Topology helpers support both representations
-
-B42.20.3 bytecode for the static `IsoDoor` garage helpers explicitly supports both concrete classes:
-
-- `IsoDoor.getGarageDoorIndex(IsoObject)`;
-- `IsoDoor.getGarageDoorPrev(IsoObject)`;
-- `IsoDoor.getGarageDoorNext(IsoObject)`;
-- `IsoDoor.getGarageDoorFirst(IsoObject)`;
-- `IsoDoor.destroyGarageDoor(IsoObject)`.
-
-Neighbor discovery requires the adjacent garage members to use the same concrete representation, orientation and logical `GarageDoor` index. A complete `IsoThumpable` chain is therefore a valid engine topology.
-
-This supports LMION's representation rule:
+LMION garage doors are a deliberate representation exception:
 
 ```text
 world/map garage      -> IsoDoor
-constructed garage    -> IsoThumpable
-Pickup/reinstallation -> preserve source representation
+LMION-built garage    -> temporary build IsoThumpable -> OnCreate replacement -> IsoDoor
+Pickup/reinstallation -> IsoDoor
 ```
 
-## Toggle behavior is asymmetric
+Ordinary 1x1 doors and large DoubleDoor gates keep their representation-preservation rules. This exception applies only to the three-panel `GarageDoor` topology.
 
-The important difference is in the instance toggle implementation.
+## Runtime evidence — B42.20.4
 
-### `IsoDoor.ToggleDoorActual()`
-
-B42.20.3 contains a dedicated `GARAGE_DOOR` branch. It performs the garage obstruction check and then calls the collective static helper:
+A constructed garage left as `IsoThumpable` produced both an invalid SpriteConfig warning and fatal null-sprite failures:
 
 ```text
-IsoDoor.toggleGarageDoor(this, true)
+SpriteConfig.initObjectInfo -> Invalid SpriteConfig object! scripted object = GreyGarageDoor
+
+LightingJNI.updateChunk
+-> IsoThumpable.getSprite() == nil
+-> NullPointerException
+
+IsoPlayer.performContextualAction
+-> IsoThumpable.ToggleDoor()
+-> IsoThumpable.ToggleDoorActual()
+-> getSprite().getProperties()
+-> NullPointerException
 ```
 
-That helper walks the previous/next garage chain and changes all members together.
+The contextual player action reaches `IsoThumpable.ToggleDoor()` directly in Java, so wrapping the Lua `ISOpenCloseDoor.complete` action cannot make this representation reliable.
 
-### `IsoThumpable.ToggleDoorActual()`
+## Constructor / sprite-state mismatch
 
-The same method contains a dedicated DoubleDoor branch, but **no garage branch**.
+Vanilla `ISBuildIsoEntity` treats garage open geometry specially. For garage doors it discards the ordinary `openFace` construction mapping because the open shape is not the same multi-square footprint as the closed shape.
 
-After the DoubleDoor check it falls through to the ordinary single-door path:
+The temporary build object is therefore created as an `IsoThumpable` from the closed sprite only.
+
+The relevant `IsoThumpable` constructor stores that closed/current sprite, but it does not implement the garage-specific `+/-8` closed/open sprite derivation used by `IsoDoor`.
+
+By contrast, `IsoDoor(IsoCell, IsoGridSquare, IsoSprite, boolean)` detects the `GARAGE_DOOR` sprite type and derives the matching open or closed sprite using the garage-specific offset. This gives every physical garage member a valid native closed/open pair.
+
+## Toggle behavior mismatch
+
+`IsoDoor.ToggleDoorActual()` contains a dedicated garage branch. It performs the garage obstruction logic and calls the collective garage helper so all three linked members change state together.
+
+`IsoThumpable.ToggleDoorActual()` contains a DoubleDoor branch but no equivalent GarageDoor branch. It follows the ordinary single-door path instead.
+
+Therefore a theoretically repaired `IsoThumpable` garage would still require LMION to reproduce behavior that `IsoDoor` already owns natively.
+
+## Why not bridge it in Lua
+
+A complete `IsoThumpable` garage implementation would need LMION to own at least:
+
+- correct open-sprite initialization for all members;
+- all player interaction paths, including direct Java contextual actions;
+- collective three-member toggling;
+- whole-garage obstruction checks;
+- multiplayer synchronization semantics;
+- mixed/open-state recovery;
+- future compatibility with engine garage changes.
+
+That would violate the project rule that vanilla owns physical opening mechanics whenever a native representation already provides them.
+
+## Static helper caveat
+
+The static `IsoDoor.getGarageDoor*` topology helpers can identify/traverse `IsoThumpable` garage members. That does **not** mean `IsoThumpable` is a complete garage representation.
+
+Likewise, directly using `IsoDoor.toggleGarageDoor(thumpable, ...)` is not adopted as a generic adapter. B42.20.3 bytecode contains class-specific/network handling that is authored around the native `IsoDoor` garage path. LMION should not depend on that mixed-class path merely because some topology helpers accept `IsoObject`.
+
+## Durability with the `IsoDoor` exception
+
+Using `IsoDoor` does not prevent LMION from owning constructed-garage durability.
+
+`IsoDoor` exposes current health but no useful native max-health setter. Core already handles this representation through:
 
 ```text
-check this object obstruction
--> toggle this.open
--> swap this closed/open sprite
--> sync this object
+actual current health -> IsoDoor.setHealth(...)
+effective max health  -> modData.lmionDoorMaxHealth
 ```
 
-Therefore an `IsoThumpable` carrying a valid `GarageDoor` sprite property still behaves as a single panel when the player calls its normal `ToggleDoor()`.
+`BuildHook` applies the Build-owned durability after the SpriteConfig `OnCreate` callback returns the replacement `IsoDoor`. Pickup captures/restores the same effective max and current health per segment.
 
-This exactly matches the B42.20.4 runtime symptom.
+Thus the stable contract is:
 
-## Why LMION does not convert the garage back to `IsoDoor`
+> **Vanilla `IsoDoor` owns garage mechanics; LMION modData/Core owns any logical durability state the native class cannot store.**
 
-Git history shows that LMION's former `OnCreate = LMION.Doors.onCreateGarage` callback was added specifically to force garage construction into `IsoDoor`. The original SpriteConfig entities existed without that callback.
+## Rejected approach
 
-After the general door-representation refactor, the intended contract is to preserve the physical representation produced by construction rather than normalize everything to `IsoDoor` merely because one engine path is more feature-complete.
+Do not revive `garage = IsoThumpable` only for representation consistency with ordinary construction. The B42.20.3 JAR and B42.20.4 runtime failure show that garage doors are a genuine engine special case.
 
-The missing garage synchronization is therefore treated as an engine-semantic gap for Core to bridge, not as a reason to revive the old global representation policy.
-
-## Why LMION does not directly call `IsoDoor.toggleGarageDoor()` on a thumpable
-
-The static helper's internal object-toggle code can change either `IsoDoor` or `IsoThumpable` members. That makes a direct call look attractive.
-
-However, B42.20.3 bytecode keeps a local value cast specifically to `IsoDoor` and later dereferences it in the GameClient/GameServer synchronization branch. When the supplied source is an `IsoThumpable`, that `IsoDoor` local is null.
-
-Consequently:
-
-> **Do not use `IsoDoor.toggleGarageDoor(thumpable, ...)` as LMION's generic multiplayer-safe adapter.**
-
-It can enter a null dereference in networked execution even though the topology-walking portion understands thumpables.
-
-## Vanilla Lua interaction entry point
-
-The matching Build 42 vanilla Lua `shared/TimedActions/ISOpenCloseDoor.lua` implements:
-
-```lua
-function ISOpenCloseDoor:complete()
-    self.item:ToggleDoor(self.character)
-    return true
-end
-```
-
-This is a useful semantic boundary because it lets LMION preserve the selected object's normal vanilla checks and feedback before synchronizing the missing garage siblings.
-
-## LMION bridge
-
-Core wraps `ISOpenCloseDoor.complete` only for complete three-member `IsoThumpable` garage chains.
-
-The sequence is:
-
-```text
-capture the three IsoThumpable garage members
--> remember selected member open state
--> run original vanilla ISOpenCloseDoor.complete
--> if selected member did not change, stop
--> if it changed, align the other two members with ToggleDoorSilent()
--> RecalcAllWithNeighbours on changed sibling squares
--> sync changed siblings with public syncIsoThumpable()
-```
-
-Important properties:
-
-- `IsoDoor` garages are untouched and continue using the native garage branch;
-- non-garage `IsoThumpable` doors are untouched;
-- the player-selected panel still owns lock, barricade, obstruction and sound behavior;
-- siblings are changed only after the selected panel actually changed;
-- the adapter uses public Lua-facing methods rather than private/internal `sync(int)`;
-- a previously mixed open/closed garage can be healed on the next successful toggle because all siblings are aligned to the selected result.
-
-## Remaining obstruction difference
-
-There is one known semantic difference that this first bridge intentionally does not duplicate.
-
-`IsoDoor` has a private whole-garage obstruction helper used before collective garage toggling. `IsoThumpable.ToggleDoorActual()` only checks its own ordinary door obstruction.
-
-Therefore a future runtime test should cover closing an open constructed garage while an obstacle affects another member's path. If that produces a concrete gameplay bug, Core should gain a narrowly scoped garage obstruction adapter based on verified engine geometry rather than speculative collision code.
-
-Do not expand the bridge before such a failure is reproduced.
-
-## Revalidation triggers
-
-Recheck this note when:
-
-- PZ adds native garage handling to `IsoThumpable.ToggleDoorActual()`;
-- `IsoDoor.toggleGarageDoor()` network behavior changes;
-- garage topology helpers stop accepting both door representations;
-- `ISOpenCloseDoor.complete` stops being the normal player toggle boundary;
-- LMION changes its representation-preservation contract.
+Reconsider only if a later PZ build adds complete native GarageDoor handling to `IsoThumpable`, including construction sprite initialization, collective toggle/obstruction behavior and network synchronization.

@@ -7,6 +7,8 @@ module Base
             health = 500,
             skillBaseHealth = 50,
             dontNeedFrame = true,
+            
+            OnCreate = LMION.Doors.onCreateGarage,
 
             face W
             {

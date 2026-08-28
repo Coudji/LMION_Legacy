@@ -179,10 +179,6 @@ ISMoveableSpriteProps.instanceItem = function(self, spriteNameOverride)
         end
         if self.lmionGaragePendingMaxHealth ~= nil then
             modData.lmionDoorMaxHealth = self.lmionGaragePendingMaxHealth
-            modData.lmionDoorMaxWasLogical = self.lmionGaragePendingMaxWasLogical == true
-        end
-        if self.lmionGaragePendingRepresentation ~= nil then
-            modData.lmionDoorSourceRepresentation = self.lmionGaragePendingRepresentation
         end
     end
 
@@ -241,16 +237,12 @@ ISMoveableSpriteProps.canPickUpMoveable = function(self, character, square, obje
         selected = self:findOnSquare(square, self.spriteName)
     end
 
-    if selected == nil or not Doors.isDoorObject(selected) then
+    if selected == nil or not instanceof(selected, "IsoDoor") then
         return false
     end
 
-    local expectedRepresentation = Doors.getDoorRepresentation(selected)
     local first = IsoDoor.getGarageDoorFirst(selected)
-    if first == nil
-        or not Doors.isDoorObject(first)
-        or Doors.getDoorRepresentation(first) ~= expectedRepresentation
-        or IsoDoor.getGarageDoorIndex(first) ~= 1 then
+    if first == nil or IsoDoor.getGarageDoorIndex(first) ~= 1 then
         return false
     end
 
@@ -258,8 +250,7 @@ ISMoveableSpriteProps.canPickUpMoveable = function(self, character, square, obje
     local current = first
     for expectedIndex = 1, 3 do
         if current == nil
-            or not Doors.isDoorObject(current)
-            or Doors.getDoorRepresentation(current) ~= expectedRepresentation
+            or not instanceof(current, "IsoDoor")
             or current:IsOpen() ~= expectedOpen
             or IsoDoor.getGarageDoorIndex(current) ~= expectedIndex then
             return false
@@ -291,16 +282,12 @@ ISMoveableSpriteProps.pickUpMoveableInternal = function(self, character, square,
 
     self.lmionGaragePendingHealth = nil
     self.lmionGaragePendingMaxHealth = nil
-    self.lmionGaragePendingMaxWasLogical = nil
-    self.lmionGaragePendingRepresentation = nil
 
-    if segment ~= nil and Doors.isDoorObject(object) then
-        local state = Doors.captureDoorState(object)
-        if state ~= nil then
-            self.lmionGaragePendingHealth = state.health
-            self.lmionGaragePendingMaxHealth = state.maxHealth
-            self.lmionGaragePendingMaxWasLogical = state.hasLogicalMaxOverride == true
-            self.lmionGaragePendingRepresentation = state.representation
+    if segment ~= nil and object ~= nil and instanceof(object, "IsoDoor") then
+        self.lmionGaragePendingHealth = object:getHealth()
+        local modData = object:getModData()
+        if modData ~= nil then
+            self.lmionGaragePendingMaxHealth = tonumber(modData[Doors.MaxHealthModDataKey])
         end
     end
 
@@ -318,8 +305,6 @@ ISMoveableSpriteProps.pickUpMoveableInternal = function(self, character, square,
 
     self.lmionGaragePendingHealth = nil
     self.lmionGaragePendingMaxHealth = nil
-    self.lmionGaragePendingMaxWasLogical = nil
-    self.lmionGaragePendingRepresentation = nil
     return item
 end
 
@@ -335,58 +320,28 @@ ISMoveableSpriteProps.placeMoveableInternal = function(self, square, item, sprit
 
     local savedHealth = nil
     local savedMaxHealth = nil
-    local savedMaxWasLogical = false
-    local savedRepresentation = nil
     if item ~= nil and item:hasModData() then
         local modData = item:getModData()
         savedHealth = tonumber(modData.lmionDoorHealth)
         savedMaxHealth = tonumber(modData.lmionDoorMaxHealth)
-        savedMaxWasLogical = modData.lmionDoorMaxWasLogical == true
-        savedRepresentation = modData.lmionDoorSourceRepresentation
     end
 
-    local result = Pickup._garageDoorPreviousPlaceMoveableInternal(
-        self,
-        square,
-        item,
-        segment.closedSpriteName or spriteName
-    )
-    local door = Doors.isDoorObject(result) and result or nil
+    local result = Pickup._garageDoorPreviousPlaceMoveableInternal(self, square, item, segment.closedSpriteName or spriteName)
+    local door = result
 
-    if door ~= nil and savedRepresentation ~= nil and Doors.restorePlacedRepresentation ~= nil then
-        local ok, restored = pcall(Doors.restorePlacedRepresentation, door, savedRepresentation, {
-            closedSpriteName = segment.closedSpriteName or spriteName,
-            isOpen = false,
-        })
-
-        if not ok then
-            LMION.error("Pickup", "failed to restore garage door representation: " .. tostring(restored))
-        elseif Doors.isDoorObject(restored) then
-            door = restored
-        end
-    end
-
-    if savedRepresentation == "IsoThumpable"
-        and item ~= nil
-        and item:hasModData()
-        and Doors.isThumpableDoor(door)
-        and self.restoreThumpableParameters ~= nil then
-        self:restoreThumpableParameters(item:getModData(), door)
-    end
-
-    if door ~= nil then
+    if door ~= nil and instanceof(door, "IsoDoor") then
         if savedMaxHealth ~= nil then
-            Doors.restoreEffectiveMaxHealth(door, savedMaxHealth, savedMaxWasLogical)
+            Doors.setEffectiveMaxHealth(door, savedMaxHealth)
         end
         if savedHealth ~= nil then
-            Doors.setHealth(door, savedHealth)
+            door:setHealth(math.max(0, savedHealth))
         end
-        if isServer() and door.transmitCompleteItemToClients ~= nil then
+        if isServer() then
             door:transmitCompleteItemToClients()
         end
     end
 
-    return door or result
+    return result
 end
 
 if Pickup._garageDoorConfigureHandler ~= nil then
