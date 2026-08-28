@@ -110,6 +110,49 @@ Build does not implement the conversion itself and does not need to know how Cor
 
 Fresh construction does not inherit transient `locked` / `lockedByKey` flags from the temporary `IsoThumpable`.
 
+### Orientation boolean pitfall found during runtime validation
+
+B42 uses `IsoDoor/IsoThumpable.getNorth()` as a boolean orientation value:
+
+```text
+true  -> N-facing
+false -> W-facing
+```
+
+The first canonicalization implementation used the Lua idiom:
+
+```lua
+local north = object.getNorth ~= nil and object:getNorth() or nil
+```
+
+That expression is invalid for this API because a legitimate W-facing `false` falls through the `or nil` branch and becomes `nil`.
+
+Observed consequence on B42.20.4:
+
+```text
+W-facing garage construction
+-> ensureCanonicalDoor() reports incomplete IsoThumpable
+-> temporary garage IsoThumpables are left in the world
+-> malformed member can retain sprite == nil
+-> LightingJNI.updateChunk() dereferences getSprite().getProperties()
+-> NullPointerException
+```
+
+The fix is to preserve the boolean explicitly:
+
+```lua
+local north = nil
+if object.getNorth ~= nil then
+    north = object:getNorth()
+end
+```
+
+General rule:
+
+> **Never use Lua `a and booleanValue or fallback` when `false` is a valid engine value.**
+
+This applies beyond door orientation whenever a PZ Java API deliberately uses `false` as meaningful state.
+
 ### Garage construction timing
 
 Garage doors follow the same canonical `IsoDoor` policy but need earlier timing.
