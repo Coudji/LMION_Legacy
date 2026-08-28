@@ -1,10 +1,19 @@
 local Openings = LMION.Openings
 
 local function add(id, familyName, leafAEntity, leafBEntity)
+    local aliases = {}
+    if leafAEntity ~= id then
+        aliases[#aliases + 1] = leafAEntity
+    end
+    if leafBEntity ~= id then
+        aliases[#aliases + 1] = leafBEntity
+    end
+
     Openings.registerDefinition(id, {
         kind = "largeGate",
         familyName = familyName,
         topology = "twoLeaves",
+        aliases = aliases,
         leaves = {
             A = {
                 id = "A",
