@@ -23,20 +23,25 @@ local increaseKey = options:addKeyBind(
 )
 
 local function isGarageMoveProps(moveProps)
-    return moveProps ~= nil
+    return type(moveProps) == "table"
         and moveProps.lmionGarageFamily ~= nil
         and moveProps.lmionGaragePart ~= nil
 end
 
 local function getActiveGaragePlacement()
-    if getCell() == nil then
+    -- Client Lua is loaded while the main menu is active. OnKeyPressed can fire
+    -- before a local player/gameplay cell is fully initialized, so the garage
+    -- placement handler must be completely inert outside an active game.
+    local player = getPlayer()
+    if player == nil or getCell() == nil then
         return nil, nil
     end
 
-    local cursor = getCell():getDrag(0)
+    local playerNum = player:getPlayerNum()
+    local cursor = getCell():getDrag(playerNum)
     if cursor == nil
         or cursor.Type ~= "ISMoveableCursor"
-        or ISMoveableCursor.mode[cursor.player] ~= "place" then
+        or ISMoveableCursor.mode[playerNum] ~= "place" then
         return nil, nil
     end
 
