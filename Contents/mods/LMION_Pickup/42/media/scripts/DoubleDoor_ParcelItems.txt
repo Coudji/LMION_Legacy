@@ -1,6 +1,6 @@
 module Base
 {
-    item LMION_DoubleDoorLeft_Part1
+    item LMION_DoubleDoorA_Part1
     {
         DisplayCategory = Furniture,
         ItemType = base:moveable,
@@ -9,7 +9,7 @@ module Base
         Tags = base:usedisplayname,
     }
 
-    item LMION_DoubleDoorLeft_Part2
+    item LMION_DoubleDoorA_Part2
     {
         DisplayCategory = Furniture,
         ItemType = base:moveable,
@@ -18,7 +18,7 @@ module Base
         Tags = base:usedisplayname,
     }
 
-    item LMION_DoubleDoorRight_Part1
+    item LMION_DoubleDoorB_Part1
     {
         DisplayCategory = Furniture,
         ItemType = base:moveable,
@@ -27,7 +27,7 @@ module Base
         Tags = base:usedisplayname,
     }
 
-    item LMION_DoubleDoorRight_Part2
+    item LMION_DoubleDoorB_Part2
     {
         DisplayCategory = Furniture,
         ItemType = base:moveable,

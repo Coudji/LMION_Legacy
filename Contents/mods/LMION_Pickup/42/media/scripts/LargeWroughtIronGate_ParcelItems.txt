@@ -1,6 +1,6 @@
 module Base
 {
-    item LMION_LargeWroughtIronGateLeft_Part1
+    item LMION_LargeWroughtIronGateA_Part1
     {
         DisplayCategory = Furniture,
         ItemType = base:moveable,
@@ -9,7 +9,7 @@ module Base
         Tags = base:usedisplayname,
     }
 
-    item LMION_LargeWroughtIronGateLeft_Part2
+    item LMION_LargeWroughtIronGateA_Part2
     {
         DisplayCategory = Furniture,
         ItemType = base:moveable,
@@ -18,7 +18,7 @@ module Base
         Tags = base:usedisplayname,
     }
 
-    item LMION_LargeWroughtIronGateRight_Part1
+    item LMION_LargeWroughtIronGateB_Part1
     {
         DisplayCategory = Furniture,
         ItemType = base:moveable,
@@ -27,7 +27,7 @@ module Base
         Tags = base:usedisplayname,
     }
 
-    item LMION_LargeWroughtIronGateRight_Part2
+    item LMION_LargeWroughtIronGateB_Part2
     {
         DisplayCategory = Furniture,
         ItemType = base:moveable,

@@ -1,6 +1,6 @@
 module Base
 {
-    item LMION_DoubleFenceGateLeft_Part1
+    item LMION_DoubleFenceGateA_Part1
     {
         DisplayCategory = Furniture,
         ItemType = base:moveable,
@@ -9,7 +9,7 @@ module Base
         Tags = base:usedisplayname,
     }
 
-    item LMION_DoubleFenceGateLeft_Part2
+    item LMION_DoubleFenceGateA_Part2
     {
         DisplayCategory = Furniture,
         ItemType = base:moveable,
@@ -18,7 +18,7 @@ module Base
         Tags = base:usedisplayname,
     }
 
-    item LMION_DoubleFenceGateRight_Part1
+    item LMION_DoubleFenceGateB_Part1
     {
         DisplayCategory = Furniture,
         ItemType = base:moveable,
@@ -27,7 +27,7 @@ module Base
         Tags = base:usedisplayname,
     }
 
-    item LMION_DoubleFenceGateRight_Part2
+    item LMION_DoubleFenceGateB_Part2
     {
         DisplayCategory = Furniture,
         ItemType = base:moveable,

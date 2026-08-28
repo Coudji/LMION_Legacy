@@ -1,6 +1,6 @@
 module Base
 {
-    item LMION_LargeFarmGateLeft_Part1
+    item LMION_LargeFarmGateA_Part1
     {
         DisplayCategory = Furniture,
         ItemType = base:moveable,
@@ -9,7 +9,7 @@ module Base
         Tags = base:usedisplayname,
     }
 
-    item LMION_LargeFarmGateLeft_Part2
+    item LMION_LargeFarmGateA_Part2
     {
         DisplayCategory = Furniture,
         ItemType = base:moveable,
@@ -18,7 +18,7 @@ module Base
         Tags = base:usedisplayname,
     }
 
-    item LMION_LargeFarmGateRight_Part1
+    item LMION_LargeFarmGateB_Part1
     {
         DisplayCategory = Furniture,
         ItemType = base:moveable,
@@ -27,7 +27,7 @@ module Base
         Tags = base:usedisplayname,
     }
 
-    item LMION_LargeFarmGateRight_Part2
+    item LMION_LargeFarmGateB_Part2
     {
         DisplayCategory = Furniture,
         ItemType = base:moveable,
