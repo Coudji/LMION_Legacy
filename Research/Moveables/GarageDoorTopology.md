@@ -1,210 +1,171 @@
 # Garage-door topology
 
-Status: **Bytecode-verified B42.20.3; runtime-observed B42.20.4; Industrial fully runtime-validated; all current LMION garage families pickup/replacement runtime-validated in N/W**
+Status: **Bytecode-verified B42.20.3; runtime-observed B42.20.4; variable-length topology confirmed; current LMION Pickup still assumes width 3 and must be generalized.**
 
-This note records how Project Zomboid links and operates three-panel garage doors. Garage doors are a separate engine topology from `DoubleDoor` large gates and from ordinary paired 1x1 doors.
+This note records how Project Zomboid links and operates garage doors. Garage doors are a separate engine topology from `DoubleDoor` large gates and from ordinary paired 1x1 doors.
 
-## Question
+## Key correction: garage width is variable
 
-LMION needs to transport and construct garage doors without inventing a linkage or representation model that conflicts with vanilla opening/closing behavior.
-
-The relevant questions are:
-
-- how many physical objects make one garage door;
-- how a segment identifies its position;
-- whether linkage is stored or reconstructed;
-- how neighboring members are found;
-- how open and closed sprite states are represented;
-- what representation the GameEntity construction path must leave in the world;
-- what must be restored after Pickup for vanilla synchronization to resume.
-
-## B42.20.3 Java evidence
-
-The following findings were verified from `zombie.iso.objects.IsoDoor` in the B42.20.3 `projectzomboid.jar`.
-
-### Logical segment index
-
-`IsoDoor.getGarageDoorIndex(IsoObject)` reads the sprite `GarageDoor` property and accepts raw values `1..6`.
-
-For a closed `IsoDoor` / `IsoThumpable`, the raw value is returned directly. For an open object, only raw values `4..6` are accepted and the method returns `raw - 3`.
-
-Therefore the normalized garage index is always:
-
-```text
-1, 2, 3
-```
-
-The raw values `4, 5, 6` are the open-state counterparts of logical members `1, 2, 3`; they are not three additional physical members.
-
-Conclusion:
+Earlier LMION research incorrectly concluded:
 
 ```text
 one garage = three physical door objects
 ```
 
-### Linkage is spatial, not stored as garage.first/prev/next fields
+That conclusion confused the three normalized `GarageDoor` **roles** with a fixed physical member count.
 
-`IsoDoor.getGarageDoorPrev(IsoObject)` and `IsoDoor.getGarageDoorNext(IsoObject)` derive neighboring members from the current square, orientation, object class and normalized garage index.
+The correct model is:
 
-They do not read persistent `garage.first`, `garage.prev` or `garage.next` object references.
+```text
+GarageDoor
+= start(1) + one-or-more middle(2) + end(3)
+```
 
-For a north-oriented door (`north = true`):
+The middle role may repeat an arbitrary number of times as long as the chain remains spatially valid and is terminated by the proper start/end members.
+
+Runtime evidence on B42.20.4:
+
+- a vanilla world garage five tiles wide was observed with the same start/end pieces as the familiar three-tile garage and repeated middle pieces between them;
+- an earlier BrushTool experiment with a six-tile garage opened/closed correctly;
+- a new BrushTool experiment with a **12-tile garage** also opened and closed correctly as one native garage.
+
+No engine maximum width has been established. LMION must therefore not encode an arbitrary maximum without separate evidence.
+
+## B42.20.3 Java evidence
+
+The following findings were verified from `zombie.iso.objects.IsoDoor` in the supplied B42.20.3 `projectzomboid.jar`.
+
+### Logical role/index
+
+`IsoDoor.getGarageDoorIndex(IsoObject)` reads the sprite `GarageDoor` property and accepts raw values `1..6`.
+
+For a closed object, raw `1..3` normalize to:
+
+```text
+1 = start
+2 = middle
+3 = end
+```
+
+For an open object, raw `4..6` normalize to the same roles by returning `raw - 3`:
+
+```text
+4 -> 1
+5 -> 2
+6 -> 3
+```
+
+Therefore normalized values `1,2,3` describe **topological roles**, not “member 1 of exactly 3 / member 2 of exactly 3 / member 3 of exactly 3”.
+
+### Why repeated middle members work
+
+`IsoDoor.getGarageDoorPrev(IsoObject)` and `getGarageDoorNext(IsoObject)` derive neighbors spatially from orientation and normalized role.
+
+For `north = true`:
 
 ```text
 prev: x - 1, y
 next: x + 1, y
 ```
 
-For a west-oriented door (`north = false`):
+For `north = false`:
 
 ```text
 prev: x, y + 1
 next: x, y - 1
 ```
 
-The candidate on the adjacent square must be the same door-object class (`IsoDoor` or `IsoThumpable`), have the same north orientation and have an appropriate normalized garage index.
+The important bytecode rule is role comparison:
 
-`IsoDoor.getGarageDoorFirst(IsoObject)` repeatedly follows `getGarageDoorPrev()` until logical member `1` is found. If a valid previous chain cannot be completed, it falls back to the supplied object.
+```text
+prev candidate accepted when candidateIndex <= currentIndex
+next candidate accepted when candidateIndex >= currentIndex
+```
+
+with hard stops:
+
+```text
+current index 1 -> no prev
+current index 3 -> no next
+```
+
+That means a middle member (`2`) may legally link to another middle member (`2`) in either direction:
+
+```text
+1 -> 2 -> 2 -> 2 -> ... -> 2 -> 3
+```
+
+This exactly explains the runtime L5/L6/L12 behavior.
+
+The candidate must still use the same door-object representation class (`IsoDoor` vs `IsoThumpable`) and same orientation.
+
+### First-member resolution
+
+`IsoDoor.getGarageDoorFirst(IsoObject)` repeatedly follows `getGarageDoorPrev()` until it finds role `1`.
+
+There is no fixed “three-step” traversal in this helper. The chain length is determined by world geometry.
 
 ### Vanilla opening/closing synchronization
 
-`IsoDoor.toggleGarageDoor(IsoObject, boolean)` toggles the selected member, then walks both the previous and next chains and toggles every linked garage member.
+`IsoDoor.toggleGarageDoor(IsoObject, boolean)`:
 
-This is why the three physical panels open and close as one garage door even though the linkage is reconstructed from world geometry rather than persisted as explicit object references.
+1. toggles the selected object;
+2. repeatedly follows `getGarageDoorPrev()` until no previous member remains;
+3. repeatedly follows `getGarageDoorNext()` until no next member remains.
 
-This is fundamentally different from LMION's paired 1x1 double-door profiles: those leaves are independent and opening one does not open the other.
+Therefore vanilla naturally operates the complete variable-length chain. The L12 runtime test is the expected consequence of the bytecode, not an accidental visual trick.
+
+### Obstruction and destruction also traverse the chain
+
+`IsoDoor.isGarageDoorObstructed(IsoObject)` derives the full span by walking previous/next members before checking vehicle obstruction.
+
+`IsoDoor.destroyGarageDoor(IsoObject)` likewise walks the complete previous and next chains and destroys every linked member.
+
+This reinforces the rule that garage identity is spatial and variable-length.
+
+Pickup must continue using intentional per-member removal rather than a vanilla whole-garage destruction helper.
 
 ### Closed/open sprite relation
 
-The `IsoDoor(IsoCell, IsoGridSquare, IsoSprite, boolean)` constructor normally uses a sprite offset of `2` for a standard door and `4` for a `DoubleDoor`.
+The `IsoDoor(IsoCell, IsoGridSquare, IsoSprite, boolean)` constructor uses the GarageDoor-specific closed/open sprite offset of `8`.
 
-When the supplied sprite has the `GarageDoor` property, the constructor uses an offset of `8` between closed and open sprites.
+This is independent from the `GarageDoor = 1..6` role property.
 
-Therefore, when LMION reconstructs a garage member from the correct closed sprite, vanilla can derive the corresponding open sprite using its normal garage-door constructor path.
+When LMION reconstructs a member from the correct closed sprite, native `IsoDoor` garage behavior can derive the matching open state.
 
-The `+8` sprite offset is separate from the `GarageDoor = 1..6` property values described above.
+## Canonical representation
 
-### Destruction traverses the full garage
+LMION's global canonical representation is now `IsoDoor`.
 
-`IsoDoor.destroyGarageDoor(IsoObject)` walks both previous and next garage members and destroys the complete linked structure.
-
-`IsoDoor.forEachDoorObject(IsoObject, Consumer)` also has a dedicated garage branch that traverses previous/next members, distinct from its `DoubleDoor` branch.
-
-Pickup must therefore use intentional per-segment removal rather than calling a vanilla whole-garage destruction path.
-
-### Rendering also resolves a first member
-
-`IsoDoor.getRenderEffectMaster()` resolves `getGarageDoorFirst()` for garage doors, and the render-object count/index logic traverses the linked members.
-
-This is additional confirmation that garage identity is reconstructed from the three-member spatial chain.
-
-## Garage construction representation contract
-
-Garage construction is a deliberate exception to the general LMION rule that Build should preserve whatever door representation the engine initially creates.
-
-The seven LMION garage `SpriteConfig` components declare:
+Garage construction remains an early-timing case:
 
 ```text
-OnCreate = LMION.Doors.onCreateGarage
+LMION-built garage
+-> temporary construction IsoThumpable
+-> SpriteConfig.OnCreate
+-> Core canonicalization
+-> IsoDoor
 ```
 
-The GameEntity build path first creates an `IsoThumpable` for each SpriteConfig member and adds it to the world. Vanilla `ISBuildIsoEntity` then invokes the SpriteConfig `OnCreate` callback. The callback may return:
+This timing is required because complete native GarageDoor mechanics are implemented on `IsoDoor`.
 
-```lua
-{
-    replaceObject = true,
-    object = replacement,
-}
-```
+See `Research/Engine/GarageThumpableInteraction.md` and `Research/Architecture/DoorObjectAbstraction.md`.
 
-When that happens, vanilla continues the construction/transmission path with the replacement object.
+## Current LMION-built garage families
 
-LMION's garage callback intentionally performs:
+The seven current LMION garage `SpriteConfig` entities are still authored as width 3:
 
-```text
-temporary build IsoThumpable
--> create IsoDoor from the same square/sprite/orientation
--> copy relevant construction state
--> recreate GameEntity components from the scripted entity
--> remove temporary IsoThumpable
--> return IsoDoor as replaceObject
-```
+- `IndustrialGarageDoor`;
+- `GreenGarageDoor`;
+- `WhiteGarageDoor`;
+- `GreyGarageDoor`;
+- `RollingGarageDoor`;
+- `RedWindowGarageDoor`;
+- `RollingWindowGarageDoor`.
 
-This behavior existed before the generic door-representation refactor and is required by LMION's current garage construction contract.
+Their closed role mappings are:
 
-Important distinction:
-
-> **Garage construction converting its temporary `IsoThumpable` to `IsoDoor` is a topology-specific construction rule, not a justification for normalizing ordinary doors or large DoubleDoor gates to `IsoDoor`.**
-
-Ordinary 1x1 and large-gate construction should continue preserving their engine-created representation.
-
-### Regression found after the door abstraction refactor — B42.20.4
-
-During Build-enabled integration testing on B42.20.4, constructing a garage produced three errors:
-
-```text
-no such function "LMION.Doors.onCreateGarage"
-```
-
-The callback reference remained in every garage SpriteConfig, but the Lua function had been accidentally lost when the old monolithic `Doors.lua` was split into focused Core modules.
-
-Without the callback, the temporary construction `IsoThumpable` objects remained behind in an invalid state. The same runtime session then crashed in engine code because one of those thumpables had a nil sprite:
-
-```text
-LightingJNI.updateChunk
--> IsoThumpable.getSprite() == nil
--> NullPointerException
-
-IsoThumpable.ToggleDoorActual
--> getSprite() == nil
--> NullPointerException
-```
-
-This establishes a strong guardrail for future refactors:
-
-> **Do not remove a SpriteConfig `OnCreate` callback merely because its representation conversion looks inconsistent with the generic door policy. First verify whether the SpriteConfig construction lifecycle depends on it.**
-
-The callback was restored to `LMION/Doors/Construction.lua` and documented as a garage-only exception.
-
-## Runtime evidence — B42.20.4
-
-Instrumented Pickup traces on an untouched west-facing `IndustrialGarageDoor` establish the actual closed-sprite/index mapping seen by the engine:
-
-```text
-industry_trucks_01_32 -> GarageDoor raw 1 / normalized 1
-industry_trucks_01_33 -> GarageDoor raw 2 / normalized 2
-industry_trucks_01_34 -> GarageDoor raw 3 / normalized 3
-```
-
-Observed world coordinates for one reference door were:
-
-```text
-_32 / index 1 -> y = 606
-_33 / index 2 -> y = 605
-_34 / index 3 -> y = 604
-```
-
-This exactly matches the bytecode linkage rule for W: `next` advances toward `y - 1`.
-
-This runtime evidence corrects an earlier LMION implementation mistake where W sprite identities were assigned as `_34=1`, `_33=2`, `_32=3`. That mistake caused Pickup parcels to swap Part 1 and Part 3 and caused replacement to create valid sprites with the wrong `GarageDoor` indices.
-
-The corrected Industrial implementation is runtime-validated end to end:
-
-- pickup from either N or W orientation;
-- exactly three parcels `(1/3)`, `(2/3)`, `(3/3)`;
-- replacement in N and W;
-- rotation before placement;
-- restored vanilla synchronized opening/closing;
-- pickup again after replacement;
-- exact per-segment current-health and `lmionDoorMaxHealth` preservation, including unequal damage.
-
-## Current LMION SpriteConfig evidence
-
-LMION Core owns the seven current garage-door `SpriteConfig` entities used for construction. Every current family declares three closed tiles in each orientation and the same 3-wide topology.
-
-The engine-identity mappings encoded by Pickup are:
-
-| Family | W member 1 / 2 / 3 | N member 1 / 2 / 3 |
+| Family | W start / middle / end | N start / middle / end |
 |---|---|---|
 | `IndustrialGarageDoor` | `industry_trucks_01_32` / `_33` / `_34` | `industry_trucks_01_35` / `_36` / `_37` |
 | `GreenGarageDoor` | `walls_garage_01_16` / `_17` / `_18` | `walls_garage_01_19` / `_20` / `_21` |
@@ -214,111 +175,85 @@ The engine-identity mappings encoded by Pickup are:
 | `RedWindowGarageDoor` | `walls_garage_02_32` / `_33` / `_34` | `walls_garage_02_35` / `_36` / `_37` |
 | `RollingWindowGarageDoor` | `walls_garage_02_48` / `_49` / `_50` | `walls_garage_02_51` / `_52` / `_53` |
 
-The Industrial mapping is directly runtime-observed. The six generalized families use the same vanilla garage closed-tile convention reflected by their Core SpriteConfigs. To prevent another silent Part 1 / Part 3 inversion, Pickup validates every configured closed sprite against its live `GarageDoor` property before enabling Moveables or installing its runtime `IsoSpriteGrid`. A family whose raw property does not match the expected logical member is rejected rather than transported with an uncertain topology.
+These three sprites are now best understood as **role sprites**, not three unique physical-part identities.
 
-For every current family, Core's W `SpriteConfig` visual/local-grid order is reversed relative to engine identity. For example, `IndustrialGarageDoor` declares:
+A width-5 White garage, for example, is conceptually:
 
 ```text
-W visual/local-grid order: industry_trucks_01_34
-                           industry_trucks_01_33
-                           industry_trucks_01_32
-
-N visual/local-grid order: industry_trucks_01_35 industry_trucks_01_36 industry_trucks_01_37
+W: _0 / _1 / _1 / _1 / _2
+N: _3 / _4 / _4 / _4 / _5
 ```
 
-The W visual/local-grid order must not be confused with engine identity. The resulting dimensions are `1x3` for W and `3x1` for N.
+subject to orientation geometry.
 
-## Geometry contract for LMION Pickup
+## Geometry
 
-If logical member `1` is the placement anchor, the three-member closed structure is:
+Starting from the role-1/start anchor, a closed garage of total width `L >= 3` occupies:
 
 ```text
 N:
-index 1 -> (x,     y)
-index 2 -> (x + 1, y)
-index 3 -> (x + 2, y)
+position 1       -> (x,         y) role 1
+positions 2..L-1 -> (x + i - 1, y) role 2
+position L       -> (x + L - 1, y) role 3
 
 W:
-index 1 -> (x, y)
-index 2 -> (x, y - 1)
-index 3 -> (x, y - 2)
+position 1       -> (x, y)         role 1
+positions 2..L-1 -> (x, y - i + 1) role 2
+position L       -> (x, y - L + 1) role 3
 ```
 
-For `IndustrialGarageDoor`, that means:
+The visual/local SpriteGrid order for W may remain reversed relative to engine traversal identity. Do not infer logical chain order from SpriteGrid local order.
+
+## Pickup implications
+
+The current LMION garage Pickup implementation was designed around exactly three physical segments and three parcels. That assumption is now known to be incomplete for vanilla world garages.
+
+Current behavior remains valid for the seven LMION-built width-3 families, but **world-garage transport must be generalized before variable-width garages can be claimed supported**.
+
+The correct future conceptual model is:
 
 ```text
-N engine identity:
-1 = _35
-2 = _36
-3 = _37
-
-W engine identity:
-1 = _32
-2 = _33
-3 = _34
-
-W SpriteGrid local +Y order:
-3 = _34
-2 = _33
-1 = _32
+select any garage member
+-> resolve start with getGarageDoorFirst()
+-> traverse getGarageDoorNext() until role 3 / end of chain
+-> capture every physical member in order
+-> parcel count = actual physical member count
+-> placement reconstructs:
+   start + repeated middle + end
+-> vanilla spatial linkage resumes automatically
 ```
 
-This is the same direction used by vanilla `getGarageDoorNext()`.
+Do not hardcode width `5`, `6`, `12`, or any other discovered example. The traversal itself should determine width.
 
-LMION resolves an arbitrary selected garage member back to logical member `1`, then enumerates the three members through vanilla garage topology rather than infer membership from family sprite names alone.
+### Parcel identity design point still to decide
 
-## Transport identity
+For a variable-width garage, the middle sprite/role repeats. Before implementation, decide how transport items represent repeated middle members while preserving per-segment health and allowing one placement action.
 
-The catalog models garage transport as three 20 kg packages, which matches the engine topology naturally:
+The simplest likely model is positional parcels:
 
 ```text
-one garage = three physical IsoDoor segments = three parcels = one placement action
+1/L       -> start
+2/L..L-1/L -> repeated middle physical segments
+L/L       -> end
 ```
 
-Pickup and replacement in both N and W orientations are runtime-validated across all seven current LMION garage families. `IndustrialGarageDoor` remains the full reference family for the broader behavior matrix.
+Each parcel can still carry the exact durability state of the corresponding physical segment. This is an LMION transport/UI choice, not an engine topology requirement.
 
-Each parcel preserves the exact current health and `lmionDoorMaxHealth` of its corresponding physical segment. Placement reconstructs all three closed `IsoDoor` members with the correct orientation and engine-index sprite. Vanilla previous/next discovery then restores synchronized opening/closing without LMION storing custom links.
+## Previously validated width-3 behavior
 
-## Industrial reference validation
+The existing width-3 architecture remains runtime validated across the seven current LMION families for N/W pickup/replacement, rotation and synchronized native opening/closing.
 
-The reference family passes the complete closed-state validation set:
+Industrial remains the detailed reference family for per-segment durability and engine-role mapping.
 
-1. target logical member 1, 2 or 3;
-2. obtain exactly three `(1/3)`, `(2/3)`, `(3/3)` parcels;
-3. remove exactly the selected garage;
-4. require all three parcels for replacement;
-5. place correctly in N and W;
-6. rotate before placement;
-7. open any restored panel and confirm all three synchronize through vanilla;
-8. preserve exact per-segment current health and logical max, including unequal damage;
-9. pick up the restored garage again successfully.
-
-Open-state Pickup is not part of the original closed reference path; see `GarageDoorValidation.md` for the separately validated open Pickup behavior.
-
-## Generalized family state
-
-The Industrial reference architecture has been extended as data to:
-
-- `GreenGarageDoor`;
-- `WhiteGarageDoor`;
-- `GreyGarageDoor`;
-- `RollingGarageDoor`;
-- `RedWindowGarageDoor`;
-- `RollingWindowGarageDoor`.
-
-Each family has three dedicated 20 kg parcel items and EN/FR localized names. The shared Pickup, rotation, placement and durability code is unchanged in principle; only family data and fail-closed sprite-index validation were added.
-
-Runtime testing confirms that every generalized family can be picked up and replaced successfully in both N and W orientations. Combined with the Industrial reference, the complete current garage set therefore has runtime-validated orientation coverage for pickup and replacement.
-
-The six generalized families are not claimed to have passed every Industrial reference check individually. The startup/runtime `GarageDoor = 1/2/3` property check remains a fail-closed guard against invalid member mappings; it complements but does not replace interaction tests.
+The discovery of variable width does **not** invalidate those tests. It invalidates only the broader assumption that every garage in the game contains exactly three physical members.
 
 ## Revalidation trigger
 
 Recheck this note if Project Zomboid changes:
 
 - the `GarageDoor` property scheme;
-- `IsoDoor.getGarageDoor*` methods;
+- `IsoDoor.getGarageDoor*` traversal rules;
 - `IsoDoor` constructor sprite offsets;
 - SpriteConfig `OnCreate` replacement semantics;
-- garage SpriteConfig topology;
-- or the closed-sprite `GarageDoor` identities of any supported family.
+- garage role sprites;
+- or if runtime testing establishes an actual maximum/minimum chain length beyond the currently observed `>=3` pattern.
