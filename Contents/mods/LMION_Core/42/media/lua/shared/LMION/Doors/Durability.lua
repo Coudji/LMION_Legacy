@@ -1,5 +1,28 @@
 local Doors = LMION.Doors
 
+--[[
+Project Zomboid represents passable door mechanics with more than one concrete
+world class. Map-authored/opening-normalized doors are commonly IsoDoor, while
+vanilla GameEntity construction can leave a valid door as IsoThumpable.
+
+Shared Core gameplay must therefore reason about the door capability, not only
+one Java class. Keep this predicate intentionally narrow: an IsoThumpable counts
+only when the engine itself marks it as a door.
+]]
+function Doors.isDoorObject(object)
+    if object == nil then
+        return false
+    end
+
+    if instanceof(object, "IsoDoor") then
+        return true
+    end
+
+    return instanceof(object, "IsoThumpable")
+        and object.isDoor ~= nil
+        and object:isDoor()
+end
+
 function Doors.getConstructionMaxHealth(profile, craftRecipe, character)
     local durability = profile and profile.durability or nil
     if durability == nil then
@@ -35,6 +58,15 @@ function Doors.setEffectiveMaxHealth(object, value)
 
     maxHealth = math.max(0, math.floor(maxHealth))
     object:getModData()[Doors.MaxHealthModDataKey] = maxHealth
+
+    -- IsoDoor has no mutable engine max-health API in B42.20.3, which is why
+    -- LMION keeps modData authoritative. IsoThumpable does expose setMaxHealth;
+    -- mirror the same value when available so vanilla damage/condition queries
+    -- remain coherent instead of reporting e.g. 850 current / 0 engine max.
+    if object.setMaxHealth ~= nil then
+        object:setMaxHealth(maxHealth)
+    end
+
     return maxHealth
 end
 
@@ -81,7 +113,7 @@ function Doors.repairHealth(object, amount)
 end
 
 function Doors.adoptWorldDoor(object)
-    if object == nil or instanceof(object, "IsoDoor") == false then
+    if not Doors.isDoorObject(object) then
         return false
     end
 
@@ -97,12 +129,18 @@ function Doors.adoptWorldDoor(object)
         return false
     end
 
-    local currentHealth = object:getHealth()
-    local engineMaxHealth = object:getMaxHealth()
+    local currentHealth = tonumber(object:getHealth())
+    local engineMaxHealth = tonumber(object:getMaxHealth())
+    local wasIntact = currentHealth ~= nil
+        and engineMaxHealth ~= nil
+        and currentHealth == engineMaxHealth
 
     Doors.setEffectiveMaxHealth(object, worldMaxHealth)
 
-    if currentHealth == engineMaxHealth then
+    -- Preserve exact damage on already-damaged objects. Fresh vanilla multi-tile
+    -- construction can produce valid edge members at 0/0; current==max still
+    -- means "intact" there, so adoption initializes those members correctly.
+    if wasIntact then
         object:setHealth(worldMaxHealth)
     end
 
