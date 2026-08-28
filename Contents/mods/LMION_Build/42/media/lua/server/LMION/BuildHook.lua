@@ -38,7 +38,7 @@ local function isLmionFrameValid(self, square)
     )
 end
 
-local function normalizeBuiltDoor(square, gameScript, effectiveMaxHealth)
+local function initializeBuiltDoor(square, gameScript, effectiveMaxHealth)
     if square == nil or gameScript == nil then
         return
     end
@@ -46,16 +46,14 @@ local function normalizeBuiltDoor(square, gameScript, effectiveMaxHealth)
     local objects = square:getSpecialObjects()
     for i = objects:size() - 1, 0, -1 do
         local object = objects:get(i)
-        if instanceof(object, "IsoThumpable")
-            and object:isDoor()
+        if LMION.Doors.isDoorObject(object)
             and object.getEntityScript ~= nil
             and object:getEntityScript() == gameScript then
-            local result = LMION.Doors.onCreateDoor({
-                thumpable = object,
+            if LMION.Doors.initializeConstructedDoor({
+                object = object,
                 effectiveMaxHealth = effectiveMaxHealth,
-            })
-            if result ~= nil and result.object ~= nil then
-                result.object:transmitCompleteItemToClients()
+            }) and object.transmitCompleteItemToClients ~= nil then
+                object:transmitCompleteItemToClients()
             end
             return
         end
@@ -129,7 +127,7 @@ ISBuildIsoEntity.setInfo = function(self, square, north, sprite, openSprite)
             self.craftRecipe,
             self.character
         )
-        normalizeBuiltDoor(square, gameScript, effectiveMaxHealth)
+        initializeBuiltDoor(square, gameScript, effectiveMaxHealth)
     end
 
     return result
