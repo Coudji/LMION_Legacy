@@ -9,15 +9,32 @@ Doors.GarageRole = Doors.GarageRole or {
 -- LMION safety policy, not an engine limit. Runtime has validated at least L12.
 Doors.DefaultGarageMaxLength = 12
 
+local function isGarageWidthLimitDisabled()
+    if LMION.GarageWidthLimitDisabled == true then
+        return true
+    end
+
+    if PZAPI ~= nil and PZAPI.ModOptions ~= nil and PZAPI.ModOptions.getOptions ~= nil then
+        local options = PZAPI.ModOptions:getOptions("LMION_Core")
+        local option = options and options:getOption("UnlimitedGarageWidth") or nil
+        if option ~= nil and option.getValue ~= nil then
+            return option:getValue() == true
+        end
+    end
+
+    return false
+end
+
 --[[
 Return the LMION gameplay maximum for a garage.
 
 `nil` means that LMION's artificial safety limit is lifted. The actual PZ maximum
-is unknown and must not be guessed here. A future settings/server layer may set
-`LMION.GarageWidthLimitDisabled = true` without requiring Build/Pickup rewrites.
+is unknown and must not be guessed here. The current local ModOptions checkbox is
+only the first settings source; multiplayer/server authority remains deliberately
+open and can later feed the same policy query without changing Build/Pickup.
 ]]
 function Doors.getGarageMaxLength()
-    if LMION.GarageWidthLimitDisabled == true then
+    if isGarageWidthLimitDisabled() then
         return nil
     end
 
