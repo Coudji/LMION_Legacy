@@ -2,5 +2,8 @@
   "UI_LMION_HitPoints": "HP",
   "UI_LMION_GarageWidthOptions": "LMION Garage Placement",
   "UI_LMION_GarageWidthDecrease": "Decrease garage width",
-  "UI_LMION_GarageWidthIncrease": "Increase garage width"
+  "UI_LMION_GarageWidthIncrease": "Increase garage width",
+  "UI_LMION_GarageWidthCurrent": "Width",
+  "UI_LMION_GarageWidthMaximum": "Maximum",
+  "UI_LMION_GarageWidthAdjust": "adjust width"
 }
