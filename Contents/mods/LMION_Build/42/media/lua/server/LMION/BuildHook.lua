@@ -38,15 +38,41 @@ local function isLmionFrameValid(self, square)
     )
 end
 
+local function describeBuiltObject(object)
+    if object == nil then
+        return "<nil>"
+    end
+
+    local representation = LMION.Doors.getDoorRepresentation(object)
+        or tostring(object.getObjectName ~= nil and object:getObjectName() or "unknown")
+    local sprite = object.getSprite ~= nil and object:getSprite() or nil
+    local spriteName = sprite ~= nil and sprite:getName() or "<nil>"
+    local square = object.getSquare ~= nil and object:getSquare() or nil
+    local squareText = "<nil>"
+    if square ~= nil then
+        squareText = tostring(square:getX()) .. "," .. tostring(square:getY()) .. "," .. tostring(square:getZ())
+    end
+
+    local garageIndex = nil
+    if LMION.Doors.isDoorObject(object) and sprite ~= nil then
+        garageIndex = IsoDoor.getGarageDoorIndex(object)
+    end
+
+    return "class=" .. tostring(representation)
+        .. " sprite=" .. tostring(spriteName)
+        .. " square=" .. squareText
+        .. " garageIndex=" .. tostring(garageIndex)
+end
+
 --[[
 Post-build finalization deliberately mirrors the old working LMION safety net:
 a SpriteConfig OnCreate callback may already have replaced the temporary object,
 but Build still rescans the completed square by EntityScript and asks Core to
 finalize the actual object present there.
 
-For ordinary doors/large gates Core preserves the engine-created representation.
-For garage members Core may replace a remaining IsoThumpable with IsoDoor because
-the native garage interaction path is implemented there.
+Temporary GARAGE TRACE logs identify whether OnCreate survives into the completed
+world object. Once runtime evidence is conclusive, remove whichever path is proven
+redundant rather than keeping two conversions forever.
 ]]
 local function initializeBuiltDoor(square, gameScript, effectiveMaxHealth)
     if square == nil or gameScript == nil then
@@ -59,10 +85,21 @@ local function initializeBuiltDoor(square, gameScript, effectiveMaxHealth)
         if LMION.Doors.isDoorObject(object)
             and object.getEntityScript ~= nil
             and object:getEntityScript() == gameScript then
+            local isGarage = object:getSprite() ~= nil
+                and IsoDoor.getGarageDoorIndex(object) ~= nil
+
+            if isGarage then
+                LMION.log("Build", "GARAGE TRACE post-build found: " .. describeBuiltObject(object))
+            end
+
             local finalObject = LMION.Doors.initializeConstructedDoor({
                 object = object,
                 effectiveMaxHealth = effectiveMaxHealth,
             })
+
+            if isGarage then
+                LMION.log("Build", "GARAGE TRACE post-build final: " .. describeBuiltObject(finalObject))
+            end
 
             if finalObject ~= nil and finalObject.transmitCompleteItemToClients ~= nil then
                 finalObject:transmitCompleteItemToClients()
