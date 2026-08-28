@@ -1,0 +1,29 @@
+module Base
+{
+    entity LargeFarmGateA
+    {
+        component SpriteConfig
+        {
+            health = 500,
+            skillBaseHealth = 50,
+            dontNeedFrame = true,
+
+            face W
+            {
+                layer
+                {
+                    row = fixtures_doors_fences_01_113,
+                    row = fixtures_doors_fences_01_112,
+                }
+            }
+
+            face N
+            {
+                layer
+                {
+                    row = fixtures_doors_fences_01_114 fixtures_doors_fences_01_115,
+                }
+            }
+        }
+    }
+}
