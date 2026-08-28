@@ -19,7 +19,7 @@ The first concrete case is large gates:
 
 - `registerDefinition(id, definition)` — register a Core base definition;
 - `registerExtension(targetId, extensionId, extension)` — contribute an extension without replacing the base definition;
-- `resolveId(id)` — resolve a base id or extension-provided alias to the Core base id;
+- `resolveId(id)` — resolve a base id or known alias to the Core base id;
 - `getBaseDefinition(id)` — read the unmodified Core definition;
 - `getEffectiveDefinition(id)` — read base + ordered extension values;
 - `getExtensions(id)` — inspect the ordered extensions contributing to the result.
@@ -36,6 +36,34 @@ Extensions have:
 
 Extensions are resolved by ascending priority and then extension id for deterministic behavior.
 
+## Stable identity vs active topology
+
+Core must recognize persistent identities independently from whichever gameplay extension is active.
+
+This matters for existing saves: a world object may still carry a split-leaf entity id such as `LargeWroughtIronGateRight` after `LMION_Build` is disabled. That id still belongs to the `LargeWroughtIronGate` family even though split-leaf gameplay is no longer active.
+
+Therefore Core base definitions own the known left/right aliases. Build does **not** own recognition of those ids; Build only contributes the active topology change.
+
+Example without Build:
+
+```text
+observed id        = LargeWroughtIronGateRight
+base id            = LargeWroughtIronGate
+base topology      = complete
+effective topology = complete
+extensions         = <none>
+```
+
+Example with Build active:
+
+```text
+observed id        = LargeWroughtIronGateRight
+base id            = LargeWroughtIronGate
+base topology      = complete
+effective topology = splitLeaves
+extension source   = LMION_Build
+```
+
 ## Current large-gate model
 
 Core registers six base large-gate families with:
@@ -45,24 +73,14 @@ kind = largeGate
 topology = complete
 ```
 
-Build currently registers `LMION_Build.largeGateSplit` for each family. Its effective values are:
+Core also owns all currently known left/right entity ids as aliases of those families.
+
+Build registers `LMION_Build.largeGateSplit` for each family. Its effective values are:
 
 ```text
 topology = splitLeaves
 leaves.left = <left entity id>
 leaves.right = <right entity id>
-```
-
-Build also registers the left/right entity ids as aliases of the Core base family when those ids differ from the base id.
-
-Example with Build active:
-
-```text
-observed id       = LargeFarmGateLeft
-base id           = LargeFarmGate
-base topology     = complete
-effective topology= splitLeaves
-extension source  = LMION_Build
 ```
 
 ## Important transitional constraint
