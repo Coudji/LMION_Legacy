@@ -1,3 +1,6 @@
 {
-  "UI_LMION_HitPoints": "PV"
+  "UI_LMION_HitPoints": "PV",
+  "UI_LMION_GarageWidthOptions": "Placement des garages LMION",
+  "UI_LMION_GarageWidthDecrease": "Réduire la largeur du garage",
+  "UI_LMION_GarageWidthIncrease": "Augmenter la largeur du garage"
 }
