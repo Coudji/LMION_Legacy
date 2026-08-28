@@ -282,6 +282,7 @@ end
 function Spawner.spawn(entries, originSquare)
     local result = {
         spawned = 0,
+        skipped = 0,
         objectsSpawned = 0,
         framesSpawned = 0,
         failures = {},
@@ -299,6 +300,8 @@ function Spawner.spawn(entries, originSquare)
         local ok, reason = spawnEntry(entry, originSquare, result)
         if ok then
             result.spawned = result.spawned + 1
+        elseif entry ~= nil and entry.optional == true and reason == "missing entity" then
+            result.skipped = result.skipped + 1
         else
             result.failures[#result.failures + 1] = {
                 id = entry ~= nil and entry.id or "<nil>",
