@@ -1,0 +1,5 @@
+{
+  "UI_LMION_CoreOptions": "LMION Core",
+  "UI_LMION_UnlimitedGarageWidth": "Lift the L12 garage width safety limit",
+  "UI_LMION_UnlimitedGarageWidth_Tooltip": "Allows garage placement beyond L12. Project Zomboid's actual maximum garage width is unknown."
+}
