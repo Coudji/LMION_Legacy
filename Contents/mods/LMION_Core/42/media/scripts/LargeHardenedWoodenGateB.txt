@@ -1,6 +1,6 @@
 module Base
 {
-    entity LargeWroughtIronGateRight
+    entity LargeHardenedWoodenGateB
     {
         component SpriteConfig
         {
@@ -12,8 +12,8 @@ module Base
             {
                 layer
                 {
-                    row = fixtures_doors_fences_01_41,
-                    row = fixtures_doors_fences_01_40,
+                    row = fixtures_doors_fences_01_57,
+                    row = fixtures_doors_fences_01_56,
                 }
             }
 
@@ -21,7 +21,7 @@ module Base
             {
                 layer
                 {
-                    row = fixtures_doors_fences_01_42 fixtures_doors_fences_01_43,
+                    row = fixtures_doors_fences_01_58 fixtures_doors_fences_01_59,
                 }
             }
         }
