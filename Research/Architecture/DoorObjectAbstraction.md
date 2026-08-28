@@ -1,6 +1,6 @@
 # Door object abstraction
 
-Status: implementation in progress; runtime validation required.
+Status: **implemented and runtime validated on B42.20.3**.
 
 ## Problem
 
@@ -11,7 +11,7 @@ Project Zomboid uses more than one valid Java representation for a door:
 
 LMION previously normalized constructed doors to `IsoDoor`. That simplified some callers but discarded capabilities exposed by `IsoThumpable`, most notably native `setMaxHealth()`, and made the physical Java class part of LMION's gameplay identity.
 
-The new rule is:
+The current rule is:
 
 > LMION identifies a door independently from its physical Java representation.
 
@@ -51,7 +51,7 @@ Gameplay modules should use these helpers when the behavior differs between `Iso
 
 `IsoThumpable` exposes native `setMaxHealth()`. Core therefore stores its max in the engine.
 
-`IsoDoor` exposes `getMaxHealth()` but not `setMaxHealth()`. `modData.lmionDoorMaxHealth` remains the fallback when LMION needs a max that the engine cannot represent.
+`IsoDoor` exposes `getMaxHealth()` but not a useful public `setMaxHealth()`. `modData.lmionDoorMaxHealth` remains the fallback when LMION intentionally needs a max that the engine cannot represent.
 
 The fallback is not created merely because Core recognizes a door.
 
@@ -75,7 +75,7 @@ constructed IsoThumpable with Build max 850
 
 Recognizing a world door must not silently alter its durability.
 
-Intended policy:
+Current policy:
 
 ```text
 world-authored door
@@ -91,14 +91,34 @@ LMION_Build construction
 
 Pickup
 -> never decides durability
--> captures and restores the state exposed by Core
+-> captures and restores the actual source state exposed by Core
 ```
 
 ## Construction representation
 
 LMION_Build no longer converts a newly built `IsoThumpable` door into `IsoDoor` merely for consistency.
 
-The engine-created representation is preserved. Build asks Core to initialize the gameplay values Build owns.
+The engine-created representation is preserved. Build asks Core to initialize only the gameplay values Build owns.
+
+### Runtime validation with Build enabled
+
+Integration was re-tested with `LMION_Core + LMION_Build + LMION_Pickup + LMION_Debug` enabled after the representation refactor.
+
+Validated 1x1 behavior:
+
+```text
+LMION_Build construction
+-> engine representation preserved
+-> Build durability present
+-> Pickup/replacement same facing
+-> representation + health/max preserved
+-> Pickup/replacement rotated N/W
+-> representation + health/max preserved
+-> source may be picked up open or closed
+-> replacement remains correct in both cases
+```
+
+A smoke test on LMION_Build large gates also showed no behavioral regression: construction, opening/closing, Pickup/replacement and vanilla synchronization continued to behave as expected. This large-gate Build-enabled pass was not exhaustive across all six families, so it should be treated as successful integration coverage rather than a six-family matrix revalidation.
 
 ## State recreation
 
@@ -118,7 +138,7 @@ Doors.restoreDoorState(newMember, snapshot)
 
 The snapshot currently carries:
 
-- physical representation for diagnostics/future placement policy;
+- physical representation;
 - current health;
 - effective max health and whether it was a logical override;
 - key id;
@@ -129,9 +149,43 @@ This is intentionally owned by Core so future Locks state can extend the same pe
 
 ## Pickup placement representation
 
-The first refactor does not force a class conversion during placement. Vanilla Moveables may recreate whatever representation its normal path produces, and Core restores the transported state onto that object.
+Vanilla Moveables creates an `IsoDoor` for placed sprites carrying `doorN`/`doorW`, even when the picked-up source object was an `IsoThumpable` door.
 
-A later policy may intentionally normalize a transported world `IsoDoor` into an `IsoThumpable` at placement time. This is technically plausible and could make future native max-health / padlock features easier, but it must be runtime-tested for door behavior, networking, curtains, barricades and interoperability before becoming the default.
+LMION therefore transports the source representation and corrects the vanilla placement result when necessary:
+
+```text
+source IsoDoor
+-> Pickup
+-> vanilla placement IsoDoor
+-> remains IsoDoor
+
+source IsoThumpable
+-> Pickup
+-> vanilla temporary IsoDoor
+-> Core recreates final IsoThumpable
+-> Pickup restores thumpable parameters + durability
+```
+
+This behavior is runtime validated for 1x1 doors and large-gate leaves, including N/W rotation.
+
+The previous idea of normalizing transported world `IsoDoor` objects into `IsoThumpable` is rejected as a default policy. Representation is part of transported physical state and should be preserved unless a future explicit migration policy has a stronger reason to change it.
+
+## Open-state large-gate placement
+
+Open/closed state is not serialized into the parcels.
+
+When a large-gate leaf is reinstalled, Pickup detects the complementary leaf:
+
+```text
+partner absent   -> place closed
+partner closed   -> place closed
+partner open     -> place open
+partner invalid  -> refuse reconnection
+```
+
+LMION does not force the existing partner to move or change state. This avoids bypassing collision when the partner's alternate footprint is blocked by a vehicle, crate or other object.
+
+Runtime validation confirmed that blocked target geometry makes the Moveables preview invalid/red and placement is refused.
 
 ## Large gates
 
@@ -144,3 +198,19 @@ large gate
 ```
 
 A member may be an `IsoDoor` or an `IsoThumpable` door. Core's A/B topology and the engine's DoubleDoor helpers work on the opening structure, not on LMION's choice of one universal concrete class.
+
+Correctly reassembled leaves resume vanilla DoubleDoor synchronization regardless of whether the source gate was map-authored `IsoDoor` or constructed `IsoThumpable`.
+
+## Remaining work for this refactor
+
+The main unresolved functional item is the world-door durability sandbox policy:
+
+```text
+World Door Durability
+- Vanilla          (default)
+- LMION Profiles
+```
+
+`Vanilla` must remain non-mutating. `LMION Profiles` should be an explicit opt-in policy for world/map doors and must not overwrite vanilla-construction or LMION_Build ownership rules.
+
+Additional testing across every large-gate family with Build enabled is useful QA, but no current runtime evidence points to a remaining architecture defect there.
