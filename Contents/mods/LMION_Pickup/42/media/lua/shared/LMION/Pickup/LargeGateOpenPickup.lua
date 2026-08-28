@@ -13,6 +13,23 @@ local function findSelected(moveProps, square)
     return moveProps:findOnSquare(square, moveProps.spriteName)
 end
 
+-- Direct Pickup also fires OnObjectAboutToBeRemoved. Do not let the large-gate
+-- toggle preservation hook mistake those removals for vanilla ToggleDoor() object
+-- recreation.
+if Events and Events.OnObjectAboutToBeRemoved and Pickup._largeGateOpenStateRemoveHandler ~= nil then
+    Events.OnObjectAboutToBeRemoved.Remove(Pickup._largeGateOpenStateRemoveHandler)
+
+    local toggleRemoveHandler = Pickup._largeGateOpenStateRemoveHandler
+    Pickup._largeGateOpenStateRemoveHandler = function(object)
+        if Pickup._largeGateDirectPickupInProgress == true then
+            return
+        end
+        return toggleRemoveHandler(object)
+    end
+
+    Events.OnObjectAboutToBeRemoved.Add(Pickup._largeGateOpenStateRemoveHandler)
+end
+
 --[[
 An open large gate does not need to be closed before Pickup. Vanilla Moveables can
 remove the actual world object directly; the transport item may still use another
@@ -47,7 +64,7 @@ ISMoveableSpriteProps.pickUpMoveable = function(self, character, square, createI
         return false
     end
 
-    local items = {}
+    local pickupParts = {}
     for partIndex, member in ipairs(members) do
         local closedSpriteName = member.segment and member.segment.closedSpriteName or nil
         if closedSpriteName == nil then
@@ -62,15 +79,33 @@ ISMoveableSpriteProps.pickUpMoveable = function(self, character, square, createI
         -- Match the existing closed-leaf Pickup behavior: one parcel per member,
         -- delivered as a multisprite world item while preserving Core door state.
         moveProps.isMultiSprite = true
-        items[partIndex] = moveProps:pickUpMoveableInternal(
-            character,
-            member.square,
-            member.object,
-            nil,
-            closedSpriteName,
-            createItem,
-            forceAllow
-        )
+        pickupParts[partIndex] = {
+            moveProps = moveProps,
+            member = member,
+            closedSpriteName = closedSpriteName,
+        }
+    end
+
+    local items = {}
+    Pickup._largeGateDirectPickupInProgress = true
+    local ok, err = pcall(function()
+        for partIndex, part in ipairs(pickupParts) do
+            items[partIndex] = part.moveProps:pickUpMoveableInternal(
+                character,
+                part.member.square,
+                part.member.object,
+                nil,
+                part.closedSpriteName,
+                createItem,
+                forceAllow
+            )
+        end
+    end)
+    Pickup._largeGateDirectPickupInProgress = false
+
+    if not ok then
+        LMION.error("Pickup", "failed to pick up open large-gate leaf: " .. tostring(err))
+        return false
     end
 
     if ISMoveableCursor ~= nil and ISMoveableCursor.clearCacheForAllPlayers ~= nil then
