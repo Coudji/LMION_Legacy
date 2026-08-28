@@ -1,5 +1,6 @@
 local Build = LMION.Build
 local Doors = LMION.Doors
+local Openings = LMION.Openings
 
 local function cloneProfile(source, id, fallbackName)
     if source == nil then
@@ -20,6 +21,7 @@ end
 
 local splitFamilies = {
     {
+        baseId = "DoubleDoor",
         sourceIds = {"DoubleDoor", "DoubleDoorRight"},
         leftId = "DoubleDoor",
         rightId = "DoubleDoorRight",
@@ -27,6 +29,7 @@ local splitFamilies = {
         rightName = "Large Wooden Gate - Right Leaf",
     },
     {
+        baseId = "DoubleWireGate",
         sourceIds = {"DoubleWireGate", "DoubleWireGateRight"},
         leftId = "DoubleWireGate",
         rightId = "DoubleWireGateRight",
@@ -34,6 +37,7 @@ local splitFamilies = {
         rightName = "Large Chain-Link Gate - Right Leaf",
     },
     {
+        baseId = "DoubleFenceGate",
         sourceIds = {"DoubleFenceGate", "DoubleFenceGateRight"},
         leftId = "DoubleFenceGate",
         rightId = "DoubleFenceGateRight",
@@ -41,6 +45,7 @@ local splitFamilies = {
         rightName = "Large Scrap Metal Gate - Right Leaf",
     },
     {
+        baseId = "LargeFarmGate",
         sourceIds = {"LargeFarmGate", "LargeFarmGateLeft", "LargeFarmGateRight"},
         leftId = "LargeFarmGateLeft",
         rightId = "LargeFarmGateRight",
@@ -49,6 +54,7 @@ local splitFamilies = {
         removeId = "LargeFarmGate",
     },
     {
+        baseId = "LargeHardenedWoodenGate",
         sourceIds = {"LargeHardenedWoodenGate", "LargeHardenedWoodenGateLeft", "LargeHardenedWoodenGateRight"},
         leftId = "LargeHardenedWoodenGateLeft",
         rightId = "LargeHardenedWoodenGateRight",
@@ -57,6 +63,7 @@ local splitFamilies = {
         removeId = "LargeHardenedWoodenGate",
     },
     {
+        baseId = "LargeWroughtIronGate",
         sourceIds = {"LargeWroughtIronGate", "LargeWroughtIronGateLeft", "LargeWroughtIronGateRight"},
         leftId = "LargeWroughtIronGateLeft",
         rightId = "LargeWroughtIronGateRight",
@@ -65,6 +72,40 @@ local splitFamilies = {
         removeId = "LargeWroughtIronGate",
     },
 }
+
+local function registerTopologyExtensions()
+    if Openings == nil or Openings.registerExtension == nil then
+        return false
+    end
+
+    for _, family in ipairs(splitFamilies) do
+        local aliases = {}
+        if family.leftId ~= family.baseId then
+            aliases[#aliases + 1] = family.leftId
+        end
+        if family.rightId ~= family.baseId then
+            aliases[#aliases + 1] = family.rightId
+        end
+
+        Openings.registerExtension(
+            family.baseId,
+            "LMION_Build.largeGateSplit",
+            {
+                source = Build.ID or "LMION_Build",
+                aliases = aliases,
+                values = {
+                    topology = "splitLeaves",
+                    leaves = {
+                        left = family.leftId,
+                        right = family.rightId,
+                    },
+                },
+            }
+        )
+    end
+
+    return true
+end
 
 local function findSourceProfile(profiles, ids)
     for _, id in ipairs(ids) do
@@ -95,6 +136,7 @@ function Build.installSplitLargeGateProfiles()
     return true
 end
 
+registerTopologyExtensions()
 Build.installSplitLargeGateProfiles()
 
 return Build
