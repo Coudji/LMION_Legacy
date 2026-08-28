@@ -13,15 +13,16 @@ local function findSelected(moveProps, square)
     return moveProps:findOnSquare(square, moveProps.spriteName)
 end
 
--- Direct Pickup also fires OnObjectAboutToBeRemoved. Do not let the large-gate
--- toggle preservation hook mistake those removals for vanilla ToggleDoor() object
--- recreation.
+-- Direct Pickup and representation restoration both remove world objects without
+-- being a door toggle. Do not let the large-gate state hook mistake those removals
+-- for vanilla ToggleDoor() object recreation.
 if Events and Events.OnObjectAboutToBeRemoved and Pickup._largeGateOpenStateRemoveHandler ~= nil then
     Events.OnObjectAboutToBeRemoved.Remove(Pickup._largeGateOpenStateRemoveHandler)
 
     local toggleRemoveHandler = Pickup._largeGateOpenStateRemoveHandler
     Pickup._largeGateOpenStateRemoveHandler = function(object)
-        if Pickup._largeGateDirectPickupInProgress == true then
+        if Pickup._largeGateDirectPickupInProgress == true
+            or Pickup._largeGateSuppressToggleRemoval == true then
             return
         end
         return toggleRemoveHandler(object)
