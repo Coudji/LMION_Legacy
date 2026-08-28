@@ -77,8 +77,11 @@ end
 
 --[[
 Vanilla serializes a Moveable through instanceItem(). LMION captures door health
-just before vanilla removes the IsoDoor, then injects that state into the item
-created by vanilla instead of inventing a parallel serialization path.
+just before vanilla removes the world object, then injects that state into the
+item created by vanilla instead of inventing a parallel serialization path.
+
+The world door may be IsoDoor or an IsoThumpable flagged as a door. Core exposes
+Doors.isDoorObject() so Pickup follows gameplay capability instead of Java class.
 
 Door inventory identity is always canonicalized to the CLOSED N/W SpriteConfig
 face. Picking up an open 1x1 door must never preserve its open sprite in the
@@ -116,7 +119,7 @@ ISMoveableSpriteProps.pickUpMoveableInternal = function(self, character, square,
     self.lmionPendingHealth = nil
     self.lmionPendingMaxHealth = nil
 
-    if profile ~= nil and object ~= nil and instanceof(object, "IsoDoor") then
+    if profile ~= nil and object ~= nil and Doors.isDoorObject(object) then
         self.lmionPendingHealth = object:getHealth()
 
         local modData = object:getModData()
@@ -185,7 +188,7 @@ ISMoveableSpriteProps.placeMoveableInternal = function(self, square, item, sprit
     if profile ~= nil and (savedHealth ~= nil or savedMaxHealth ~= nil) then
         local door = nil
 
-        if result ~= nil and instanceof(result, "IsoDoor") then
+        if result ~= nil and Doors.isDoorObject(result) then
             door = result
         else
             door = DoorMoveables.findPlacedDoor(square, canonicalSpriteName)
