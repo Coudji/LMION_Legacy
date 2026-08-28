@@ -1,6 +1,6 @@
 LMION = LMION or {}
 
-LMION.VERSION = "0.0.3-dev"
+LMION.VERSION = "0.0.4-dev"
 LMION.Modules = LMION.Modules or {}
 
 local function prefix(scope)
@@ -41,6 +41,7 @@ function LMION.isModuleRegistered(id)
     return LMION.Modules[id] ~= nil
 end
 
+require "LMION/Openings"
 require "LMION/Doors"
 
 LMION.log("Core", "loaded " .. LMION.VERSION)
