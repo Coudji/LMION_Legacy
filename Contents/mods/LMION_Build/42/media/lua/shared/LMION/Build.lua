@@ -4,10 +4,10 @@ LMION.Build = LMION.Build or {}
 local Build = LMION.Build
 
 Build.ID = "LMION_Build"
-Build.VERSION = "0.0.5-dev"
+Build.VERSION = "0.0.6-dev"
 
 require "LMION/Build/LargeGateProfiles"
-require "LMION/Build/VanillaLargeGateSplit"
+require "LMION/Build/VanillaLargeGateLeafConstruction"
 
 LMION.registerModule(Build.ID, Build)
 LMION.log("Build", "loaded " .. Build.VERSION)
