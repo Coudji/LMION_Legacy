@@ -4,103 +4,141 @@ local Pickup = LMION.Pickup
 local LargeGate = Pickup.LargeGate or {}
 Pickup.LargeGate = LargeGate
 
+local function coreIndices(familyId, leafId)
+    local definition = LMION.Openings and LMION.Openings.getBaseDefinition
+        and LMION.Openings.getBaseDefinition(familyId)
+        or nil
+    local leaf = definition and definition.leaves and definition.leaves[leafId] or nil
+    local indices = leaf and leaf.doubleDoorIndices or nil
+
+    if indices == nil then
+        error("LMION Pickup: missing Core large-gate topology for " .. tostring(familyId) .. " leaf " .. tostring(leafId))
+    end
+
+    return indices
+end
+
 local leaves = {
-    doubleWireLeft = {
+    doubleWireA = {
+        familyId = "DoubleWireGate",
+        leaf = "A",
         visualPartIndex = 1,
-        indices = {N = {1, 2}, W = {4, 3}},
+        indices = coreIndices("DoubleWireGate", "A"),
         parts = {
-            [1] = {itemType = "Base.LMION_DoubleWireGateLeft_Part1", faces = {N = "fixtures_doors_fences_01_66", W = "fixtures_doors_fences_01_65"}},
-            [2] = {itemType = "Base.LMION_DoubleWireGateLeft_Part2", faces = {N = "fixtures_doors_fences_01_67", W = "fixtures_doors_fences_01_64"}},
+            [1] = {itemType = "Base.LMION_DoubleWireGateA_Part1", faces = {N = "fixtures_doors_fences_01_66", W = "fixtures_doors_fences_01_65"}},
+            [2] = {itemType = "Base.LMION_DoubleWireGateA_Part2", faces = {N = "fixtures_doors_fences_01_67", W = "fixtures_doors_fences_01_64"}},
         },
     },
-    doubleWireRight = {
+    doubleWireB = {
+        familyId = "DoubleWireGate",
+        leaf = "B",
         visualPartIndex = 2,
-        indices = {N = {3, 4}, W = {2, 1}},
+        indices = coreIndices("DoubleWireGate", "B"),
         parts = {
-            [1] = {itemType = "Base.LMION_DoubleWireGateRight_Part1", faces = {N = "fixtures_doors_fences_01_74", W = "fixtures_doors_fences_01_73"}},
-            [2] = {itemType = "Base.LMION_DoubleWireGateRight_Part2", faces = {N = "fixtures_doors_fences_01_75", W = "fixtures_doors_fences_01_72"}},
+            [1] = {itemType = "Base.LMION_DoubleWireGateB_Part1", faces = {N = "fixtures_doors_fences_01_74", W = "fixtures_doors_fences_01_73"}},
+            [2] = {itemType = "Base.LMION_DoubleWireGateB_Part2", faces = {N = "fixtures_doors_fences_01_75", W = "fixtures_doors_fences_01_72"}},
         },
     },
-    doubleFenceLeft = {
+    doubleFenceA = {
+        familyId = "DoubleFenceGate",
+        leaf = "A",
         visualPartIndex = 1,
-        indices = {N = {1, 2}, W = {4, 3}},
+        indices = coreIndices("DoubleFenceGate", "A"),
         parts = {
-            [1] = {itemType = "Base.LMION_DoubleFenceGateLeft_Part1", faces = {N = "fixtures_doors_fences_01_82", W = "fixtures_doors_fences_01_81"}},
-            [2] = {itemType = "Base.LMION_DoubleFenceGateLeft_Part2", faces = {N = "fixtures_doors_fences_01_83", W = "fixtures_doors_fences_01_80"}},
+            [1] = {itemType = "Base.LMION_DoubleFenceGateA_Part1", faces = {N = "fixtures_doors_fences_01_82", W = "fixtures_doors_fences_01_81"}},
+            [2] = {itemType = "Base.LMION_DoubleFenceGateA_Part2", faces = {N = "fixtures_doors_fences_01_83", W = "fixtures_doors_fences_01_80"}},
         },
     },
-    doubleFenceRight = {
+    doubleFenceB = {
+        familyId = "DoubleFenceGate",
+        leaf = "B",
         visualPartIndex = 2,
-        indices = {N = {3, 4}, W = {2, 1}},
+        indices = coreIndices("DoubleFenceGate", "B"),
         parts = {
-            [1] = {itemType = "Base.LMION_DoubleFenceGateRight_Part1", faces = {N = "fixtures_doors_fences_01_90", W = "fixtures_doors_fences_01_89"}},
-            [2] = {itemType = "Base.LMION_DoubleFenceGateRight_Part2", faces = {N = "fixtures_doors_fences_01_91", W = "fixtures_doors_fences_01_88"}},
+            [1] = {itemType = "Base.LMION_DoubleFenceGateB_Part1", faces = {N = "fixtures_doors_fences_01_90", W = "fixtures_doors_fences_01_89"}},
+            [2] = {itemType = "Base.LMION_DoubleFenceGateB_Part2", faces = {N = "fixtures_doors_fences_01_91", W = "fixtures_doors_fences_01_88"}},
         },
     },
-    doubleDoorLeft = {
+    doubleDoorA = {
+        familyId = "DoubleDoor",
+        leaf = "A",
         visualPartIndex = 1,
-        indices = {N = {1, 2}, W = {4, 3}},
+        indices = coreIndices("DoubleDoor", "A"),
         parts = {
-            [1] = {itemType = "Base.LMION_DoubleDoorLeft_Part1", faces = {N = "fixtures_doors_fences_01_98", W = "fixtures_doors_fences_01_97"}},
-            [2] = {itemType = "Base.LMION_DoubleDoorLeft_Part2", faces = {N = "fixtures_doors_fences_01_99", W = "fixtures_doors_fences_01_96"}},
+            [1] = {itemType = "Base.LMION_DoubleDoorA_Part1", faces = {N = "fixtures_doors_fences_01_98", W = "fixtures_doors_fences_01_97"}},
+            [2] = {itemType = "Base.LMION_DoubleDoorA_Part2", faces = {N = "fixtures_doors_fences_01_99", W = "fixtures_doors_fences_01_96"}},
         },
     },
-    doubleDoorRight = {
+    doubleDoorB = {
+        familyId = "DoubleDoor",
+        leaf = "B",
         visualPartIndex = 2,
-        indices = {N = {3, 4}, W = {2, 1}},
+        indices = coreIndices("DoubleDoor", "B"),
         parts = {
-            [1] = {itemType = "Base.LMION_DoubleDoorRight_Part1", faces = {N = "fixtures_doors_fences_01_106", W = "fixtures_doors_fences_01_105"}},
-            [2] = {itemType = "Base.LMION_DoubleDoorRight_Part2", faces = {N = "fixtures_doors_fences_01_107", W = "fixtures_doors_fences_01_104"}},
+            [1] = {itemType = "Base.LMION_DoubleDoorB_Part1", faces = {N = "fixtures_doors_fences_01_106", W = "fixtures_doors_fences_01_105"}},
+            [2] = {itemType = "Base.LMION_DoubleDoorB_Part2", faces = {N = "fixtures_doors_fences_01_107", W = "fixtures_doors_fences_01_104"}},
         },
     },
-    largeFarmLeft = {
+    largeFarmA = {
+        familyId = "LargeFarmGate",
+        leaf = "A",
         visualPartIndex = 1,
         previewAllParts = true,
-        indices = {N = {1, 2}, W = {4, 3}},
+        indices = coreIndices("LargeFarmGate", "A"),
         parts = {
-            [1] = {itemType = "Base.LMION_LargeFarmGateLeft_Part1", faces = {N = "fixtures_doors_fences_01_114", W = "fixtures_doors_fences_01_113"}},
-            [2] = {itemType = "Base.LMION_LargeFarmGateLeft_Part2", faces = {N = "fixtures_doors_fences_01_115", W = "fixtures_doors_fences_01_112"}},
+            [1] = {itemType = "Base.LMION_LargeFarmGateA_Part1", faces = {N = "fixtures_doors_fences_01_114", W = "fixtures_doors_fences_01_113"}},
+            [2] = {itemType = "Base.LMION_LargeFarmGateA_Part2", faces = {N = "fixtures_doors_fences_01_115", W = "fixtures_doors_fences_01_112"}},
         },
     },
-    largeFarmRight = {
+    largeFarmB = {
+        familyId = "LargeFarmGate",
+        leaf = "B",
         visualPartIndex = 2,
         previewAllParts = true,
-        indices = {N = {3, 4}, W = {2, 1}},
+        indices = coreIndices("LargeFarmGate", "B"),
         parts = {
-            [1] = {itemType = "Base.LMION_LargeFarmGateRight_Part1", faces = {N = "fixtures_doors_fences_01_122", W = "fixtures_doors_fences_01_121"}},
-            [2] = {itemType = "Base.LMION_LargeFarmGateRight_Part2", faces = {N = "fixtures_doors_fences_01_123", W = "fixtures_doors_fences_01_120"}},
+            [1] = {itemType = "Base.LMION_LargeFarmGateB_Part1", faces = {N = "fixtures_doors_fences_01_122", W = "fixtures_doors_fences_01_121"}},
+            [2] = {itemType = "Base.LMION_LargeFarmGateB_Part2", faces = {N = "fixtures_doors_fences_01_123", W = "fixtures_doors_fences_01_120"}},
         },
     },
-    largeHardenedWoodLeft = {
+    largeHardenedWoodA = {
+        familyId = "LargeHardenedWoodenGate",
+        leaf = "A",
         visualPartIndex = 1,
-        indices = {N = {1, 2}, W = {4, 3}},
+        indices = coreIndices("LargeHardenedWoodenGate", "A"),
         parts = {
-            [1] = {itemType = "Base.LMION_LargeHardenedWoodenGateLeft_Part1", faces = {N = "fixtures_doors_fences_01_50", W = "fixtures_doors_fences_01_49"}},
-            [2] = {itemType = "Base.LMION_LargeHardenedWoodenGateLeft_Part2", faces = {N = "fixtures_doors_fences_01_51", W = "fixtures_doors_fences_01_48"}},
+            [1] = {itemType = "Base.LMION_LargeHardenedWoodenGateA_Part1", faces = {N = "fixtures_doors_fences_01_50", W = "fixtures_doors_fences_01_49"}},
+            [2] = {itemType = "Base.LMION_LargeHardenedWoodenGateA_Part2", faces = {N = "fixtures_doors_fences_01_51", W = "fixtures_doors_fences_01_48"}},
         },
     },
-    largeHardenedWoodRight = {
+    largeHardenedWoodB = {
+        familyId = "LargeHardenedWoodenGate",
+        leaf = "B",
         visualPartIndex = 2,
-        indices = {N = {3, 4}, W = {2, 1}},
+        indices = coreIndices("LargeHardenedWoodenGate", "B"),
         parts = {
-            [1] = {itemType = "Base.LMION_LargeHardenedWoodenGateRight_Part1", faces = {N = "fixtures_doors_fences_01_58", W = "fixtures_doors_fences_01_57"}},
-            [2] = {itemType = "Base.LMION_LargeHardenedWoodenGateRight_Part2", faces = {N = "fixtures_doors_fences_01_59", W = "fixtures_doors_fences_01_56"}},
+            [1] = {itemType = "Base.LMION_LargeHardenedWoodenGateB_Part1", faces = {N = "fixtures_doors_fences_01_58", W = "fixtures_doors_fences_01_57"}},
+            [2] = {itemType = "Base.LMION_LargeHardenedWoodenGateB_Part2", faces = {N = "fixtures_doors_fences_01_59", W = "fixtures_doors_fences_01_56"}},
         },
     },
-    largeWroughtIronLeft = {
+    largeWroughtIronA = {
+        familyId = "LargeWroughtIronGate",
+        leaf = "A",
         visualPartIndex = 1,
-        indices = {N = {1, 2}, W = {4, 3}},
+        indices = coreIndices("LargeWroughtIronGate", "A"),
         parts = {
-            [1] = {itemType = "Base.LMION_LargeWroughtIronGateLeft_Part1", faces = {N = "fixtures_doors_fences_01_34", W = "fixtures_doors_fences_01_33"}},
-            [2] = {itemType = "Base.LMION_LargeWroughtIronGateLeft_Part2", faces = {N = "fixtures_doors_fences_01_35", W = "fixtures_doors_fences_01_32"}},
+            [1] = {itemType = "Base.LMION_LargeWroughtIronGateA_Part1", faces = {N = "fixtures_doors_fences_01_34", W = "fixtures_doors_fences_01_33"}},
+            [2] = {itemType = "Base.LMION_LargeWroughtIronGateA_Part2", faces = {N = "fixtures_doors_fences_01_35", W = "fixtures_doors_fences_01_32"}},
         },
     },
-    largeWroughtIronRight = {
+    largeWroughtIronB = {
+        familyId = "LargeWroughtIronGate",
+        leaf = "B",
         visualPartIndex = 2,
-        indices = {N = {3, 4}, W = {2, 1}},
+        indices = coreIndices("LargeWroughtIronGate", "B"),
         parts = {
-            [1] = {itemType = "Base.LMION_LargeWroughtIronGateRight_Part1", faces = {N = "fixtures_doors_fences_01_42", W = "fixtures_doors_fences_01_41"}},
-            [2] = {itemType = "Base.LMION_LargeWroughtIronGateRight_Part2", faces = {N = "fixtures_doors_fences_01_43", W = "fixtures_doors_fences_01_40"}},
+            [1] = {itemType = "Base.LMION_LargeWroughtIronGateB_Part1", faces = {N = "fixtures_doors_fences_01_42", W = "fixtures_doors_fences_01_41"}},
+            [2] = {itemType = "Base.LMION_LargeWroughtIronGateB_Part2", faces = {N = "fixtures_doors_fences_01_43", W = "fixtures_doors_fences_01_40"}},
         },
     },
 }
@@ -111,6 +149,8 @@ for leafId, leaf in pairs(leaves) do
         for facing, spriteName in pairs(part.faces) do
             segmentsBySprite[spriteName] = {
                 leafId = leafId,
+                familyId = leaf.familyId,
+                leaf = leaf.leaf,
                 partIndex = partIndex,
                 facing = facing,
                 itemType = part.itemType,
