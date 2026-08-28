@@ -104,7 +104,9 @@ local function finishFixedRebuild()
                 .. tostring(result.spawned)
                 .. "/"
                 .. tostring(#Manifest.entries)
-                .. " manifest entries; objects="
+                .. " manifest entries; skipped="
+                .. tostring(result.skipped or 0)
+                .. ", objects="
                 .. tostring(result.objectsSpawned)
                 .. ", frames="
                 .. tostring(result.framesSpawned)
