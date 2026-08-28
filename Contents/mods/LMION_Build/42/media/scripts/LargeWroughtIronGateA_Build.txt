@@ -2,20 +2,20 @@ module Base
 {
     xuiSkin default
     {
-        entity ES_LargeWroughtIronGateRight
+        entity ES_LargeWroughtIronGateA
         {
             LuaWindowClass = ISEntityWindow,
-            DisplayName = Large Wrought Iron Gate - Right Leaf,
+            DisplayName = Large Wrought Iron Gate A,
             Icon = LMION_LargeWroughtIronGate,
         }
     }
 
-    entity LargeWroughtIronGateRight
+    entity LargeWroughtIronGateA
     {
         component UiConfig
         {
             xuiSkin = default,
-            entityStyle = ES_LargeWroughtIronGateRight,
+            entityStyle = ES_LargeWroughtIronGateA,
             uiEnabled = false,
         }
 

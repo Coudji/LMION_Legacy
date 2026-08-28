@@ -2,20 +2,20 @@ module Base
 {
     xuiSkin default
     {
-        entity ES_DoubleDoorRight
+        entity ES_DoubleDoorB
         {
             LuaWindowClass = ISEntityWindow,
-            DisplayName = Large Wooden Gate - Right Leaf,
+            DisplayName = Large Wooden Gate B,
             Icon = Build_DoubleWoodGate,
         }
     }
 
-    entity DoubleDoorRight
+    entity DoubleDoorB
     {
         component UiConfig
         {
             xuiSkin = default,
-            entityStyle = ES_DoubleDoorRight,
+            entityStyle = ES_DoubleDoorB,
             uiEnabled = false,
         }
 

@@ -2,20 +2,20 @@ module Base
 {
     xuiSkin default
     {
-        entity ES_DoubleFenceGateRight
+        entity ES_DoubleWireGateB
         {
             LuaWindowClass = ISEntityWindow,
-            DisplayName = Large Scrap Metal Gate - Right Leaf,
-            Icon = Build_DoublePoleGate,
+            DisplayName = Large Chain-Link Gate B,
+            Icon = Build_DoubleWireGate,
         }
     }
 
-    entity DoubleFenceGateRight
+    entity DoubleWireGateB
     {
         component UiConfig
         {
             xuiSkin = default,
-            entityStyle = ES_DoubleFenceGateRight,
+            entityStyle = ES_DoubleWireGateB,
             uiEnabled = false,
         }
 
@@ -29,8 +29,8 @@ module Base
             {
                 layer
                 {
-                    row = fixtures_doors_fences_01_89,
-                    row = fixtures_doors_fences_01_88,
+                    row = fixtures_doors_fences_01_73,
+                    row = fixtures_doors_fences_01_72,
                 }
             }
 
@@ -38,7 +38,7 @@ module Base
             {
                 layer
                 {
-                    row = fixtures_doors_fences_01_90 fixtures_doors_fences_01_91,
+                    row = fixtures_doors_fences_01_74 fixtures_doors_fences_01_75,
                 }
             }
         }
@@ -46,7 +46,7 @@ module Base
         component CraftRecipe
         {
             timedAction = BuildWireFence,
-            time = 120,
+            time = 110,
             category = LMION,
             SkillRequired = MetalWelding:5,
             xpAward = MetalWelding:20,
@@ -55,9 +55,10 @@ module Base
             {
                 item 1 [Base.WeldingMask] mode:keep,
                 item 5 [Base.BlowTorch] flags[DontRecordInput],
-                item 5 [Base.MetalPipe],
+                item 4 [Base.MetalPipe],
+                item 2 [Base.Wire],
                 item 2 [Base.Hinge],
-                item 2 [Base.ScrapMetal],
+                item 1 [Base.ScrapMetal],
                 item 5 [Base.WeldingRods] flags[DontRecordInput],
             }
         }

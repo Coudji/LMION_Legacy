@@ -2,20 +2,20 @@ module Base
 {
     xuiSkin default
     {
-        entity ES_LargeHardenedWoodenGateLeft
+        entity ES_LargeHardenedWoodenGateA
         {
             LuaWindowClass = ISEntityWindow,
-            DisplayName = Large Hardened Wooden Gate - Left Leaf,
+            DisplayName = Large Hardened Wooden Gate A,
             Icon = LMION_LargeHardenedWoodenGate,
         }
     }
 
-    entity LargeHardenedWoodenGateLeft
+    entity LargeHardenedWoodenGateA
     {
         component UiConfig
         {
             xuiSkin = default,
-            entityStyle = ES_LargeHardenedWoodenGateLeft,
+            entityStyle = ES_LargeHardenedWoodenGateA,
             uiEnabled = false,
         }
 

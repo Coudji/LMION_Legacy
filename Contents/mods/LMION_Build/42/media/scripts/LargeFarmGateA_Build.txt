@@ -2,20 +2,20 @@ module Base
 {
     xuiSkin default
     {
-        entity ES_LargeFarmGateRight
+        entity ES_LargeFarmGateA
         {
             LuaWindowClass = ISEntityWindow,
-            DisplayName = Large Farm Gate - Right Leaf,
+            DisplayName = Large Farm Gate A,
             Icon = LMION_LargeFarmGate,
         }
     }
 
-    entity LargeFarmGateRight
+    entity LargeFarmGateA
     {
         component UiConfig
         {
             xuiSkin = default,
-            entityStyle = ES_LargeFarmGateRight,
+            entityStyle = ES_LargeFarmGateA,
             uiEnabled = false,
         }
 

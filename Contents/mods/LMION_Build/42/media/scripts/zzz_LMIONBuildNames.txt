@@ -24,7 +24,7 @@ module Base
 
         entity ES_Dumbledoor
         {
-            DisplayName = Large Wooden Gate - Left Leaf,
+            DisplayName = Large Wooden Gate A,
         }
 
         entity ES_Metal_DoorLvl1
@@ -59,12 +59,12 @@ module Base
 
         entity ES_DoubleWireGate
         {
-            DisplayName = Large Chain-Link Gate - Left Leaf,
+            DisplayName = Large Chain-Link Gate A,
         }
 
         entity ES_DoubleFenceGate
         {
-            DisplayName = Large Scrap Metal Gate - Left Leaf,
+            DisplayName = Large Scrap Metal Gate A,
         }
 
         entity ES_BlackTwoPaneDoubleDoorLeft
