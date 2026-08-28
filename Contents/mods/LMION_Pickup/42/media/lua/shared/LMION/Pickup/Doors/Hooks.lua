@@ -99,6 +99,7 @@ ISMoveableSpriteProps.instanceItem = function(self, spriteNameOverride)
         end
         if self.lmionPendingMaxHealth ~= nil then
             modData.lmionDoorMaxHealth = self.lmionPendingMaxHealth
+            modData.lmionDoorMaxWasLogical = self.lmionPendingMaxWasLogical == true
         end
     end
 
@@ -114,15 +115,21 @@ ISMoveableSpriteProps.pickUpMoveableInternal = function(self, character, square,
 
     self.lmionPendingHealth = nil
     self.lmionPendingMaxHealth = nil
+    self.lmionPendingMaxWasLogical = nil
 
     if profile ~= nil and Doors.isDoorObject(object) then
-        self.lmionPendingHealth = Doors.getHealth(object)
-        self.lmionPendingMaxHealth = Doors.getEffectiveMaxHealth(object)
+        local state = Doors.captureDoorState(object)
+        if state ~= nil then
+            self.lmionPendingHealth = state.health
+            self.lmionPendingMaxHealth = state.maxHealth
+            self.lmionPendingMaxWasLogical = state.hasLogicalMaxOverride == true
+        end
     end
 
     local item = Pickup._originalPickUpMoveableInternal(self, character, square, object, sprInstance, spriteName, createItem, rotating)
     self.lmionPendingHealth = nil
     self.lmionPendingMaxHealth = nil
+    self.lmionPendingMaxWasLogical = nil
     return item
 end
 
@@ -167,11 +174,13 @@ ISMoveableSpriteProps.placeMoveableInternal = function(self, square, item, sprit
     local profile = self and (self.lmionDoorProfile or DoorMoveables.getProfileForMoveProps(self)) or nil
     local savedHealth = nil
     local savedMaxHealth = nil
+    local savedMaxWasLogical = false
 
     if profile ~= nil and item ~= nil and item:hasModData() then
         local modData = item:getModData()
         savedHealth = tonumber(modData.lmionDoorHealth)
         savedMaxHealth = tonumber(modData.lmionDoorMaxHealth)
+        savedMaxWasLogical = modData.lmionDoorMaxWasLogical == true
     end
 
     local canonicalSpriteName = getCanonicalClosedSpriteName(self, profile, spriteName)
@@ -183,7 +192,7 @@ ISMoveableSpriteProps.placeMoveableInternal = function(self, square, item, sprit
 
         if door ~= nil then
             if savedMaxHealth ~= nil then
-                Doors.setEffectiveMaxHealth(door, savedMaxHealth)
+                Doors.restoreEffectiveMaxHealth(door, savedMaxHealth, savedMaxWasLogical)
             end
             if savedHealth ~= nil then
                 Doors.setHealth(door, savedHealth)
