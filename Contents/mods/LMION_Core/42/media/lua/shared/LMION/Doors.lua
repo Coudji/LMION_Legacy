@@ -17,6 +17,7 @@ require "LMION/Doors/Durability"
 require "LMION/Doors/State"
 require "LMION/Doors/Placement"
 require "LMION/Doors/Construction"
+require "LMION/Doors/GarageInteraction"
 
 if Events ~= nil and Events.OnLoadedTileDefinitions ~= nil then
     Events.OnLoadedTileDefinitions.Add(Doors.applyEngineProfiles)
