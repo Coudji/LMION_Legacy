@@ -1,6 +1,6 @@
 # Garage-door interaction on `IsoThumpable`
 
-Status: **B42.20.3 bytecode/API verified; B42.20.4 runtime failure reproduced; `IsoThumpable` garage representation rejected for LMION.**
+Status: **B42.20.3 bytecode/API verified; B42.20.4 runtime failure reproduced; `IsoThumpable` garage representation rejected for LMION; `OnCreate` replacement lifecycle runtime-validated.**
 
 ## Decision
 
@@ -8,50 +8,73 @@ LMION garage doors are a deliberate representation exception:
 
 ```text
 world/map garage      -> IsoDoor
-LMION-built garage    -> temporary build IsoThumpable -> finalization -> IsoDoor
+LMION-built garage    -> temporary build IsoThumpable -> SpriteConfig OnCreate -> IsoDoor
 Pickup/reinstallation -> IsoDoor
 ```
 
 Ordinary 1x1 doors and large DoubleDoor gates keep their representation-preservation rules. This exception applies only to the three-panel `GarageDoor` topology.
 
-## Historical working construction contract
+## Validated construction lifecycle — B42.20.4
 
-The pre-representation-refactor implementation did **not** rely on `SpriteConfig.OnCreate` alone.
-
-It had two safeguards:
+The pre-refactor implementation contained two mechanisms that could appear to participate in garage conversion:
 
 ```text
 1. SpriteConfig.OnCreate = LMION.Doors.onCreateGarage
-   -> first-chance temporary IsoThumpable -> IsoDoor replacement
-
-2. BuildHook after ISBuildIsoEntity.setInfo()
-   -> rescan the completed square by EntityScript
-   -> if the completed LMION door is still an IsoThumpable
-   -> call Core conversion/finalization again
+2. BuildHook post-build rescan by EntityScript
 ```
 
-The second pass was easy to miss during the refactor because the old `BuildHook` normalized every built LMION door to `IsoDoor`. When the general normalization was correctly removed for 1x1 doors and large gates, the garage-specific safety-net behavior disappeared with it.
+Temporary runtime instrumentation was added specifically to determine whether both were required.
 
-B42.20.4 runtime testing after that refactor proved that `OnCreate` by itself is not sufficient to guarantee the final garage representation: a freshly built White Garage Door was inspected as:
+For a three-member White Garage Door, every member produced this sequence:
 
 ```text
-class = IsoThumpable
-entity = WhiteGarageDoor
-group = garage
-garageDoorIndex = 2
-health = 1800
-engineMaxHealth = 1800
+OnCreate enter       -> IsoThumpable
+OnCreate replacement -> IsoDoor
+OnCreate return      -> IsoDoor
+post-build found     -> same final representation: IsoDoor
+post-build final     -> IsoDoor
 ```
 
-Therefore the adapted architecture keeps the old two-stage construction contract but narrows its scope:
+Observed members covered GarageDoor indices 3, 2 and 1.
 
-> **Core owns garage finalization; Build performs the post-build rescan and asks Core to finalize the actual completed object.**
+This proves:
 
-For ordinary doors and large gates the same Core entry point preserves the engine-created representation. Only a completed `IsoThumpable` with valid `GarageDoor` topology is replaced with `IsoDoor`.
+> **`SpriteConfig.OnCreate` is the actual and sufficient representation-conversion path on B42.20.4.**
 
-Do not remove the post-build garage finalization merely because all seven SpriteConfigs still declare `OnCreate = LMION.Doors.onCreateGarage`.
+The post-build scan does not need to convert garage representation. It remains useful as the generic LMION_Build initialization phase that locates the actual completed object by EntityScript and applies Build-owned gameplay stats.
 
-## Runtime evidence — B42.20.4
+Therefore the architecture is:
+
+```text
+ISBuildIsoEntity creates temporary garage IsoThumpable
+-> SpriteConfig.OnCreate converts it once to IsoDoor
+-> vanilla keeps that returned IsoDoor
+-> BuildHook later finds the already-final IsoDoor
+-> BuildHook/Core initialize Build-owned durability/name/state only
+```
+
+Do not reintroduce a second post-build garage conversion unless a future PZ version produces new runtime evidence that the OnCreate replacement no longer survives.
+
+## Construction lock-state caveat
+
+The temporary construction `IsoThumpable` must not be treated as authoritative for all persistent state during conversion.
+
+A refactor temporarily used the generic `Doors.captureDoorState()` / `restoreDoorState()` pair when converting the garage member. That also copied `locked` / `lockedByKey` from the temporary construction object and produced a freshly built garage that was unexpectedly locked.
+
+The old validated garage conversion intentionally used a narrower state transfer:
+
+```text
+preserve name
+preserve modData
+preserve keyId
+preserve current health
+force locked = false
+force lockedByKey = false
+```
+
+LMION therefore keeps that garage-specific construction behavior. Generic state capture/restore remains appropriate for transport/recreation paths where the source object is a real gameplay door, but not blindly for a temporary build object.
+
+## Runtime evidence — rejected `IsoThumpable` garage representation
 
 A constructed garage left as `IsoThumpable` produced both an invalid SpriteConfig warning and fatal null-sprite failures:
 
@@ -120,7 +143,7 @@ actual current health -> IsoDoor.setHealth(...)
 effective max health  -> modData.lmionDoorMaxHealth
 ```
 
-The post-build finalization must apply Build-owned durability to the **final returned IsoDoor**, never to the stale temporary `IsoThumpable` reference.
+After OnCreate returns the final IsoDoor, the generic Build post-build initialization applies the Build-owned durability to that actual object.
 
 Pickup captures/restores the same effective max and current health per segment.
 
@@ -128,10 +151,12 @@ Thus the stable contract is:
 
 > **Vanilla `IsoDoor` owns garage mechanics; LMION modData/Core owns any logical durability state the native class cannot store.**
 
-## Rejected approach
+## Rejected approaches
 
 Do not revive `garage = IsoThumpable` only for representation consistency with ordinary construction. The B42.20.3 JAR and B42.20.4 runtime failure show that garage doors are a genuine engine special case.
 
-Do not simplify garage construction to `OnCreate` only. The historical working implementation included a second post-build rescan/finalization pass, and B42.20.4 runtime testing proved that this fallback is materially required.
+Do not add a redundant second garage representation conversion in BuildHook while OnCreate remains runtime-validated. The post-build scan has a separate purpose: applying Build-owned state to the already-final object.
 
-Reconsider only if a later PZ build adds complete native GarageDoor handling to `IsoThumpable`, including construction sprite initialization, collective toggle/obstruction behavior and network synchronization.
+Do not blindly reuse full generic door-state restoration when converting temporary build objects. Construction temporaries may contain lock flags that are not intended gameplay state.
+
+Reconsider these conclusions only if a later PZ build changes the observed lifecycle or adds complete native GarageDoor handling to `IsoThumpable`.
