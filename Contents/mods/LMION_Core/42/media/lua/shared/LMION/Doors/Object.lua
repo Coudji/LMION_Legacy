@@ -1,12 +1,13 @@
 local Doors = LMION.Doors
 
 --[[
-Project Zomboid has two valid physical representations for doors:
-- IsoDoor for map-authored doors and other specialized door objects;
-- IsoThumpable configured as a door for construction-driven objects.
+Project Zomboid may present a semantic door through either Java class:
+- IsoDoor for map/world doors and specialized native door mechanics;
+- IsoThumpable(isDoor) for construction-driven engine objects.
 
-Gameplay modules should ask Core whether an object is a door instead of depending
-on one concrete Java class.
+Core recognizes both because LMION must be able to adopt, inspect, capture and
+transport either source representation. This does not make both classes canonical:
+LMION-created/finalized/reinstalled doors converge to IsoDoor through Core.
 ]]
 function Doors.isIsoDoor(object)
     return object ~= nil and instanceof(object, "IsoDoor")
@@ -23,6 +24,8 @@ function Doors.isDoorObject(object)
     return Doors.isIsoDoor(object) or Doors.isThumpableDoor(object)
 end
 
+-- Informational/source representation only. Gameplay modules must not use this
+-- value to choose the representation of an LMION-created or reinstalled door.
 function Doors.getDoorRepresentation(object)
     if Doors.isIsoDoor(object) then
         return "IsoDoor"
