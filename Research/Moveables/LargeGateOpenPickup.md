@@ -1,8 +1,8 @@
 # Large-gate open-state Pickup
 
-Status: **runtime validated on B42.20.3**.
+Status: **topology/open-state behavior runtime validated on B42.20.3; canonical-IsoDoor representation migration pending runtime revalidation.**
 
-This note records the final large-gate open-state transport behavior and, importantly, the approaches that were rejected during runtime testing.
+This note records the final large-gate open-state transport behavior and the approaches rejected during runtime testing. Representation-specific historical findings are retained where useful, but the current LMION output invariant is canonical `IsoDoor`.
 
 ## Final gameplay contract
 
@@ -26,11 +26,13 @@ partner leaf incoherent -> refuse reconnection
 
 The untouched partner leaf is never toggled, moved or rebuilt merely to make Pickup/placement possible.
 
-## Runtime-validated behavior
+All LMION-reinstalled members are now expected to finish as `IsoDoor`, regardless of whether the source member was `IsoDoor` or `IsoThumpable(isDoor)`.
 
-The reference `DoubleWireGate` path was validated with both world/map and player-built representations.
+## Runtime-validated behavior before canonical migration
 
-Confirmed behavior:
+The reference `DoubleWireGate` path was validated with both world/map and player-built source representations.
+
+Confirmed topology/gameplay behavior:
 
 - a closed leaf can be picked up and reinstalled;
 - an open leaf can be picked up without closing the complete portal first;
@@ -42,10 +44,9 @@ Confirmed behavior:
 - after correct reassembly, vanilla DoubleDoor synchronization resumes normally;
 - current health/effective max survive Pickup/replacement;
 - durability survives N/W rotation before placement;
-- source Java representation survives Pickup/replacement (`IsoDoor` stays `IsoDoor`, `IsoThumpable` stays `IsoThumpable`);
 - when an open placement target is physically blocked, the Moveables preview becomes invalid/red and clicking does not place the leaf.
 
-That last point is important: LMION does not bypass world collision just to restore a logical gate state.
+The previous implementation also validated source-class preservation (`IsoDoor` stayed `IsoDoor`, `IsoThumpable` stayed `IsoThumpable`). That result is historical evidence about the old architecture, **not the current desired behavior**. The current expected output after Pickup/reinstallation is always `IsoDoor`.
 
 ## Why the old forced-close approach was removed
 
@@ -160,46 +161,44 @@ For an open reinstallation:
 2. compute the target open coordinates from the known layout;
 3. validate the actual target squares through the normal Moveables placement checks;
 4. create each transported member on its explicit target square using its canonical closed sprite identity;
-5. give the restored door its correct open sprite and logical open state **without invoking collective `ToggleDoor()` movement**;
-6. restore transported durability/representation state;
-7. after all four logical members exist with coherent geometry, vanilla DoubleDoor operation works normally again.
+5. Core finalizes each placed member as canonical `IsoDoor`;
+6. Core gives the final door its correct open sprite and logical open state **without invoking collective `ToggleDoor()` movement**;
+7. restore transported durability;
+8. after all four logical members exist with coherent geometry, vanilla DoubleDoor operation works normally again.
 
-For restored `IsoThumpable` doors Core uses the explicit closed/open sprite pair and a silent per-object state change. This changes the object's own sprite/state only; it does not ask the engine to relocate DoubleDoor neighbors.
+The explicit state application changes only the newly placed object's sprite/open flag. It does not ask the engine to relocate DoubleDoor neighbours while the leaf is incomplete.
 
-## Physical representation preservation
+## Canonical physical representation
 
 A major runtime discovery was that vanilla Moveables `placeMoveableInternal()` creates an `IsoDoor` whenever the placed sprite has `doorN`/`doorW`, even if the picked-up source object was an `IsoThumpable` door.
 
-This caused:
-
-```text
-vanilla/player-built gate
-IsoThumpable
--> Pickup
--> vanilla Moveables placement
--> IsoDoor
-```
-
-Historically, LMION also normalized doors toward `IsoDoor`, which made this behavior look convenient. The current architecture explicitly rejects that normalization.
-
-Pickup already stores:
+The former architecture compensated for this by storing:
 
 ```text
 lmionDoorSourceRepresentation = IsoDoor | IsoThumpable
 ```
 
-Core now uses it after vanilla placement:
+and recreating an `IsoThumpable` after placement when needed. That behavior was implemented and runtime validated, including N/W rotation.
+
+The project intentionally reversed that long-term policy on 2026-08-28. The current contract is:
 
 ```text
-source IsoDoor      -> placed IsoDoor remains IsoDoor
-source IsoThumpable -> temporary vanilla IsoDoor is replaced by IsoThumpable
+source IsoDoor
+-> Pickup
+-> placement
+-> IsoDoor
+
+source IsoThumpable(isDoor)
+-> Pickup captures gameplay state
+-> placement
+-> IsoDoor
 ```
 
-The replacement reuses the engine-created object's GameEntity components, closed/open sprites and orientation, then Pickup restores the carried thumpable parameters and durability.
+Old development parcels may still contain `lmionDoorSourceRepresentation`; the key is intentionally ignored.
 
-Runtime validation confirmed that a constructed `IsoThumpable` gate remains `IsoThumpable` after Pickup/replacement, including after changing N/W orientation.
+This reversal was not made because representation preservation failed technically. It was made because LMION is intended to own door gameplay and future addons; maintaining both `IsoDoor` and `IsoThumpable` as persistent LMION backends would force future features such as Locks/Repair/access control to maintain parallel implementations where the engine classes expose different capabilities.
 
-Do not revert to a universal `IsoDoor` representation merely to simplify DoubleDoor code.
+See `Research/Architecture/DoorObjectAbstraction.md`.
 
 ## Durability preservation across vanilla opening/closing
 
@@ -213,12 +212,14 @@ Doors.captureDoorState(old members)
 -> Doors.restoreDoorState(new members)
 ```
 
-Runtime validation confirmed:
+Previous runtime validation confirmed:
 
 - world/map `IsoDoor` gate members keep their engine durability through open/close;
-- constructed `IsoThumpable` gate members keep their native vanilla durability through open/close;
+- constructed `IsoThumpable` source members kept their native vanilla durability through open/close;
 - deliberately damaged members keep their damage after open/close;
 - `lmionDoorMaxHealth` remains unset when no logical override is actually required.
+
+Under the canonical policy, new LMION-built/reinstalled gate members are `IsoDoor`. Source `IsoThumpable` max health is still captured through Core and transferred as effective logical max when the canonical `IsoDoor` cannot express that max natively.
 
 This state-preservation observer is separate from direct Pickup removal. Do not make every object removal look like a DoubleDoor toggle.
 
@@ -247,9 +248,9 @@ World/map versions of the same gate were observed as `IsoDoor` 100/100. Core mus
 
 Do not repeat these without new evidence:
 
-### 1. Normalize every transported door to `IsoDoor`
+### 1. Persist the source Java representation after LMION reinstallation
 
-Rejected. It discards a valid engine representation and native `IsoThumpable` capabilities/state.
+Rejected as a **long-term architecture policy**, despite successful runtime implementation. It creates two persistent physical backends for future LMION features. `IsoThumpable` remains a valid source/input representation; final LMION output is `IsoDoor`.
 
 ### 2. Close the full gate before open Pickup
 
@@ -267,9 +268,9 @@ Rejected. Runtime testing produced broken DoubleDoor geometry/movement.
 
 Recheck this note when:
 
+- the canonical-IsoDoor migration is runtime tested (update status/results);
 - PZ changes DoubleDoor open/closed offset logic;
 - `IsoDoor.getDoubleDoorObject()` / `toggleDoubleDoor` behavior changes;
 - Moveables stops automatically constructing `IsoDoor` for `doorN`/`doorW` sprites;
-- `IsoThumpable` open/closed sprite APIs change;
 - LMION changes parcel state serialization;
 - a new large-gate family proves different open-layout or sprite-offset semantics.
