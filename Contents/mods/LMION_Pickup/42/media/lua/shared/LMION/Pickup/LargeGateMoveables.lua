@@ -3,6 +3,7 @@ require "LMION/Pickup/LargeGateRuntime"
 
 local Pickup = LMION.Pickup
 local LargeGate = Pickup.LargeGate
+local Doors = LMION.Doors
 local leafSpecs = LargeGate.Leaves
 local segmentBySprite = LargeGate.SegmentsBySprite
 
@@ -64,7 +65,7 @@ local function getLeafMembers(source, leafId)
     local members = {}
     for partIndex, logicalIndex in ipairs(logicalIndices) do
         local object = sourceIndex == logicalIndex and source or getDoubleDoorObject(source, logicalIndex)
-        if object == nil or not instanceof(object, "IsoDoor") then
+        if object == nil or not Doors.isDoorObject(object) then
             return nil
         end
 
@@ -268,7 +269,7 @@ ISMoveableSpriteProps.canPickUpMoveable = function(self, character, square, obje
         selected = self:findOnSquare(square, self.spriteName)
     end
 
-    if selected == nil then
+    if selected == nil or not Doors.isDoorObject(selected) then
         return false
     end
 
@@ -304,7 +305,7 @@ ISMoveableSpriteProps.pickUpMoveable = function(self, character, square, createI
     end
 
     local selected = self:findOnSquare(square, self.spriteName)
-    if selected == nil then
+    if selected == nil or not Doors.isDoorObject(selected) then
         return false
     end
 
