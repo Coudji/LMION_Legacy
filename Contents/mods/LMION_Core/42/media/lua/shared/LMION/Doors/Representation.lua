@@ -38,7 +38,14 @@ function Doors.ensureCanonicalDoor(object, options)
 
     local square = object:getSquare()
     local sprite = object:getSprite()
-    local north = object.getNorth ~= nil and object:getNorth() or nil
+    local north = nil
+    if object.getNorth ~= nil then
+        north = object:getNorth()
+    end
+
+    -- getNorth() legitimately returns false for W-facing doors. Do not use the
+    -- Lua "a and b or nil" idiom here: it would turn that valid false into nil
+    -- and make every W-facing temporary build object look incomplete.
     if square == nil or sprite == nil or north == nil then
         LMION.error("Core", "ensureCanonicalDoor(): incomplete IsoThumpable door")
         return nil
