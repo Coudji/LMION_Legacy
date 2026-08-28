@@ -25,43 +25,66 @@ function Doors.getNorthFromSprite(sprite)
     return nil
 end
 
+local function applyExplicitDoorState(object, options)
+    if object == nil or options == nil then
+        return object
+    end
+
+    local openSprite = options.openSpriteName and getSprite(options.openSpriteName) or nil
+    local shouldBeOpen = options.isOpen == true
+
+    if Doors.isIsoDoor(object) then
+        if openSprite ~= nil and object.setOpenSprite ~= nil then
+            object:setOpenSprite(openSprite)
+        end
+        if object.setOpen ~= nil then
+            object:setOpen(shouldBeOpen)
+        end
+        if shouldBeOpen and openSprite ~= nil then
+            object:setSprite(openSprite)
+        end
+        return object
+    end
+
+    if Doors.isThumpableDoor(object) then
+        if openSprite ~= nil then
+            object:setOpenSprite(openSprite)
+        end
+        if shouldBeOpen ~= object:IsOpen() then
+            object:ToggleDoorSilent()
+        end
+    end
+
+    return object
+end
+
 --[[
 Vanilla Moveables always creates an IsoDoor when the placed sprite has doorN/doorW,
 even when the object picked up was an IsoThumpable door. Pickup stores the source
 representation; Core owns restoring that representation after vanilla placement.
 
-The temporary IsoDoor remains useful because PZ creates the engine-facing object
-and transfers its GameEntity components first. For normal closed placement its
-resolved sprites can be reused directly. Specialized placement, such as an open
-large-gate leaf, may provide explicit closed/open sprites so Core can preserve the
-same logical door state without invoking a visible ToggleDoor transition.
+Specialized placement may also request an explicit logical open state. The object
+is first created from its CLOSED sprite on the already-resolved target square, then
+Core applies the open sprite/state without calling the collective DoubleDoor toggle.
+That avoids moving or recreating neighbouring members during placement.
 ]]
 function Doors.restorePlacedRepresentation(object, representation, options)
-    if representation ~= "IsoThumpable" or not Doors.isIsoDoor(object) then
+    if not Doors.isDoorObject(object) then
         return object
     end
 
     options = options or {}
 
+    if representation ~= "IsoThumpable" or not Doors.isIsoDoor(object) then
+        return applyExplicitDoorState(object, options)
+    end
+
     local square = object:getSquare()
     local currentSprite = object:getSprite()
-    local closedSprite = options.closedSpriteName and getSprite(options.closedSpriteName) or nil
+    local closedSprite = options.closedSpriteName and getSprite(options.closedSpriteName) or currentSprite
     local openSprite = options.openSpriteName and getSprite(options.openSpriteName) or nil
-    local shouldBeOpen = options.isOpen
-
-    if shouldBeOpen == nil then
-        shouldBeOpen = object:IsOpen()
-    end
-
-    if closedSprite == nil and not shouldBeOpen then
-        closedSprite = currentSprite
-    end
-    if openSprite == nil and object.getOpenSprite ~= nil then
-        openSprite = object:getOpenSprite()
-    end
-
     local spriteName = closedSprite and closedSprite:getName() or nil
-    local north = object.getNorth ~= nil and object:getNorth() or Doors.getNorthFromSprite(closedSprite or currentSprite)
+    local north = object.getNorth ~= nil and object:getNorth() or Doors.getNorthFromSprite(closedSprite)
     if square == nil or spriteName == nil or north == nil then
         return object
     end
@@ -79,14 +102,11 @@ function Doors.restorePlacedRepresentation(object, representation, options)
     replacement:setClosedSprite(closedSprite)
     if openSprite ~= nil then
         replacement:setOpenSprite(openSprite)
+    elseif object.getOpenSprite ~= nil and object:getOpenSprite() ~= nil then
+        replacement:setOpenSprite(object:getOpenSprite())
     end
 
-    -- ToggleDoorSilent only flips this object's logical state and sprite; unlike
-    -- ToggleDoor it does not move/recreate DoubleDoor members. This is exactly
-    -- what placement needs after the target square was already chosen explicitly.
-    if shouldBeOpen and openSprite ~= nil and not replacement:IsOpen() then
-        replacement:ToggleDoorSilent()
-    end
+    applyExplicitDoorState(replacement, options)
 
     square:transmitRemoveItemFromSquare(object)
     if insertIndex >= 0 then
@@ -121,7 +141,6 @@ local function matchesFrameClass(properties, pairedFrameSide)
         return isDoubleDoor2
     end
 
-    -- Standard framed doors must not consume either half of a paired frame.
     return not isDoubleDoor1 and not isDoubleDoor2
 end
 
