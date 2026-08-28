@@ -2,6 +2,13 @@ require "LMION/Build/LargeGateProfiles"
 
 local Build = LMION.Build
 
+--[[
+The vanilla Double* GameEntities own all eight closed-face sprites. Build needs a
+separate GameEntity for leaf B so it can expose A and B as independent recipes.
+While Build is active, narrow the vanilla entity ownership to leaf A. Core still
+owns the permanent logical topology (A+B); this file only prepares engine sprite
+ownership for Build's per-leaf construction feature.
+]]
 local splitSpecs = {
     {
         id = "DoubleDoor",
@@ -15,7 +22,7 @@ local splitSpecs = {
             "fixtures_doors_fences_01_106",
             "fixtures_doors_fences_01_107",
         },
-        left = {
+        leafA = {
             "fixtures_doors_fences_01_96",
             "fixtures_doors_fences_01_97",
             "fixtures_doors_fences_01_98",
@@ -62,7 +69,7 @@ entity DoubleDoor
             "fixtures_doors_fences_01_74",
             "fixtures_doors_fences_01_75",
         },
-        left = {
+        leafA = {
             "fixtures_doors_fences_01_64",
             "fixtures_doors_fences_01_65",
             "fixtures_doors_fences_01_66",
@@ -109,7 +116,7 @@ entity DoubleWireGate
             "fixtures_doors_fences_01_90",
             "fixtures_doors_fences_01_91",
         },
-        left = {
+        leafA = {
             "fixtures_doors_fences_01_80",
             "fixtures_doors_fences_01_81",
             "fixtures_doors_fences_01_82",
@@ -187,7 +194,7 @@ local function validateCurrentSpriteConfig(spec, script)
     return spriteConfig, nil
 end
 
-local function reloadAsLeftLeaf(spec, script, spriteConfig)
+local function reloadAsLeafA(spec, script, spriteConfig)
     spriteConfig:PreReload()
 
     local ok, err = pcall(function()
@@ -202,18 +209,18 @@ local function reloadAsLeftLeaf(spec, script, spriteConfig)
         return false, "reload produced no SpriteConfig"
     end
 
-    local expectedLeft = makeSet(spec.left)
+    local expectedA = makeSet(spec.leafA)
     local tileNames = reloaded:getAllTileNames()
-    if tileNames:size() ~= #spec.left or countKnown(tileNames, expectedLeft) ~= #spec.left then
-        return false, "left-leaf verification failed"
+    if tileNames:size() ~= #spec.leafA or countKnown(tileNames, expectedA) ~= #spec.leafA then
+        return false, "leaf-A verification failed"
     end
 
     return true, nil
 end
 
-function Build.prepareSplitVanillaLargeGates()
-    if not Build.installSplitLargeGateProfiles() then
-        LMION.error("Build", "unable to install split large-gate profiles")
+function Build.prepareVanillaLargeGateLeafConstruction()
+    if not Build.installLargeGateLeafProfiles() then
+        LMION.error("Build", "unable to install large-gate leaf profiles")
         return false
     end
 
@@ -231,7 +238,7 @@ function Build.prepareSplitVanillaLargeGates()
 
         local spriteConfig, reason = validateCurrentSpriteConfig(spec, script)
         if spriteConfig == nil then
-            LMION.error("Build", "refusing " .. spec.id .. " split: " .. tostring(reason))
+            LMION.error("Build", "refusing " .. spec.id .. " leaf preparation: " .. tostring(reason))
             return false
         end
 
@@ -243,19 +250,19 @@ function Build.prepareSplitVanillaLargeGates()
     end
 
     for _, entry in ipairs(prepared) do
-        local ok, reason = reloadAsLeftLeaf(entry.spec, entry.script, entry.spriteConfig)
+        local ok, reason = reloadAsLeafA(entry.spec, entry.script, entry.spriteConfig)
         if not ok then
-            LMION.error("Build", entry.spec.id .. " split failed: " .. tostring(reason))
+            LMION.error("Build", entry.spec.id .. " leaf preparation failed: " .. tostring(reason))
             return false
         end
-        LMION.log("Build", entry.spec.id .. " SpriteConfig reloaded as left leaf")
+        LMION.log("Build", entry.spec.id .. " SpriteConfig prepared for leaf A construction")
     end
 
     return true
 end
 
 if Events ~= nil and Events.OnGameBoot ~= nil then
-    Events.OnGameBoot.Add(Build.prepareSplitVanillaLargeGates)
+    Events.OnGameBoot.Add(Build.prepareVanillaLargeGateLeafConstruction)
 end
 
 return Build
