@@ -38,25 +38,49 @@ local function isBarInput(inputScript)
     return hasMetalBar and hasIronBar
 end
 
-local function trimAutoSelectedBars(logic, length)
+local function getBarInputData(logic)
     local recipeData = getRecipeData(logic)
     local recipe = recipeData and recipeData.getRecipe and recipeData:getRecipe() or nil
     local inputs = recipe and recipe.getInputs and recipe:getInputs() or nil
     if recipeData == nil or inputs == nil then
-        return
+        return nil
     end
 
     for i = 0, inputs:size() - 1 do
         local inputScript = inputs:get(i)
         if isBarInput(inputScript) then
-            local inputData = recipeData:getDataForInputScript(inputScript)
-            while inputData ~= nil
-                and inputData:getInputItemCount() > length
-                and inputData:getLastInputItem() ~= nil do
-                recipeData:removeInputItem(inputData:getLastInputItem())
-            end
-            return
+            return recipeData:getDataForInputScript(inputScript)
         end
+    end
+
+    return nil
+end
+
+function GarageBuild.getSelectedBarCount(logic)
+    local inputData = getBarInputData(logic)
+    if inputData == nil or inputData.getInputItemCount == nil then
+        return 0
+    end
+    return inputData:getInputItemCount()
+end
+
+function GarageBuild.hasSelectedBars(logic, length)
+    if GarageBuild.getGarageIdFromLogic(logic) == nil then
+        return true
+    end
+    return GarageBuild.getSelectedBarCount(logic) >= GarageBuild.normalizeLength(length)
+end
+
+local function trimAutoSelectedBars(logic, length)
+    local recipeData = getRecipeData(logic)
+    local inputData = getBarInputData(logic)
+    if recipeData == nil or inputData == nil then
+        return
+    end
+
+    while inputData:getInputItemCount() > length
+        and inputData:getLastInputItem() ~= nil do
+        recipeData:removeInputItem(inputData:getLastInputItem())
     end
 end
 
