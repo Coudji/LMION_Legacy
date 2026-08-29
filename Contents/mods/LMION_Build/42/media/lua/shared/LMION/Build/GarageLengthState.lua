@@ -4,9 +4,60 @@ local GarageBuild = LMION.Build.GarageBuild
 GarageBuild._lengthByLogic = GarageBuild._lengthByLogic or {}
 local lengthByLogic = GarageBuild._lengthByLogic
 
+local function getRecipeData(logic)
+    return logic and logic.getRecipeData and logic:getRecipeData() or nil
+end
+
 local function getRecipeModData(logic)
-    local recipeData = logic and logic.getRecipeData and logic:getRecipeData() or nil
+    local recipeData = getRecipeData(logic)
     return recipeData and recipeData.getModData and recipeData:getModData() or nil
+end
+
+local function isBarInput(inputScript)
+    if inputScript == nil or inputScript.isVariableAmount == nil or not inputScript:isVariableAmount() then
+        return false
+    end
+
+    local possible = inputScript.getPossibleInputItems and inputScript:getPossibleInputItems() or nil
+    if possible == nil then
+        return false
+    end
+
+    local hasMetalBar = false
+    local hasIronBar = false
+    for i = 0, possible:size() - 1 do
+        local item = possible:get(i)
+        local fullType = item and item.getFullName and item:getFullName() or nil
+        if fullType == "Base.MetalBar" then
+            hasMetalBar = true
+        elseif fullType == "Base.IronBar" then
+            hasIronBar = true
+        end
+    end
+
+    return hasMetalBar and hasIronBar
+end
+
+local function trimAutoSelectedBars(logic, length)
+    local recipeData = getRecipeData(logic)
+    local recipe = recipeData and recipeData.getRecipe and recipeData:getRecipe() or nil
+    local inputs = recipe and recipe.getInputs and recipe:getInputs() or nil
+    if recipeData == nil or inputs == nil then
+        return
+    end
+
+    for i = 0, inputs:size() - 1 do
+        local inputScript = inputs:get(i)
+        if isBarInput(inputScript) then
+            local inputData = recipeData:getDataForInputScript(inputScript)
+            while inputData ~= nil
+                and inputData:getInputItemCount() > length
+                and inputData:getLastInputItem() ~= nil do
+                recipeData:removeInputItem(inputData:getLastInputItem())
+            end
+            return
+        end
+    end
 end
 
 local function syncVariableRatio(logic, length)
@@ -15,6 +66,12 @@ local function syncVariableRatio(logic, length)
         -- so length / 2 makes vanilla expose exactly L selectable bars while all
         -- other LMION garage costs remain under the explicit variable-width model.
         logic:setTargetVariableInputRatio(length / GarageBuild.MinLength)
+
+        -- BuildLogic:setRecipe() auto-populates inputs before LMION can restore
+        -- the selected garage length. A variable input therefore initially uses
+        -- vanilla's unlimited/default ratio and may grab every available bar.
+        -- Once the LMION ratio is known, discard only that excess selection.
+        trimAutoSelectedBars(logic, length)
     end
 end
 
