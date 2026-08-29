@@ -162,6 +162,26 @@ for familyId, family in pairs(families) do
     end
 end
 
+-- Tile sprites exist before OnLoadedTileDefinitions, but their GarageDoor
+-- properties are not reliable yet. This readiness probe deliberately checks a
+-- single canonical vanilla garage START sprite: once that property is present,
+-- full per-family validation can distinguish a real bad family from early load.
+local function areDefinitionsReady()
+    if getSprite == nil then
+        return false
+    end
+
+    local family = families.WhiteGarageDoor
+    local part = family and family.parts and family.parts[1] or nil
+    local spriteName = part and part.faces and part.faces.N or nil
+    local sprite = spriteName and getSprite(spriteName) or nil
+    local properties = sprite and sprite:getProperties() or nil
+
+    return properties ~= nil
+        and properties:has("GarageDoor")
+        and tonumber(properties:get("GarageDoor")) == 1
+end
+
 local function validateFamily(family)
     if family == nil or getSprite == nil then
         return false, "sprite definitions are unavailable"
@@ -208,6 +228,7 @@ end
 GarageDoor.Families = families
 GarageDoor.SegmentsBySprite = segmentsBySprite
 GarageDoor.ParcelsByItemType = parcelsByItemType
+GarageDoor.areDefinitionsReady = areDefinitionsReady
 GarageDoor.validateFamily = validateFamily
 
 return GarageDoor

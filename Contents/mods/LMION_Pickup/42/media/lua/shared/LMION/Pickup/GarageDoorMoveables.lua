@@ -379,6 +379,10 @@ Pickup._garageDoorConfigureHandler = function()
 end
 Events.OnLoadedTileDefinitions.Add(Pickup._garageDoorConfigureHandler)
 
-markKnownSpritesMoveable()
+-- Cold-start TileDefinitions are not ready during shared Lua execution. Keep the
+-- immediate path only for in-world Lua reloads, where the event already fired.
+if GarageDoor.areDefinitionsReady() then
+    markKnownSpritesMoveable()
+end
 
 return GarageDoor

@@ -2,7 +2,6 @@ require "LMION/Build"
 require "ISUI/ISPanel"
 require "ISUI/ISLabel"
 require "ISUI/ISButton"
-require "BuildingObjects/ISBuildIsoEntity"
 require "Entity/ISUI/BuildRecipe/ISBuildRecipePanel"
 require "Entity/ISUI/BuildRecipe/ISWidgetBuildControl"
 require "Entity/ISUI/CraftRecipe/ISWidgetInput"
@@ -289,6 +288,10 @@ end
 
 ISBuildPanel.createBuildIsoEntity = function(self, dontSetDrag)
     local id, length = getGarageContext(self.logic)
+    if id ~= nil and self._lmionGarageRepeatLength ~= nil then
+        length = GarageBuild.normalizeLength(self._lmionGarageRepeatLength)
+    end
+
     local result = Build._originalGarageCreateBuildIsoEntity(self, dontSetDrag)
 
     if id ~= nil and self.buildEntity ~= nil then
@@ -304,6 +307,47 @@ ISBuildPanel.createBuildIsoEntity = function(self, dontSetDrag)
                     false
                 )
         end
+    end
+
+    return result
+end
+
+if Build._originalGarageOnStopCraft == nil then
+    Build._originalGarageOnStopCraft = ISBuildPanel.onStopCraft
+end
+
+-- Vanilla refreshes BuildLogic before recreating the quick-repeat cursor. That
+-- refresh replaces CraftRecipeData and therefore loses our per-logic modData.
+-- Keep the selected width only for this panel instance while vanilla refreshes,
+-- then restore it before the next frame. The world cursor remains frozen once
+-- each individual placement starts.
+ISBuildPanel.onStopCraft = function(self)
+    local garageId = GarageBuild.getGarageIdFromLogic(self.logic)
+    local savedLength = garageId and GarageBuild.getLengthFromLogic(self.logic) or nil
+
+    if garageId == nil or savedLength == nil then
+        return Build._originalGarageOnStopCraft(self)
+    end
+
+    self._lmionGarageRepeatLength = savedLength
+    local ok, result = pcall(Build._originalGarageOnStopCraft, self)
+    self._lmionGarageRepeatLength = nil
+
+    GarageBuild.setLengthOnLogic(self.logic, savedLength)
+
+    if self.buildEntity ~= nil
+        and GarageBuild.getGarageIdFromObjectInfo(self.buildEntity.objectInfo) == garageId then
+        self.buildEntity.lmionGarageId = garageId
+        self.buildEntity.lmionGarageLength = GarageBuild.normalizeLength(savedLength)
+    end
+
+    local selector = self.craftRecipePanel and self.craftRecipePanel.lmionGarageLengthSelector or nil
+    if selector ~= nil then
+        selector:updateState()
+    end
+
+    if not ok then
+        error(result)
     end
 
     return result

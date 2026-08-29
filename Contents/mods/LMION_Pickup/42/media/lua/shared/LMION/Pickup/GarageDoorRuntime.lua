@@ -110,6 +110,12 @@ end
 Pickup._garageDoorRuntimeGridHandler = installAllRuntimeSpriteGrids
 Events.OnLoadedTileDefinitions.Add(Pickup._garageDoorRuntimeGridHandler)
 
-installAllRuntimeSpriteGrids()
+-- On a cold start the sprites exist here, but TileDefinitions have not yet
+-- supplied GarageDoor=1/2/3. Do not report those pending properties as errors.
+-- During an in-world Lua reload they are already ready, so immediate reinstall
+-- remains available without waiting for an event that has already fired.
+if GarageDoor.areDefinitionsReady() then
+    installAllRuntimeSpriteGrids()
+end
 
 return GarageDoor
