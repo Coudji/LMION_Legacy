@@ -64,6 +64,8 @@ local function normalizeLength(length)
     return length
 end
 
+GarageBuild.normalizeLength = normalizeLength
+
 local function getGameScriptName(objectInfo)
     local spriteScript = objectInfo and objectInfo.getScript and objectInfo:getScript() or nil
     local gameScript = spriteScript and spriteScript:getParent() or nil
@@ -202,17 +204,33 @@ local function getCacheKey(character)
     return tostring(character)
 end
 
-local function javaListToTable(list)
-    local result = {}
-    if list ~= nil then
-        for i = 0, list:size() - 1 do
-            result[#result + 1] = list:get(i)
-        end
+local function addItem(entry, item, seen)
+    if item == nil or seen[item] then
+        return
     end
-    return result
+    seen[item] = true
+
+    entry.items[#entry.items + 1] = item
+    entry.count = entry.count + 1
+    if instanceof(item, "DrainableComboItem") and item:getCurrentUses() > 0 then
+        entry.uses = entry.uses + item:getCurrentUses()
+    end
 end
 
-local function buildStock(character)
+local function addContainerItems(entry, container, fullType, seen)
+    if container == nil then
+        return
+    end
+
+    local items = container:getAllTypeEvalRecurse(fullType, ISBuildIsoEntity.predicateMaterial)
+    if items ~= nil then
+        for i = 0, items:size() - 1 do
+            addItem(entry, items:get(i), seen)
+        end
+    end
+end
+
+local function buildStock(character, containers)
     local stock = {}
     if character == nil or ISBuildIsoEntity == nil then
         return stock
@@ -222,24 +240,21 @@ local function buildStock(character)
     local ground = ISBuildIsoEntity.GetAllGroundItemsForPlayer(character)
 
     for _, fullType in ipairs(RESOURCE_TYPES) do
-        local invItems = {}
-        if inventory ~= nil then
-            local list = inventory:getAllTypeEvalRecurse(fullType, ISBuildIsoEntity.predicateMaterial)
-            invItems = javaListToTable(list)
+        local entry = {count = 0, uses = 0, items = {}}
+        local seen = {}
+
+        addContainerItems(entry, inventory, fullType, seen)
+
+        if containers ~= nil then
+            for i = 0, containers:size() - 1 do
+                addContainerItems(entry, containers:get(i), fullType, seen)
+            end
         end
 
         local groundEntry = ground and ground[fullType] or nil
-        local groundItems = groundEntry and groundEntry.items or {}
-        local entry = {
-            count = #invItems + (groundEntry and groundEntry.count or 0),
-            uses = groundEntry and groundEntry.uses or 0,
-            invItems = invItems,
-            groundItems = groundItems,
-        }
-
-        for _, item in ipairs(invItems) do
-            if instanceof(item, "DrainableComboItem") and item:getCurrentUses() > 0 then
-                entry.uses = entry.uses + item:getCurrentUses()
+        if groundEntry and groundEntry.items then
+            for _, item in ipairs(groundEntry.items) do
+                addItem(entry, item, seen)
             end
         end
 
@@ -257,7 +272,7 @@ function GarageBuild.invalidateStock(character)
     stockCache[getCacheKey(character)] = nil
 end
 
-function GarageBuild.getStock(character, fresh)
+function GarageBuild.getStock(character, containers, fresh)
     local key = getCacheKey(character)
     local now = getTimestampMs and getTimestampMs() or 0
     local cached = stockCache[key]
@@ -266,13 +281,13 @@ function GarageBuild.getStock(character, fresh)
         return cached.stock
     end
 
-    local stock = buildStock(character)
+    local stock = buildStock(character, containers)
     stockCache[key] = {time = now, stock = stock}
     return stock
 end
 
-function GarageBuild.getAvailable(character, fullType, uses, fresh)
-    local stock = GarageBuild.getStock(character, fresh)
+function GarageBuild.getAvailable(character, fullType, uses, containers, fresh)
+    local stock = GarageBuild.getStock(character, containers, fresh)
     local entry = stock and stock[fullType] or nil
     if entry == nil then
         return 0
@@ -280,13 +295,13 @@ function GarageBuild.getAvailable(character, fullType, uses, fresh)
     return uses and entry.uses or entry.count
 end
 
-function GarageBuild.hasRequirements(character, id, length, fresh)
+function GarageBuild.hasRequirements(character, id, length, containers, fresh)
     local requirements = GarageBuild.getRequirements(id, length)
     if requirements == nil then
         return true
     end
 
-    local stock = GarageBuild.getStock(character, fresh)
+    local stock = GarageBuild.getStock(character, containers, fresh)
     for fullType, requirement in pairs(requirements) do
         local entry = stock[fullType]
         local available = entry and (requirement.uses and entry.uses or entry.count) or 0
@@ -303,10 +318,11 @@ function GarageBuild.hasLogicRequirements(logic, character, fresh)
     if id == nil then
         return true
     end
-    return GarageBuild.hasRequirements(character, id, GarageBuild.getLengthFromLogic(logic), fresh)
+    local containers = logic and logic.getContainers and logic:getContainers() or nil
+    return GarageBuild.hasRequirements(character, id, GarageBuild.getLengthFromLogic(logic), containers, fresh)
 end
 
-local function consumeItems(character, inventory, uses, amount, items)
+local function consumeItems(character, uses, amount, items)
     local remaining = amount
     for _, item in ipairs(items or {}) do
         if remaining <= 0 then
@@ -317,21 +333,20 @@ local function consumeItems(character, inventory, uses, amount, items)
             if item ~= nil and item:getCurrentUses() > 0 then
                 remaining = remaining - buildUtil.useDrainable(item, remaining)
             end
-        elseif inventory then
-            character:removeFromHands(item)
-            local container = item:getContainer()
-            if container ~= nil then
-                container:Remove(item)
-            else
-                inventory:Remove(item)
-            end
-            remaining = remaining - 1
         else
+            character:removeFromHands(item)
             local worldObject = item and item:getWorldItem() or nil
             local square = worldObject and worldObject:getSquare() or nil
             if square ~= nil then
                 square:transmitRemoveItemFromSquare(worldObject)
+                item:setWorldItem(nil)
                 remaining = remaining - 1
+            else
+                local container = item and item:getContainer() or nil
+                if container ~= nil then
+                    container:Remove(item)
+                    remaining = remaining - 1
+                end
             end
         end
     end
@@ -342,13 +357,13 @@ end
 -- exact delta between L2 and the selected garage length. A fresh preflight is
 -- performed before removing any extra item so a missing extra never creates a
 -- partially paid variable garage.
-function GarageBuild.consumeExtras(character, id, length)
+function GarageBuild.consumeExtras(character, id, length, containers)
     local extras = GarageBuild.getExtraRequirements(id, length)
     if extras == nil then
         return true
     end
 
-    local stock = GarageBuild.getStock(character, true)
+    local stock = GarageBuild.getStock(character, containers, true)
     for fullType, requirement in pairs(extras) do
         local entry = stock[fullType]
         local available = entry and (requirement.uses and entry.uses or entry.count) or 0
@@ -357,11 +372,9 @@ function GarageBuild.consumeExtras(character, id, length)
         end
     end
 
-    local inventory = character:getInventory()
     for fullType, requirement in pairs(extras) do
         local entry = stock[fullType]
-        local remaining = consumeItems(character, inventory, requirement.uses, requirement.amount, entry.invItems)
-        remaining = consumeItems(character, nil, requirement.uses, remaining, entry.groundItems)
+        local remaining = consumeItems(character, requirement.uses, requirement.amount, entry.items)
         if remaining > 0 then
             GarageBuild.invalidateStock(character)
             return false
@@ -370,6 +383,25 @@ function GarageBuild.consumeExtras(character, id, length)
 
     GarageBuild.invalidateStock(character)
     return true
+end
+
+-- ISBuildingObject:updateModData() has already recorded the static L2 recipe by
+-- the time ISBuildIsoEntity enters setInfo(). Mirror only the non-drainable delta
+-- so a variable garage keeps the same `need:Base.*` material metadata that an
+-- equivalent static recipe would have produced. Torch/rods intentionally remain
+-- excluded, matching their DontRecordInput flags.
+function GarageBuild.recordExtrasOnBuildObject(buildObject, id, length)
+    local extras = GarageBuild.getExtraRequirements(id, length)
+    if buildObject == nil or buildObject.modData == nil or extras == nil then
+        return
+    end
+
+    for fullType, requirement in pairs(extras) do
+        if not requirement.uses then
+            local key = "need:" .. fullType
+            buildObject.modData[key] = (tonumber(buildObject.modData[key]) or 0) + requirement.amount
+        end
+    end
 end
 
 -- FaceInfo is intentionally proxied per build cursor. The source SpriteConfig
