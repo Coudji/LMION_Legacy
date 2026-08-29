@@ -66,8 +66,6 @@ function LMIONGarageLengthSelector:setLength(length)
     GarageBuild.invalidateStock(self.player)
     self:updateState()
 
-    -- Ingredient widgets refresh their values every prerender. Recalculate now
-    -- because a larger requirement can add digits to the displayed amount.
     if self.recipePanel ~= nil then
         self.recipePanel:xuiRecalculateLayout()
     end
@@ -139,6 +137,13 @@ local function getGarageContext(logic)
     return id, GarageBuild.ensureLengthOnLogic(logic)
 end
 
+local function getContainers(logic)
+    if logic ~= nil and logic.getContainers ~= nil then
+        return logic:getContainers()
+    end
+    return nil
+end
+
 if Build._originalGarageRecipePanelCreateDynamicChildren == nil then
     Build._originalGarageRecipePanelCreateDynamicChildren = ISBuildRecipePanel.createDynamicChildren
 end
@@ -198,7 +203,13 @@ ISWidgetInput.updateValues = function(self)
         return
     end
 
-    local available = GarageBuild.getAvailable(self.player, fullType, requirement.uses, false)
+    local available = GarageBuild.getAvailable(
+        self.player,
+        fullType,
+        requirement.uses,
+        getContainers(self.logic),
+        false
+    )
     local satisfied = available >= requirement.amount
     local amountText
 
@@ -241,7 +252,7 @@ ISWidgetTitleHeader.updateLabels = function(self)
         return
     end
 
-    if not GarageBuild.hasRequirements(self.player, id, length, false) then
+    if not GarageBuild.hasRequirements(self.player, id, length, getContainers(self.logic), false) then
         local text = getText("IGUI_CraftingWindow_Error_NotAvailable")
             .. getText("IGUI_CraftingWindow_Error_Inputs")
         self.errorLabel.errorText = text
@@ -266,6 +277,7 @@ ISWidgetBuildControl.prerender = function(self)
                 self.player,
                 id,
                 GarageBuild.getLengthFromLogic(self.logic),
+                getContainers(self.logic),
                 false
             )
     end
@@ -284,7 +296,13 @@ ISBuildPanel.createBuildIsoEntity = function(self, dontSetDrag)
         self.buildEntity.lmionGarageLength = length
         if not self.player:isBuildCheat() then
             self.buildEntity.blockBuild = self.buildEntity.blockBuild
-                or not GarageBuild.hasRequirements(self.player, id, length, false)
+                or not GarageBuild.hasRequirements(
+                    self.player,
+                    id,
+                    length,
+                    getContainers(self.logic),
+                    false
+                )
         end
     end
 
