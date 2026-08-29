@@ -27,9 +27,10 @@ end
 
 -- Inventory UI belongs to the client Lua tree, while the dedicated garage
 -- placement cursor belongs to the gameplay/server BuildingObjects tree. Install
--- all UI handoffs only once those globals coexist. In particular, do NOT require
--- GarageDoorCursor.lua from this early client file: runtime testing proved that
--- doing so can leave the inventory Place command on vanilla ISMoveableCursor.
+-- the UI wrappers as soon as their vanilla entry points and the GarageDoor table
+-- exist. Do NOT require GarageDoorCursor.lua here and do NOT require
+-- openPlacementCursor() to exist during installation: that server-tree method can
+-- legitimately be attached later in the load sequence.
 local function getSelectedVanillaPlaceItem(cursor)
     if cursor == nil
         or cursor.isMoveableCursor ~= true
@@ -57,6 +58,21 @@ local function getSelectedVanillaPlaceItem(cursor)
     return selected and selected.object or nil
 end
 
+local function tryOpenGaragePlacement(GarageDoor, item, character)
+    if GarageDoor == nil
+        or type(GarageDoor.getParcelIdentity) ~= "function"
+        or type(GarageDoor.openPlacementCursor) ~= "function" then
+        return false, nil
+    end
+
+    local identity = GarageDoor.getParcelIdentity(item)
+    if identity == nil then
+        return false, nil
+    end
+
+    return GarageDoor.openPlacementCursor(item, character) == true, identity
+end
+
 local function installGaragePlacementHandoff()
     if LMION == nil
         or LMION.Pickup == nil
@@ -65,10 +81,6 @@ local function installGaragePlacementHandoff()
     end
 
     local GarageDoor = LMION.Pickup.GarageDoor
-    if type(GarageDoor.getParcelIdentity) ~= "function"
-        or type(GarageDoor.openPlacementCursor) ~= "function" then
-        return
-    end
 
     -- Inventory context-menu Place: this is the already runtime-validated path.
     -- It receives the exact clicked item and must bypass vanilla Place mode for
@@ -81,10 +93,8 @@ local function installGaragePlacementHandoff()
 
         if ISMoveableContextMenu.openMovableCursor ~= LMIONGarageOpenMovableCursor then
             LMIONGarageOpenMovableCursor = function(item, playerObj)
-                local identity = GarageDoor.getParcelIdentity(item)
-
-                if identity ~= nil
-                    and GarageDoor.openPlacementCursor(item, playerObj) then
+                local opened = tryOpenGaragePlacement(GarageDoor, item, playerObj)
+                if opened then
                     return
                 end
 
@@ -115,10 +125,9 @@ local function installGaragePlacementHandoff()
                 local playerNum = character and character:getPlayerNum() or nil
                 local cursor = playerNum ~= nil and getCell():getDrag(playerNum) or nil
                 local item = getSelectedVanillaPlaceItem(cursor)
-                local identity = item and GarageDoor.getParcelIdentity(item) or nil
+                local opened, identity = tryOpenGaragePlacement(GarageDoor, item, character)
 
-                if identity ~= nil
-                    and GarageDoor.openPlacementCursor(item, character) then
+                if opened then
                     LMION.log(
                         "Pickup",
                         "garage sidebar Place handoff family=" .. tostring(identity.familyId)
