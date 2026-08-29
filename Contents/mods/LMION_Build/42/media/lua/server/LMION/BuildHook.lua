@@ -35,10 +35,18 @@ local function getGarageLength(self)
 
     local length = tonumber(self.lmionGarageLength)
     if length ~= nil then
-        return math.floor(length)
+        return GarageBuild.normalizeLength(length)
     end
 
     return GarageBuild.getLengthFromLogic(self.buildPanelLogic)
+end
+
+local function getGarageContainers(self)
+    local logic = self and self.buildPanelLogic or nil
+    if logic ~= nil and logic.getContainers ~= nil then
+        return logic:getContainers()
+    end
+    return self and self.containers or nil
 end
 
 local function isLmionFrameValid(self, square)
@@ -69,6 +77,7 @@ local function hasGarageMaterials(self, fresh)
         self.character,
         garageId,
         getGarageLength(self),
+        getGarageContainers(self),
         fresh == true
     )
 end
@@ -129,7 +138,7 @@ ISBuildIsoEntity.new = function(self, character, objectInfo, nSprite, containers
         end
 
         o.lmionGarageId = garageId
-        o.lmionGarageLength = math.floor(length)
+        o.lmionGarageLength = GarageBuild.normalizeLength(length)
     end
 
     return o
@@ -228,9 +237,16 @@ ISBuildIsoEntity.setInfo = function(self, square, north, sprite, openSprite)
     if garageId ~= nil
         and not self.character:isBuildCheat()
         and not self._lmionGarageExtrasConsumed then
-        if not GarageBuild.consumeExtras(self.character, garageId, getGarageLength(self)) then
+        local length = getGarageLength(self)
+        if not GarageBuild.consumeExtras(
+            self.character,
+            garageId,
+            length,
+            getGarageContainers(self)
+        ) then
             error("LMION_Build garage delta consumption failed after successful preflight")
         end
+        GarageBuild.recordExtrasOnBuildObject(self, garageId, length)
         self._lmionGarageExtrasConsumed = true
     end
 
