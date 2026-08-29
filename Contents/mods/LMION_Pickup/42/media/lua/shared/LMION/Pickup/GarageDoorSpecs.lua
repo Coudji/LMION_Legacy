@@ -15,17 +15,18 @@ end
 
 --[[
 Garage-door transport is data-driven. `parts` is engine identity: normalized
-GarageDoor 1/2/3. Runtime validation on B42.20.3 confirms the vanilla garage
-contract is stable in N/W and open/closed states:
+GarageDoor 1/2/3. These values are roles, not a fixed physical member count:
 
-- closed members use GarageDoor 1/2/3;
-- open sprites are the corresponding closed sprite +8;
-- opening does not move or recreate any member;
-- normalized engine member identity stays 1/2/3.
+- 1 = START;
+- 2 = MIDDLE, repeatable zero or more times;
+- 3 = END.
 
-`gridPartOrder` is visual SpriteGrid order from local coordinate 0 toward +X/+Y.
-It is identical to engine order in N and reversed in W because vanilla garage
-linkage advances from member 1 toward decreasing Y when west-facing.
+Closed/open sprite identities remain stable in N/W and open sprites use the
+corresponding closed sprite +8.
+
+`gridPartOrder` remains only for the synthetic legacy L3 SpriteGrid used by
+vanilla Moveables discovery/pickup. Variable reinstallation does not use that
+SpriteGrid as geometry.
 ]]
 local function makeFamily(id, nSprites, wSprites)
     local parts = {}
@@ -96,6 +97,7 @@ local families = {
 }
 
 local segmentsBySprite = {}
+local parcelsByItemType = {}
 
 for familyId, family in pairs(families) do
     local rotationFacesBySprite = {}
@@ -115,6 +117,13 @@ for familyId, family in pairs(families) do
     end
 
     for partIndex, part in ipairs(family.parts) do
+        parcelsByItemType[part.itemType] = {
+            familyId = familyId,
+            family = family,
+            role = partIndex,
+            part = part,
+        }
+
         for _, facing in ipairs({"N", "W"}) do
             local closedSpriteName = part.faces[facing]
             local openSpriteName = part.openFaces[facing]
@@ -191,8 +200,14 @@ local function validateFamily(family)
     return true
 end
 
+function GarageDoor.getParcelIdentity(item)
+    local fullType = item and item.getFullType and item:getFullType() or nil
+    return fullType and parcelsByItemType[fullType] or nil
+end
+
 GarageDoor.Families = families
 GarageDoor.SegmentsBySprite = segmentsBySprite
+GarageDoor.ParcelsByItemType = parcelsByItemType
 GarageDoor.validateFamily = validateFamily
 
 return GarageDoor
