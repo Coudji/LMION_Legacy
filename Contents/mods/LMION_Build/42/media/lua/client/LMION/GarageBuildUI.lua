@@ -1,9 +1,13 @@
 require "LMION/Build"
+require "ISUI/ISPanel"
+require "ISUI/ISLabel"
+require "ISUI/ISButton"
 require "BuildingObjects/ISBuildIsoEntity"
 require "Entity/ISUI/BuildRecipe/ISBuildRecipePanel"
 require "Entity/ISUI/BuildRecipe/ISWidgetBuildControl"
-require "Entity/ISUI/BuildRecipe/ISWidgetInput"
+require "Entity/ISUI/CraftRecipe/ISWidgetInput"
 require "Entity/ISUI/BuildRecipe/ISBuildPanel"
+require "Entity/ISUI/Controls/ISWidgetTitleHeader"
 
 local Build = LMION.Build
 local GarageBuild = Build.GarageBuild
@@ -62,8 +66,8 @@ function LMIONGarageLengthSelector:setLength(length)
     GarageBuild.invalidateStock(self.player)
     self:updateState()
 
-    -- The vanilla ingredient widgets update their values every prerender. Re-run
-    -- layout here because counts can gain/lose digits as width changes.
+    -- Ingredient widgets refresh their values every prerender. Recalculate now
+    -- because a larger requirement can add digits to the displayed amount.
     if self.recipePanel ~= nil then
         self.recipePanel:xuiRecalculateLayout()
     end
@@ -153,9 +157,10 @@ ISBuildRecipePanel.createDynamicChildren = function(self)
     selector:instantiate()
     self.lmionGarageLengthSelector = selector
 
-    -- Row 0 is the recipe header. Vanilla deliberately inserts row 1 as a fill
-    -- row before "Objets requis"; this is the exact empty area reserved for the
-    -- LMION garage length control.
+    -- Row 0 is the recipe header. B42 deliberately inserts row 1 as an
+    -- auto-fill row before "Objets requis". This is the empty panel selected
+    -- for the garage length control, and ISTableLayout:setElement() is the
+    -- supported way to populate it.
     self.rootTable:setElement(0, 1, selector)
     self:xuiRecalculateLayout()
 end
@@ -221,6 +226,29 @@ ISWidgetInput.updateValues = function(self)
         if available <= 0 then
             self.primary.icon.backgroundColor.a = 0.25
         end
+    end
+end
+
+if Build._originalGarageTitleUpdateLabels == nil then
+    Build._originalGarageTitleUpdateLabels = ISWidgetTitleHeader.updateLabels
+end
+
+ISWidgetTitleHeader.updateLabels = function(self)
+    Build._originalGarageTitleUpdateLabels(self)
+
+    local id, length = getGarageContext(self.logic)
+    if id == nil or self.errorLabel == nil or self.player:isBuildCheat() then
+        return
+    end
+
+    if not GarageBuild.hasRequirements(self.player, id, length, false) then
+        local text = getText("IGUI_CraftingWindow_Error_NotAvailable")
+            .. getText("IGUI_CraftingWindow_Error_Inputs")
+        self.errorLabel.errorText = text
+        self.errorLabel:setName(text)
+        self.errorLabel:setVisible(true)
+    elseif self.logic:cachedCanPerformCurrentRecipe() then
+        self.errorLabel:setVisible(false)
     end
 end
 
