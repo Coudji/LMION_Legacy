@@ -1,118 +1,216 @@
-# LMION code organization
+# LMION code organization and addon boundaries
 
-Status: **current architecture**
+Last reviewed: 2026-08-29
 
-This note records the intended file boundaries used to keep gameplay code readable without introducing abstractions that do not solve a concrete ownership problem.
+This note describes the current source ownership contract. It complements `README_DEV.md`; if prose and current code disagree, inspect `main` and fix the prose.
 
-## Refactoring rule
+## Dependency graph
 
-A file should be split when it owns several independently understandable responsibilities or lifecycle phases. A large file that is primarily declarative data does not need to be fragmented merely to reduce its line count.
-
-Existing public/runtime behavior should be preserved during structural refactors. Refactoring is not an opportunity to silently remove extension points, alter lifecycle timing or change validated gameplay behavior.
-
-## Parser-safe comments
-
-Comments are encouraged when they explain a non-obvious invariant, lifecycle constraint, engine workaround or ownership boundary. The important rule is to use the comment syntax of the parser that actually owns the file.
-
-For game-loaded **Lua**, use Lua long comments when a comment is useful:
-
-```lua
---[[
-explanatory text
-]]
-```
-
-Avoid ordinary one-line `-- comment` comments in LMION game-loaded Lua so comments remain visually distinct and multi-line-safe. B42.20.3's bundled Lua lexer explicitly recognizes `--[[ ... ]]` as a long comment.
-
-For Project Zomboid **script files** under `media/scripts`, use the scripting parser's block-comment form:
+LMION is one Workshop item containing independent Build 42 Mod IDs:
 
 ```text
-/*
-explanatory text
-*/
+LMION_Build   ─┐
+LMION_Pickup  ─┼─> LMION_Core
+LMION_Debug   ─┘
 ```
 
-Do not use Lua `--` / `--[[ ... ]]` syntax in `media/scripts`. B42.20.3 `ScriptParser.stripComments()` explicitly strips `/* ... */`; using a comment syntax that the scripting parser does not own can alter how the following script text is interpreted without producing an obvious error. `/** ... */` is also matched because it begins with `/*`, but LMION uses the simpler canonical `/* ... */` form.
+Current `mod.info` audit confirms:
 
-Comments should explain **why** something unusual exists, not narrate obvious assignments line by line. Deep engine archaeology still belongs in `Research/` rather than being duplicated into source files.
+```text
+LMION_Core   -> no LMION addon dependency
+LMION_Build  -> require=LMION_Core
+LMION_Pickup -> require=LMION_Core
+LMION_Debug  -> require=LMION_Core
+```
 
-## Core profile-family boundaries
+No addon is allowed to require another addon. Shared semantics needed by more than one addon belong in Core.
 
-`DoorProfiles.lua` owns the single profile registry shape and profile-construction helper. Declarative values are grouped under `LMION/DoorProfiles/` by gameplay family:
+## Core
 
-- `GarageDoors.lua`;
-- `LargeGates.lua`;
-- `PairedDoors.lua`;
-- `Gates.lua`;
-- `SlidingDoors.lua`;
-- `WoodenDoors.lua`;
-- `MetalDoors.lua`;
-- `SpecialDoors.lua`.
+Root:
 
-Family modules receive the shared registry writer rather than constructing competing registries. This keeps profile shape/semantics centralized while making the catalog-sized data set navigable.
+```text
+Contents/mods/LMION_Core/42/
+```
 
-`PairedDoors.lua` groups 1x1 leaves that visually/construction-wise form a double-door set. Their open state is **not synchronized** in vanilla gameplay: opening one leaf does not open the other. Each physical 1x1 leaf is therefore an independent gameplay/transport unit, and future Pickup support should allow either leaf to be removed and replaced independently.
+Important shared modules:
 
-## Core door-service boundaries
+```text
+media/lua/shared/LMION/Core.lua
+media/lua/shared/LMION/Doors.lua
+media/lua/shared/LMION/Doors/
+    Construction.lua
+    Durability.lua
+    EngineProperties.lua
+    GarageTopology.lua
+    Object.lua
+    Placement.lua
+    Registry.lua
+    Representation.lua
+    State.lua
+media/lua/shared/LMION/Openings.lua
+media/lua/shared/LMION/OpeningDefinitions/LargeGates.lua
+media/lua/shared/LMION/DoorProfiles.lua
+media/lua/shared/LMION/DoorProfiles/*.lua
+```
 
-`Doors.lua` remains the stable public/bootstrap entry point for `LMION.Doors`, but implementation is grouped under `LMION/Doors/` by responsibility:
+Core owns:
 
-- `Doors/Registry.lua` — entity/profile lookup and SpriteConfig-derived sprite-to-profile cache;
-- `Doors/EngineProperties.lua` — alias-safe Material/Sound property application and tile-definition reapplication;
-- `Doors/Durability.lua` — construction max-health math, logical max helpers, repair primitive and world-door adoption;
-- `Doors/Placement.lua` — orientation extraction and frame/door occupancy validation;
-- `Doors/Construction.lua` — `IsoThumpable -> IsoDoor` normalization after construction.
+- semantic door/opening identity;
+- canonical `IsoDoor` output/finalization;
+- shared state capture/restore and effective durability;
+- placement/finalization primitives shared across addons;
+- engine-property projection/alias safety;
+- large-opening topology;
+- large-gate A/B definitions;
+- garage START/MIDDLE/END semantics and width policy.
 
-All focused modules extend the same `LMION.Doors` table. This keeps existing callers stable while preventing the public entry point from becoming an implementation bucket.
+Core must not know Build/Pickup UI, recipe balance, parcel UX or Debug workflows.
 
-## Pickup 1x1 door boundaries
+## Build
 
-The normal 1x1 Moveables path is grouped under `LMION/Pickup/Doors/`:
+Root:
 
-- `Doors/Registry.lua` — resolves GameEntity/SpriteConfig ownership into Pickup profiles, derives N/W Moveables faces and marks known sprites moveable at the tile-definition lifecycle point;
-- `Doors/Hooks.lua` — owns the actual `ISMoveableSpriteProps` hooks, including face handling, health serialization, placement validation and state restoration;
-- `DoorMoveables.lua` — compatibility/bootstrap entry point that loads the focused modules above.
+```text
+Contents/mods/LMION_Build/42/
+```
 
-The compatibility entry point remains intentionally tiny so existing `require "LMION/Pickup/DoorMoveables"` callers do not need to know the internal layout.
+Bootstrap:
 
-Future paired-door Pickup can live under a dedicated `LMION/Pickup/PairedDoors/` boundary if those entities require specialized handling. That specialization must preserve independent per-leaf transport; it must not introduce artificial open-state synchronization or force both leaves into one Pickup action.
+```text
+media/lua/shared/LMION/Build.lua
+```
 
-## Pickup large-gate boundaries
+It requires Core, then Build-owned modules only.
 
-The large-gate implementation is intentionally split by responsibility:
+### Large-gate construction
 
-- `LargeGateProfiles.lua` — Moveables gameplay requirements per left/right leaf entity;
-- `LargeGateSpecs.lua` — family topology: sprites, logical DoubleDoor indices, parcel item types and preview metadata;
-- `LargeGateRuntime.lua` — runtime `IsoSpriteGrid` creation and lifecycle reinstall after tile definitions;
-- `LargeGateMoveables.lua` — Moveables property decoration, leaf resolution and pickup hooks;
-- `LargeGatePlacement.lua` — two-segment placement planning, validation and explicit reconstruction;
-- server `LargeGateCursor.lua` — placement ghost rendering only.
+Current files:
 
-Family-specific presentation facts belong in `LargeGateSpecs.lua`. For example, the Large Farm Gate declares `previewAllParts = true`; the cursor renderer should not maintain a second hardcoded list of farm leaf IDs.
+```text
+media/lua/shared/LMION/Build/LargeGateProfiles.lua
+media/lua/shared/LMION/Build/VanillaLargeGateLeafConstruction.lua
+media/lua/server/LMION/BuildHook.lua
+```
 
-The established `Pickup.LargeGateLeafSpecs` alias remains available so existing LMION code does not need to know about the internal split.
+`VanillaLargeGateLeafConstruction.lua` is the current file name. Older documentation mentioning `VanillaLargeGateSplit.lua` is obsolete.
 
-## Build large-gate boundaries
+Core owns the A/B topology. Build owns how construction exposes/uses those leaves and construction-specific rules.
 
-`Build.lua` is a bootstrap rather than an implementation bucket.
+### Variable garage Build
 
-- `Build/LargeGateProfiles.lua` — derives the runtime left/right gameplay profiles from the original family profiles. It runs at Lua load so hot reload can reconstruct derived profiles.
-- `Build/VanillaLargeGateSplit.lua` — owns the three vanilla SpriteConfig ownership rewrites and their `OnGameBoot` lifecycle.
-- `BuildHook.lua` — remains responsible for construction completion and `IsoThumpable -> IsoDoor` normalization.
+The implementation is deliberately split by concern:
 
-Profile derivation and SpriteConfig rewriting stay separate because they deliberately run at different lifecycle moments.
+```text
+shared/LMION/Build/GarageConstruction.lua
+shared/LMION/Build/GarageMaterialAlternatives.lua
+shared/LMION/Build/GarageLengthState.lua
+shared/LMION/Build/GarageBuildCursor.lua
+client/LMION/GarageBuildUI.lua
+client/LMION/GarageSelectedBarRequirement.lua
+server/LMION/GarageBuildCursorHook.lua
+server/LMION/BuildHook.lua
+```
 
-## Files deliberately not split yet
+Responsibilities:
 
-The Debug module is already divided into focused `Inspect`, `TestZone`, `UI`, `Util` and `World` areas and is not a priority for further fragmentation.
+- `GarageConstruction.lua` — supported garage IDs, width normalization, full selected-width requirements, stock/preflight/delta primitives and per-cursor FaceInfo geometry proxy.
+- `GarageMaterialAlternatives.lua` — shared MetalBar/IronBar quota, mixed consumption, and truthful consumed-material metadata.
+- `GarageLengthState.lua` — durable per-`BuildLogic` Lua side-table state, mirroring into `CraftRecipeData`, native variable-bar ratio/cap and cleanup of vanilla auto-overselection.
+- `GarageBuildUI.lua` — length selector, selected-width requirement display, Build button/ghost integration and quick-repeat width preservation.
+- `GarageSelectedBarRequirement.lua` — client validation that the manual bar selection reaches the current selected length, not merely the static L2 recipe minimum.
+- `GarageBuildCursor.lua` — reusable cursor hook body. **Top-level must stay inert** because shared Lua auto-executes before the server-tree `ISBuildIsoEntity` class is available.
+- `GarageBuildCursorHook.lua` — server-phase loader that requires `BuildingObjects/ISBuildIsoEntity` and installs the shared hook.
+- `BuildHook.lua` — authoritative construction preflight, selected-width delta/remainder consumption, build metadata and Core finalization.
 
-Further splitting should be driven by a real ownership boundary, not by an arbitrary line-count target. Small bootstrap/registry files are useful; chains of tiny pass-through modules are not.
+The canonical garage SpriteConfig remains the L3 source pattern. Build's per-cursor proxy maps it to `START + MIDDLE*(L-2) + END`; Build does not call Pickup for geometry or resources.
 
-## Revalidation after structural changes
+## Pickup
 
-Adding Lua files or changing hook/load order deserves a cold restart before declaring a refactor behavior-neutral. A minimal regression pass should cover:
+Root:
 
-- one normal 1x1 door pickup/replacement with durability preservation;
-- one ordinary single-visual-member large gate, including rotation;
-- the Large Farm Gate, including its two-member placement preview;
-- construction of a split vanilla large gate, confirming both leaf profiles and health calculation.
+```text
+Contents/mods/LMION_Pickup/42/
+```
+
+Bootstrap:
+
+```text
+media/lua/shared/LMION/Pickup.lua
+```
+
+It requires Core, then Pickup-owned modules only.
+
+Important areas:
+
+```text
+shared/LMION/Pickup/Doors/*
+shared/LMION/Pickup/GarageDoor*.lua
+shared/LMION/Pickup/LargeGate*.lua
+server/LMION/Pickup/GarageDoorCursor.lua
+server/LMION/Pickup/LargeGateCursor.lua
+client/LMION/Pickup/*
+```
+
+Pickup owns eligibility, tools, parcels, source-state transport and placement actions. It consumes Core topology/state primitives but does not consume Build modules.
+
+### Garage Pickup
+
+`GarageDoorPickup.lua` asks Core for the actual native chain. `GarageDoorPlacement.lua` owns parcel-based variable reinstallation. The historical synthetic L3 SpriteGrid remains a vanilla Moveables compatibility/discovery artifact, not LMION variable geometry.
+
+### Large-gate Pickup
+
+Large gates use Core A/B semantics. Pickup's one-leaf transport is independent from Build's construction representation. Older prose describing these logical leaves as generic left/right should be read as historical wording; A/B is the current large-gate vocabulary.
+
+## Debug
+
+Root:
+
+```text
+Contents/mods/LMION_Debug/42/
+```
+
+Debug owns Inspector, world selection, Test Zone, reload helpers and diagnostic actions. It may inspect Core/runtime state, but gameplay addons must never require Debug.
+
+## Phase/load-order boundary
+
+Do not confuse addon ownership with Lua phase ownership.
+
+Verified B42 rules are documented in `Research/Engine/B42LuaLoadOrder.md`. Key consequence for current Build architecture:
+
+```text
+shared GarageBuildCursor.lua
+-> definitions/install function only; no server-class top-level require
+
+server GarageBuildCursorHook.lua
+-> require BuildingObjects/ISBuildIsoEntity
+-> install hook
+```
+
+Similarly, garage sprite/property validation on cold start belongs after `OnLoadedTileDefinitions`; immediate reload paths require a positive readiness probe.
+
+## Representation boundary
+
+All addons target Core's semantic API rather than implementing separate persistent Java backends.
+
+```text
+supported source: IsoDoor or IsoThumpable(isDoor)
+LMION managed output: IsoDoor
+```
+
+Build may encounter temporary construction `IsoThumpable` objects; Pickup may ingest legacy/vanilla `IsoThumpable` doors. Neither addon owns the choice of final representation.
+
+## Audit result — 2026-08-29
+
+Static source/dependency audit found no architecture regression:
+
+- declared addon dependency graph is correct;
+- Build bootstrap has no Pickup/Debug dependency;
+- Pickup bootstrap has no Build/Debug dependency;
+- Core remains the shared semantic layer;
+- Debug remains development-only;
+- variable garage Build consumes Core garage semantics directly and does not depend on Pickup;
+- variable garage Pickup remains self-contained and does not depend on Build;
+- canonical representation ownership remains in Core.
+
+This is a source/architecture audit, not a substitute for runtime combination testing. A useful release-confidence matrix remains `Core+Build`, `Core+Pickup`, `Core+Debug`, `Core+Build+Pickup`, plus multiplayer variable-Build validation.
