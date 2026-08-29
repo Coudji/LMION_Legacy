@@ -9,6 +9,7 @@ Build.VERSION = "0.0.6-dev"
 require "LMION/Build/LargeGateProfiles"
 require "LMION/Build/VanillaLargeGateLeafConstruction"
 require "LMION/Build/GarageConstruction"
+require "LMION/Build/GarageMaterialAlternatives"
 
 LMION.registerModule(Build.ID, Build)
 LMION.log("Build", "loaded " .. Build.VERSION)
