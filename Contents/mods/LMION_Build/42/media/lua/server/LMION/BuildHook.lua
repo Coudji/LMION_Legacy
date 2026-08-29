@@ -49,6 +49,16 @@ local function getGarageContainers(self)
     return self and self.containers or nil
 end
 
+local function getRecordedVanillaBarCount(self)
+    local modData = self and self.modData or nil
+    if modData == nil then
+        return 0
+    end
+
+    return (tonumber(modData["need:Base.MetalBar"]) or 0)
+        + (tonumber(modData["need:Base.IronBar"]) or 0)
+end
+
 local function isLmionFrameValid(self, square)
     if not isLmionBuild(self) then
         return true
@@ -174,10 +184,11 @@ ISBuildIsoEntity.setInfo = function(self, square, north, sprite, openSprite)
     local gameScriptBefore = getGameScript(self)
     local garageId = getGarageId(self)
 
-    -- Vanilla has already performed the static L2 recipe before entering its
-    -- tile loop. Consume the exact L2->selected-length delta once, immediately
-    -- before the first physical garage member is created. This avoids stealing
-    -- items reserved by BuildLogic for the base recipe.
+    -- Vanilla has already consumed its CraftRecipe inputs and updateModData() has
+    -- recorded the actual selected bar alternatives before entering this tile
+    -- loop. Since the bar input is native-variable, vanilla may have paid from 2
+    -- up to the whole selected width. LMION consumes only the remainder plus the
+    -- explicit deltas for the other materials.
     if garageId ~= nil
         and not self.character:isBuildCheat()
         and not self._lmionGarageExtrasConsumed then
@@ -186,7 +197,8 @@ ISBuildIsoEntity.setInfo = function(self, square, north, sprite, openSprite)
             self.character,
             garageId,
             length,
-            getGarageContainers(self)
+            getGarageContainers(self),
+            getRecordedVanillaBarCount(self)
         ) then
             error("LMION_Build garage delta consumption failed after successful preflight")
         end
