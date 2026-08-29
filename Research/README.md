@@ -55,6 +55,7 @@ A durable conclusion may be summarized in `README_DEV.md` and explained fully he
 - [`Engine/DoorHealth.md`](Engine/DoorHealth.md) — why LMION has `lmionDoorMaxHealth`, the `IsoDoor`/`IsoThumpable` API mismatch, world adoption and repair implications.
 - [`Engine/PropertyAliases.md`](Engine/PropertyAliases.md) — why engine-facing property writes require exact readback and restoration.
 - [`Engine/LoadLifecycle.md`](Engine/LoadLifecycle.md) — why different LMION mutations run at Lua load, `OnGameBoot`, `OnLoadedTileDefinitions`, `LoadGridsquare` or `OnObjectAdded`.
+- [`Engine/B42LuaLoadOrder.md`](Engine/B42LuaLoadOrder.md) — bytecode/runtime-backed `shared -> client -> server` phase order, per-phase alphabetical loading, `require()` visibility rules and dedicated-server behavior.
 - [`Engine/SpriteConfigLifecycle.md`](Engine/SpriteConfigLifecycle.md) — scripted-sprite ownership, targeted `SpriteConfigScript:PreReload()`, and the failed large-gate ownership prototypes.
 
 ### Moveables / multi-tile openings
