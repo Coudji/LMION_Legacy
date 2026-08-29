@@ -106,6 +106,35 @@ local function initializeBuiltDoor(square, gameScript, effectiveMaxHealth)
     end
 end
 
+if Build._originalGarageNew == nil then
+    Build._originalGarageNew = ISBuildIsoEntity.new
+end
+
+-- B42's BuildAction network packet reconstructs a building cursor by inspecting
+-- the parameter names of its `new()` function and serializing matching fields
+-- from the cursor table. Keep the selected garage length as an explicit optional
+-- constructor parameter so multiplayer sends it through the vanilla packet
+-- instead of relying on client-only state.
+ISBuildIsoEntity.new = function(self, character, objectInfo, nSprite, containers, logic, lmionGarageLength)
+    local o = Build._originalGarageNew(self, character, objectInfo, nSprite, containers, logic)
+    local garageId = GarageBuild.getGarageIdFromObjectInfo(objectInfo)
+
+    if garageId ~= nil then
+        local length = tonumber(lmionGarageLength)
+        if length == nil and logic ~= nil then
+            length = GarageBuild.getLengthFromLogic(logic)
+        end
+        if length == nil then
+            length = GarageBuild.DefaultLength
+        end
+
+        o.lmionGarageId = garageId
+        o.lmionGarageLength = math.floor(length)
+    end
+
+    return o
+end
+
 if Build._originalGarageGetFace == nil then
     Build._originalGarageGetFace = ISBuildIsoEntity.getFace
 end
