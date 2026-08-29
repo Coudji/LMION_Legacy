@@ -115,68 +115,12 @@ local function initializeBuiltDoor(square, gameScript, effectiveMaxHealth)
     end
 end
 
-if Build._originalGarageNew == nil then
-    Build._originalGarageNew = ISBuildIsoEntity.new
-end
-
--- B42's BuildAction network packet reconstructs a building cursor by inspecting
--- the parameter names of its `new()` function and serializing matching fields
--- from the cursor table. Keep the selected garage length as an explicit optional
--- constructor parameter so multiplayer sends it through the vanilla packet
--- instead of relying on client-only state.
-ISBuildIsoEntity.new = function(self, character, objectInfo, nSprite, containers, logic, lmionGarageLength)
-    local o = Build._originalGarageNew(self, character, objectInfo, nSprite, containers, logic)
-    local garageId = GarageBuild.getGarageIdFromObjectInfo(objectInfo)
-
-    if garageId ~= nil then
-        local length = tonumber(lmionGarageLength)
-        if length == nil and logic ~= nil then
-            length = GarageBuild.getLengthFromLogic(logic)
-        end
-        if length == nil then
-            length = GarageBuild.DefaultLength
-        end
-
-        o.lmionGarageId = garageId
-        o.lmionGarageLength = GarageBuild.normalizeLength(length)
-    end
-
-    return o
-end
-
-if Build._originalGarageGetFace == nil then
-    Build._originalGarageGetFace = ISBuildIsoEntity.getFace
-end
-
--- Do not mutate SpriteConfigManager's shared FaceInfo. For garage constructions,
--- expose a per-cursor proxy whose first/interior/last tiles resolve to the
--- existing START/MIDDLE/END L3 definition at the selected width.
-ISBuildIsoEntity.getFace = function(self)
-    local face = Build._originalGarageGetFace(self)
-    local garageId = getGarageId(self)
-    if garageId == nil or face == nil then
-        return face
-    end
-
-    local length = getGarageLength(self)
-    if self._lmionGarageFaceSource ~= face
-        or self._lmionGarageFaceLength ~= length
-        or self._lmionGarageFaceProxy == nil then
-        self._lmionGarageFaceSource = face
-        self._lmionGarageFaceLength = length
-        self._lmionGarageFaceProxy = GarageBuild.createFaceProxy(face, length)
-    end
-
-    return self._lmionGarageFaceProxy
-end
-
 if Build._originalIsValid == nil then
     Build._originalIsValid = ISBuildIsoEntity.isValid
 end
 
--- LMION framed doors use a stricter frame-class rule than vanilla. Garages add
--- one more strict condition: the selected length must be fully affordable, not
--- merely the static L2 recipe that vanilla knows about.
+-- The shared garage cursor has already applied full-cost validation. The server
+-- hook keeps the existing LMION frame-class rule on top of that result.
 ISBuildIsoEntity.isValid = function(self, square)
     if not Build._originalIsValid(self, square) then
         return false
