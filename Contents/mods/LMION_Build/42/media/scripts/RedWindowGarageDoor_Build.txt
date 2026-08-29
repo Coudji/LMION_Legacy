@@ -30,12 +30,12 @@ module Base
             inputs
             {
                 item 1 [Base.WeldingMask] mode:keep,
-                item 6 [Base.BlowTorch] flags[DontRecordInput],
-                item 6 [Base.SmallSheetMetal],
-                item 3 [Base.GlassPanel],
-                item 3 [Base.MetalBar],
-                item 6 [Base.Hinge],
-                item 3 [Base.WeldingRods] flags[DontRecordInput],
+                item 1 [Base.BlowTorch] flags[DontRecordInput],
+                item 4 [Base.SmallSheetMetal],
+                item 2 [Base.GlassPanel],
+                item 2 [Base.MetalBar],
+                item 4 [Base.Hinge],
+                item 2 [Base.WeldingRods] flags[DontRecordInput],
             }
         }
     }
