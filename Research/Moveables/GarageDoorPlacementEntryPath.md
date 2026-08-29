@@ -1,8 +1,8 @@
 # Garage-door placement entry path
 
-Status: **B42 Moveables placement path traced; dedicated LMION garage cursor/action selected as the implementation direction.**
+Status: **B42 Moveables placement paths traced. Dedicated LMION garage cursor/action is implemented; both inventory `Place` and the persistent Moveables sidebar `Place` entry are routed to it for recognized garage parcels.**
 
-This note complements `GarageDoorVariableWidthPlacementResearch.md` and records the exact integration point chosen after the fixed-L3 Moveables placement experiment was rejected.
+This note complements `GarageDoorVariableWidthPlacementResearch.md` and records the exact integration points chosen after the fixed-L3 Moveables placement experiment was rejected.
 
 ## Vanilla inventory entry point
 
@@ -25,7 +25,7 @@ mo:tryInitialItem(item)
 
 This is the narrowest clean handoff available **before** vanilla normalizes a multisprite parcel to its fixed `IsoSpriteGrid` anchor.
 
-LMION should therefore wrap/intercept `openMovableCursor()` only for recognized garage parcel item types:
+LMION wraps `openMovableCursor()` only for recognized garage parcel item types:
 
 ```text
 ordinary Moveable item
@@ -37,9 +37,71 @@ LMION garage Start/Middle/End parcel
 
 The user-facing inventory command remains the normal `Place` command.
 
-## Why interception must happen before ISMoveableCursor
+## Persistent Moveables sidebar entry point
 
-Once vanilla `ISMoveableCursor` owns the item, fixed SpriteGrid semantics are already structural:
+Runtime testing after the first dedicated-cursor implementation established a second independent placement entry path:
+
+```text
+inventory right-click Place
+-> correct variable LMION ghost
+
+left sidebar Moveables -> Place
+-> old green L3 vanilla ghost
+```
+
+The green L3 result was useful evidence: validation itself was no longer failing, but the sidebar was still creating the fixed vanilla cursor directly.
+
+The relevant vanilla class is `ISEquippedItem.lua`.
+
+`ISMoveablesIconPopup:onMouseUp()` does:
+
+```lua
+if not cursor then
+    cursor = ISMoveableCursor:new(self.owner.chr)
+    getCell():setDrag(cursor, cursor.player)
+end
+cursor:setMoveableMode(mode)
+```
+
+For the `Place` icon, `mode == "place"`.
+
+Unlike the inventory context menu, this path has **no explicit item argument**. The generic cursor selects an inventory entry through `getInventoryObjectList()` and `objectIndex`.
+
+Therefore LMION cannot bypass the generic cursor before selection. The selected-item handoff is:
+
+```text
+Moveables sidebar -> Place
+-> vanilla creates/reuses ISMoveableCursor
+-> vanilla switches to Place
+-> vanilla inventory selection resolves objectIndex
+-> LMION inspects exactly that selected item
+-> garage parcel? replace drag with LMION garage cursor
+-> ordinary furniture? leave vanilla cursor untouched
+```
+
+The handoff runs immediately after the sidebar popup callback, before the next world render, so the fixed L3 garage ghost should not become the active placement cursor.
+
+### Cycling while using sidebar Place
+
+Vanilla uses the normal Moveables rotate/cycle path to advance inventory entries in generic Place mode. A garage may therefore become selected *after* the initial sidebar click.
+
+LMION also checks the selected item after that vanilla cycle:
+
+```text
+ordinary furniture selected
+-> remain in vanilla Place cursor
+
+cycle reaches garage parcel
+-> transfer to dedicated variable garage cursor
+```
+
+The Toggle-mode key path is likewise checked after vanilla switches a generic cursor into Place mode.
+
+Do not globally replace `ISMoveablesIconPopup` or generic Moveables placement. The handoff is selected-item-specific and garage-only.
+
+## Why interception must happen before variable placement logic
+
+Once vanilla `ISMoveableCursor` actually handles a garage as a placement assembly, fixed SpriteGrid semantics are structural:
 
 - `getInventoryObjectList()` collapses multisprite items to `spriteGrid:getAnchorSprite()`;
 - `isValid()` calls multisprite `canPlaceMoveable()`;
@@ -47,7 +109,7 @@ Once vanilla `ISMoveableCursor` owns the item, fixed SpriteGrid semantics are al
 - rotation rebuilds MoveProps from fixed faces;
 - the cursor creates `ISMoveablesAction` with the fixed MoveProps contract.
 
-A variable garage should therefore never enter vanilla Place mode as one multisprite assembly.
+A variable garage therefore must leave generic Place mode as soon as it is identified as the selected inventory entry.
 
 ## Timed-action boundary
 
@@ -89,7 +151,7 @@ Reasons:
 - vanilla itself uses derived cursors that render/place arbitrary multi-tile structures without `IsoSpriteGrid` (for example `ISBuildRampCursor`);
 - it has none of the fixed Moveables inventory-list/SpriteGrid assumptions that caused the failed experiment.
 
-LMION's garage cursor should override the actual footprint-specific methods instead of altering global sprite data.
+LMION's garage cursor overrides the actual footprint-specific methods instead of altering global sprite data.
 
 ## Cursor-owned state
 
@@ -130,17 +192,15 @@ W: position i -> x, y - (i-1)
 
 ## Width keys and rotation
 
-Do not add another global key listener for the active placement cursor.
+No separate gameplay key listener is required for the dedicated cursor itself.
 
-Override the dedicated cursor's `rotateKey(key)`:
+Override its `rotateKey(key)`:
 
 ```text
 configured Garage Width - -> selectedLength - 1
 configured Garage Width + -> selectedLength + 1
-otherwise                  -> ISBuildingObject.rotateKey(self, key)
+Rotate Building            -> N/W toggle
 ```
-
-This lets Project Zomboid's existing building-cursor key routing deliver both normal rotation and LMION width controls to the active drag object.
 
 The key definitions remain registered through ModOptions, with NumPad `-` / `+` as defaults.
 
@@ -189,31 +249,26 @@ Keep vanilla Moveables for garage **pickup** because actual-chain dismantling al
 
 The synthetic historical L3 garage SpriteGrid can remain only where it is still required for Moveables discovery/pickup/item-facing metadata. It must no longer define reinstallation geometry.
 
-As a follow-up hardening step, garage parcels should be filtered from vanilla Moveables' generic Place inventory list so users cannot accidentally enter the obsolete fixed-L3 placement path through the furniture cursor instead of the inventory `Place` command.
+## Runtime validation status
 
-## First validation after implementation
+Validated on B42.20.4 after the dedicated cursor implementation:
 
-Use a freshly picked-up same-family garage after the new cursor is installed.
+- inventory right-click `Place` reaches the LMION dedicated cursor;
+- variable ghost length changes correctly with configured width keys;
+- the previous invalid/red fixed-L3 result is gone on that path.
 
-Test in this order:
+Pending after the sidebar handoff commit:
 
-```text
-L2  -> Start + End
-L3  -> Start + 1 Mid + End
-L5  -> Start + 3 Mid + End
-L12 -> Start + 10 Mid + End
-```
+- Moveables sidebar `Place` reaches the same dedicated variable cursor;
+- cycle-to-garage from ordinary furniture reaches the dedicated cursor;
+- actual physical placement/consumption/PV/canonical `IsoDoor` validation.
 
-For each relevant length:
+## Next validation
 
-- ghost length matches selected length;
-- `+/-` visibly resizes within available-piece/policy bounds;
-- Rotate Building changes N/W without changing length;
-- red/green validity covers the whole footprint;
-- only selected parcels are consumed;
-- extra Middle parcels remain;
-- final members are `IsoDoor`;
-- PV are preserved per physical parcel;
-- native synchronized open/close works after placement.
+With compatible same-family parcels available:
 
-Only after this single-player path is stable should Build variable-width implementation begin, using the separate FaceInfo-proxy architecture.
+1. click the persistent Moveables sidebar `Place` icon;
+2. if its initially selected inventory entry is a garage, the ghost should immediately be variable and resizable;
+3. if it starts on ordinary furniture, cycle until the garage is selected and confirm the cursor transfers to the variable garage ghost;
+4. test `+/-` and Rotate Building;
+5. only once both entry paths show the same correct ghost, proceed to physical placement tests.
