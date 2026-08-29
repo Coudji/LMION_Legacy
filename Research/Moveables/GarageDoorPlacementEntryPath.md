@@ -1,6 +1,6 @@
 # Garage-door placement entry path
 
-Status: **B42 Moveables placement paths traced. Dedicated LMION garage cursor/action is implemented. Inventory `Place` is runtime-validated; the persistent Moveables sidebar `Place` handoff is implemented with late installation and awaits runtime validation after a loading-order regression was corrected.**
+Status: **B42 Moveables placement paths traced. Dedicated LMION garage cursor/action is implemented. Inventory `Place` was runtime-validated before the sidebar experiment; a loading-order regression was reproduced and its exact install-time cause has now been corrected. Sidebar `Place` remains pending runtime validation.**
 
 This note complements `GarageDoorVariableWidthPlacementResearch.md` and records the exact integration points chosen after the fixed-L3 Moveables placement experiment was rejected.
 
@@ -37,7 +37,7 @@ LMION garage Start/Middle/End parcel
 
 The user-facing inventory command remains the normal `Place` command.
 
-### Loading-order rule
+## Loading-order rule
 
 The inventory UI lives in the client Lua tree while `GarageDoorCursor.lua` lives in the gameplay/server BuildingObjects tree.
 
@@ -47,18 +47,62 @@ Do **not** force-load the dedicated garage cursor from the early client ModOptio
 require "LMION/Pickup/GarageDoorCursor"
 ```
 
-The working integration installs the wrapper only once both vanilla UI globals and `LMION.Pickup.GarageDoor.openPlacementCursor` already exist:
+Also do **not** require `GarageDoor.openPlacementCursor` to already exist before installing the UI wrapper.
+
+Correct lifecycle:
 
 ```text
 early client load
--> register ModOptions keys only
+-> register ModOptions keys
+-> install wrapper when vanilla UI entry point + LMION.Pickup.GarageDoor table exist
 
-OnGameStart / late runtime
--> install inventory Place wrapper
--> install sidebar Place wrapper
+later gameplay/server load
+-> GarageDoorCursor.lua attaches GarageDoor.openPlacementCursor
+
+actual player click
+-> wrapper checks whether openPlacementCursor now exists
+-> if yes and item is a garage parcel: open dedicated cursor
+-> otherwise preserve vanilla behavior
 ```
 
-This is not merely theoretical. Runtime testing established that violating this rule can cause the inventory `Place` command itself to fall back into generic `ISMoveableCursor` mode.
+This distinction matters because `GarageDoor.openPlacementCursor` is defined by `server/LMION/Pickup/GarageDoorCursor.lua` and may legitimately be attached **after** the client-side wrapper installation attempt.
+
+### Reproduced regression
+
+Commit `0a592dcead255179ce650c95c0c7d4cfd6aa8b6e` introduced early client requires and global cursor hooks. Runtime result on B42.20.4:
+
+```text
+sidebar Place
+-> fixed L3 ghost, red
+
+inventory right-click Place
+-> also enters generic Place mode
+-> sidebar Place icon visibly becomes active
+-> fixed L3 ghost instead of dedicated variable cursor
+```
+
+Commit `a2e2cda1fc469e44d2b01e4fc04f7d46a6ba8785` removed the early cross-tree require and global rotate/TAB hooks, but still contained one subtle install-time bug:
+
+```lua
+if type(GarageDoor.openPlacementCursor) ~= "function" then
+    return
+end
+```
+
+If the client installer ran before `GarageDoorCursor.lua` attached that method, the function returned without installing **any** inventory/sidebar wrapper. `Events.OnGameStart` did not guarantee the needed method was already attached in the observed runtime ordering, so inventory `Place` still fell directly into vanilla `ISMoveableCursor`.
+
+The user's screenshot provided direct confirmation: placement was initiated from the inventory, yet the persistent left-side `Place` icon was active. That icon is vanilla Moveables mode state and therefore proves the generic `ISMoveableCursor` owned the drag cursor.
+
+Corrected in commit `b8d21eef9136d68e5a4a0010aee81dbd9099c59a`:
+
+- install the wrapper without requiring `openPlacementCursor` to exist yet;
+- resolve/check `openPlacementCursor` only when the player actually clicks `Place`;
+- keep the early client -> server `require` rejected;
+- keep global `ISMoveableCursor.rotateKey` / TAB interception rejected.
+
+Rule to retain:
+
+> **Install-time prerequisites and click-time prerequisites are not the same thing. A callback supplied by a later Lua tree must not gate installation of the wrapper that will call it later.**
 
 ## Persistent Moveables sidebar entry point
 
@@ -100,50 +144,9 @@ Moveables sidebar -> Place
 -> ordinary furniture? leave vanilla cursor untouched
 ```
 
-The handoff is installed **late, in the same installer as the already validated inventory wrapper**, and runs immediately after the vanilla sidebar popup callback.
+The handoff runs immediately after the vanilla sidebar popup callback.
 
-## Rejected loading/cycling experiment
-
-Commit `0a592dcead255179ce650c95c0c7d4cfd6aa8b6e` attempted to make the sidebar handoff available by adding early client requires for:
-
-```text
-Moveables/ISMoveableContextMenu
-ISUI/ISEquippedItem
-BuildingObjects/ISMoveableCursor
-LMION/Pickup/GarageDoorCursor
-```
-
-It also wrapped generic `ISMoveableCursor.rotateKey` and added a global Toggle-mode key listener in order to catch garages reached while cycling the generic furniture cursor.
-
-Runtime result on B42.20.4:
-
-```text
-sidebar Place
--> fixed L3 ghost, red
-
-inventory right-click Place
--> also falls into generic Place mode
--> sidebar Place icon visibly becomes active
--> fixed L3 ghost instead of dedicated variable cursor
-```
-
-The sidebar icon becoming active when placement was initiated from the inventory is useful diagnostic evidence: the inventory command had entered vanilla `ISMoveableCursor` instead of the dedicated LMION cursor.
-
-This experiment is rejected. Do not restore it casually.
-
-Rejected parts:
-
-- early client -> server `require` of `GarageDoorCursor.lua`;
-- global `ISMoveableCursor.rotateKey` wrapping for garage transfer;
-- extra global Toggle-mode key listener for garage transfer.
-
-The safe correction is commit `a2e2cda1fc469e44d2b01e4fc04f7d46a6ba8785` (`Restore safe garage placement handoffs`):
-
-- restore late installation of the already proven inventory wrapper;
-- add only the sidebar `ISMoveablesIconPopup.onMouseUp` wrapper in that same late installer;
-- leave generic Moveables rotation/mode key handling untouched.
-
-Cycling from ordinary furniture into a garage is therefore **not currently part of the validated/supported handoff contract**. It may be revisited later only if needed, without risking the primary inventory path.
+Cycling from ordinary furniture into a garage is **not currently part of the supported contract**. The earlier global rotate/TAB interception was deliberately removed because it risked the primary inventory path.
 
 ## Why interception must happen before variable placement logic
 
@@ -299,24 +302,26 @@ The synthetic historical L3 garage SpriteGrid can remain only where it is still 
 
 Validated on B42.20.4 before the sidebar experiment:
 
-- inventory right-click `Place` reaches the LMION dedicated cursor;
-- variable ghost length changes correctly with configured width keys;
-- the previous fixed-L3 result is absent on that path.
+- inventory right-click `Place` reached the LMION dedicated cursor;
+- variable ghost length changed correctly with configured width keys;
+- the fixed-L3 result was absent on that path.
 
-Regression reproduced after commit `0a592dce...`:
+Regression reproduced after the sidebar/loading experiments:
 
-- sidebar remained fixed L3/red;
-- inventory regressed into vanilla Place mode as well;
+- sidebar produced fixed L3/red;
+- inventory also regressed into vanilla Place mode;
 - sidebar Place icon visibly activated from inventory placement.
 
-Corrected in `a2e2cda1fc469e44d2b01e4fc04f7d46a6ba8785`; runtime validation after that correction is pending.
+Exact install-time cause identified and corrected in `b8d21eef9136d68e5a4a0010aee81dbd9099c59a`.
+
+Runtime validation after this correction is pending.
 
 ## Next validation
 
 After a full game restart with compatible same-family parcels available:
 
-1. inventory right-click `Place`: confirm the dedicated resizable ghost is restored and generic sidebar Place mode does not take ownership;
-2. persistent Moveables sidebar `Place`: if its initially selected inventory entry is a garage parcel, confirm it transfers to the same dedicated resizable ghost;
+1. inventory right-click `Place`: confirm the dedicated resizable ghost returns and the sidebar Place icon does **not** become the owner of placement mode;
+2. persistent Moveables sidebar `Place`: if its initially selected inventory entry is a garage parcel, confirm transfer to the same dedicated resizable ghost;
 3. test `+/-` and Rotate Building on each successful dedicated-cursor entry path;
-4. do **not** test cycle-to-garage as a required feature yet; that global interception was deliberately removed;
+4. do **not** test cycle-to-garage as a required feature yet;
 5. only once both primary entry paths show the same correct ghost, proceed to physical placement/consumption/PV/`IsoDoor` tests.
