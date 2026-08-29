@@ -48,6 +48,23 @@ local function setMovePropsIdentity(moveProps, segment)
     end
 end
 
+-- Vanilla rebuilds ISMoveableSpriteProps several times while entering Place mode
+-- (inventory sprite -> SpriteGrid anchor -> rotated face). Normally our new()
+-- wrapper below re-applies LMION identity every time, but cursor/gameplay code must
+-- not depend on that load-order detail. A known garage sprite is sufficient to
+-- restore its semantic family/role/facing on demand.
+function GarageDoor.ensureMovePropsIdentity(moveProps)
+    if moveProps == nil then
+        return nil
+    end
+
+    local segment = getSegment(moveProps.sprite or moveProps.spriteName)
+    if segment ~= nil then
+        setMovePropsIdentity(moveProps, segment)
+    end
+    return segment
+end
+
 local function markKnownSpritesMoveable()
     local configured = 0
     local rejectedFamilies = 0
@@ -112,6 +129,7 @@ if Pickup._garageDoorPreviousHasFaces == nil then
 end
 
 ISMoveableSpriteProps.hasFaces = function(self)
+    GarageDoor.ensureMovePropsIdentity(self)
     if self ~= nil and self.lmionGarageFaces ~= nil then
         return self.lmionGarageFaces.N ~= nil
             and self.lmionGarageFaces.W ~= nil
@@ -126,6 +144,7 @@ if Pickup._garageDoorPreviousGetFaces == nil then
 end
 
 ISMoveableSpriteProps.getFaces = function(self)
+    GarageDoor.ensureMovePropsIdentity(self)
     if self ~= nil and self.lmionGarageFaces ~= nil then
         return {
             N = self.lmionGarageFaces.N,
@@ -141,6 +160,7 @@ if Pickup._garageDoorPreviousGetIndexedFaces == nil then
 end
 
 ISMoveableSpriteProps.getIndexedFaces = function(self)
+    GarageDoor.ensureMovePropsIdentity(self)
     if self ~= nil and self.lmionGarageFaces ~= nil then
         local faces = self:getFaces()
         return {faces.N, faces.W, faces.N, faces.W}
@@ -154,6 +174,7 @@ if Pickup._garageDoorPreviousInstanceItem == nil then
 end
 
 ISMoveableSpriteProps.instanceItem = function(self, spriteNameOverride)
+    GarageDoor.ensureMovePropsIdentity(self)
     if self == nil or self.lmionGarageFamily == nil then
         return Pickup._garageDoorPreviousInstanceItem(self, spriteNameOverride)
     end
@@ -190,6 +211,7 @@ if Pickup._garageDoorPreviousFindInInventoryMultiSprite == nil then
 end
 
 ISMoveableSpriteProps.findInInventoryMultiSprite = function(self, character, requestedName)
+    GarageDoor.ensureMovePropsIdentity(self)
     if self == nil or self.lmionGarageFamily == nil then
         return Pickup._garageDoorPreviousFindInInventoryMultiSprite(self, character, requestedName)
     end
@@ -228,6 +250,7 @@ if Pickup._garageDoorPreviousCanPickUpMoveable == nil then
 end
 
 ISMoveableSpriteProps.canPickUpMoveable = function(self, character, square, object)
+    GarageDoor.ensureMovePropsIdentity(self)
     if self == nil or self.lmionGarageFamily == nil then
         return Pickup._garageDoorPreviousCanPickUpMoveable(self, character, square, object)
     end
@@ -278,6 +301,7 @@ if Pickup._garageDoorPreviousPickUpMoveableInternal == nil then
 end
 
 ISMoveableSpriteProps.pickUpMoveableInternal = function(self, character, square, object, sprInstance, spriteName, createItem, rotating)
+    GarageDoor.ensureMovePropsIdentity(self)
     local segment = self and self.lmionGarageFamily and getSegment(spriteName) or nil
 
     self.lmionGaragePendingHealth = nil
@@ -313,6 +337,7 @@ if Pickup._garageDoorPreviousPlaceMoveableInternal == nil then
 end
 
 ISMoveableSpriteProps.placeMoveableInternal = function(self, square, item, spriteName)
+    GarageDoor.ensureMovePropsIdentity(self)
     local segment = self and self.lmionGarageFamily and getSegment(spriteName) or nil
     if segment == nil then
         return Pickup._garageDoorPreviousPlaceMoveableInternal(self, square, item, spriteName)
