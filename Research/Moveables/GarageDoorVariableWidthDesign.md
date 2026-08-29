@@ -1,6 +1,6 @@
 # Variable-width garage design
 
-Status: **implementation in progress — variable-width Pickup chain works; placement cursor wiring corrected to the gameplay `GarageDoorCursor.lua` path and awaiting runtime validation.**
+Status: **Pickup variable-width transport and inventory reinstallation are implemented and runtime-validated. Inventory right-click `Place` uses LMION's dedicated variable-width cursor. The persistent Moveables sidebar `Place` intentionally remains vanilla and therefore places the historical L3 garage. Build variable-width construction has not started yet.**
 
 This note is the implementation handoff for generalizing LMION garage doors from the former fixed-width L3 model to Project Zomboid's native variable-length garage topology.
 
@@ -40,7 +40,7 @@ actual PZ maximum: unknown
 
 L12 is an **artificial safety/gameplay limit chosen by LMION**, not a reverse-engineered engine boundary.
 
-A sandbox/mod option must be able to lift this LMION limit for players who explicitly want larger garages. The semantic contract is:
+The current option can lift this LMION limit for players who explicitly want larger garages. The semantic contract is:
 
 ```text
 Default mode
@@ -61,13 +61,13 @@ Very large garages can create obvious grief/performance risks in multiplayer. Th
 - clients cannot independently bypass the server policy;
 - or another server-side cap is appropriate.
 
-**No MP/admin authority rule is decided yet.** Do not bake a client-only or admin-only assumption into the first implementation merely to anticipate future multiplayer work.
+**No MP/admin authority rule is decided yet.** Do not bake a client-only or admin-only assumption into the current single-player/general architecture.
 
-Single-player/general architecture should expose one width-policy query that can later be backed by sandbox/server authority without rewriting Build or Pickup.
+Core exposes one width-policy query so future sandbox/server authority can replace the current settings source without rewriting Build or Pickup.
 
-## Build UX
+## Build UX — future work
 
-Garage width is chosen in the construction window before entering placement mode.
+Garage width should be chosen in the construction window before entering placement mode.
 
 Intended UI:
 
@@ -85,11 +85,11 @@ Rules:
 - once the player confirms/leaves the construction window and enters world placement, the selected width is **frozen**;
 - Build placement must not allow keyboard +/- width changes, because that could silently change material requirements after the player last saw them.
 
-The frozen build width becomes part of the specific construction action/placement plan, not a mutable global SpriteConfig setting.
+The frozen Build width must belong to the specific construction action/placement plan, not to shared SpriteConfig state.
 
-## Build recipe scaling
+## Build recipe scaling — future work
 
-The current L3 recipes were authored for three physical members. Variable width must convert this to explicit fixed + variable costs rather than blindly multiplying the complete recipe.
+The current L3 recipes were authored for three physical members. Variable Build width must convert this to explicit fixed + variable costs rather than blindly multiplying the complete recipe.
 
 Confirmed design rule:
 
@@ -99,7 +99,7 @@ Confirmed design rule:
 
 The exact per-family/per-material scaling values are still implementation/balance work and should be documented once chosen.
 
-## Build topology
+## Build topology — future work
 
 A build plan for width `L` is:
 
@@ -109,13 +109,15 @@ roles 2..L-1: middle (zero or more)
 role L: end
 ```
 
-The existing three role sprites per family remain useful. They should be modeled as role sprites rather than three unique one-off members.
+The existing three role sprites per family remain useful. They are role sprites, not three unique one-off physical members.
 
 Do not globally mutate one SpriteConfig's dimensions based on a player's current selection. Width belongs to the individual construction action/instance so future multiplayer and simultaneous builds remain possible.
 
+The previously researched `FaceInfo` proxy technique remains the preferred Build direction because it can expose per-instance variable geometry without transferring Core's representation ownership into Build. See `GarageDoorVariableWidthPlacementResearch.md`.
+
 ## Pickup transport model
 
-Garage transport becomes a collection of physical compatible parts rather than a fixed three-piece bundle.
+Garage transport is a collection of physical compatible parts rather than a fixed three-piece bundle.
 
 For one family:
 
@@ -125,11 +127,11 @@ For one family:
 1 x End
 ```
 
-Pickup must traverse the actual native chain from start through repeated middle members to end and create one parcel per physical member.
+Pickup traverses the actual native chain from Start through repeated Middle members to End and creates one parcel per physical member.
 
 Each parcel preserves the exact durability state of the physical segment it came from.
 
-There is no hidden garage/bundle identity. Previous runtime evidence already showed that same-family garage pieces can be exchanged between different physical garages, which is why parcel durability is displayed in inventory.
+There is no hidden garage/bundle identity. Same-family physical parts are intentionally interchangeable.
 
 ### Parcel identity and presentation
 
@@ -141,95 +143,116 @@ _Part2 -> Middle panel, repeatable
 _Part3 -> End
 ```
 
-User-facing translations must therefore say Start / Middle Panel / End (or localized equivalents), never `(1/3)`, `(2/3)`, `(3/3)`.
+User-facing translations should therefore describe Start / Middle Panel / End (or localized equivalents), never imply a fixed `(1/3)`, `(2/3)`, `(3/3)` garage bundle.
 
 ## Pickup reinstallation width
 
-Reinstallation width depends on compatible parts the player has available.
+Reinstallation width depends on compatible parts currently available to the character from the supported inventory/nearby-floor range.
 
 Examples:
 
 ```text
 Start + 3 Middle + End -> maximum L5
 Start + 2 Middle + End -> maximum L4
-Start + 0 Middle + End -> L2
+Start + 0 Middle + End -> maximum L2
 ```
 
 If a player picks up L5, discards one Middle, then reinstalls, LMION can build L4 from the remaining compatible pieces.
 
-The placement cursor should start from an appropriate available width and allow the player to decrease/increase the desired width without using clickable UI controls near the world cursor.
+The dedicated placement cursor starts at the maximum currently available permitted length and lets the player decrease/increase the desired width.
 
 ## Pickup width controls
 
-Use keyboard bindings, with intended defaults:
+Current configurable bindings default to:
 
 ```text
 Decrease garage width -> Numpad -
 Increase garage width -> Numpad +
+Rotate Building       -> N/W toggle
 ```
 
-These must be exposed as **configurable LMION key bindings** in Project Zomboid's key-binding options so players without a numeric keypad can rebind them.
-
-During Pickup/reinstallation placement:
+During dedicated Pickup/reinstallation placement:
 
 - left mouse remains dedicated to placement;
-- no clickable +/- buttons should sit under/near the world cursor;
-- changing width recalculates ghost geometry and placement validity;
+- changing width recalculates the explicit plan and ghost validity;
 - width may not exceed the number of compatible parts available;
 - while the LMION safety limit is active, width may not exceed L12;
-- with the safety limit lifted, there is no LMION numeric maximum.
+- with the safety limit lifted, there is no LMION numeric maximum;
+- orientation is intentionally N/W only.
 
-A non-interactive text indicator in the Moveables information panel shows current and maximum available width.
+## Dedicated Pickup placement architecture
 
-## B42 Lua-context discovery: cursor hooks belong in gameplay/server Lua
+The failed fixed-SpriteGrid experiment established that variable reinstallation must not be implemented by making vanilla `ISMoveableCursor` pretend a fixed L3 multisprite has arbitrary geometry.
 
-A failed implementation attempt established an important B42 loading rule.
-
-The client-side ModOptions file initially tried:
-
-```lua
-require "BuildingObjects/ISMoveableCursor"
-```
-
-and then hooked `ISMoveableCursor.renderSpriteGrid` directly. During main-menu/client Lua loading, that require failed and `ISMoveableCursor` was nil, producing a boot-time error:
+Current architecture deliberately separates pickup discovery from reinstallation:
 
 ```text
-require("BuildingObjects/ISMoveableCursor") failed
-attempted index: renderSpriteGrid of non-table: null
+vanilla ISMoveableCursor
+-> still used for world pickup/discovery
+-> synthetic historical L3 SpriteGrid may remain for Moveables identity
+
+inventory right-click Place on garage parcel
+-> ISMoveableContextMenu.openMovableCursor(item, playerObj)
+-> exact InventoryItem is available before vanilla SpriteGrid normalization
+-> LMION inventory wrapper recognizes family/role
+-> GarageDoor.openPlacementCursor()
+-> LMIONGaragePlacementCursor : ISBuildingObject
+-> explicit variable placement plan
+-> LMIONGaragePlacementAction
 ```
 
-Adding client-side timing/retry guards stopped the crash but still did not affect the actual gameplay cursor.
-
-The repository already had the correct proven integration point:
+`LMIONGaragePlacementCursor` owns only garage-specific placement state:
 
 ```text
-media/lua/server/LMION/Pickup/GarageDoorCursor.lua
+familyId
+selectedLength
+facing N/W
+character/player
 ```
 
-That file can require `BuildingObjects/ISMoveableCursor` in the same gameplay Lua context used by vanilla BuildingObjects and already successfully owns garage cursor rendering.
-
-Durable rule:
+Its geometry comes from `GarageDoor.buildPlacementPlan()`:
 
 ```text
-client GarageWidthKeys.lua
--> register persistent/configurable ModOptions key bindings only
-
-gameplay/server GarageDoorCursor.lua
--> hook ISMoveableCursor
--> render variable footprint
--> show width feedback
--> react to width keys during placement
+START + MIDDLE * (L-2) + END
 ```
 
-Do not move `ISMoveableCursor` hooks back into the early client ModOptions loader.
+Every physical planned member is validated and placed as a single segment (`isMultiSprite=false`) so the historical L3 SpriteGrid cannot reassert fixed geometry during variable placement.
 
-A temporary validation log is emitted when the gameplay hooks load:
+The dedicated timed action revalidates the same plan and only consumes parcels after all physical members are successfully created. An unexpected partial creation is cleaned up and leaves parcels untouched.
+
+### Lua loading rule
+
+The client-side file registers key bindings and wraps the inventory UI entry point only when its vanilla entry point and LMION GarageDoor table are available.
+
+`GarageDoorCursor.lua` lives in gameplay/server BuildingObjects context and later attaches `GarageDoor.openPlacementCursor`.
+
+Do **not** force-load that server-tree cursor from the early client file. The UI wrapper is allowed to exist before `openPlacementCursor` is attached; it resolves/checks the method at click time.
+
+See `GarageDoorPlacementEntryPath.md` for the exact loading and handoff contract.
+
+## Persistent Moveables sidebar `Place`
+
+The left-side Moveables `Place` icon is intentionally **not** another route into the dedicated variable cursor.
+
+It enters generic vanilla Moveables Place mode without an explicit item parameter. The selected catalogue entry is resolved later through `getInventoryObjectList()` / `objectIndex`, after multisprite entries have been normalized through their SpriteGrid anchor.
+
+For LMION garage parcels this means:
 
 ```text
-[LMION:Pickup] garage variable-width cursor hooks installed
+sidebar Place
+-> vanilla ISMoveableCursor catalogue
+-> historical synthetic L3 SpriteGrid
+-> fixed L3 garage placement
 ```
 
-If variable placement appears inactive, check for that line before researching geometry or parcel counting.
+This behavior has been accepted as the final UX contract:
+
+```text
+inventory right-click Place -> variable LMION garage
+sidebar Place               -> vanilla L3 garage
+```
+
+Do not reintroduce the reverted sidebar handoff, global `isValid()` hooks, rotate/TAB interception or a hybrid Moveables state machine merely to make the two controls behave identically.
 
 ## Family compatibility
 
@@ -242,7 +265,7 @@ White Start + White Middle(s) + White End -> valid
 White Start + Green Middle + White End -> reject by LMION
 ```
 
-Vanilla may be permissive enough to operate visually mixed role chains, but native acceptance alone is not a reason for LMION to expose Frankenstein garages as normal gameplay. Cross-family mixing can remain an addon/compatibility extension if desired later.
+Vanilla may be permissive enough to operate visually mixed role chains, but native acceptance alone is not a reason for LMION to expose mixed-family garages as normal gameplay. Cross-family mixing can remain an addon/compatibility extension if desired later.
 
 ## Architecture ownership
 
@@ -254,15 +277,15 @@ Core
 -> width-policy primitive suitable for future sandbox/server authority
 
 Build
--> construction-window width selection
--> frozen per-build width
--> variable recipe requirements
--> variable build plan
+-> future construction-window width selection
+-> future frozen per-build width
+-> future variable recipe requirements/build plan
 
 Pickup
 -> actual-chain traversal
 -> parcels for Start/Middle/End physical pieces
 -> inventory-derived reinstallation width
+-> dedicated variable placement cursor/action
 -> configurable placement width keybinds
 ```
 
@@ -272,35 +295,34 @@ Build and Pickup must not depend on each other. Both consume Core semantics.
 
 Implemented:
 
-- Core variable roles and actual-chain traversal;
+- Core semantic garage roles and actual-chain traversal;
 - artificial L12 policy with option to lift it;
 - Pickup actual-chain dismantling;
-- repeatable Middle parcels;
+- one parcel per physical chain member, including repeatable Middle parcels;
 - variable reinstallation planning from compatible available parts;
-- configurable width-key definitions;
-- gameplay cursor variable-footprint rendering/feedback/key handler wired through `GarageDoorCursor.lua`.
+- configurable width keys;
+- dedicated `ISBuildingObject` garage placement cursor;
+- dedicated placement timed action independent from fixed SpriteGrid geometry;
+- exact-item inventory context-menu handoff;
+- intentional vanilla sidebar L3 fallback/behavior.
 
-Runtime validated so far:
+Runtime-validated current behavior:
 
-- variable-width Pickup successfully dismantles a tested garage and creates all physical parcels.
+- variable garages can be picked up as their actual physical chain;
+- inventory right-click `Place` reaches the dedicated variable cursor;
+- width changes and N/W rotation work on that path;
+- variable physical placement works;
+- exact physical-segment durability survives Pickup/replacement;
+- resulting garages resume native synchronized behavior;
+- left Moveables sidebar `Place` remains vanilla and places L3, which is intentional.
 
-Still awaiting validation after the gameplay-cursor wiring correction:
+Build variable-width implementation has intentionally not started yet.
 
-- L2/L3/L5/L12 variable placement ghost;
-- +/- visible resizing;
-- current/max width feedback;
-- actual placement and consumption of only selected pieces;
-- N/W rotation for variable widths.
+## Remaining implementation order
 
-Build variable-width implementation has intentionally not started yet; Pickup placement should be stable first.
-
-## Implementation order
-
-1. Core: formalize variable garage roles/chain traversal and width-policy constants/query — **implemented**;
-2. Pickup: refactor fixed assumptions into Start/Middle/End roles and variable chain capture — **implemented; Pickup runtime works**;
-3. Pickup: variable reinstallation plan + configurable width keybinds + L12 safety policy — **implemented, placement runtime validation pending**;
-4. Build: determine the clean B42 construction-window extension point and per-instance width storage;
-5. Build: implement dynamic requirements with fixed BlowTorch cost and chosen material scaling;
-6. Build: generate variable-width construction placement safely without globally mutating shared SpriteConfigs;
-7. runtime validate L2, L3, L5 and L12 in N/W, including Pickup shrink/rebuild scenarios;
-8. only after single-player behavior is stable, revisit multiplayer/server-admin authority for oversized garages.
+1. **Pickup variable transport/reinstallation — implemented and validated.** Preserve the inventory/sidebar split unless a new requirement appears.
+2. Build: determine the clean B42 construction-window extension point and per-instance width storage.
+3. Build: implement dynamic requirements with fixed BlowTorch cost and chosen material scaling.
+4. Build: generate variable-width construction placement safely without globally mutating shared SpriteConfigs.
+5. Runtime validate Build L2/L3/L5/L12 in N/W and verify material requirements match the frozen width.
+6. Only after single-player Build behavior is stable, revisit multiplayer/server-admin authority for oversized garages.
