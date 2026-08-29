@@ -32,7 +32,7 @@ module Base
                 item 1 tags[base:weldingmask] mode:keep,
                 item 1 [Base.BlowTorch] flags[DontRecordInput],
                 item 6 [Base.SmallSheetMetal],
-                item 2 [Base.MetalBar;Base.IronBar],
+                item variable[2:2147483647] [Base.MetalBar;Base.IronBar],
                 item 4 [Base.Hinge],
                 item 2 [Base.WeldingRods] flags[DontRecordInput],
             }
