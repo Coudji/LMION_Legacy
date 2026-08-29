@@ -12,6 +12,8 @@ local BAR_TYPE_SET = {
     ["Base.IronBar"] = true,
 }
 
+local LAST_CONSUMED_MATERIALS = setmetatable({}, {__mode = "k"})
+
 GarageBuild.BarTypes = BAR_TYPES
 
 if GarageBuild._originalAlternativeGetAvailable == nil then
@@ -24,6 +26,10 @@ end
 
 if GarageBuild._originalAlternativeConsumeExtras == nil then
     GarageBuild._originalAlternativeConsumeExtras = GarageBuild.consumeExtras
+end
+
+if GarageBuild._originalAlternativeRecordExtras == nil then
+    GarageBuild._originalAlternativeRecordExtras = GarageBuild.recordExtrasOnBuildObject
 end
 
 local function addItem(entry, item, seen)
@@ -131,7 +137,7 @@ GarageBuild.hasRequirements = function(character, id, length, containers, fresh)
     return true
 end
 
-local function consumeItems(character, uses, amount, items)
+local function consumeItems(character, uses, amount, items, consumedMaterials)
     local remaining = amount
 
     for _, item in ipairs(items or {}) do
@@ -144,20 +150,28 @@ local function consumeItems(character, uses, amount, items)
                 remaining = remaining - buildUtil.useDrainable(item, remaining)
             end
         else
+            local fullType = item and item:getFullType() or nil
             character:removeFromHands(item)
             local worldObject = item and item:getWorldItem() or nil
             local square = worldObject and worldObject:getSquare() or nil
+            local removed = false
 
             if square ~= nil then
                 square:transmitRemoveItemFromSquare(worldObject)
                 item:setWorldItem(nil)
                 remaining = remaining - 1
+                removed = true
             else
                 local container = item and item:getContainer() or nil
                 if container ~= nil then
                     container:Remove(item)
                     remaining = remaining - 1
+                    removed = true
                 end
+            end
+
+            if removed and fullType ~= nil then
+                consumedMaterials[fullType] = (consumedMaterials[fullType] or 0) + 1
             end
         end
     end
@@ -166,6 +180,8 @@ local function consumeItems(character, uses, amount, items)
 end
 
 GarageBuild.consumeExtras = function(character, id, length, containers)
+    LAST_CONSUMED_MATERIALS[character] = nil
+
     local extras = GarageBuild.getExtraRequirements(id, length)
     if extras == nil then
         return true
@@ -189,6 +205,8 @@ GarageBuild.consumeExtras = function(character, id, length, containers)
         end
     end
 
+    local consumedMaterials = {}
+
     for fullType, requirement in pairs(extras) do
         local items
         if BAR_TYPE_SET[fullType] then
@@ -199,14 +217,45 @@ GarageBuild.consumeExtras = function(character, id, length, containers)
             items = entry and entry.items or nil
         end
 
-        if consumeItems(character, requirement.uses, requirement.amount, items) > 0 then
+        if consumeItems(
+            character,
+            requirement.uses,
+            requirement.amount,
+            items,
+            consumedMaterials
+        ) > 0 then
             GarageBuild.invalidateStock(character)
             return false
         end
     end
 
+    LAST_CONSUMED_MATERIALS[character] = consumedMaterials
     GarageBuild.invalidateStock(character)
     return true
+end
+
+-- Vanilla records the actual L2 alternative items. Do the same for the variable
+-- delta so a mixed MetalBar/IronBar garage keeps truthful build-material data.
+GarageBuild.recordExtrasOnBuildObject = function(buildObject, id, length)
+    local character = buildObject and buildObject.character or nil
+    local consumedMaterials = character and LAST_CONSUMED_MATERIALS[character] or nil
+
+    if consumedMaterials == nil then
+        return GarageBuild._originalAlternativeRecordExtras(buildObject, id, length)
+    end
+
+    LAST_CONSUMED_MATERIALS[character] = nil
+
+    if buildObject == nil or buildObject.modData == nil then
+        return
+    end
+
+    for fullType, amount in pairs(consumedMaterials) do
+        if amount > 0 then
+            local key = "need:" .. fullType
+            buildObject.modData[key] = (tonumber(buildObject.modData[key]) or 0) + amount
+        end
+    end
 end
 
 return GarageBuild
