@@ -1,112 +1,130 @@
 # LMION technical research archive
 
-This directory preserves the engine research and implementation rationale that would otherwise be lost between development sessions.
+This directory preserves engine research and implementation rationale that would otherwise be lost between development sessions.
 
 The goal is not only to record what LMION currently does. It is to preserve **why it does it that way**, what was verified in Project Zomboid, which alternatives were tried, and what addon authors must know before extending or replacing a subsystem.
 
-This material is intended to serve three audiences:
-
-- future LMION development, so solved engine problems are not rediscovered;
-- addon authors, so they can build against LMION without depending on accidental implementation details;
-- future public documentation/wiki pages, which can summarize these technical notes without having to reconstruct the research from Git history.
-
 ## Evidence and status vocabulary
 
-Research notes should distinguish conclusions by evidence level instead of presenting every statement as equally certain.
+Use explicit evidence levels:
 
 - **Bytecode-verified B42.20.3** — confirmed from `projectzomboid.jar` for Build 42.20.3.
-- **API-verified B42.20.3** — confirmed from the public methods exposed by the B42.20.3 classes used by Lua/Kahlua.
-- **Vanilla-Lua verified** — confirmed from the corresponding vanilla Lua implementation.
+- **API-verified B42.20.3** — confirmed from public methods exposed to Lua/Kahlua.
+- **Vanilla-Lua verified** — confirmed from vanilla Build 42 Lua/scripts.
 - **Runtime-validated** — reproduced in game in the current LMION test setup.
-- **Git-history recovered** — reconstructed from earlier commits/diffs after the original conversation context was no longer available.
-- **Historical / superseded** — useful to understand an old decision or failed approach, but not current behavior.
-- **Open** — plausible or partially observed, but not yet established strongly enough to become an LMION contract.
+- **Git-history recovered** — reconstructed from commits/diffs.
+- **Historical / superseded** — useful rationale, not current behavior.
+- **Open** — plausible/partially observed but not established enough to become a contract.
 
-When Project Zomboid changes version, bytecode/API findings are version-specific until revalidated.
+When Project Zomboid changes version, bytecode/API findings remain version-specific until revalidated.
 
 ## Source hierarchy
 
-For engine behavior, prefer evidence in roughly this order:
+For engine behavior, prefer roughly:
 
-1. B42.20.3 Java bytecode/API when the behavior is implemented in Java;
-2. vanilla Build 42 Lua/scripts when the behavior is implemented there;
-3. controlled in-game tests and logs;
+1. Java bytecode/API for Java behavior;
+2. vanilla Build 42 Lua/scripts for Lua/script behavior;
+3. controlled runtime tests/logs;
 4. current LMION code;
-5. Git history, especially commits that introduce/remove a workaround;
-6. older documentation as historical evidence only.
+5. Git history;
+6. older prose as historical evidence.
 
-Old LMION prose is useful archaeology, but it may contain assumptions that were later disproved. Current code/runtime evidence and focused research notes outrank stale documentation.
+Current code/runtime evidence and focused research notes outrank stale documentation.
 
 ## Documentation roles
 
-The repository intentionally keeps only a small documentation surface:
+- `README.md` — short public overview.
+- `README_DEV.md` — authoritative current-state architecture/handoff.
+- `Research/` — engine forensics, lifecycle constraints, failed approaches and addon-facing contracts.
+- `DOOR_CATALOG.md` / `DOOR_CATALOG_VALUES.md` — working catalog data; do not edit unless the current task concerns the catalog.
 
-- `README.md` — short public overview;
-- `README_DEV.md` — authoritative development/handoff document: architecture, current state, design guardrails, workflow and future-session instructions;
-- `Research/` — this archive: engine forensics, lifecycle constraints, failed approaches and addon-facing technical contracts;
-- `DOOR_CATALOG.md` / `DOOR_CATALOG_VALUES.md` — working catalog data, kept separate from architecture/research documentation.
-
-A durable conclusion may be summarized in `README_DEV.md` and explained fully here. Detailed research should not be deleted merely because the final implementation becomes simple.
+Detailed research should not be deleted merely because the final implementation becomes simple.
 
 ## Current research notes
 
+### Architecture
+
+- [`Architecture/CodeOrganization.md`](Architecture/CodeOrganization.md) — current Core/Build/Pickup/Debug ownership boundaries, addon-independence audit and current garage Build file responsibilities.
+- [`Architecture/DoorObjectAbstraction.md`](Architecture/DoorObjectAbstraction.md) — canonical `IsoDoor` output policy and why source `IsoThumpable(isDoor)` remains input-only.
+- [`Architecture/OpeningExtensions.md`](Architecture/OpeningExtensions.md) — opening/profile extension architecture and shared semantic boundaries.
+
 ### Engine
 
-- [`Engine/DoorHealth.md`](Engine/DoorHealth.md) — why LMION has `lmionDoorMaxHealth`, the `IsoDoor`/`IsoThumpable` API mismatch, world adoption and repair implications.
+- [`Engine/DoorHealth.md`](Engine/DoorHealth.md) — effective max health, `IsoDoor`/`IsoThumpable` API mismatch and durability implications.
 - [`Engine/PropertyAliases.md`](Engine/PropertyAliases.md) — why engine-facing property writes require exact readback and restoration.
-- [`Engine/LoadLifecycle.md`](Engine/LoadLifecycle.md) — why different LMION mutations run at Lua load, `OnGameBoot`, `OnLoadedTileDefinitions`, `LoadGridsquare` or `OnObjectAdded`.
-- [`Engine/B42LuaLoadOrder.md`](Engine/B42LuaLoadOrder.md) — bytecode/runtime-backed `shared -> client -> server` phase order, per-phase alphabetical loading, `require()` visibility rules and dedicated-server behavior.
-- [`Engine/SpriteConfigLifecycle.md`](Engine/SpriteConfigLifecycle.md) — scripted-sprite ownership, targeted `SpriteConfigScript:PreReload()`, and the failed large-gate ownership prototypes.
+- [`Engine/LoadLifecycle.md`](Engine/LoadLifecycle.md) — lifecycle event ownership for different mutations.
+- [`Engine/B42LuaLoadOrder.md`](Engine/B42LuaLoadOrder.md) — bytecode/runtime-backed Lua phase order, automatic phase execution, alphabetical path ordering, `require()` visibility and dedicated-server behavior.
+- [`Engine/SpriteConfigLifecycle.md`](Engine/SpriteConfigLifecycle.md) — scripted-sprite ownership and targeted SpriteConfig reload behavior.
+- [`Engine/GarageThumpableInteraction.md`](Engine/GarageThumpableInteraction.md) — why complete native GarageDoor behavior requires `IsoDoor` and why garage `OnCreate` canonicalizes early.
 
-### Moveables / multi-tile openings
+### Moveables / large gates
 
-- [`Moveables/LargeGateLeaves.md`](Moveables/LargeGateLeaves.md) — validated Chain-Link leaf pickup/rotation/replacement architecture, DoubleDoor index geometry, runtime SpriteGrid bridge and preview rendering discovery.
+- [`Moveables/LargeGateLeaves.md`](Moveables/LargeGateLeaves.md) — A/B leaf pickup/rotation/replacement architecture, DoubleDoor geometry and runtime SpriteGrid bridge.
+- [`Moveables/LargeGateOpenPickup.md`](Moveables/LargeGateOpenPickup.md) — open-state leaf Pickup/reconnection rules, untouched-partner policy and rejected hybrid states.
 
-### Door-specific research already present
+### Garage topology, Pickup and Build
+
+- [`Moveables/GarageDoorTopology.md`](Moveables/GarageDoorTopology.md) — native `START / MIDDLE / END` topology and variable-length engine evidence.
+- [`Moveables/GarageDoorValidation.md`](Moveables/GarageDoorValidation.md) — family/sprite validation constraints and known-good garage definitions.
+- [`Moveables/GarageDoorPlacementEntryPath.md`](Moveables/GarageDoorPlacementEntryPath.md) — intentional split between variable inventory right-click placement and vanilla fixed-L3 Moveables sidebar placement.
+- [`Moveables/GarageDoorVariableWidthPlacementResearch.md`](Moveables/GarageDoorVariableWidthPlacementResearch.md) — research behind explicit variable reinstallation geometry/cursor behavior.
+- [`Moveables/GarageDoorVariableWidthDesign.md`](Moveables/GarageDoorVariableWidthDesign.md) — current cross-addon variable-width contract: Core semantics consumed independently by Pickup and Build.
+- [`Moveables/GarageDoorVariableBuildPrototype.md`](Moveables/GarageDoorVariableBuildPrototype.md) — current variable Build implementation, material formulas, B42 variable-bar integration, rejected paths and runtime validation status. The historical filename is retained even though the feature is no longer merely a prototype.
+- [`Moveables/VanillaMoveablesBehavior.md`](Moveables/VanillaMoveablesBehavior.md) — vanilla Moveables behavior relevant to LMION integration.
+
+### Door-specific research
 
 - [`Doors/Base.WoodenDoorLvl3.md`](Doors/Base.WoodenDoorLvl3.md) — detailed research snapshot for the vanilla wooden-door entity.
 - [`Doors/LogGateMirrorDiscovery.md`](Doors/LogGateMirrorDiscovery.md) — mirrored large log-gate sprite discovery.
 
+## Current open follow-ups
+
+These are known research/validation gaps, not current architecture failures:
+
+- multiplayer/server-client validation of variable garage Build;
+- runtime addon-combination matrix (`Core+Build`, `Core+Pickup`, `Core+Debug`, `Core+Build+Pickup`);
+- engine-profile alias rejection audit, especially the suspicious `MaterialType` projection/readback behavior;
+- exhaustive all-family/all-width/all-orientation normal-mode garage Build matrix;
+- later gameplay-balance review for Pickup/Place duration.
+
 ## Addon documentation rule
 
-When an LMION subsystem becomes something addons may reasonably interact with, its research note should include an **Addon contract** section that states:
+When a subsystem becomes something addons may reasonably interact with, its note should state:
 
 - which data/API is intentional and safe to depend on;
 - which global engine objects LMION mutates;
-- which lifecycle event must have happened before the data is valid;
-- what an addon must preserve when wrapping/overriding the same vanilla function;
+- which lifecycle event must have happened before data is valid;
+- what an addon must preserve when wrapping the same vanilla function;
 - what is an implementation detail and may change.
 
-This is preferable to forcing addon authors to infer contracts from monkey patches or copied table layouts.
+Addon authors should target Core semantic APIs rather than copy Build/Pickup monkey patches or private table layouts.
 
-## What should be recorded during future research
+## What to record during future research
 
 For a non-trivial engine problem, preserve at least:
 
-1. **Question / symptom** — what looked wrong or was not known.
-2. **Evidence** — Java method, vanilla Lua, runtime log/test, or commit that proves the point.
-3. **Conclusion** — what we now know about the engine.
-4. **LMION decision** — how the mod uses that information.
-5. **Rejected alternatives** — especially approaches that looked reasonable but failed.
-6. **Lifecycle constraint** — if timing/load order matters.
-7. **Addon contract** — when third-party code may need to interact with it.
-8. **Revalidation trigger** — what PZ/LMION change would make the conclusion worth checking again.
+1. question/symptom;
+2. evidence;
+3. conclusion;
+4. LMION decision;
+5. rejected alternatives;
+6. lifecycle constraint;
+7. addon contract when relevant;
+8. revalidation trigger.
 
-The important rule is simple: **do not compress an expensive engine discovery into a one-line implementation comment and then throw the discovery away.**
+The rule is simple: **do not compress an expensive engine discovery into one implementation comment and then throw the discovery away.**
 
 ## Archaeology backlog
 
-Several older development areas still deserve the same treatment. They can be reconstructed progressively from Git history and the B42.20.3 sources rather than guessed from memory:
+Older areas still worth formalizing when they become relevant:
 
-- construction `IsoThumpable -> IsoDoor` conversion and exact state copied during normalization;
+- construction `IsoThumpable -> IsoDoor` state-copy details outside the already-documented garage path;
 - Moveables state serialization/restoration for normal 1x1 doors;
-- frame-aware placement and why some doors/gates bypass a frame requirement;
-- sliding-door and fence-gate classification/tool decisions;
-- garage-door linkage (`garageDoorIndex`, `garage.first/prev/next`) as a system distinct from DoubleDoor;
-- glass/window-state investigation and why LMION currently does not serialize a separate glass state;
-- Debug reload behavior in single-player vs multiplayer and which stale closures/instances survive a Lua reload;
+- frame-aware placement and exceptions;
+- sliding-door and fence-gate classification/tool rationale;
+- glass/window-state investigation;
+- Debug reload behavior in SP vs MP and stale closure/instance behavior;
 - Inspector evolution and removal of broad reflection/runtime dumping;
-- the removed intrusive `MoveablesTrace.lua` experiment;
-- localization lookup quirks and evidence for normalized recipe keys.
+- localization lookup quirks and normalized recipe-key evidence.
 
-Items should move out of this backlog only when the surviving evidence is strong enough to explain both the conclusion and its limits.
+Move backlog items into focused notes only when surviving evidence is strong enough to explain both the conclusion and its limits.
