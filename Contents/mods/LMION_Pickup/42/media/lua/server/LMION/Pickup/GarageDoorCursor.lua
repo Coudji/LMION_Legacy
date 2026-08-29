@@ -1,4 +1,5 @@
 require "BuildingObjects/ISMoveableCursor"
+require "Moveables/ISMoveablesAction"
 require "LMION/Pickup/GarageDoorPlacement"
 
 local Pickup = LMION.Pickup
@@ -16,21 +17,6 @@ local function isGarageMoveProps(moveProps)
     return moveProps ~= nil
         and moveProps.lmionGarageFamily ~= nil
         and moveProps.lmionGaragePart ~= nil
-end
-
-local function clearLegacyOutline(cursor)
-    local objects = cursor and cursor.lmionGarageOutlinedObjects or nil
-    if objects == nil then
-        return
-    end
-
-    for _, object in ipairs(objects) do
-        if object ~= nil then
-            object:setOutlineHighlight(cursor.player, false)
-        end
-    end
-
-    cursor.lmionGarageOutlinedObjects = nil
 end
 
 local function renderFloorSquare(square)
@@ -55,6 +41,8 @@ local function renderFloorFootprint(members)
     end
 end
 
+-- Keep the proven variable-chain pickup highlighting on vanilla ISMoveableCursor.
+-- Placement is deliberately NOT handled by ISMoveableCursor anymore.
 local function renderOpenPickupFootprint(self, x, y, z)
     local moveProps = ensureGarageMoveProps(self.currentMoveProps)
     local mode = ISMoveableCursor.mode and ISMoveableCursor.mode[self.player] or nil
@@ -88,8 +76,6 @@ if Pickup._garageDoorOriginalRenderSpriteGrid == nil then
 end
 
 ISMoveableCursor.renderSpriteGrid = function(self, x, y, z, color)
-    clearLegacyOutline(self)
-
     local mode = ISMoveableCursor.mode and ISMoveableCursor.mode[self.player] or nil
     local origMoveProps = ensureGarageMoveProps(self.origMoveProps)
     local currentMoveProps = ensureGarageMoveProps(self.currentMoveProps)
@@ -107,77 +93,7 @@ ISMoveableCursor.renderSpriteGrid = function(self, x, y, z, color)
         return
     end
 
-    if mode == "place" and isGarageMoveProps(currentMoveProps) then
-        local square = self.currentSquare or getCell():getGridSquare(x, y, z)
-        local plan = GarageDoor.buildPlacementPlan(currentMoveProps, self.character, square)
-        if plan ~= nil then
-            for position = 1, plan.length do
-                local entry = plan[position]
-                local targetSquare = entry.square
-                renderFloorSquare(targetSquare)
-
-                local sprite = getSprite(entry.spriteName)
-                if sprite ~= nil then
-                    sprite:RenderGhostTileColor(
-                        targetSquare:getX(),
-                        targetSquare:getY(),
-                        targetSquare:getZ(),
-                        0,
-                        (self.yOffset or 0) * Core.getTileScale(),
-                        color.r,
-                        color.g,
-                        color.b,
-                        0.8
-                    )
-                end
-            end
-            return
-        end
-    end
-
     return Pickup._garageDoorOriginalRenderSpriteGrid(self, x, y, z, color)
-end
-
-if Pickup._garageDoorOriginalSetInfoPanel == nil then
-    Pickup._garageDoorOriginalSetInfoPanel = ISMoveableCursor.setInfoPanel
-end
-
-ISMoveableCursor.setInfoPanel = function(self, square, object, moveProps, customTexture)
-    local infoPanel = Pickup._garageDoorOriginalSetInfoPanel(self, square, object, moveProps, customTexture)
-    moveProps = ensureGarageMoveProps(moveProps)
-    local mode = ISMoveableCursor.mode and ISMoveableCursor.mode[self.player] or nil
-
-    if infoPanel ~= nil
-        and mode == "place"
-        and square ~= nil
-        and isGarageMoveProps(moveProps) then
-        local plan = GarageDoor.buildPlacementPlan(moveProps, self.character, square)
-        local maximum = GarageDoor.getMaximumAvailableLength(self.character, moveProps.lmionGarageFamily)
-
-        if plan ~= nil and maximum ~= nil then
-            infoPanel:setFooterText(
-                getText("UI_LMION_GarageWidthCurrent") .. " L" .. tostring(plan.length)
-                    .. "  |  " .. getText("UI_LMION_GarageWidthMaximum") .. " L" .. tostring(maximum)
-                    .. "[br/]" .. getText("UI_LMION_GarageWidthAdjust"),
-                UIFont.Small
-            )
-
-            local diagnosticKey = tostring(moveProps.lmionGarageFamily)
-                .. ":" .. tostring(plan.length)
-                .. ":" .. tostring(maximum)
-            if Pickup._garageDoorCursorDiagnosticKey ~= diagnosticKey then
-                Pickup._garageDoorCursorDiagnosticKey = diagnosticKey
-                LMION.log(
-                    "Pickup",
-                    "garage placement cursor family=" .. tostring(moveProps.lmionGarageFamily)
-                        .. " selected=L" .. tostring(plan.length)
-                        .. " max=L" .. tostring(maximum)
-                )
-            end
-        end
-    end
-
-    return infoPanel
 end
 
 local function getWidthKey(optionId, fallback)
@@ -191,61 +107,264 @@ local function getWidthKey(optionId, fallback)
     return fallback
 end
 
-local function onGarageWidthKey(key)
-    local player = getPlayer()
-    if player == nil or getCell() == nil then
-        return
+-- Dedicated timed action -----------------------------------------------------
+
+LMIONGaragePlacementAction = ISMoveablesAction:derive("LMIONGaragePlacementAction")
+
+function LMIONGaragePlacementAction:isValid()
+    local playerSquare = self.character and self.character:getSquare() or nil
+    if playerSquare == nil or self.square == nil or playerSquare:getZ() ~= self.square:getZ() then
+        return false
     end
 
-    local playerNum = player:getPlayerNum()
-    local cursor = getCell():getDrag(playerNum)
-    if cursor == nil
-        or cursor.Type ~= "ISMoveableCursor"
-        or ISMoveableCursor.mode[playerNum] ~= "place" then
-        return
+    local plan = GarageDoor.buildPlacementPlan(
+        self.character,
+        self.familyId,
+        self.length,
+        self.facing,
+        self.square
+    )
+    if plan == nil or not GarageDoor.validatePlacementPlan(self.character, plan) then
+        return false
     end
 
-    local moveProps = ensureGarageMoveProps(cursor.currentMoveProps or cursor.origMoveProps)
-    if not isGarageMoveProps(moveProps) then
-        return
+    if not ISMoveableDefinitions.cheat and not self.character:isMovablesCheat() then
+        local adjacent = false
+        for position = 1, plan.length do
+            local targetSquare = plan[position].square
+            if targetSquare == playerSquare or playerSquare:isAdjacentTo(targetSquare) then
+                adjacent = true
+                break
+            end
+        end
+        if not adjacent then
+            return false
+        end
     end
 
-    local delta = nil
-    if key == getWidthKey("GarageWidthDecrease", Keyboard.KEY_SUBTRACT) then
-        delta = -1
-    elseif key == getWidthKey("GarageWidthIncrease", Keyboard.KEY_ADD) then
-        delta = 1
+    if isClient() and SafeHouse.isSafeHouse(self.square, self.character:getUsername(), true) then
+        if not SafeHouse.isSafehouseAllowLoot(self.square, self.character) then
+            return false
+        end
     end
 
-    if delta == nil then
-        return
-    end
+    return true
+end
 
-    local currentPlan = cursor.currentSquare
-        and GarageDoor.buildPlacementPlan(moveProps, cursor.character, cursor.currentSquare)
-        or nil
-    local oldLength = currentPlan and currentPlan.length or nil
-    local newLength = GarageDoor.adjustPlacementLength(cursor.character, moveProps.lmionGarageFamily, delta)
-
-    LMION.log(
-        "Pickup",
-        "garage width key family=" .. tostring(moveProps.lmionGarageFamily)
-            .. " delta=" .. tostring(delta)
-            .. " old=" .. tostring(oldLength)
-            .. " new=" .. tostring(newLength)
+function LMIONGaragePlacementAction:complete()
+    local plan = GarageDoor.buildPlacementPlan(
+        self.character,
+        self.familyId,
+        self.length,
+        self.facing,
+        self.square
     )
 
-    if newLength ~= nil and newLength ~= oldLength then
-        cursor:clearCache()
+    if plan == nil then
+        return false
+    end
+
+    local placed = GarageDoor.placePlacementPlan(self.character, plan)
+    if placed == nil then
+        return false
+    end
+
+    for position = 1, plan.length do
+        buildUtil.setHaveConstruction(plan[position].square, true)
+    end
+
+    return true
+end
+
+function LMIONGaragePlacementAction:new(character, square, familyId, length, facing)
+    local o = ISBaseTimedAction.new(self, character)
+    o.playerNum = character:getPlayerNum()
+    o.square = square
+    o.familyId = familyId
+    o.length = length
+    o.facing = facing
+    o.mode = "place"
+    o.moveProps = GarageDoor.getPlacementMoveProps(familyId, facing)
+    o.origMoveProps = o.moveProps
+    o.origSpriteName = o.moveProps and o.moveProps.spriteName or nil
+    o.maxTime = o:getDuration()
+    return o
+end
+
+-- Dedicated cursor ----------------------------------------------------------
+
+LMIONGaragePlacementCursor = ISBuildingObject:derive("LMIONGaragePlacementCursor")
+
+function LMIONGaragePlacementCursor:getSprite()
+    local family = GarageDoor.Families[self.familyId]
+    local startPart = family and family.parts[LMION.Doors.GarageRole.START] or nil
+    return startPart and startPart.faces and startPart.faces[self.facing] or nil
+end
+
+function LMIONGaragePlacementCursor:getMaximumLength()
+    return GarageDoor.getMaximumAvailableLength(self.character, self.familyId)
+end
+
+function LMIONGaragePlacementCursor:getPlan(square)
+    return GarageDoor.buildPlacementPlan(
+        self.character,
+        self.familyId,
+        self.selectedLength,
+        self.facing,
+        square
+    )
+end
+
+function LMIONGaragePlacementCursor:isValid(square)
+    local maximum = self:getMaximumLength()
+    if maximum == nil then
+        return false
+    end
+
+    self.selectedLength = math.max(2, math.min(self.selectedLength, maximum))
+    local plan = self:getPlan(square)
+    return plan ~= nil and GarageDoor.validatePlacementPlan(self.character, plan)
+end
+
+function LMIONGaragePlacementCursor:render(x, y, z, square)
+    local plan = self:getPlan(square)
+    if plan == nil then
+        return
+    end
+
+    local valid = GarageDoor.validatePlacementPlan(self.character, plan)
+    local r = valid and 0.5 or 1.0
+    local g = valid and 1.0 or 0.0
+    local b = valid and 0.5 or 0.0
+
+    for position = 1, plan.length do
+        local entry = plan[position]
+        renderFloorSquare(entry.square)
+
+        local sprite = getSprite(entry.spriteName)
+        if sprite ~= nil then
+            sprite:RenderGhostTileColor(
+                entry.square:getX(),
+                entry.square:getY(),
+                entry.square:getZ(),
+                0,
+                0,
+                r,
+                g,
+                b,
+                0.8
+            )
+        end
+    end
+end
+
+-- Garage orientation is only N/W. Mouse-drag rotation would run the generic
+-- four-direction ISBuildingObject state machine, so this dedicated cursor uses
+-- explicit key rotation only.
+function LMIONGaragePlacementCursor:rotateMouse(x, y)
+end
+
+function LMIONGaragePlacementCursor:rotateKey(key)
+    local decreaseKey = getWidthKey("GarageWidthDecrease", Keyboard.KEY_SUBTRACT)
+    local increaseKey = getWidthKey("GarageWidthIncrease", Keyboard.KEY_ADD)
+
+    if key == decreaseKey then
+        local previous = self.selectedLength
+        self.selectedLength = math.max(2, self.selectedLength - 1)
+        if self.selectedLength ~= previous then
+            getSoundManager():playUISound("UIObjectMenuObjectRotateOutline")
+        end
+        return
+    end
+
+    if key == increaseKey then
+        local maximum = self:getMaximumLength()
+        if maximum ~= nil then
+            local previous = self.selectedLength
+            self.selectedLength = math.min(maximum, self.selectedLength + 1)
+            if self.selectedLength ~= previous then
+                getSoundManager():playUISound("UIObjectMenuObjectRotateOutline")
+            end
+        end
+        return
+    end
+
+    if getCore():isKey("Rotate building", key) then
+        self.facing = self.facing == "N" and "W" or "N"
         getSoundManager():playUISound("UIObjectMenuObjectRotateOutline")
     end
 end
 
-Events.OnKeyPressed.Add(onGarageWidthKey)
-LMION.log("Pickup", "garage variable-width cursor hooks installed")
+function LMIONGaragePlacementCursor:create(x, y, z, north, sprite)
+    local square = getCell():getGridSquare(x, y, z)
+    local plan = self:getPlan(square)
+    if plan == nil or not GarageDoor.validatePlacementPlan(self.character, plan) then
+        return
+    end
 
-if Pickup._garageDoorOriginalCursorClearCache ~= nil then
-    ISMoveableCursor.clearCache = Pickup._garageDoorOriginalCursorClearCache
+    local moveProps = GarageDoor.getPlacementMoveProps(self.familyId, self.facing)
+    if moveProps == nil then
+        return
+    end
+
+    if ISMoveableDefinitions.cheat
+        or moveProps:walkToAndEquip(self.character, square, "place", plan[1].spriteName) then
+        ISTimedActionQueue.add(
+            LMIONGaragePlacementAction:new(
+                self.character,
+                square,
+                self.familyId,
+                self.selectedLength,
+                self.facing
+            )
+        )
+    end
 end
+
+function LMIONGaragePlacementCursor:new(character, familyId, initialFacing)
+    local o = ISBuildingObject.new(self)
+    o:init()
+    o.character = character
+    o.player = character:getPlayerNum()
+    o.familyId = familyId
+    o.facing = initialFacing == "W" and "W" or "N"
+    o.selectedLength = GarageDoor.getMaximumAvailableLength(character, familyId) or 2
+    o:setDragNilAfterPlace(true)
+    o.noNeedHammer = true
+    return o
+end
+
+-- Public handoff used by the client-side inventory context-menu hook.
+function GarageDoor.openPlacementCursor(item, character)
+    local identity = GarageDoor.getParcelIdentity(item)
+    if identity == nil or character == nil then
+        return false
+    end
+
+    local facing = "N"
+    local worldSpriteName = item.getWorldSprite and item:getWorldSprite() or nil
+    local segment = worldSpriteName and GarageDoor.SegmentsBySprite[worldSpriteName] or nil
+    if segment ~= nil and (segment.facing == "N" or segment.facing == "W") then
+        facing = segment.facing
+    end
+
+    local maximum = GarageDoor.getMaximumAvailableLength(character, identity.familyId)
+    if maximum == nil then
+        return false
+    end
+
+    local cursor = LMIONGaragePlacementCursor:new(character, identity.familyId, facing)
+    getCell():setDrag(cursor, cursor.player)
+
+    LMION.log(
+        "Pickup",
+        "garage placement cursor opened family=" .. tostring(identity.familyId)
+            .. " selected=L" .. tostring(cursor.selectedLength)
+            .. " max=L" .. tostring(maximum)
+    )
+    return true
+end
+
+LMION.log("Pickup", "dedicated variable-width garage placement cursor ready")
 
 return GarageDoor
