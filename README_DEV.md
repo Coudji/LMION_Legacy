@@ -1,6 +1,6 @@
 # Let Me In... Or Not — Development & handoff
 
-Last updated: 2026-08-28
+Last updated: 2026-08-29
 
 This is the **single authoritative development/handoff document** for LMION. Read it at the start of a new development session, then inspect current `main` and the relevant note under `Research/`.
 
@@ -341,7 +341,13 @@ No concrete state-loss bug has been reproduced from it. Do not add a workaround 
 
 ### Garage doors
 
-Garage doors use their own three-member topology, separate from DoubleDoor large gates.
+Garage doors use native variable-length topology, separate from DoubleDoor large gates:
+
+```text
+START + MIDDLE * N + END
+```
+
+The three normalized GarageDoor values are semantic roles, not a fixed three-member count. Minimum native/LMION length is L2. LMION applies a default L12 gameplay safety limit that can currently be lifted; L12 is not claimed to be a Project Zomboid engine maximum.
 
 Supported families:
 
@@ -353,25 +359,54 @@ Supported families:
 - Red Window Garage Door;
 - Rolling Window Garage Door.
 
-Design identity:
+Transport identity:
 
 ```text
-one garage = three physical segments = three 20 kg parcels = one placement action
+one physical member = one 20 kg parcel
+_Part1 = Start
+_Part2 = repeatable Middle
+_Part3 = End
 ```
 
-Runtime-validated Pickup behavior:
+Runtime-validated Pickup/reinstallation behavior:
 
-- closed Pickup/replacement works across all seven families in N/W;
+- Pickup traverses the actual native garage chain rather than assuming L3;
+- one parcel is created per physical member, so repeated Middle members create repeated `_Part2` parcels;
 - open-state Pickup works on the reference path;
-- Pickup creates three parcels on the ground;
-- placement can consume required parcels from inventory and/or nearby ground;
-- rotation works;
+- placement can consume compatible same-family parcels from inventory and/or nearby ground;
+- inventory right-click `Place` hands the exact garage parcel to LMION's dedicated variable-width cursor before vanilla fixed-SpriteGrid placement takes ownership;
+- width can be changed with the configurable garage width keys and N/W rotation works;
+- variable physical placement works and consumes only the Start/Middle(s)/End used by the selected plan;
 - replacement is closed;
 - synchronized garage opening/closing resumes normally;
 - each physical segment preserves exact current health/effective max;
 - displayed/effective parcel weight is correctly 20 kg per segment.
 
-Garage parcels from identical doors are intentionally interchangeable physical parts. There is no hidden bundle identity.
+Garage parcels from identical families are intentionally interchangeable physical parts. There is no hidden bundle identity.
+
+#### Garage placement entry-point contract
+
+The two UI controls labelled `Place` are intentionally **not equivalent**:
+
+```text
+inventory right-click Place
+-> exact InventoryItem known
+-> LMION dedicated cursor/action
+-> variable Start + Middle*N + End placement
+
+left Moveables sidebar Place
+-> generic vanilla Moveables Place catalogue
+-> historical synthetic L3 SpriteGrid
+-> fixed L3 placement
+```
+
+The sidebar L3 result is accepted behavior, not a pending bug. A previous attempt to hand the sidebar into the variable cursor was reverted because reliable support would require coupling to central `ISMoveableCursor` selection/validation/cycling state for very little gameplay benefit.
+
+Do not reintroduce global `ISMoveableCursor:isValid()` handoffs, rotate/TAB interception or a hybrid Moveables state machine merely to make both entry points variable.
+
+The synthetic L3 SpriteGrid remains only where vanilla Moveables still needs it for discovery/pickup/item-facing behavior and the vanilla sidebar path. It is **not** LMION variable reinstallation geometry.
+
+Detailed placement contract: `Research/Moveables/GarageDoorPlacementEntryPath.md` and `Research/Moveables/GarageDoorVariableWidthDesign.md`.
 
 #### Garage representation and OnCreate
 
@@ -383,7 +418,7 @@ Garage SpriteConfigs therefore use:
 OnCreate = LMION.Doors.onCreateGarage
 ```
 
-B42.20.4 trace validation established for all three members of a freshly built White Garage Door:
+B42.20.4 trace validation established for all three members of a freshly built L3 White Garage Door:
 
 ```text
 OnCreate enter       -> IsoThumpable
@@ -396,7 +431,9 @@ So `OnCreate` is confirmed sufficient for garage representation conversion. The 
 
 A construction-conversion regression also showed why transient lock state must not be copied blindly: restoring the complete temporary `IsoThumpable` snapshot produced a newly built locked garage. Fresh LMION construction now explicitly clears `locked` / `lockedByKey` during canonicalization.
 
-Under the new global canonical policy, garages are no longer a representation exception. They are an **early-timing exception** because their temporary `IsoThumpable` is unsafe to leave as the completed object.
+Under the global canonical policy, garages are no longer a representation exception. They are an **early-timing exception** because their temporary `IsoThumpable` is unsafe to leave as the completed object.
+
+Build variable-width construction has **not** been implemented yet. Current Build garage recipes/creation remain the separate fixed-L3 construction path; future Build variable width must consume Core topology semantics without depending on Pickup.
 
 Detailed behavior: `Research/Engine/GarageThumpableInteraction.md`, `Research/Moveables/GarageDoorTopology.md`, `Research/Moveables/GarageDoorValidation.md`, `Research/Moveables/VanillaMoveablesBehavior.md`.
 
@@ -525,7 +562,7 @@ The next runtime pass should establish:
 
 1. **Fresh LMION 1x1 door** — inspect final class `IsoDoor`; verify correct current/effective max health; verify unlocked; open/close normally.
 2. **Fresh LMION large gate** — inspect all constructed members as `IsoDoor`; verify synchronized native DoubleDoor opening; verify expected durability.
-3. **Fresh LMION garage** — all three members `IsoDoor`; unlocked; synchronized open/close; correct durability.
+3. **Fresh LMION garage** — all three members of the current fixed-L3 Build path are `IsoDoor`; unlocked; synchronized open/close; correct durability.
 4. **World/map IsoDoor Pickup** — pickup/reinstall/rotate; final `IsoDoor`; health/effective max preserved.
 5. **Legacy or vanilla-built IsoThumpable door/gate Pickup** — source may be `IsoThumpable`; after LMION reinstall final object must be `IsoDoor`; health/effective max preserved. This class change is intentional.
 6. **Open large-gate leaf Pickup/reconnect** — partner remains untouched; target state follows partner; blocked target still refuses placement; final placed members are `IsoDoor`.
@@ -534,7 +571,7 @@ Do not claim the canonical migration runtime-validated until this pass succeeds.
 
 ## Development workflow / hard rules
 
-- Work directly on `main` when explicitly requested for the current task.
+- User-facing delivery goes to `main`. Development may use another branch, but final changes must be fast-forwarded/merged back to `main`; clearly name any branch kept as a safety/development snapshot.
 - Inspect current code + relevant Research before modifying an unfamiliar subsystem.
 - Prefer Java/API/vanilla-source/runtime verification over guessing.
 - Runtime testing by the user is authoritative for gameplay behavior.
@@ -559,8 +596,9 @@ Do not claim the canonical migration runtime-validated until this pass succeeds.
    - force an existing partner leaf to change state at placement;
    - allow a closed/open hybrid and hope the next toggle repairs it.
 8. Do not revive `garage = IsoThumpable`. B42.20.3 bytecode and B42.20.4 runtime prove native GarageDoor mechanics are incomplete there.
-9. Do not treat Pickup/Place action duration as an urgent defect. Current timings are acceptable for development; revisit them only in a gameplay-balance pass and do not tie them blindly to transport weight.
-10. For sound QA, verify Debug/Cheat Invisible is disabled before concluding that audio is broken.
+9. For garage Pickup reinstallation, preserve the validated entry split: inventory right-click `Place` is variable LMION placement; left Moveables sidebar `Place` is intentionally vanilla L3. Do not hook central Moveables hot paths merely to unify them.
+10. Do not treat Pickup/Place action duration as an urgent defect. Current timings are acceptable for development; revisit them only in a gameplay-balance pass and do not tie them blindly to transport weight.
+11. For sound QA, verify Debug/Cheat Invisible is disabled before concluding that audio is broken.
 
 ## Known compatibility / migration note
 
@@ -574,15 +612,20 @@ Treat any future bulk save migration as a separate feature rather than hiding it
 
 First: complete the canonical-representation runtime validation matrix above and fix only reproduced regressions.
 
+Pickup variable-width garage transport/reinstallation is now a validated baseline. Do not redesign its inventory/sidebar entry behavior without a reproduced issue or an explicit new requirement.
+
+Build variable-width garage construction remains separate future work and must preserve the Core-orchestrated addon independence rule: Build and Pickup consume Core semantics, never each other.
+
 After that, large-gate transport/topology should again be considered stable enough that further redesign requires a reproduced issue.
 
 Recommended later tasks:
 
-1. optional material-specific crowbar/hammer sounds after auditioning candidate vanilla events;
-2. audit Build presentation only if a concrete issue is reproduced;
-3. optional package-style presentation for simple 1x1 items;
-4. dedicated gameplay-balance pass for Pickup/Place duration;
-5. design the future world-door durability sandbox policy;
-6. proceed toward `LMION_Repair` and locksmith/access-control modules on top of the canonical Core door model.
+1. implement/design variable-width Garage Build UX, frozen width and material scaling when that chantier is selected;
+2. optional material-specific crowbar/hammer sounds after auditioning candidate vanilla events;
+3. audit Build presentation only if a concrete issue is reproduced;
+4. optional package-style presentation for simple 1x1 items;
+5. dedicated gameplay-balance pass for Pickup/Place duration;
+6. design the future world-door durability sandbox policy;
+7. proceed toward `LMION_Repair` and locksmith/access-control modules on top of the canonical Core door model.
 
 Future Locks/Repair/addons should target LMION's semantic/Core APIs and canonical `IsoDoor` world contract rather than reintroducing `IsoDoor`/`IsoThumpable` feature forks.
