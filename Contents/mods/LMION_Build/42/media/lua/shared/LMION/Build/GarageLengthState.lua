@@ -1,7 +1,8 @@
 require "LMION/Build/GarageConstruction"
 
 local GarageBuild = LMION.Build.GarageBuild
-local STATE_KEY = "_lmionGarageBuildLength"
+GarageBuild._lengthByLogic = GarageBuild._lengthByLogic or {}
+local lengthByLogic = GarageBuild._lengthByLogic
 
 local function getRecipeModData(logic)
     local recipeData = logic and logic.getRecipeData and logic:getRecipeData() or nil
@@ -15,19 +16,20 @@ local function writeModData(logic, length)
     end
 end
 
--- CraftRecipeData is routinely replaced by BuildLogic.refresh()/manual input
--- changes. Keep the selected width on the BuildLogic instance as the durable UI
--- state, while mirroring it into CraftRecipeData modData for the existing cursor
--- and serialization paths.
+-- BuildLogic is a Java object, so arbitrary Lua fields cannot be stored on it.
+-- CraftRecipeData is also routinely replaced by BuildLogic.refresh()/manual
+-- input changes. Keep the selected width in a Lua side table keyed by the
+-- BuildLogic object, while mirroring it into CraftRecipeData modData for the
+-- existing cursor and serialization paths.
 GarageBuild.getLengthFromLogic = function(logic)
     if logic == nil then
         return GarageBuild.DefaultLength
     end
 
-    local stored = tonumber(logic[STATE_KEY])
+    local stored = tonumber(lengthByLogic[logic])
     if stored ~= nil then
         stored = GarageBuild.normalizeLength(stored)
-        logic[STATE_KEY] = stored
+        lengthByLogic[logic] = stored
         writeModData(logic, stored)
         return stored
     end
@@ -35,7 +37,7 @@ GarageBuild.getLengthFromLogic = function(logic)
     local modData = getRecipeModData(logic)
     local fromData = modData and tonumber(modData[GarageBuild.LengthModDataKey]) or nil
     local length = GarageBuild.normalizeLength(fromData or GarageBuild.DefaultLength)
-    logic[STATE_KEY] = length
+    lengthByLogic[logic] = length
     writeModData(logic, length)
     return length
 end
@@ -46,7 +48,7 @@ GarageBuild.setLengthOnLogic = function(logic, length)
     end
 
     length = GarageBuild.normalizeLength(length)
-    logic[STATE_KEY] = length
+    lengthByLogic[logic] = length
     writeModData(logic, length)
     return length
 end
