@@ -9,18 +9,28 @@ local function getRecipeModData(logic)
     return recipeData and recipeData.getModData and recipeData:getModData() or nil
 end
 
-local function writeModData(logic, length)
+local function syncVariableRatio(logic, length)
+    if logic ~= nil and logic.setTargetVariableInputRatio ~= nil then
+        -- Only the garage bar input is declared variable. Its base amount is 2,
+        -- so length / 2 makes vanilla expose exactly L selectable bars while all
+        -- other LMION garage costs remain under the explicit variable-width model.
+        logic:setTargetVariableInputRatio(length / GarageBuild.MinLength)
+    end
+end
+
+local function writeState(logic, length)
     local modData = getRecipeModData(logic)
     if modData ~= nil then
         modData[GarageBuild.LengthModDataKey] = length
     end
+    syncVariableRatio(logic, length)
 end
 
 -- BuildLogic is a Java object, so arbitrary Lua fields cannot be stored on it.
 -- CraftRecipeData is also routinely replaced by BuildLogic.refresh()/manual
 -- input changes. Keep the selected width in a Lua side table keyed by the
--- BuildLogic object, while mirroring it into CraftRecipeData modData for the
--- existing cursor and serialization paths.
+-- BuildLogic object, while mirroring it into CraftRecipeData modData and its
+-- native variable-input ratio for the existing UI/cursor/serialization paths.
 GarageBuild.getLengthFromLogic = function(logic)
     if logic == nil then
         return GarageBuild.DefaultLength
@@ -30,7 +40,7 @@ GarageBuild.getLengthFromLogic = function(logic)
     if stored ~= nil then
         stored = GarageBuild.normalizeLength(stored)
         lengthByLogic[logic] = stored
-        writeModData(logic, stored)
+        writeState(logic, stored)
         return stored
     end
 
@@ -38,7 +48,7 @@ GarageBuild.getLengthFromLogic = function(logic)
     local fromData = modData and tonumber(modData[GarageBuild.LengthModDataKey]) or nil
     local length = GarageBuild.normalizeLength(fromData or GarageBuild.DefaultLength)
     lengthByLogic[logic] = length
-    writeModData(logic, length)
+    writeState(logic, length)
     return length
 end
 
@@ -49,7 +59,7 @@ GarageBuild.setLengthOnLogic = function(logic, length)
 
     length = GarageBuild.normalizeLength(length)
     lengthByLogic[logic] = length
-    writeModData(logic, length)
+    writeState(logic, length)
     return length
 end
 
