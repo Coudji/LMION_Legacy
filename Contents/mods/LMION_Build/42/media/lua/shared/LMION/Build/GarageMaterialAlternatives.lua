@@ -179,7 +179,17 @@ local function consumeItems(character, uses, amount, items, consumedMaterials)
     return remaining
 end
 
-GarageBuild.consumeExtras = function(character, id, length, containers)
+local function getExtraAmount(fullType, requirement, length, vanillaBarCount)
+    if BAR_TYPE_SET[fullType] then
+        -- The native variable bar input may already have consumed anywhere from
+        -- its minimum (2) up to the full selected width, depending on manual
+        -- selection/autopopulation. LMION pays only the remainder to reach L.
+        return math.max(0, GarageBuild.normalizeLength(length) - math.max(0, tonumber(vanillaBarCount) or 0))
+    end
+    return requirement.amount
+end
+
+GarageBuild.consumeExtras = function(character, id, length, containers, vanillaBarCount)
     LAST_CONSUMED_MATERIALS[character] = nil
 
     local extras = GarageBuild.getExtraRequirements(id, length)
@@ -192,40 +202,46 @@ GarageBuild.consumeExtras = function(character, id, length, containers)
 
     -- Fresh all-or-nothing preflight before removing anything.
     for fullType, requirement in pairs(extras) do
-        local available
-        if BAR_TYPE_SET[fullType] then
-            bars = bars or collectBarStock(character, containers)
-            available = bars.count
-        else
-            available = stockAvailable(stock, fullType, requirement.uses)
-        end
+        local amount = getExtraAmount(fullType, requirement, length, vanillaBarCount)
+        if amount > 0 then
+            local available
+            if BAR_TYPE_SET[fullType] then
+                bars = bars or collectBarStock(character, containers)
+                available = bars.count
+            else
+                available = stockAvailable(stock, fullType, requirement.uses)
+            end
 
-        if available < requirement.amount then
-            return false
+            if available < amount then
+                return false
+            end
         end
     end
 
     local consumedMaterials = {}
 
     for fullType, requirement in pairs(extras) do
-        local items
-        if BAR_TYPE_SET[fullType] then
-            bars = bars or collectBarStock(character, containers)
-            items = bars.items
-        else
-            local entry = stock[fullType]
-            items = entry and entry.items or nil
-        end
+        local amount = getExtraAmount(fullType, requirement, length, vanillaBarCount)
+        if amount > 0 then
+            local items
+            if BAR_TYPE_SET[fullType] then
+                bars = bars or collectBarStock(character, containers)
+                items = bars.items
+            else
+                local entry = stock[fullType]
+                items = entry and entry.items or nil
+            end
 
-        if consumeItems(
-            character,
-            requirement.uses,
-            requirement.amount,
-            items,
-            consumedMaterials
-        ) > 0 then
-            GarageBuild.invalidateStock(character)
-            return false
+            if consumeItems(
+                character,
+                requirement.uses,
+                amount,
+                items,
+                consumedMaterials
+            ) > 0 then
+                GarageBuild.invalidateStock(character)
+                return false
+            end
         end
     end
 
@@ -234,8 +250,9 @@ GarageBuild.consumeExtras = function(character, id, length, containers)
     return true
 end
 
--- Vanilla records the actual L2 alternative items. Do the same for the variable
--- delta so a mixed MetalBar/IronBar garage keeps truthful build-material data.
+-- Vanilla records the actual native-consumed alternative items. Do the same for
+-- the LMION remainder so a mixed MetalBar/IronBar garage keeps truthful
+-- build-material data without double-recording bars already paid by vanilla.
 GarageBuild.recordExtrasOnBuildObject = function(buildObject, id, length)
     local character = buildObject and buildObject.character or nil
     local consumedMaterials = character and LAST_CONSUMED_MATERIALS[character] or nil
