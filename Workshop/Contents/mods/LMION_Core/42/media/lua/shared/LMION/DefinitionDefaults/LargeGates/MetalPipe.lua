@@ -1,32 +1,33 @@
 return {
-    id = "LargeGates.Metal.Farm",
+    id = "LargeGates.Metal.Pipe",
 
     defaults = {
         class = "metal",
         frame = false,
         materialType = "Metal_Light",
-        doorSound = "FarmGate",
-        thumpSound = "ZombieThumpMetalPoleGate",
+        doorSound = "MetalGate",
+        thumpSound = "ZombieThumpChainlinkFence",
 
-        engineMaterials = { "MetalPipe" },
+        engineMaterials = { "MetalPipe", "MetalScrap" },
 
         durability = {
-            worldHealth = 500,
-            health = 300,
-            skillBaseHealth = 200,
+            worldHealth = 850,
+            health = 400,
+            skillBaseHealth = 275,
         },
 
         construction = {
-            skill = { MetalWelding = 4 },
-            time = 160,
-            xp = 30,
+            skill = { MetalWelding = 5 },
+            time = 240,
+            xp = 40,
             tools = { "Base.WeldingMask" },
 
             materials = {
-                { item = "Base.BlowTorch", uses = 6 },
-                { item = "Base.MetalPipe", amount = 8 },
+                { item = "Base.BlowTorch", uses = 10 },
+                { item = "Base.MetalPipe", amount = 10 },
                 { item = "Base.Hinge", amount = 4 },
-                { item = "Base.WeldingRods", uses = 4 },
+                { item = "Base.ScrapMetal", amount = 4 },
+                { item = "Base.WeldingRods", uses = 10 },
             },
         },
 
@@ -36,7 +37,7 @@ return {
             breakChance = 0,
             packages = {
                 count = 2,
-                weight = 12,
+                weight = 20,
             },
         },
 
@@ -44,7 +45,7 @@ return {
             packages = 2,
             tools = { "Base.BlowTorch", "Base.WeldingMask" },
             materials = {
-                { item = "Base.WeldingRods", uses = 2 },
+                { item = "Base.WeldingRods", uses = 5 },
             },
         },
     },

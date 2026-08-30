@@ -1,48 +1,49 @@
 return {
-    id = "Doors.Wooden.Outhouse",
+    id = "Doors.Wood.FourPanels",
 
     defaults = {
         class = "wood",
         frame = "standard",
-        materialType = "Wood",
+        materialType = "Wood_Solid",
         doorSound = "WoodDoor",
         thumpSound = "ZombieThumpWood",
 
-        engineMaterials = { "Wood", "Nails" },
+        engineMaterials = { "Wood", "Nails", "Screws" },
 
         durability = {
-            worldHealth = 250,
-            health = 250,
-            skillBaseHealth = 0,
+            worldHealth = 625,
+            health = 450,
+            skillBaseHealth = 275,
         },
 
         construction = {
-            skill = { Woodwork = 1 },
-            time = 50,
-            xp = 5,
-            tools = { "Base.Hammer" },
+            skill = { Woodwork = 6 },
+            time = 150,
+            xp = 35,
+            tools = { "Base.Hammer", "Base.Screwdriver" },
 
             materials = {
-                { item = "Base.Plank", amount = 3 },
+                { item = "Base.Plank", amount = 4 },
                 { item = "Base.Nails", amount = 4 },
                 { item = "Base.Hinge", amount = 2 },
+                { item = "Base.Screws", amount = 4 },
                 { item = "Base.Doorknob", amount = 1 },
             },
         },
 
         pickup = {
-            skill = { Woodwork = 0 },
-            tools = { "Base.Hammer" },
+            skill = { Woodwork = 3 },
+            tools = { "Base.Hammer", "Base.Screwdriver" },
             breakChance = 0,
             packages = {
                 count = 1,
-                weight = 10,
+                weight = 17,
             },
         },
 
         replacement = {
             packages = 1,
-            tools = { "Base.Hammer" },
+            tools = { "Base.Hammer", "Base.Screwdriver" },
             materials = {},
         },
     },

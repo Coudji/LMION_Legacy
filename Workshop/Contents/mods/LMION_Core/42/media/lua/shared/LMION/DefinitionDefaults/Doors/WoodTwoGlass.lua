@@ -1,19 +1,19 @@
 return {
-    id = "Doors.Wooden.OneWindowCommercial",
+    id = "Doors.Wood.TwoGlass",
 
     defaults = {
         class = "wood_glazed",
         frame = "standard",
         materialType = "Wood_Solid",
         doorSound = "MetalDoor",
-        thumpSound = "ZombieThumpWood",
+        thumpSound = "ZombieThumpWindow",
 
         engineMaterials = { "Wood", "Nails", "Screws" },
 
         durability = {
-            worldHealth = 575,
-            health = 425,
-            skillBaseHealth = 250,
+            worldHealth = 500,
+            health = 350,
+            skillBaseHealth = 225,
         },
 
         construction = {
@@ -28,7 +28,7 @@ return {
                 { item = "Base.Hinge", amount = 2 },
                 { item = "Base.Screws", amount = 4 },
                 { item = "Base.Doorknob", amount = 1 },
-                { item = "Base.GlassPanel", amount = 1 },
+                { item = "Base.GlassPanel", amount = 2 },
             },
         },
 
@@ -38,7 +38,7 @@ return {
             breakChance = 0,
             packages = {
                 count = 1,
-                weight = 17,
+                weight = 16,
             },
         },
 

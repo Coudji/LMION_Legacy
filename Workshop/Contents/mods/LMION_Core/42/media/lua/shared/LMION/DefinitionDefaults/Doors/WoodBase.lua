@@ -1,11 +1,11 @@
 return {
-    id = "FenceGates.Wooden.StandardWooden",
+    id = "Doors.Wood.Base",
 
     defaults = {
         class = "wood",
-        frame = false,
+        frame = "standard",
         materialType = "Wood_Solid",
-        doorSound = "WoodGate",
+        doorSound = "WoodDoor",
         thumpSound = "ZombieThumpWood",
 
         engineMaterials = { "Wood", "Nails" },
@@ -13,13 +13,13 @@ return {
         durability = {
             worldHealth = 500,
             health = 300,
-            skillBaseHealth = 225,
+            skillBaseHealth = 200,
         },
 
         construction = {
-            skill = { Woodwork = 3 },
-            time = 100,
-            xp = 15,
+            skill = { Woodwork = 5 },
+            time = 120,
+            xp = 25,
             tools = { "Base.Hammer" },
 
             materials = {
@@ -31,12 +31,12 @@ return {
         },
 
         pickup = {
-            skill = { Woodwork = 1 },
+            skill = { Woodwork = 2 },
             tools = { "Base.Hammer" },
             breakChance = 0,
             packages = {
                 count = 1,
-                weight = 14,
+                weight = 15,
             },
         },
 

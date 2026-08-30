@@ -1,5 +1,5 @@
 return {
-    id = "FenceGates.Metal.ChainLink",
+    id = "FenceGates.Metal.Wire",
 
     defaults = {
         class = "metal",

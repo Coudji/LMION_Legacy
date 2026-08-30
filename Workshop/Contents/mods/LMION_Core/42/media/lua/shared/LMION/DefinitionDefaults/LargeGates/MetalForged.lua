@@ -1,5 +1,5 @@
 return {
-    id = "LargeGates.Metal.WroughtIron",
+    id = "LargeGates.Metal.Forged",
 
     defaults = {
         class = "metal",

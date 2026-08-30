@@ -1,32 +1,32 @@
 return {
-    id = "Doors.Wooden.StandardWooden",
+    id = "LargeGates.Wood.Base",
 
     defaults = {
         class = "wood",
-        frame = "standard",
+        frame = false,
         materialType = "Wood_Solid",
-        doorSound = "WoodDoor",
+        doorSound = "WoodGate",
         thumpSound = "ZombieThumpWood",
 
         engineMaterials = { "Wood", "Nails" },
 
         durability = {
-            worldHealth = 500,
-            health = 300,
-            skillBaseHealth = 200,
+            worldHealth = 650,
+            health = 400,
+            skillBaseHealth = 300,
         },
 
         construction = {
-            skill = { Woodwork = 5 },
-            time = 120,
-            xp = 25,
+            skill = { Woodwork = 4 },
+            time = 180,
+            xp = 30,
             tools = { "Base.Hammer" },
 
             materials = {
-                { item = "Base.Plank", amount = 4 },
-                { item = "Base.Nails", amount = 4 },
-                { item = "Base.Hinge", amount = 2 },
-                { item = "Base.Doorknob", amount = 1 },
+                { item = "Base.Plank", amount = 8 },
+                { item = "Base.Nails", amount = 8 },
+                { item = "Base.Hinge", amount = 4 },
+                { item = "Base.Doorknob", amount = 2 },
             },
         },
 
@@ -35,13 +35,13 @@ return {
             tools = { "Base.Hammer" },
             breakChance = 0,
             packages = {
-                count = 1,
-                weight = 15,
+                count = 2,
+                weight = 18,
             },
         },
 
         replacement = {
-            packages = 1,
+            packages = 2,
             tools = { "Base.Hammer" },
             materials = {},
         },

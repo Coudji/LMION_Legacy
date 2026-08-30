@@ -1,43 +1,45 @@
 return {
-    id = "Doors.Metal.ServiceSolid",
+    id = "Doors.Metal.OneGlass",
 
     defaults = {
-        class = "metal",
+        class = "metal_glazed",
         frame = "standard",
-        materialType = "Metal_Light",
+        materialType = "Metal_Solid",
         doorSound = "MetalDoor",
         thumpSound = "ZombieThumpMetal",
 
-        engineMaterials = { "MetalPlates", "Wood", "Screws" },
+        engineMaterials = { "MetalPlates", "MetalBars" },
 
         durability = {
             worldHealth = 700,
             health = 375,
-            skillBaseHealth = 250,
+            skillBaseHealth = 225,
         },
 
         construction = {
-            skill = { MetalWelding = 3 },
-            time = 120,
-            xp = 15,
-            tools = { "Base.Screwdriver" },
+            skill = { MetalWelding = 4 },
+            time = 170,
+            xp = 30,
+            tools = { "Base.WeldingMask" },
 
             materials = {
+                { item = "Base.BlowTorch", uses = 4 },
                 { item = "Base.SheetMetal", amount = 1 },
-                { item = "Base.SmallSheetMetal", amount = 1 },
-                { item = "Base.Plank", amount = 2 },
-                { item = "Base.Screws", amount = 6 },
+                { item = "Base.MetalBar", amount = 2 },
                 { item = "Base.Hinge", amount = 2 },
+                { item = "Base.WeldingRods", uses = 4 },
+                { item = "Base.Doorknob", amount = 1 },
+                { item = "Base.GlassPanel", amount = 1 },
             },
         },
 
         pickup = {
-            skill = { MetalWelding = 1 },
+            skill = { MetalWelding = 2 },
             tools = { "Base.Screwdriver", "Base.Crowbar" },
             breakChance = 0,
             packages = {
                 count = 1,
-                weight = 18,
+                weight = 22,
             },
         },
 

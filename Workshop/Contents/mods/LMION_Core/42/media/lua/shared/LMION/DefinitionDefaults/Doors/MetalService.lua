@@ -1,8 +1,8 @@
 return {
-    id = "Doors.Metal.ServiceGlazed",
+    id = "Doors.Metal.Service",
 
     defaults = {
-        class = "metal_glazed",
+        class = "metal",
         frame = "standard",
         materialType = "Metal_Light",
         doorSound = "MetalDoor",
@@ -11,9 +11,9 @@ return {
         engineMaterials = { "MetalPlates", "Wood", "Screws" },
 
         durability = {
-            worldHealth = 650,
-            health = 325,
-            skillBaseHealth = 225,
+            worldHealth = 700,
+            health = 375,
+            skillBaseHealth = 250,
         },
 
         construction = {
@@ -28,7 +28,6 @@ return {
                 { item = "Base.Plank", amount = 2 },
                 { item = "Base.Screws", amount = 6 },
                 { item = "Base.Hinge", amount = 2 },
-                { item = "Base.GlassPanel", amount = 1 },
             },
         },
 
@@ -38,7 +37,7 @@ return {
             breakChance = 0,
             packages = {
                 count = 1,
-                weight = 17,
+                weight = 18,
             },
         },
 

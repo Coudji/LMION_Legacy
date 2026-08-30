@@ -1,5 +1,5 @@
 return {
-    id = "Doors.Metal.FinishedMetal",
+    id = "Doors.Metal.Base",
 
     defaults = {
         class = "metal",

@@ -1,31 +1,32 @@
 return {
-    id = "FenceGates.Wooden.SmallWooden",
+    id = "FenceGates.Wood.Base",
 
     defaults = {
         class = "wood",
         frame = false,
-        materialType = "Wood",
-        doorSound = "WoodGateSmall",
+        materialType = "Wood_Solid",
+        doorSound = "WoodGate",
         thumpSound = "ZombieThumpWood",
 
         engineMaterials = { "Wood", "Nails" },
 
         durability = {
-            worldHealth = 425,
-            health = 225,
-            skillBaseHealth = 175,
+            worldHealth = 500,
+            health = 300,
+            skillBaseHealth = 225,
         },
 
         construction = {
-            skill = { Woodwork = 2 },
-            time = 60,
-            xp = 10,
+            skill = { Woodwork = 3 },
+            time = 100,
+            xp = 15,
             tools = { "Base.Hammer" },
 
             materials = {
-                { item = "Base.Plank", amount = 2 },
-                { item = "Base.Nails", amount = 2 },
+                { item = "Base.Plank", amount = 4 },
+                { item = "Base.Nails", amount = 4 },
                 { item = "Base.Hinge", amount = 2 },
+                { item = "Base.Doorknob", amount = 1 },
             },
         },
 
@@ -35,7 +36,7 @@ return {
             breakChance = 0,
             packages = {
                 count = 1,
-                weight = 7,
+                weight = 14,
             },
         },
 

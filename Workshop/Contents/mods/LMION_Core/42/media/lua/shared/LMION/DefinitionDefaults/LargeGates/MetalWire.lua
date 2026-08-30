@@ -1,5 +1,5 @@
 return {
-    id = "LargeGates.Metal.ScrapMetal",
+    id = "LargeGates.Metal.Wire",
 
     defaults = {
         class = "metal",
@@ -8,7 +8,7 @@ return {
         doorSound = "MetalGate",
         thumpSound = "ZombieThumpChainlinkFence",
 
-        engineMaterials = { "MetalPipe", "MetalScrap" },
+        engineMaterials = { "MetalPipe", "MetalWire" },
 
         durability = {
             worldHealth = 850,
@@ -18,15 +18,16 @@ return {
 
         construction = {
             skill = { MetalWelding = 5 },
-            time = 240,
+            time = 220,
             xp = 40,
             tools = { "Base.WeldingMask" },
 
             materials = {
                 { item = "Base.BlowTorch", uses = 10 },
-                { item = "Base.MetalPipe", amount = 10 },
+                { item = "Base.MetalPipe", amount = 8 },
+                { item = "Base.Wire", uses = 4 },
                 { item = "Base.Hinge", amount = 4 },
-                { item = "Base.ScrapMetal", amount = 4 },
+                { item = "Base.ScrapMetal", amount = 2 },
                 { item = "Base.WeldingRods", uses = 10 },
             },
         },
@@ -37,7 +38,7 @@ return {
             breakChance = 0,
             packages = {
                 count = 2,
-                weight = 20,
+                weight = 15,
             },
         },
 

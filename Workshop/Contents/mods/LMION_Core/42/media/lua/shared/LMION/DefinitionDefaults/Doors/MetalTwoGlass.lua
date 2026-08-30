@@ -1,5 +1,5 @@
 return {
-    id = "Doors.Metal.TwoPane",
+    id = "Doors.Metal.TwoGlass",
 
     defaults = {
         class = "metal_glazed",

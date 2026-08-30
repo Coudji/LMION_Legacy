@@ -1,18 +1,18 @@
 return {
-    id = "Doors.Wooden.RestroomFullHeight",
+    id = "Doors.Wood.Restroom",
 
     defaults = {
         class = "wood",
         frame = "standard",
-        materialType = "Plastic",
-        doorSound = "MetalDoor",
-        thumpSound = "ZombieThumpGeneric",
+        materialType = "Wood",
+        doorSound = "WoodDoor",
+        thumpSound = "ZombieThumpWood",
 
         engineMaterials = { "Wood", "Screws" },
 
         durability = {
-            worldHealth = 200,
-            health = 200,
+            worldHealth = 150,
+            health = 150,
             skillBaseHealth = 0,
         },
 
@@ -35,7 +35,7 @@ return {
             breakChance = 0,
             packages = {
                 count = 1,
-                weight = 10,
+                weight = 8,
             },
         },
 
