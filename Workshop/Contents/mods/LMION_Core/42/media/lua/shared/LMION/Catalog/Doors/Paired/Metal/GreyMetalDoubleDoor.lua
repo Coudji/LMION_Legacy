@@ -1,6 +1,6 @@
 return {
     id = "Base.GreyMetalDoubleDoor",
-    family = "Doors.Metal.FinishedMetal",
+    inherits = "Doors.Metal.FinishedMetal",
 
     topology = {
         type = "paired",

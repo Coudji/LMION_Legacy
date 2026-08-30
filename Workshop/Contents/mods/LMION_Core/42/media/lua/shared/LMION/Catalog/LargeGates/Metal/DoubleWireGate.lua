@@ -1,6 +1,6 @@
 return {
     id = "Base.DoubleWireGate",
-    family = "LargeGates.Metal.ChainLink",
+    inherits = "LargeGates.Metal.ChainLink",
 
     topology = {
         type = "twoLeaves",

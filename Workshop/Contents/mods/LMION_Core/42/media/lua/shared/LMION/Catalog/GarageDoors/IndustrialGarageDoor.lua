@@ -1,6 +1,6 @@
 return {
     id = "Base.IndustrialGarageDoor",
-    family = "GarageDoors.Solid",
+    inherits = "GarageDoors.Solid",
 
     topology = {
         type = "garageChain",

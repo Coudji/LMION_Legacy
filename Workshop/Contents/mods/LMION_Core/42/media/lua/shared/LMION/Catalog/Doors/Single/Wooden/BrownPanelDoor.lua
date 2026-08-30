@@ -1,6 +1,6 @@
 return {
     id = "Base.BrownPanelDoor",
-    family = "Doors.Wooden.Paneled",
+    inherits = "Doors.Wooden.Paneled",
 
     geometry = {
         N = { closed = "TODO", open = "TODO" },

@@ -1,6 +1,6 @@
 return {
     id = "Base.WoodFenceGate",
-    family = "FenceGates.Wooden.StandardWooden",
+    inherits = "FenceGates.Wooden.StandardWooden",
     size = "standard",
 
     geometry = {

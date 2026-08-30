@@ -1,6 +1,6 @@
 return {
     id = "Base.BrownSlidingGlassDoor",
-    family = "SlidingDoors.SlidingGlass",
+    inherits = "SlidingDoors.SlidingGlass",
 
     geometry = {
         N = { closed = "TODO", open = "TODO" },
