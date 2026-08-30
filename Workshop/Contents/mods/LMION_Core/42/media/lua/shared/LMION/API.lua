@@ -1,3 +1,4 @@
+local EntityIndex = require "LMION/Core/EntityIndex"
 local Registry = require "LMION/Core/Registry"
 local Resolver = require "LMION/Core/Resolver"
 local Validation = require "LMION/Core/Validation"
@@ -19,21 +20,30 @@ end
 function API.registerDefault(definitionDefault)
     Validation.definitionDefault(definitionDefault)
 
-    return Registry.registerDefault(definitionDefault)
+    local defaultId = Registry.registerDefault(definitionDefault)
+    EntityIndex.invalidate()
+
+    return defaultId
 end
 
 
 function API.registerDefinition(definition)
     Validation.definition(definition)
 
-    return Registry.registerDefinition(definition)
+    local definitionId = Registry.registerDefinition(definition)
+    EntityIndex.invalidate()
+
+    return definitionId
 end
 
 
 function API.registerExtension(extension)
     Validation.extension(extension)
 
-    return Registry.registerExtension(extension)
+    local extensionId = Registry.registerExtension(extension)
+    EntityIndex.invalidate()
+
+    return extensionId
 end
 
 
@@ -52,6 +62,22 @@ end
 
 
 function API.getEffectiveDefinition(definitionId)
+    return Resolver.resolveDefinition(definitionId)
+end
+
+
+function API.getDefinitionIdByEntity(entityId)
+    return EntityIndex.getDefinitionId(entityId)
+end
+
+
+function API.getEffectiveDefinitionByEntity(entityId)
+    local definitionId = EntityIndex.getDefinitionId(entityId)
+
+    if definitionId == nil then
+        return nil
+    end
+
     return Resolver.resolveDefinition(definitionId)
 end
 
