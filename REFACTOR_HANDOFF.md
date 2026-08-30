@@ -43,6 +43,7 @@ LMION/API.lua
 LMION/Core/Bootstrap.lua
 LMION/Core/BuiltinContent.lua
 LMION/Core/Diagnostics.lua
+LMION/Core/DoorRuntime.lua
 LMION/Core/EntityIndex.lua
 LMION/Core/GameEntityValidation.lua
 LMION/Core/ObjectLookup.lua
@@ -54,7 +55,7 @@ LMION/Core/Validation.lua
 
 `LMION_Core.lua` is the runtime startup. `API.lua` exposes the API only.
 
-## Live tests completed
+## Live Core tests completed
 
 In-game bootstrap/resolution is validated:
 
@@ -71,7 +72,7 @@ Reverse indexing is also live-tested:
 56/58 GameEntities found in PZ ScriptManager
 ```
 
-The only missing mappings are currently expected development gaps because their new large-gate scripts have not been created yet:
+The only missing mappings are expected development gaps because their new large-gate scripts have not been created yet:
 
 ```text
 Base.LargeWroughtIronGate
@@ -80,9 +81,9 @@ Base.LargeHardenedWoodenGate
 
 Keep these diagnostic errors for now; do not waste time special-casing them.
 
-The verbose `[LMION:Catalog]` line-per-definition dump has been removed from normal startup. Keep summary lines plus anomalies only.
+The verbose `[LMION:Catalog]` line-per-definition dump was removed. Keep summary lines plus anomalies only.
 
-## Public API
+## Public Core API
 
 ```lua
 local LMION = require "LMION/API"
@@ -100,6 +101,12 @@ LMION.getEffectiveDefinitionByEntity(entityId)
 LMION.getEntityIdForObject(object)
 LMION.getDefinitionIdForObject(object)
 LMION.getEffectiveDefinitionForObject(object)
+
+LMION.isDoorObject(object)
+LMION.captureDoorState(object)
+LMION.restoreDoorState(object, state)
+LMION.canPlaceDoorAt(square, facing, frame, pairedFrameSide)
+LMION.finalizePlacedDoor(object, definition, facing)
 ```
 
 Registry is private. Resolver returns fresh effective data.
@@ -114,7 +121,7 @@ GameEntity.getEntityScript()
 GameEntityScript.getFullName()
 ```
 
-World-object lookup therefore uses stable GameEntity identity:
+World-object lookup uses stable GameEntity identity:
 
 ```text
 IsoDoor / IsoObject
@@ -156,27 +163,77 @@ Detailed load-order doc: `Legacy/Research/Architecture/CoreLoadOrder.md`.
 
 Geometry is explicit and exact. Never infer complex geometry through sprite-number arithmetic.
 
-`Doors.Wood.WhitePanelDoor` is now the first migrated 1x1 geometry contract:
+Current 1x1 geometry pilots:
 
 ```text
+Doors.Wood.WhitePanelDoor
 N closed fixtures_doors_01_1
 N open   fixtures_doors_01_3
 W closed fixtures_doors_01_0
 W open   fixtures_doors_01_2
+
+Doors.Wood.WhiteRestroomStallDoor
+N closed fixtures_doors_02_21
+N open   fixtures_doors_02_23
+W closed fixtures_doors_02_20
+W open   fixtures_doors_02_22
 ```
 
-These values come directly from its PZ SpriteConfig.
+Values come directly from verified PZ SpriteConfig scripts.
 
 Large portals will use explicit A/B membership. True paired 1x1 doors may use Left/Right. Garages use START/MIDDLE/END with variable width.
+
+## First rewritten Pickup slice
+
+Workshop now also contains:
+
+```text
+Workshop/Contents/mods/LMION_Pickup/42/
+```
+
+Pickup no longer owns `DoorProfiles`, garage families or large-gate profiles. The first implementation discovers compatible simple 1x1 definitions from Core capabilities.
+
+Current requirements for the first slice are exact N/W geometry, one pickup/replacement package, zero break chance, understood tool/skill semantics and simple topology.
+
+The current geometry pilots therefore give an expected boot line:
+
+```text
+[LMION:Pickup] simple 1x1 registry ready: 2 definitions, 8 sprites
+```
+
+Pickup uses one generic transport item:
+
+```text
+Base.LMION_OpeningParcel
+```
+
+The parcel keeps the definition identity and primitive door state in modData while its world sprite identifies the exact closed face for vanilla Moveables inventory selection.
+
+Detailed design/test note: `Legacy/Research/Architecture/PickupRewrite.md`.
+
+## Pickup placement UX
+
+For LMION parcels in vanilla Moveables Place mode:
+
+```text
+mouse drag -> does not rotate
+R / Rotate building -> toggles N <-> W
+```
+
+This deliberately preserves the garage-style rotation UX the user preferred instead of vanilla click-drag facing selection.
+
+Core exact geometry supplies the actual sprites; Pickup only controls the mechanic/cursor behavior.
 
 ## Script versus Catalog
 
 ```text
-.txt = minimum data PZ needs during script/GameEntity loading
+.txt = minimum data PZ needs during script/GameEntity/item loading
 .lua = LMION semantic and geometry contract
 ```
 
-Do not duplicate health, sounds, recipes, pickup properties, etc. in `.txt`. Do not create LMION scripts for GameEntities PZ already provides.
+Do not duplicate health, sounds, recipes, pickup properties, etc. in opening `.txt`. Do not create LMION opening scripts for GameEntities PZ already provides.
+
+Pickup's generic `LMION_OpeningParcel` item script is a legitimate engine-load-time item registration, not opening semantic duplication.
 
 The two unresolved large-gate scripts remain intentionally deferred until their A/B topology contract is frozen.
 
@@ -187,12 +244,32 @@ The two unresolved large-gate scripts remain intentionally deferred until their 
 - framed doors use screwdriver pickup/replacement;
 - frameless/gate-like openings use crowbar pickup and hammer replacement;
 - physical tool and governing skill are separate concepts;
+- vanilla Moveables may overwrite item weight during `ReadFromWorldSprite`; synchronize both item weight fields afterward;
 - LMION standards are defaults, not limitations;
 - MetalBar/IronBar alternatives remain supported where reviewed.
 
-## Immediate next work
+## Immediate next test
 
-Live-test the new object lookup on a real `IsoDoor`. Once confirmed, migrate exact geometry for more simple 1x1 definitions and build the first generic object/door abstraction used by Pickup.
+Enable Workshop `LMION_Core` + `LMION_Pickup` and test the simple 1x1 pipeline before adding more families.
+
+Recommended first target is `WhiteRestroomStallDoor` because its pickup requirement is Woodwork 0 + screwdriver.
+
+Verify:
+
+```text
+pickup through vanilla Moveables
+-> one LMION parcel
+-> correct weight
+-> placement preview
+-> R toggles N/W
+-> matching frame required
+-> placed result functions as a door
+-> health survives pickup/replacement
+```
+
+Then test WhitePanelDoor when Woodwork 3 is available.
+
+Fix real B42 integration issues first. Do not migrate paired, large-gate or garage logic until this simple pipeline is sound.
 
 Fake third-party content remains postponed until built-in Core behavior is solid.
 

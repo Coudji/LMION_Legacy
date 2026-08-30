@@ -1,3 +1,4 @@
+local DoorRuntime = require "LMION/Core/DoorRuntime"
 local EntityIndex = require "LMION/Core/EntityIndex"
 local ObjectLookup = require "LMION/Core/ObjectLookup"
 local Registry = require "LMION/Core/Registry"
@@ -95,6 +96,40 @@ end
 
 function API.getEffectiveDefinitionForObject(object)
     return ObjectLookup.getEffectiveDefinition(object)
+end
+
+
+function API.isDoorObject(object)
+    return DoorRuntime.isDoorObject(object)
+end
+
+
+function API.captureDoorState(object)
+    return DoorRuntime.captureState(object)
+end
+
+
+function API.restoreDoorState(object, state)
+    return DoorRuntime.restoreState(object, state)
+end
+
+
+function API.canPlaceDoorAt(square, facing, frame, pairedFrameSide)
+    return DoorRuntime.canPlaceAt(
+        square,
+        facing,
+        frame,
+        pairedFrameSide
+    )
+end
+
+
+function API.finalizePlacedDoor(object, definition, facing)
+    return DoorRuntime.finalizePlacedDoor(
+        object,
+        definition,
+        facing
+    )
 end
 
 

@@ -1,0 +1,11 @@
+module Base
+{
+    item LMION_OpeningParcel
+    {
+        DisplayCategory = Furniture,
+        ItemType = base:moveable,
+        Icon = default,
+        Weight = 1.0,
+        Tags = base:usedisplayname,
+    }
+}
