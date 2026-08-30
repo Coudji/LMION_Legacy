@@ -4,10 +4,37 @@ module Base
     {
         component SpriteConfig
         {
-            face W { layer { row = fixtures_doors_02_20, } }
-            face N { layer { row = fixtures_doors_02_21, } }
-            face W_OPEN { layer { row = fixtures_doors_02_22, } }
-            face N_OPEN { layer { row = fixtures_doors_02_23, } }
+            face W
+            {
+                layer
+                {
+                    row = fixtures_doors_02_20,
+                }
+            }
+
+            face N
+            {
+                layer
+                {
+                    row = fixtures_doors_02_21,
+                }
+            }
+
+            face W_OPEN
+            {
+                layer
+                {
+                    row = fixtures_doors_02_22,
+                }
+            }
+
+            face N_OPEN
+            {
+                layer
+                {
+                    row = fixtures_doors_02_23,
+                }
+            }
         }
     }
 }

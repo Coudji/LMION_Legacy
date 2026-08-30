@@ -5,10 +5,38 @@ module Base
         component SpriteConfig
         {
             dontNeedFrame = true,
-            face W { layer { row = fixtures_doors_fences_01_12, } }
-            face N { layer { row = fixtures_doors_fences_01_13, } }
-            face W_OPEN { layer { row = fixtures_doors_fences_01_14, } }
-            face N_OPEN { layer { row = fixtures_doors_fences_01_15, } }
+
+            face W
+            {
+                layer
+                {
+                    row = fixtures_doors_fences_01_12,
+                }
+            }
+
+            face N
+            {
+                layer
+                {
+                    row = fixtures_doors_fences_01_13,
+                }
+            }
+
+            face W_OPEN
+            {
+                layer
+                {
+                    row = fixtures_doors_fences_01_14,
+                }
+            }
+
+            face N_OPEN
+            {
+                layer
+                {
+                    row = fixtures_doors_fences_01_15,
+                }
+            }
         }
     }
 }

@@ -4,10 +4,37 @@ module Base
     {
         component SpriteConfig
         {
-            face W { layer { row = location_community_church_small_01_68, } }
-            face N { layer { row = location_community_church_small_01_65, } }
-            face W_OPEN { layer { row = location_community_church_small_01_70, } }
-            face N_OPEN { layer { row = location_community_church_small_01_67, } }
+            face W
+            {
+                layer
+                {
+                    row = location_community_church_small_01_68,
+                }
+            }
+
+            face N
+            {
+                layer
+                {
+                    row = location_community_church_small_01_65,
+                }
+            }
+
+            face W_OPEN
+            {
+                layer
+                {
+                    row = location_community_church_small_01_70,
+                }
+            }
+
+            face N_OPEN
+            {
+                layer
+                {
+                    row = location_community_church_small_01_67,
+                }
+            }
         }
     }
 
@@ -15,10 +42,37 @@ module Base
     {
         component SpriteConfig
         {
-            face W { layer { row = location_community_church_small_01_64, } }
-            face N { layer { row = location_community_church_small_01_69, } }
-            face W_OPEN { layer { row = location_community_church_small_01_66, } }
-            face N_OPEN { layer { row = location_community_church_small_01_71, } }
+            face W
+            {
+                layer
+                {
+                    row = location_community_church_small_01_64,
+                }
+            }
+
+            face N
+            {
+                layer
+                {
+                    row = location_community_church_small_01_69,
+                }
+            }
+
+            face W_OPEN
+            {
+                layer
+                {
+                    row = location_community_church_small_01_66,
+                }
+            }
+
+            face N_OPEN
+            {
+                layer
+                {
+                    row = location_community_church_small_01_71,
+                }
+            }
         }
     }
 }

@@ -5,8 +5,24 @@ module Base
         component SpriteConfig
         {
             dontNeedFrame = true,
-            face W { layer { row = industry_trucks_01_34, row = industry_trucks_01_33, row = industry_trucks_01_32, } }
-            face N { layer { row = industry_trucks_01_35 industry_trucks_01_36 industry_trucks_01_37, } }
+
+            face W
+            {
+                layer
+                {
+                    row = industry_trucks_01_34,
+                    row = industry_trucks_01_33,
+                    row = industry_trucks_01_32,
+                }
+            }
+
+            face N
+            {
+                layer
+                {
+                    row = industry_trucks_01_35 industry_trucks_01_36 industry_trucks_01_37,
+                }
+            }
         }
     }
 }

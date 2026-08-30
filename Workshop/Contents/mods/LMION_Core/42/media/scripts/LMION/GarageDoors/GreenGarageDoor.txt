@@ -5,8 +5,24 @@ module Base
         component SpriteConfig
         {
             dontNeedFrame = true,
-            face W { layer { row = walls_garage_01_18, row = walls_garage_01_17, row = walls_garage_01_16, } }
-            face N { layer { row = walls_garage_01_19 walls_garage_01_20 walls_garage_01_21, } }
+
+            face W
+            {
+                layer
+                {
+                    row = walls_garage_01_18,
+                    row = walls_garage_01_17,
+                    row = walls_garage_01_16,
+                }
+            }
+
+            face N
+            {
+                layer
+                {
+                    row = walls_garage_01_19 walls_garage_01_20 walls_garage_01_21,
+                }
+            }
         }
     }
 }
