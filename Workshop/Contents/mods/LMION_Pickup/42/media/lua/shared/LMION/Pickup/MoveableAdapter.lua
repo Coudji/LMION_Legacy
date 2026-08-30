@@ -12,7 +12,15 @@ local spriteEntries = {}
 
 
 local function isEmptyTable(value)
-    return type(value) == "table" and next(value) == nil
+    if type(value) ~= "table" then
+        return false
+    end
+
+    for _ in pairs(value) do
+        return false
+    end
+
+    return true
 end
 
 
