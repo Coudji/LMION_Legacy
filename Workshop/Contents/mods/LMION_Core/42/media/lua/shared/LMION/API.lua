@@ -1,4 +1,3 @@
-local Bootstrap = require "LMION/Core/Bootstrap"
 local Registry = require "LMION/Core/Registry"
 local Resolver = require "LMION/Core/Resolver"
 local Validation = require "LMION/Core/Validation"
@@ -57,6 +56,19 @@ function API.getEffectiveDefinition(definitionId)
 end
 
 
-Bootstrap.run(API)
+function API.getRegisteredDefaultIds()
+    return Registry.getDefaultIds()
+end
+
+
+function API.getRegisteredDefinitionIds()
+    return Registry.getDefinitionIds()
+end
+
+
+function API.getRegistrationStats()
+    return Registry.getRegistrationStats()
+end
+
 
 return API

@@ -1,0 +1,5 @@
+id=LMION_Core
+name=Let Me In... Or Not - Core
+description=Core framework and shared opening registry for Let Me In... Or Not.
+tags=Build 42
+versionMin=42.0

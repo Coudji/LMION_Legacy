@@ -9,17 +9,15 @@ This repository is the development workspace for the LMION rewrite.
 
 Do **not** write to `PZMOD_LMION` during development. Coudji copies validated Workshop content there manually.
 
-## Workspace layout
+## Workspace
 
 ```text
 LMION_Legacy/
-├── Legacy/      # old implementation, research, technical docs and historical reference
-└── Workshop/    # clean LMION rewrite under active development
+├── Legacy/      # old code, research, docs and historical reference
+└── Workshop/    # clean rewrite candidate used for live testing
 ```
 
-`Workshop/` contains only candidate real mod files. Research, experiments, notes and historical material stay under `Legacy/` except this root handoff.
-
-The old implementation is a reference, not code to migrate wholesale.
+Old Legacy code is reference material only. Rebuild behavior deliberately in Workshop.
 
 ## Architecture goal
 
@@ -31,99 +29,144 @@ Pickup ─┼─> Core
 Lock   ─┘
 ```
 
-Core never depends on gameplay addons. Build, Pickup and Lock do not depend on one another and must each work with Core when enabled alone.
+Core never depends on gameplay addons. Build, Pickup and Lock do not depend on one another and must work with Core individually.
 
-Mechanic addons must not hard-code concrete door catalogs. They ask Core for the properties of registered openings.
+Mechanics must not hard-code concrete opening IDs.
 
-## Current data vocabulary
+## Current vocabulary
 
 ```text
-defaultId     -> LMION DefinitionDefault identity
+defaultId     -> DefinitionDefault identity
 definitionId  -> concrete LMION opening identity
 entity        -> Project Zomboid GameEntity identity where applicable
-extensionId   -> identity of an extension/patch
+extensionId   -> extension/patch identity
 inherits      -> one concrete Definition -> one DefinitionDefault
 ```
 
-Do not reintroduce generic top-level `id`, generic `kind`, or the removed `class` field.
+Do not reintroduce generic top-level `id`, generic `kind`, or removed `class`.
 
-Technical material naming uses `Wood` and `Metal`, not `Wooden`/`Metallic` for IDs/categories. Existing physical folder names may still contain `Wooden`; do not rename folders casually while other work is in progress.
+Technical IDs use `Wood` and `Metal`; some physical folders still use `Wooden` for navigation.
 
-## DefinitionDefaults
+## Data contract
 
-DefinitionDefaults are reusable property sets, not concrete openings.
+`DefinitionDefaults/` and `Catalog/` are pure data files. They return tables and do not register themselves.
 
-Rules:
+DefinitionDefaults never inherit other defaults. A concrete definition inherits exactly one default or is eventually complete standalone.
 
-- DefinitionDefaults never inherit other DefinitionDefaults.
-- A concrete definition either inherits exactly one default or is eventually complete standalone.
-- No silent fallback chain exists.
-- Concrete overrides are more specific than inherited default values.
-
-Current defaults already encode reviewed construction/pickup values, tool tags and MetalBar/IronBar alternatives. User deletions/renames are authoritative; do not recreate pruned defaults automatically.
-
-## Pure Catalog/data files
-
-Files under `Workshop/.../LMION/DefinitionDefaults/` and `Catalog/` only return data.
-
-They do not register themselves and do not know about Registry/API implementation details.
-
-Example:
-
-```lua
-return {
-    definitionId = "Doors.Metal.WhiteMetalDoor",
-    entity = "Base.WhiteMetalDoor",
-    inherits = "Doors.Metal.Base",
-}
-```
-
-## First Core implementation
-
-The first data API implementation now lives under:
+Current merge/resolution order:
 
 ```text
-Workshop/Contents/mods/LMION_Core/42/media/lua/shared/LMION/
-├── API.lua
-├── Core/
-│   ├── Bootstrap.lua
-│   ├── BuiltinContent.lua
-│   ├── Registry.lua
-│   ├── Resolver.lua
-│   ├── TableUtils.lua
-│   └── Validation.lua
-├── Catalog/
-└── DefinitionDefaults/
+raw default
+-> default extensions in registration order
+-> concrete definition overrides
+-> concrete definition extensions in registration order
+-> effective definition
 ```
 
-Detailed contract: `Legacy/Research/Architecture/CoreDataAPI.md`.
+At the same extension layer, last registered wins. There is no LMION priority score.
 
-### Public API
+Detailed data API: `Legacy/Research/Architecture/CoreDataAPI.md`.
 
-Third-party mods and future LMION addons use:
+## First runnable Core runtime
 
-```lua
-local LMION = require "LMION/API"
+Workshop now contains a real Core mod descriptor and runtime entry point:
+
+```text
+Workshop/Contents/mods/LMION_Core/42/
+├── mod.info
+└── media/
+    ├── lua/shared/
+    │   ├── LMION_Core.lua
+    │   └── LMION/
+    │       ├── API.lua
+    │       ├── Core/
+    │       │   ├── Bootstrap.lua
+    │       │   ├── BuiltinContent.lua
+    │       │   ├── Diagnostics.lua
+    │       │   ├── Registry.lua
+    │       │   ├── Resolver.lua
+    │       │   ├── TableUtils.lua
+    │       │   └── Validation.lua
+    │       ├── Catalog/
+    │       └── DefinitionDefaults/
+    └── scripts/LMION/...
 ```
 
-Current public operations:
+`LMION/API.lua` now only defines the public API. It does **not** bootstrap content as a side effect.
+
+`media/lua/shared/LMION_Core.lua` is the runtime startup file. It bootstraps built-in content through the same API third-party mods use, then installs an `OnGameBoot` diagnostic checkpoint.
+
+Current public API includes:
 
 ```lua
 LMION.registerDefault(...)
 LMION.registerDefinition(...)
 LMION.registerExtension(...)
 LMION.registerContent(...)
+
 LMION.getEffectiveDefault(...)
 LMION.getEffectiveDefinition(...)
+LMION.getRegisteredDefaultIds()
+LMION.getRegisteredDefinitionIds()
+LMION.getRegistrationStats()
 ```
 
-Registry is private internal storage. It stores raw copied defaults, definitions and extensions. Resolver creates effective copies; it does not mutate the registered data.
+Registry remains private raw storage. Resolver always returns fresh effective data. No effective cache exists yet.
 
-Built-in LMION content is explicitly listed in `Core/BuiltinContent.lua` and registered through the same public API used by third-party content. There is no automatic filesystem/catalog scan.
+## Verified PZ load order
+
+Load-order behavior was checked against the uploaded B42.20.3 jar.
+
+Client:
+
+```text
+shared
+client
+OnGameBoot later
+```
+
+Dedicated server:
+
+```text
+shared
+client scanned but not executed
+server
+OnGameBoot later
+```
+
+Within each scope, PZ processes active mods in `ZomboidFileSystem.getModIDs()` order and sorts files inside each mod case-insensitively before execution.
+
+Core content registration that must exist client + server therefore belongs in `shared`.
+
+Third-party content mods should depend on `LMION_Core`, then register their content from their own `media/lua/shared` files using `require "LMION/API"`.
+
+`OnGameBoot` is treated as a final checkpoint after normal Lua registration, not as the preferred normal registration phase.
+
+Detailed engine/runtime note: `Legacy/Research/Architecture/CoreLoadOrder.md`.
+
+## Current launch diagnostic
+
+On Core bootstrap the game should print a count similar to:
+
+```text
+[LMION:Core] built-in bootstrap complete: 23 defaults, 54 definitions, 0 extensions
+```
+
+At `OnGameBoot`, after normal mod Lua loading, Core prints a final registry snapshot and each resolved concrete definition:
+
+```text
+[LMION:Core] OnGameBoot registry snapshot: ...
+[LMION:Catalog] Doors.Metal.WhiteMetalDoor -> Base.WhiteMetalDoor
+...
+```
+
+This verbose dump is temporary development diagnostics. It exists so the next milestone can be proven by simply starting PZ before rebuilding gameplay mechanics.
 
 ## Third-party registration
 
-A modder may organize their own files however they want. They explicitly register data with Core.
+External mods do not place files inside LMION folders and do not mirror LMION's tree.
+
+Example shared integration:
 
 ```lua
 local LMION = require "LMION/API"
@@ -135,13 +178,13 @@ LMION.registerContent({
 })
 ```
 
-Third-party mods may register their own defaults and make their concrete definitions inherit those defaults.
+They may register new defaults/definitions or modify existing ones with `registerExtension`.
 
-Duplicate `defaultId` or `definitionId` values are errors. Re-registering a LMION definition is not the override mechanism.
+Duplicate identities are errors. Re-registering an existing definition is not an override mechanism.
 
-## Extensions and load order
+## Extensions
 
-Existing defaults/definitions are changed through `registerExtension`.
+Example:
 
 ```lua
 LMION.registerExtension({
@@ -158,73 +201,48 @@ LMION.registerExtension({
 })
 ```
 
-There is **no priority score**.
+No priority field exists. PZ/mod registration order decides conflicts; later same-layer writes win.
 
-Resolution is:
+Identity fields and `inherits` cannot currently be patched.
 
-```text
-raw default
--> default extensions in registration/load order
--> concrete definition overrides
--> concrete definition extensions in registration/load order
--> effective definition
-```
-
-Within the same extension layer, the last registered/loaded patch wins for fields both patches write. This follows PZ mod load-order expectations instead of inventing an LMION priority contest.
-
-Concrete-definition values remain more specific than changes made only to their inherited default.
-
-Extensions cannot currently change identities or `inherits`.
-
-## Merge rule
-
-Named tables merge recursively. Lists are replaced in full. Scalars replace. An explicit `{}` clears/replaces an existing table. Raw Registry data is never mutated during resolution.
-
-No cache exists yet, so extensions registered later are reflected by the next resolution automatically.
-
-## Explicit geometry rule
-
-Do not infer complex opening geometry using sprite-number arithmetic.
-
-Core definitions should eventually describe exact open/closed N/W geometry and, for large portals, explicit A/B leaf membership.
-
-Some geometry will intentionally duplicate `SpriteConfig`:
+## Script versus Catalog rule
 
 ```text
-.txt = what PZ must load/register early
-.lua = what LMION guarantees to mechanics through its API
+.txt = minimum data PZ must load/register early
+.lua = LMION semantic/geometry contract
 ```
 
-This duplication is acceptable because the consumers and lifecycle are different.
+Do not duplicate health, sounds, recipes, pickup values, etc. in `.txt` files.
 
-## PZ entity scripts
+Do not create LMION scripts for GameEntities PZ already provides.
 
-Current Workshop `.txt` scripts are minimal and formatted as normal multiline ZedScript for editor tooling.
+Some exact geometry will intentionally exist both in PZ `SpriteConfig` and LMION definitions because they serve different consumers/lifecycles.
 
-Do not create an LMION `.txt` merely for a GameEntity PZ already provides. Scripts exist only where LMION must register a missing GameEntity and contain only engine-loading information such as `SpriteConfig`/faces and required frame flags.
+## Geometry/topology direction
 
-Health, sounds, materials, recipes, pickup data and other LMION semantics belong in the Lua catalog/defaults, not duplicated in the `.txt`.
+Do not infer complex geometry with sprite arithmetic.
+
+Core definitions will eventually contain exact N/W open/closed geometry.
+
+Large portals use semantic leaves A/B. True paired 1x1 doors may use Left/Right when meaningful. Garages use START/MIDDLE/END and variable width.
 
 Large gate A/B scripts remain intentionally unresolved until the new topology representation is frozen.
 
 ## Known Legacy behavior to preserve deliberately
 
-- LMION-owned/finalized doors persist as `IsoDoor`.
-- `IsoThumpable(isDoor)` is acceptable legacy/vanilla input, not a second LMION persistent backend.
-- Large portals use semantic leaves A/B; true paired 1x1 double doors may use Left/Right when meaningful.
-- Garages use START / MIDDLE / END topology and variable width; old fixed L12 limits were artificial.
-- Framed normal doors use screwdriver pickup/placement.
-- Frameless/gate-like openings use crowbar pickup and hammer placement.
-- Physical tool choice and governing skill are separate concepts; metal ToolDefinitions in Legacy proved that behavior.
-- LMION standards are defaults, not limitations: meaningful explicit modder overrides should remain possible.
+- finalized LMION doors persist as `IsoDoor`;
+- `IsoThumpable(isDoor)` is accepted as vanilla/legacy input, not a second persistent backend;
+- framed doors use screwdriver pickup/replacement;
+- frameless/gate-like openings use crowbar pickup and hammer replacement;
+- physical tool and governing skill are separate concepts;
+- LMION standards are defaults, not limitations;
+- MetalBar/IronBar alternatives are supported where reviewed.
 
 ## Current implementation limits
 
-The new Core currently implements only the data contract/registration/resolution slice.
-
 Not yet rebuilt:
 
-- GameEntity/world-object lookup indexes
+- GameEntity/world-object -> definition lookup indexes
 - exact Catalog geometry
 - topology runtime abstraction
 - canonical `IsoDoor` helpers
@@ -232,42 +250,27 @@ Not yet rebuilt:
 - Build mechanics
 - Lock mechanics
 - complete standalone-definition validation
-- composition/integration tests for the new code
+- automated new-Core integration tests
 
-Do not copy old runtime implementations wholesale to fill these gaps.
+## Immediate next milestone
 
-## Migration strategy from here
+First, launch PZ with Workshop `LMION_Core` enabled and verify the bootstrap + `OnGameBoot` registry dump.
 
-Recommended next sequence:
+If that works, next build the lookup layer mechanics actually need, starting with GameEntity -> concrete definition. Then add exact geometry for one simple 1x1 opening before rebuilding Pickup.
 
-1. test Registry/Resolver with built-in definitions and a fake third-party extension;
-2. add the lookup contract mechanics actually need, starting with GameEntity -> definition;
-3. freeze the minimum standalone definition requirements;
-4. add exact geometry for one simple 1x1 opening;
-5. rebuild generic 1x1 Pickup using Core only;
-6. prove a second/fake external door works without editing Pickup;
-7. rebuild generic 1x1 Build;
-8. paired/fence gates;
-9. large gates and garages;
-10. Lock and additional mechanics later.
+A fake third-party mod is intentionally postponed until Core itself has proven it can boot and expose its built-in catalog in-game.
 
-## Composition rule
+## Git workflow
 
-A successful full-stack test is not proof of modularity.
-
-Test Core alone and Core + each individual gameplay addon, then combinations. Shared representations must not depend on another gameplay addon having run first.
-
-## Git / delivery workflow
-
-- Work directly in `Coudji/LMION_Legacy` development `main` unless Coudji says otherwise.
-- `Workshop/` is the clean candidate mod tree.
-- Research/history stays in `Legacy/`.
+- Work in `Coudji/LMION_Legacy` development `main` unless Coudji says otherwise.
+- Workshop is the clean candidate mod tree.
+- Research/history stays under Legacy.
 - Coudji manually copies validated Workshop content into `PZMOD_LMION`.
 - **Never write to `PZMOD_LMION` unless Coudji explicitly reverses that rule.**
-- Re-fetch `LMION_Legacy/main` before writes because Coudji may push changes between turns.
-- Prefer coherent commits over chains of tiny fixes.
+- Re-fetch `LMION_Legacy/main` before writes because Coudji may push between turns.
+- Prefer coherent commits over chains of trivial fixes.
 
-The pre-reorganization state remains available on:
+Pre-reorganization backup:
 
 ```text
 backup/main-before-workshop-refactor-20260830

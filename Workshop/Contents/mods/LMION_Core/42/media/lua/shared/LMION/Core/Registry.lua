@@ -4,6 +4,8 @@ local Registry = {}
 
 local defaultsById = {}
 local definitionsById = {}
+local defaultIds = {}
+local definitionIds = {}
 local extensions = {}
 local extensionIds = {}
 
@@ -16,6 +18,7 @@ function Registry.registerDefault(definitionDefault)
     end
 
     defaultsById[defaultId] = TableUtils.deepCopy(definitionDefault)
+    defaultIds[#defaultIds + 1] = defaultId
 
     return defaultId
 end
@@ -29,6 +32,7 @@ function Registry.registerDefinition(definition)
     end
 
     definitionsById[definitionId] = TableUtils.deepCopy(definition)
+    definitionIds[#definitionIds + 1] = definitionId
 
     return definitionId
 end
@@ -60,8 +64,27 @@ function Registry.getDefinition(definitionId)
 end
 
 
+function Registry.getDefaultIds()
+    return TableUtils.deepCopy(defaultIds)
+end
+
+
+function Registry.getDefinitionIds()
+    return TableUtils.deepCopy(definitionIds)
+end
+
+
 function Registry.getExtensions()
     return extensions
+end
+
+
+function Registry.getRegistrationStats()
+    return {
+        defaults = #defaultIds,
+        definitions = #definitionIds,
+        extensions = #extensions,
+    }
 end
 
 
