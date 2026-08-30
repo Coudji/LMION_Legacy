@@ -6,9 +6,9 @@ This repository is the development workspace for the LMION rewrite.
 
 - `Coudji/LMION_Legacy` = development workspace, research archive, old implementation reference and refactor test area.
 - `Coudji/PZMOD_LMION` = clean final repository managed manually by Coudji.
-- Do **not** write to `PZMOD_LMION`; Coudji copies validated Workshop content there manually.
+- Never write to `PZMOD_LMION` unless Coudji explicitly reverses that rule.
 
-## Architecture goal
+## Architecture
 
 > **Core owns opening content and stable contracts. Submods own mechanics. No submod owns the opening catalog.**
 
@@ -18,62 +18,69 @@ Pickup ─┼─> Core
 Lock   ─┘
 ```
 
-Core never depends on gameplay addons. Mechanics must not hard-code concrete opening catalogs.
+Mechanics must not hard-code concrete opening catalogs.
 
-## Data vocabulary and inheritance
+## Data vocabulary
 
 ```text
 defaultId     -> DefinitionDefault identity
 definitionId  -> concrete LMION opening identity
-entity        -> Project Zomboid GameEntity identity where applicable
+entity        -> PZ GameEntity identity
 extensionId   -> extension/patch identity
 inherits      -> one concrete Definition -> one DefinitionDefault
 ```
 
-Do not reintroduce generic top-level `id`, `kind`, or removed `class`.
+No generic top-level `id`, no `kind`, no removed `class`. Technical IDs use `Wood` and `Metal`.
 
-DefinitionDefaults never inherit other defaults. A concrete definition inherits exactly one default or is eventually complete standalone. Technical IDs use `Wood` and `Metal`.
-
-`DefinitionDefaults/` and `Catalog/` are pure data files; they return tables and do not register themselves.
+DefinitionDefaults never inherit other defaults. Catalog and DefinitionDefault files are pure data and do not register themselves.
 
 ## Current Core runtime
 
-Workshop has a runnable B42 Core mod:
+Workshop contains a runnable B42 Core with:
 
 ```text
-Workshop/Contents/mods/LMION_Core/42/
-├── mod.info
-└── media/
-    ├── lua/shared/
-    │   ├── LMION_Core.lua
-    │   └── LMION/
-    │       ├── API.lua
-    │       ├── Core/
-    │       │   ├── Bootstrap.lua
-    │       │   ├── BuiltinContent.lua
-    │       │   ├── Diagnostics.lua
-    │       │   ├── EntityIndex.lua
-    │       │   ├── GameEntityValidation.lua
-    │       │   ├── Registry.lua
-    │       │   ├── Resolver.lua
-    │       │   ├── TableUtils.lua
-    │       │   └── Validation.lua
-    │       ├── Catalog/
-    │       └── DefinitionDefaults/
-    └── scripts/LMION/...
+LMION/API.lua
+LMION/Core/Bootstrap.lua
+LMION/Core/BuiltinContent.lua
+LMION/Core/Diagnostics.lua
+LMION/Core/EntityIndex.lua
+LMION/Core/GameEntityValidation.lua
+LMION/Core/ObjectLookup.lua
+LMION/Core/Registry.lua
+LMION/Core/Resolver.lua
+LMION/Core/TableUtils.lua
+LMION/Core/Validation.lua
 ```
 
-`LMION/API.lua` exposes the API only. `LMION_Core.lua` is the runtime startup: it bootstraps built-ins, then uses `OnGameBoot` as the post-registration checkpoint.
+`LMION_Core.lua` is the runtime startup. `API.lua` exposes the API only.
 
-## Live validation already completed
+## Live tests completed
 
-Coudji launched PZ with the new Workshop Core and confirmed this real in-game state on 2026-08-30:
+In-game bootstrap/resolution is validated:
 
 ```text
-[LMION:Core] OnGameBoot registry snapshot: 23 defaults, 54 definitions, 0 extensions
+23 defaults
+54 definitions
+0 extensions
 ```
 
-All 54 definitions resolved and were printed, including paired definitions resolving to Left + Right GameEntities. This proves Core startup, built-in bootstrap, registry and inheritance resolution work in-game.
+Reverse indexing is also live-tested:
+
+```text
+58 GameEntity mappings -> 54 definitions
+56/58 GameEntities found in PZ ScriptManager
+```
+
+The only missing mappings are currently expected development gaps because their new large-gate scripts have not been created yet:
+
+```text
+Base.LargeWroughtIronGate
+Base.LargeHardenedWoodenGate
+```
+
+Keep these diagnostic errors for now; do not waste time special-casing them.
+
+The verbose `[LMION:Catalog]` line-per-definition dump has been removed from normal startup. Keep summary lines plus anomalies only.
 
 ## Public API
 
@@ -89,11 +96,40 @@ LMION.getEffectiveDefault(defaultId)
 LMION.getEffectiveDefinition(definitionId)
 LMION.getDefinitionIdByEntity(entityId)
 LMION.getEffectiveDefinitionByEntity(entityId)
+
+LMION.getEntityIdForObject(object)
+LMION.getDefinitionIdForObject(object)
+LMION.getEffectiveDefinitionForObject(object)
 ```
 
-Registry stays private. Raw registered data is copied and Resolver produces fresh effective tables.
+Registry is private. Resolver returns fresh effective data.
 
-## Extensions
+## Lookup contract
+
+The uploaded B42.20.3 jar confirms:
+
+```text
+IsoObject extends GameEntity
+GameEntity.getEntityScript()
+GameEntityScript.getFullName()
+```
+
+World-object lookup therefore uses stable GameEntity identity:
+
+```text
+IsoDoor / IsoObject
+-> getEntityScript():getFullName()
+-> EntityIndex
+-> definitionId
+```
+
+Do not use current sprite as the primary identity mechanism.
+
+Different definitions cannot claim the same GameEntity. A mod modifying an existing definition must use `registerExtension`.
+
+Detailed lookup doc: `Legacy/Research/Architecture/CoreEntityLookup.md`.
+
+## Extensions and load order
 
 Resolution order:
 
@@ -105,101 +141,46 @@ raw default
 -> effective definition
 ```
 
-There is no priority score. At the same extension layer, later registration/load order wins. Identity fields and `inherits` cannot currently be patched.
+No priority score. Later same-layer registration/load order wins.
 
-Two **different definitions** may not claim the same GameEntity: that is an ambiguous physical identity and is an error. A mod modifying an existing opening must use `registerExtension`.
-
-## GameEntity lookup
-
-`Core/EntityIndex.lua` now builds:
+Verified B42.20.3 Lua loading:
 
 ```text
-GameEntity full name -> definitionId
+client: shared -> client -> OnGameBoot later
+server: shared -> client scanned/not executed -> server -> OnGameBoot later
 ```
 
-It currently indexes:
+Detailed load-order doc: `Legacy/Research/Architecture/CoreLoadOrder.md`.
 
-- `definition.entity` for normal mappings;
-- `topology.left` and `topology.right` for true paired 1x1 doors.
+## Geometry
 
-The index uses effective definitions and is invalidated by every default/definition/extension registration, so third-party registrations are picked up automatically on the next lookup. `OnGameBoot` explicitly rebuilds the final normal load-time index.
+Geometry is explicit and exact. Never infer complex geometry through sprite-number arithmetic.
 
-Current built-ins are expected to produce **58 GameEntity mappings -> 54 definitions** because four paired definitions have two entity members.
-
-Detailed contract: `Legacy/Research/Architecture/CoreEntityLookup.md`.
-
-## PZ GameEntity validation
-
-The uploaded B42.20.3 jar was inspected. `ScriptManager` exposes `getGameEntityScript(String)`.
-
-At `OnGameBoot`, Core now checks every indexed entity using:
-
-```lua
-ScriptManager.instance:getGameEntityScript(entityId)
-```
-
-Expected next test output:
+`Doors.Wood.WhitePanelDoor` is now the first migrated 1x1 geometry contract:
 
 ```text
-[LMION:Core] GameEntity index ready: 58 entities -> 54 definitions
-[LMION:Core] PZ GameEntity validation: 58/58 found
+N closed fixtures_doors_01_1
+N open   fixtures_doors_01_3
+W closed fixtures_doors_01_0
+W open   fixtures_doors_01_2
 ```
 
-If an entity is missing, Core logs both the missing GameEntity and the LMION definition that references it. This validation is diagnostic for now; it does not silently delete invalid definitions.
+These values come directly from its PZ SpriteConfig.
 
-## Verified PZ load order
+Large portals will use explicit A/B membership. True paired 1x1 doors may use Left/Right. Garages use START/MIDDLE/END with variable width.
 
-Against the uploaded B42.20.3 jar:
+## Script versus Catalog
 
 ```text
-client:          shared -> client -> OnGameBoot later
-dedicated server: shared -> client scanned/not executed -> server -> OnGameBoot later
+.txt = minimum data PZ needs during script/GameEntity loading
+.lua = LMION semantic and geometry contract
 ```
 
-Within a scope, PZ processes mods in `ZomboidFileSystem.getModIDs()` order and sorts files inside one mod case-insensitively.
+Do not duplicate health, sounds, recipes, pickup properties, etc. in `.txt`. Do not create LMION scripts for GameEntities PZ already provides.
 
-Shared Core/content registration therefore belongs in `media/lua/shared`. Third-party content mods should depend on `LMION_Core`, then register their content from their own shared Lua files using `require "LMION/API"`.
+The two unresolved large-gate scripts remain intentionally deferred until their A/B topology contract is frozen.
 
-`OnGameBoot` is a checkpoint after normal registration, not the preferred registration phase.
-
-Detailed note: `Legacy/Research/Architecture/CoreLoadOrder.md`.
-
-## Third-party registration
-
-External mods organize files however they want. They do not place files inside LMION directories.
-
-```lua
-local LMION = require "LMION/API"
-
-LMION.registerContent({
-    definitions = {
-        require "MyDoorMod/Definitions/FancyDoor",
-    },
-})
-```
-
-They may register their own defaults/definitions or patch LMION/external definitions through `registerExtension`.
-
-## Script versus Catalog rule
-
-```text
-.txt = minimum data PZ must load/register early
-.lua = LMION semantic/geometry contract
-```
-
-Do not duplicate health, sounds, recipes, pickup values, etc. in `.txt`. Do not create LMION `.txt` files for GameEntities PZ already provides.
-
-Exact geometry may intentionally exist in both SpriteConfig and Catalog because PZ and LMION consume it at different lifecycle stages.
-
-## Geometry/topology direction
-
-Do not infer complex geometry with sprite-number arithmetic.
-
-Core definitions will eventually contain exact N/W open/closed geometry. Large portals use semantic leaves A/B. True paired 1x1 doors may use Left/Right. Garages use START/MIDDLE/END and variable width.
-
-Large gate A/B scripts remain intentionally unresolved until that new topology representation is frozen.
-
-## Known Legacy behavior to preserve deliberately
+## Known Legacy behavior to preserve
 
 - finalized LMION doors persist as `IsoDoor`;
 - `IsoThumpable(isDoor)` is accepted as vanilla/legacy input, not a second persistent backend;
@@ -209,21 +190,20 @@ Large gate A/B scripts remain intentionally unresolved until that new topology r
 - LMION standards are defaults, not limitations;
 - MetalBar/IronBar alternatives remain supported where reviewed.
 
-## Next milestone
+## Immediate next work
 
-Launch PZ with the new commit and verify the two entity-index/GameEntity-validation lines. If all current mappings exist, the next Core work is to add the first exact 1x1 geometry contract and then a world-object -> LMION definition adapter, which will put us in position to rebuild generic Pickup without concrete IDs.
+Live-test the new object lookup on a real `IsoDoor`. Once confirmed, migrate exact geometry for more simple 1x1 definitions and build the first generic object/door abstraction used by Pickup.
 
-A fake third-party mod remains intentionally postponed until built-in Core behavior is solid.
+Fake third-party content remains postponed until built-in Core behavior is solid.
 
 ## Git workflow
 
-- Work in `Coudji/LMION_Legacy` development `main` unless Coudji says otherwise.
+- Work in `Coudji/LMION_Legacy` development `main` unless told otherwise.
 - Workshop is the clean candidate mod tree.
 - Research/history stays under Legacy.
 - Coudji manually copies validated Workshop content into `PZMOD_LMION`.
-- **Never write to `PZMOD_LMION` unless Coudji explicitly reverses that rule.**
-- Re-fetch `LMION_Legacy/main` before writes because Coudji may push between turns.
-- Prefer coherent commits over chains of trivial fixes.
+- Re-fetch `LMION_Legacy/main` before writes.
+- Prefer coherent commits.
 
 Pre-reorganization backup:
 

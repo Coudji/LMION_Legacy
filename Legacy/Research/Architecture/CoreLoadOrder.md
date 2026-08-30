@@ -2,18 +2,16 @@
 
 Status: verified against the uploaded Project Zomboid B42.20.3 jar on 2026-08-30.
 
-This document records the engine loading facts that the new Core runtime relies on.
-
 ## Project Zomboid Lua scopes
 
-The current B42.20.3 `LuaManager` loads Lua directories in this order on a client:
+Client load order:
 
 ```text
 shared
 client
 ```
 
-A dedicated server loads:
+Dedicated server load order:
 
 ```text
 shared
@@ -21,33 +19,29 @@ client scanned without execution
 server
 ```
 
-The server still scans the client scope for checksum purposes but does not execute those Lua files.
+The server scans client Lua for checksum purposes but does not execute it.
 
-Therefore LMION content registration that must exist on both client and server belongs in `media/lua/shared`.
-
-Do not put canonical opening definitions or Core extensions only in `client` or only in `server` unless they are deliberately side-specific data.
+Canonical Core registration shared by client and server therefore belongs in `media/lua/shared`.
 
 ## Active mod order
 
-For each Lua scope, `LuaManager.LoadDirBase(scope)` obtains the active mod IDs from `ZomboidFileSystem.getModIDs()` and processes them in that order.
+For each Lua scope, `LuaManager.LoadDirBase(scope)` obtains active mod IDs from `ZomboidFileSystem.getModIDs()` and processes them in that order.
 
-Inside each individual mod, discovered Lua file paths are sorted with Java's case-insensitive string ordering before execution.
+Inside one mod, discovered Lua paths are sorted case-insensitively before execution.
 
 Consequences:
 
-1. mod load order is real and observable;
-2. file alphabetical order inside one mod is also real;
-3. third-party mods that use LMION Core must declare Core as a dependency so Core is loaded first;
-4. LMION extension conflict behavior can naturally follow registration/load order;
-5. when two extensions at the same resolution layer write the same field, the extension registered last wins.
+1. mod load order is observable and authoritative;
+2. file order inside one mod is deterministic;
+3. third-party LMION content mods must depend on Core so Core loads first;
+4. extension conflicts naturally follow registration/load order;
+5. later same-layer extension writes win.
 
-LMION deliberately does not add a separate priority score on top of PZ's mod order.
+LMION adds no separate priority score.
 
 ## Core API versus Core startup
 
-`LMION/API.lua` defines and returns the public API only.
-
-It must not bootstrap built-in content by itself. Loading the API is not the same operation as starting Core.
+`LMION/API.lua` exposes the public API only. Requiring the API does not bootstrap built-in content.
 
 The runtime entry point is:
 
@@ -55,67 +49,61 @@ The runtime entry point is:
 media/lua/shared/LMION_Core.lua
 ```
 
-Its job is deliberately small:
+Its job is small:
 
 ```text
 require public API
--> bootstrap LMION built-in content through that API
--> log the built-in registration count
--> register the OnGameBoot diagnostic checkpoint
+-> bootstrap LMION built-ins through that API
+-> register OnGameBoot diagnostics/final indexing checkpoint
 ```
 
-Built-in data still lives in pure files under `DefinitionDefaults/` and `Catalog/`. Those files can be executed by PZ's recursive Lua loader, but they only return tables and cause no registration side effect themselves.
+Catalog and DefinitionDefault files remain pure data with no registration side effects.
 
-## Why explicit bootstrap is safe for third-party content
+## Third-party registration timing
 
-PZ loads the Lua files of one active mod before moving on to the next active mod in that scope.
+PZ loads one active mod's Lua files before moving to the next mod in that scope.
 
-Therefore when `LMION_Core` is ordered before a dependent third-party mod:
+With a normal dependency order:
 
 ```text
 LMION_Core shared Lua
-    -> LMION_Core.lua bootstraps built-ins
+    -> built-in content registered
 
 ThirdPartyMod shared Lua
     -> require "LMION/API"
     -> registerDefault/registerDefinition/registerExtension
 ```
 
-A third-party mod does not write into LMION folders and does not need to mirror LMION's internal directory structure.
-
-The recommended integration file belongs in the third-party mod's `media/lua/shared` tree.
+External mods never need to place files inside LMION folders.
 
 ## OnGameBoot checkpoint
 
-The uploaded B42.20.3 jar triggers `OnGameBoot` after Lua loading has completed on both client and dedicated server.
+The B42.20.3 jar triggers `OnGameBoot` after normal Lua mod loading on client and dedicated server.
 
-LMION therefore uses `OnGameBoot` as a **checkpoint**, not as the normal registration phase.
+LMION uses it as a checkpoint, not as the preferred registration phase.
 
-At that point, normal shared registrations from active dependent mods should already exist.
+At that point Core rebuilds the reverse GameEntity index and validates indexed GameEntities against `ScriptManager`.
 
-The current development runtime logs:
+Normal development output is intentionally compact:
 
 ```text
 [LMION:Core] OnGameBoot registry snapshot: ...
-[LMION:Catalog] <definitionId> -> <GameEntity/topology>
+[LMION:Core] GameEntity index ready: ...
+[LMION:Core] PZ GameEntity validation: ...
 ```
 
-This is intentionally verbose during reconstruction so a game launch proves that Core actually booted and that the expected definitions resolved.
+Missing mappings are printed individually. The previous one-line-per-definition dump has been removed after the initial bootstrap validation because it added noise without providing new runtime information.
 
-Later this full dump should move behind Debug/development tooling once runtime registration is proven stable.
+## Future addons
 
-## Important rule for future addons
+Build, Pickup and Lock must not start Core or own catalog registration.
 
-Build, Pickup and Lock must not assume they are responsible for starting Core or registering the opening catalog.
-
-Their dependency is:
+Their normal relationship is:
 
 ```text
 addon loads after Core
 -> require "LMION/API"
--> consume already registered Core data
+-> consume registered opening data
 ```
 
-Content-adding third-party mods similarly register shared content after Core has started.
-
-If a mechanic needs a final post-registration index or validation pass, `OnGameBoot` is an appropriate place to finalize it because all normal Lua mod loading has already occurred.
+If a mechanic needs a finalized post-registration lookup structure, Core's `OnGameBoot` checkpoint is the appropriate place to prepare it.

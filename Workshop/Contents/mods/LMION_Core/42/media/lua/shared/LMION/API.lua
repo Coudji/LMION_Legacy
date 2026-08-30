@@ -1,4 +1,5 @@
 local EntityIndex = require "LMION/Core/EntityIndex"
+local ObjectLookup = require "LMION/Core/ObjectLookup"
 local Registry = require "LMION/Core/Registry"
 local Resolver = require "LMION/Core/Resolver"
 local Validation = require "LMION/Core/Validation"
@@ -79,6 +80,21 @@ function API.getEffectiveDefinitionByEntity(entityId)
     end
 
     return Resolver.resolveDefinition(definitionId)
+end
+
+
+function API.getEntityIdForObject(object)
+    return ObjectLookup.getEntityId(object)
+end
+
+
+function API.getDefinitionIdForObject(object)
+    return ObjectLookup.getDefinitionId(object)
+end
+
+
+function API.getEffectiveDefinitionForObject(object)
+    return ObjectLookup.getEffectiveDefinition(object)
 end
 
 

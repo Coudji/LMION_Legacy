@@ -4,27 +4,6 @@ local GameEntityValidation = require "LMION/Core/GameEntityValidation"
 local Diagnostics = {}
 
 
-local function describeDefinition(definition)
-    if definition.entity ~= nil then
-        return definition.entity
-    end
-
-    local topology = definition.topology
-
-    if type(topology) == "table" then
-        if topology.left ~= nil and topology.right ~= nil then
-            return tostring(topology.left) .. " + " .. tostring(topology.right)
-        end
-
-        if topology.type ~= nil then
-            return "topology=" .. tostring(topology.type)
-        end
-    end
-
-    return "no entity mapping yet"
-end
-
-
 local function logStats(API, label)
     local stats = API.getRegistrationStats()
 
@@ -96,20 +75,6 @@ function Diagnostics.logGameBoot(API)
     logStats(API, "OnGameBoot registry snapshot")
     logEntityIndex()
     logGameEntityValidation()
-
-    local definitionIds = API.getRegisteredDefinitionIds()
-
-    for index = 1, #definitionIds do
-        local definitionId = definitionIds[index]
-        local definition = API.getEffectiveDefinition(definitionId)
-
-        print(
-            "[LMION:Catalog] "
-                .. definitionId
-                .. " -> "
-                .. describeDefinition(definition)
-        )
-    end
 end
 
 

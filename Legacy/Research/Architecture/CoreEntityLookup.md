@@ -1,29 +1,57 @@
-# LMION Core GameEntity lookup
+# LMION Core GameEntity and world-object lookup
 
-Status: first implementation, 2026-08-30.
+Status: first live implementation, 2026-08-30.
 
 ## Purpose
 
-Mechanics do not normally encounter an LMION `definitionId` first. They encounter a Project Zomboid object/GameEntity and must ask Core which concrete opening definition owns it.
+Mechanics usually encounter a Project Zomboid world object, not an LMION `definitionId`.
 
-The first lookup layer therefore provides the reverse mapping:
+Core therefore owns this lookup chain:
 
 ```text
-GameEntity full name -> LMION definitionId -> effective definition
+IsoObject / IsoDoor
+-> GameEntityScript full name
+-> LMION definitionId
+-> effective definition
 ```
 
-Public API:
+The public API currently exposes both the GameEntity-level and object-level forms:
 
 ```lua
-LMION.getDefinitionIdByEntity("Base.WhiteMetalDoor")
-LMION.getEffectiveDefinitionByEntity("Base.WhiteMetalDoor")
+LMION.getDefinitionIdByEntity("Base.WhitePanelDoor")
+LMION.getEffectiveDefinitionByEntity("Base.WhitePanelDoor")
+
+LMION.getEntityIdForObject(object)
+LMION.getDefinitionIdForObject(object)
+LMION.getEffectiveDefinitionForObject(object)
 ```
 
-Unknown GameEntities return `nil`. Invalid empty/non-string entity IDs are programming errors.
+Unknown but otherwise valid objects/entities return `nil` when LMION has no matching definition.
+
+## Why world-object lookup does not use sprites
+
+The uploaded B42.20.3 jar confirms:
+
+```text
+IsoObject extends GameEntity
+GameEntity.getEntityScript()
+GameEntityScript.getFullName()
+```
+
+For an entity-backed door the canonical path is therefore:
+
+```lua
+local entityScript = object:getEntityScript()
+local entityId = entityScript:getFullName()
+```
+
+This is preferable to guessing identity from the current sprite. A door can change sprite when opened while its GameEntity identity remains stable.
+
+Sprite/geometry data still matters for exact placement, orientation and topology mechanics; it is not the primary identity lookup.
 
 ## Indexed fields
 
-The first pass indexes the concrete mappings that exist in the current Catalog:
+The first entity index handles the concrete shapes already present in the Catalog:
 
 ```lua
 entity = "Base.WhiteMetalDoor"
@@ -39,87 +67,79 @@ topology = {
 }
 ```
 
-Both Left and Right resolve to the same conceptual LMION definition.
+Both Left and Right map to the same conceptual definition.
 
-Large gate A/B and garage member topology will extend this collector later when those exact contracts are frozen. The index must not guess those structures in advance.
+Large gate A/B and garage member topology will extend the collector only after those exact contracts are frozen.
 
 ## Effective data and invalidation
 
-The index is built from **effective definitions**, not raw Catalog tables. This matters because extensions may legitimately change fields such as `entity` or topology data.
+The index is built from effective definitions, not raw Catalog tables.
 
-Any call to:
+Every `registerDefault`, `registerDefinition` and `registerExtension` invalidates it. The next lookup rebuilds automatically, and `OnGameBoot` explicitly rebuilds after normal mod registration.
 
-```text
-registerDefault
-registerDefinition
-registerExtension
-```
-
-marks the entity index dirty.
-
-The next lookup rebuilds it automatically. `OnGameBoot` also rebuilds it explicitly after normal mod registration has completed.
-
-This means a third-party registration loaded after Core but before `OnGameBoot` is included without a special finalization API.
+This keeps third-party registration compatible with PZ load order without requiring a separate finalize call.
 
 ## Collision rule
 
-Two different concrete definitions may not claim the same GameEntity.
+Two different definitions may not claim the same GameEntity. That is an identity ambiguity, not a normal extension conflict.
 
-That is an ambiguity, not an extension conflict. Core raises an error such as:
+A mod that wants to change an existing opening uses `registerExtension`.
 
-```text
-LMION: GameEntity Base.SomeDoor is claimed by both ModA.SomeDoor and ModB.SomeDoor
-```
+Extensions themselves still follow load order: later same-layer writes win.
 
-Normal load-order/last-write-wins behavior still applies to **extensions targeting the same definition/default**. It does not apply to two distinct definitions claiming the same physical identity.
+## Live GameEntity validation
 
-A mod that wants to modify an existing opening must use `registerExtension` rather than register a second definition for the same GameEntity.
-
-## Validation against Project Zomboid
-
-The uploaded B42.20.3 jar exposes:
-
-```text
-zombie.scripting.ScriptManager.instance
-    getGameEntityScript(String)
-```
-
-`OnGameBoot` runs after script and normal Lua mod loading, so the current diagnostic uses:
-
-```lua
-ScriptManager.instance:getGameEntityScript(entityId)
-```
-
-for every indexed GameEntity.
-
-A resolved LMION mapping and a real PZ script registration are deliberately checked separately:
-
-```text
-Catalog says Base.WhiteMetalDoor
-        ↓
-EntityIndex maps it to Doors.Metal.WhiteMetalDoor
-        ↓
-ScriptManager confirms Base.WhiteMetalDoor exists
-```
-
-Missing entities are logged with both the GameEntity and owning LMION definition so script/catalog mistakes are actionable.
-
-This engine validation is diagnostic in the first implementation; it does not silently remove invalid third-party definitions.
-
-## Current expected built-in result
-
-Before this lookup pass the new Core was live-tested successfully with:
+The first in-game validation produced:
 
 ```text
 23 defaults
 54 definitions
-0 extensions
+58 indexed GameEntity mappings
+56/58 GameEntities found in ScriptManager
 ```
 
-With the four paired definitions contributing two GameEntity members each, the current built-in catalog is expected to produce:
+The only missing mappings were:
 
 ```text
-58 GameEntity mappings -> 54 definitions
+Base.LargeWroughtIronGate
+Base.LargeHardenedWoodenGate
 ```
 
-The next in-game test should confirm that all 58 are present in PZ's ScriptManager.
+Those two are currently expected because the new large-gate A/B script representation has deliberately not been created yet. The diagnostic remains an `ERROR` for visibility; this is a known development gap, not evidence that the current lookup mechanism failed.
+
+The other 56 mappings were confirmed by PZ's `ScriptManager.getGameEntityScript(String)`.
+
+## First exact geometry contract
+
+`Doors.Wood.WhitePanelDoor` is the first concrete definition with explicit exact 1x1 geometry:
+
+```lua
+geometry = {
+    N = {
+        closed = "fixtures_doors_01_1",
+        open = "fixtures_doors_01_3",
+    },
+    W = {
+        closed = "fixtures_doors_01_0",
+        open = "fixtures_doors_01_2",
+    },
+}
+```
+
+These values come directly from its verified PZ `SpriteConfig`; no sprite-number arithmetic is used.
+
+This establishes the intended simple-door shape before geometry is migrated across the rest of the Catalog.
+
+## Runtime diagnostics
+
+The one-line-per-definition catalog dump was useful for the first bootstrap test but is now removed from normal startup because it is too noisy.
+
+Normal development boot output is intentionally compact:
+
+```text
+[LMION:Core] OnGameBoot registry snapshot: ...
+[LMION:Core] GameEntity index ready: ...
+[LMION:Core] PZ GameEntity validation: ...
+```
+
+Only actual missing GameEntity mappings are then listed individually.
