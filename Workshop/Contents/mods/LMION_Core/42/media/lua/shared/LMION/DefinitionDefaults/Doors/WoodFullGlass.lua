@@ -1,5 +1,5 @@
 return {
-    definitionId = "Doors.Wood.FullGlass",
+    defaultId = "Doors.Wood.FullGlass",
 
     defaults = {
         frame = "standard",
@@ -19,10 +19,7 @@ return {
             skill = { Woodwork = 7 },
             time = 170,
             xp = 40,
-            tools = {
-                { tag = "base:hammer" },
-                { tag = "base:screwdriver" },
-            },
+            tools = { { tag = "base:hammer" }, { tag = "base:screwdriver" } },
 
             materials = {
                 { item = "Base.Plank", amount = 2 },
@@ -36,21 +33,14 @@ return {
 
         pickup = {
             skill = { Woodwork = 3 },
-            tools = {
-                { tag = "base:screwdriver" },
-            },
+            tools = { { tag = "base:screwdriver" } },
             breakChance = 0,
-            packages = {
-                count = 1,
-                weight = 14,
-            },
+            packages = { count = 1, weight = 14 },
         },
 
         replacement = {
             packages = 1,
-            tools = {
-                { tag = "base:screwdriver" },
-            },
+            tools = { { tag = "base:screwdriver" } },
             materials = {},
         },
     },

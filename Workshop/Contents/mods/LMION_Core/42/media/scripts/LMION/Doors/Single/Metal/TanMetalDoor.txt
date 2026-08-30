@@ -1,0 +1,13 @@
+module Base
+{
+    entity TanMetalDoor
+    {
+        component SpriteConfig
+        {
+            face W { layer { row = fixtures_doors_01_64, } }
+            face N { layer { row = fixtures_doors_01_65, } }
+            face W_OPEN { layer { row = fixtures_doors_01_66, } }
+            face N_OPEN { layer { row = fixtures_doors_01_67, } }
+        }
+    }
+}

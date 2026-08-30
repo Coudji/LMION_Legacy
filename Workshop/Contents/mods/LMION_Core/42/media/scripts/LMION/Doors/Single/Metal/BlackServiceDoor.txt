@@ -1,0 +1,13 @@
+module Base
+{
+    entity BlackServiceDoor
+    {
+        component SpriteConfig
+        {
+            face W { layer { row = fixtures_doors_02_12, } }
+            face N { layer { row = fixtures_doors_02_13, } }
+            face W_OPEN { layer { row = fixtures_doors_02_14, } }
+            face N_OPEN { layer { row = fixtures_doors_02_15, } }
+        }
+    }
+}

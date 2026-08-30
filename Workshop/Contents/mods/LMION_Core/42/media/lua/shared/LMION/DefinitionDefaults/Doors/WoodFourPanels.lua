@@ -1,5 +1,5 @@
 return {
-    definitionId = "Doors.Wood.FourPanels",
+    defaultId = "Doors.Wood.FourPanels",
 
     defaults = {
         frame = "standard",
@@ -19,10 +19,7 @@ return {
             skill = { Woodwork = 6 },
             time = 150,
             xp = 35,
-            tools = {
-                { tag = "base:hammer" },
-                { tag = "base:screwdriver" },
-            },
+            tools = { { tag = "base:hammer" }, { tag = "base:screwdriver" } },
 
             materials = {
                 { item = "Base.Plank", amount = 4 },
@@ -35,21 +32,14 @@ return {
 
         pickup = {
             skill = { Woodwork = 3 },
-            tools = {
-                { tag = "base:screwdriver" },
-            },
+            tools = { { tag = "base:screwdriver" } },
             breakChance = 0,
-            packages = {
-                count = 1,
-                weight = 17,
-            },
+            packages = { count = 1, weight = 17 },
         },
 
         replacement = {
             packages = 1,
-            tools = {
-                { tag = "base:screwdriver" },
-            },
+            tools = { { tag = "base:screwdriver" } },
             materials = {},
         },
     },

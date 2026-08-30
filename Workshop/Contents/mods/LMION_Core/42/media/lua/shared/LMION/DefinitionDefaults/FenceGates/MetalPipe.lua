@@ -1,5 +1,5 @@
 return {
-    definitionId = "FenceGates.Metal.Pipe",
+    defaultId = "FenceGates.Metal.Pipe",
 
     defaults = {
         frame = false,
@@ -9,20 +9,11 @@ return {
 
         engineMaterials = { "MetalPipe", "MetalScrap" },
 
-        durability = {
-            worldHealth = 600,
-            health = 300,
-            skillBaseHealth = 225,
-        },
+        durability = { worldHealth = 600, health = 300, skillBaseHealth = 225 },
 
         construction = {
-            skill = { MetalWelding = 3 },
-            time = 120,
-            xp = 15,
-            tools = {
-                { tag = "base:weldingmask" },
-            },
-
+            skill = { MetalWelding = 3 }, time = 120, xp = 15,
+            tools = { { tag = "base:weldingmask" } },
             materials = {
                 { item = "Base.BlowTorch", uses = 5 },
                 { item = "Base.MetalPipe", amount = 5 },
@@ -34,21 +25,14 @@ return {
 
         pickup = {
             skill = { MetalWelding = 1 },
-            tools = {
-                { tag = "base:crowbar" },
-            },
+            tools = { { tag = "base:crowbar" } },
             breakChance = 0,
-            packages = {
-                count = 1,
-                weight = 16,
-            },
+            packages = { count = 1, weight = 16 },
         },
 
         replacement = {
             packages = 1,
-            tools = {
-                { tag = "base:hammer" },
-            },
+            tools = { { tag = "base:hammer" } },
             materials = {},
         },
     },

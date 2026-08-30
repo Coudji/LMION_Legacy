@@ -1,0 +1,13 @@
+module Base
+{
+    entity OrangeServiceDoor
+    {
+        component SpriteConfig
+        {
+            face W { layer { row = location_restaurant_pileocrepe_01_52, } }
+            face N { layer { row = location_restaurant_pileocrepe_01_53, } }
+            face W_OPEN { layer { row = location_restaurant_pileocrepe_01_54, } }
+            face N_OPEN { layer { row = location_restaurant_pileocrepe_01_55, } }
+        }
+    }
+}

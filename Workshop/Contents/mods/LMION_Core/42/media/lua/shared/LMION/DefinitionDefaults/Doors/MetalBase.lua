@@ -1,5 +1,5 @@
 return {
-    definitionId = "Doors.Metal.Base",
+    defaultId = "Doors.Metal.Base",
 
     defaults = {
         frame = "standard",
@@ -19,9 +19,7 @@ return {
             skill = { MetalWelding = 4 },
             time = 160,
             xp = 30,
-            tools = {
-                { tag = "base:weldingmask" },
-            },
+            tools = { { tag = "base:weldingmask" } },
 
             materials = {
                 { item = "Base.BlowTorch", uses = 4 },
@@ -35,21 +33,14 @@ return {
 
         pickup = {
             skill = { MetalWelding = 2 },
-            tools = {
-                { tag = "base:screwdriver" },
-            },
+            tools = { { tag = "base:screwdriver" } },
             breakChance = 0,
-            packages = {
-                count = 1,
-                weight = 24,
-            },
+            packages = { count = 1, weight = 24 },
         },
 
         replacement = {
             packages = 1,
-            tools = {
-                { tag = "base:screwdriver" },
-            },
+            tools = { { tag = "base:screwdriver" } },
             materials = {},
         },
     },

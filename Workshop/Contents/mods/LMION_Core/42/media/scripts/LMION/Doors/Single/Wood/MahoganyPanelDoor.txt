@@ -1,0 +1,13 @@
+module Base
+{
+    entity MahoganyPanelDoor
+    {
+        component SpriteConfig
+        {
+            face W { layer { row = fixtures_doors_01_12, } }
+            face N { layer { row = fixtures_doors_01_13, } }
+            face W_OPEN { layer { row = fixtures_doors_01_14, } }
+            face N_OPEN { layer { row = fixtures_doors_01_15, } }
+        }
+    }
+}

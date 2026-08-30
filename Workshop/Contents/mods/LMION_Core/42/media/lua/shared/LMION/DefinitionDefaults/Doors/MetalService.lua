@@ -1,5 +1,5 @@
 return {
-    definitionId = "Doors.Metal.Service",
+    defaultId = "Doors.Metal.Service",
 
     defaults = {
         frame = "standard",
@@ -19,9 +19,7 @@ return {
             skill = { MetalWelding = 3 },
             time = 120,
             xp = 15,
-            tools = {
-                { tag = "base:screwdriver" },
-            },
+            tools = { { tag = "base:screwdriver" } },
 
             materials = {
                 { item = "Base.SheetMetal", amount = 1 },
@@ -34,21 +32,14 @@ return {
 
         pickup = {
             skill = { MetalWelding = 1 },
-            tools = {
-                { tag = "base:screwdriver" },
-            },
+            tools = { { tag = "base:screwdriver" } },
             breakChance = 0,
-            packages = {
-                count = 1,
-                weight = 18,
-            },
+            packages = { count = 1, weight = 18 },
         },
 
         replacement = {
             packages = 1,
-            tools = {
-                { tag = "base:screwdriver" },
-            },
+            tools = { { tag = "base:screwdriver" } },
             materials = {},
         },
     },

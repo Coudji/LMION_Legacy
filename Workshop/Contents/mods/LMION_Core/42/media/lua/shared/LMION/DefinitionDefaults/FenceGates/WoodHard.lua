@@ -1,5 +1,5 @@
 return {
-    definitionId = "FenceGates.Wood.Hard",
+    defaultId = "FenceGates.Wood.Hard",
 
     defaults = {
         frame = false,
@@ -9,21 +9,11 @@ return {
 
         engineMaterials = { "Wood", "Nails", "Screws" },
 
-        durability = {
-            worldHealth = 600,
-            health = 400,
-            skillBaseHealth = 275,
-        },
+        durability = { worldHealth = 600, health = 400, skillBaseHealth = 275 },
 
         construction = {
-            skill = { Woodwork = 5 },
-            time = 150,
-            xp = 30,
-            tools = {
-                { tag = "base:hammer" },
-                { tag = "base:screwdriver" },
-            },
-
+            skill = { Woodwork = 5 }, time = 150, xp = 30,
+            tools = { { tag = "base:hammer" }, { tag = "base:screwdriver" } },
             materials = {
                 { item = "Base.Plank", amount = 5 },
                 { item = "Base.Nails", amount = 5 },
@@ -35,21 +25,14 @@ return {
 
         pickup = {
             skill = { Woodwork = 2 },
-            tools = {
-                { tag = "base:crowbar" },
-            },
+            tools = { { tag = "base:crowbar" } },
             breakChance = 0,
-            packages = {
-                count = 1,
-                weight = 18,
-            },
+            packages = { count = 1, weight = 18 },
         },
 
         replacement = {
             packages = 1,
-            tools = {
-                { tag = "base:hammer" },
-            },
+            tools = { { tag = "base:hammer" } },
             materials = {},
         },
     },
