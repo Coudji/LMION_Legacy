@@ -1,8 +1,7 @@
 return {
-    id = "Doors.Metal.Service",
+    definitionId = "Doors.Metal.Service",
 
     defaults = {
-        class = "metal",
         frame = "standard",
         materialType = "Metal_Light",
         doorSound = "MetalDoor",
@@ -20,7 +19,9 @@ return {
             skill = { MetalWelding = 3 },
             time = 120,
             xp = 15,
-            tools = { "Base.Screwdriver" },
+            tools = {
+                { tag = "base:screwdriver" },
+            },
 
             materials = {
                 { item = "Base.SheetMetal", amount = 1 },
@@ -33,7 +34,9 @@ return {
 
         pickup = {
             skill = { MetalWelding = 1 },
-            tools = { "Base.Screwdriver", "Base.Crowbar" },
+            tools = {
+                { tag = "base:screwdriver" },
+            },
             breakChance = 0,
             packages = {
                 count = 1,
@@ -43,7 +46,9 @@ return {
 
         replacement = {
             packages = 1,
-            tools = { "Base.Screwdriver" },
+            tools = {
+                { tag = "base:screwdriver" },
+            },
             materials = {},
         },
     },

@@ -1,8 +1,7 @@
 return {
-    id = "FenceGates.Metal.Pipe",
+    definitionId = "FenceGates.Metal.Pipe",
 
     defaults = {
-        class = "metal",
         frame = false,
         materialType = "Metal_Light",
         doorSound = "MetalPoleGate",
@@ -20,7 +19,9 @@ return {
             skill = { MetalWelding = 3 },
             time = 120,
             xp = 15,
-            tools = { "Base.WeldingMask" },
+            tools = {
+                { tag = "base:weldingmask" },
+            },
 
             materials = {
                 { item = "Base.BlowTorch", uses = 5 },
@@ -33,7 +34,9 @@ return {
 
         pickup = {
             skill = { MetalWelding = 1 },
-            tools = { "Base.BlowTorch", "Base.WeldingMask" },
+            tools = {
+                { tag = "base:crowbar" },
+            },
             breakChance = 0,
             packages = {
                 count = 1,
@@ -43,10 +46,10 @@ return {
 
         replacement = {
             packages = 1,
-            tools = { "Base.BlowTorch", "Base.WeldingMask" },
-            materials = {
-                { item = "Base.WeldingRods", uses = 3 },
+            tools = {
+                { tag = "base:hammer" },
             },
+            materials = {},
         },
     },
 }

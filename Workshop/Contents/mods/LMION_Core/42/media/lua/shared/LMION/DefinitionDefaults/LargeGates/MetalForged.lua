@@ -1,8 +1,7 @@
 return {
-    id = "LargeGates.Metal.Forged",
+    definitionId = "LargeGates.Metal.Forged",
 
     defaults = {
-        class = "metal",
         frame = false,
         materialType = "Metal_Solid",
         doorSound = "MetalPoleGateDouble",
@@ -20,11 +19,13 @@ return {
             skill = { MetalWelding = 6 },
             time = 260,
             xp = 50,
-            tools = { "Base.WeldingMask" },
+            tools = {
+                { tag = "base:weldingmask" },
+            },
 
             materials = {
                 { item = "Base.BlowTorch", uses = 8 },
-                { item = "Base.MetalBar", amount = 8 },
+                { anyOf = { "Base.MetalBar", "Base.IronBar" }, amount = 8 },
                 { item = "Base.MetalPipe", amount = 4 },
                 { item = "Base.Hinge", amount = 4 },
                 { item = "Base.WeldingRods", uses = 6 },
@@ -33,7 +34,9 @@ return {
 
         pickup = {
             skill = { MetalWelding = 3 },
-            tools = { "Base.BlowTorch", "Base.WeldingMask" },
+            tools = {
+                { tag = "base:crowbar" },
+            },
             breakChance = 0,
             packages = {
                 count = 2,
@@ -43,10 +46,10 @@ return {
 
         replacement = {
             packages = 2,
-            tools = { "Base.BlowTorch", "Base.WeldingMask" },
-            materials = {
-                { item = "Base.WeldingRods", uses = 3 },
+            tools = {
+                { tag = "base:hammer" },
             },
+            materials = {},
         },
     },
 }

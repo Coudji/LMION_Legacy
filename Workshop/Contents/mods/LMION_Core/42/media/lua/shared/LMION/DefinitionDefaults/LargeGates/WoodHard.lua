@@ -1,8 +1,7 @@
 return {
-    id = "LargeGates.Wood.Hard",
+    definitionId = "LargeGates.Wood.Hard",
 
     defaults = {
-        class = "wood",
         frame = false,
         materialType = "Wood_Solid",
         doorSound = "WoodGate",
@@ -20,7 +19,10 @@ return {
             skill = { Woodwork = 7 },
             time = 240,
             xp = 60,
-            tools = { "Base.Hammer", "Base.Screwdriver" },
+            tools = {
+                { tag = "base:hammer" },
+                { tag = "base:screwdriver" },
+            },
 
             materials = {
                 { item = "Base.Plank", amount = 10 },
@@ -33,7 +35,9 @@ return {
 
         pickup = {
             skill = { Woodwork = 3 },
-            tools = { "Base.Hammer", "Base.Screwdriver" },
+            tools = {
+                { tag = "base:crowbar" },
+            },
             breakChance = 0,
             packages = {
                 count = 2,
@@ -43,7 +47,9 @@ return {
 
         replacement = {
             packages = 2,
-            tools = { "Base.Hammer", "Base.Screwdriver" },
+            tools = {
+                { tag = "base:hammer" },
+            },
             materials = {},
         },
     },

@@ -1,8 +1,7 @@
 return {
-    id = "Doors.Wood.Base",
+    definitionId = "Doors.Wood.Base",
 
     defaults = {
-        class = "wood",
         frame = "standard",
         materialType = "Wood_Solid",
         doorSound = "WoodDoor",
@@ -20,7 +19,9 @@ return {
             skill = { Woodwork = 5 },
             time = 120,
             xp = 25,
-            tools = { "Base.Hammer" },
+            tools = {
+                { tag = "base:hammer" },
+            },
 
             materials = {
                 { item = "Base.Plank", amount = 4 },
@@ -32,7 +33,9 @@ return {
 
         pickup = {
             skill = { Woodwork = 2 },
-            tools = { "Base.Hammer" },
+            tools = {
+                { tag = "base:screwdriver" },
+            },
             breakChance = 0,
             packages = {
                 count = 1,
@@ -42,7 +45,9 @@ return {
 
         replacement = {
             packages = 1,
-            tools = { "Base.Hammer" },
+            tools = {
+                { tag = "base:screwdriver" },
+            },
             materials = {},
         },
     },

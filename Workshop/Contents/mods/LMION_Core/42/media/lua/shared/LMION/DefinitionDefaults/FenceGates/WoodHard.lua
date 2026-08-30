@@ -1,8 +1,7 @@
 return {
-    id = "FenceGates.Wood.Hard",
+    definitionId = "FenceGates.Wood.Hard",
 
     defaults = {
-        class = "wood",
         frame = false,
         materialType = "Wood_Solid",
         doorSound = "WoodGate",
@@ -20,7 +19,10 @@ return {
             skill = { Woodwork = 5 },
             time = 150,
             xp = 30,
-            tools = { "Base.Hammer", "Base.Screwdriver" },
+            tools = {
+                { tag = "base:hammer" },
+                { tag = "base:screwdriver" },
+            },
 
             materials = {
                 { item = "Base.Plank", amount = 5 },
@@ -33,7 +35,9 @@ return {
 
         pickup = {
             skill = { Woodwork = 2 },
-            tools = { "Base.Hammer", "Base.Screwdriver" },
+            tools = {
+                { tag = "base:crowbar" },
+            },
             breakChance = 0,
             packages = {
                 count = 1,
@@ -43,7 +47,9 @@ return {
 
         replacement = {
             packages = 1,
-            tools = { "Base.Hammer", "Base.Screwdriver" },
+            tools = {
+                { tag = "base:hammer" },
+            },
             materials = {},
         },
     },

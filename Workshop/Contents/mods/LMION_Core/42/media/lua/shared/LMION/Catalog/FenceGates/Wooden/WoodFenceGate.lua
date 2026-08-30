@@ -1,10 +1,5 @@
 return {
-    id = "Base.WoodFenceGate",
-    inherits = "FenceGates.Wooden.StandardWooden",
-    size = "standard",
-
-    geometry = {
-        N = { closed = "TODO", open = "TODO" },
-        W = { closed = "TODO", open = "TODO" },
-    },
+    definitionId = "FenceGates.Wood.WoodFenceGate",
+    entity = "Base.WoodFenceGate",
+    inherits = "FenceGates.Wood.Base",
 }

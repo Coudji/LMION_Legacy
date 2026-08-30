@@ -1,8 +1,7 @@
 return {
-    id = "SlidingDoors.SlidingGlass",
+    definitionId = "SlidingDoors.SlidingGlass",
 
     defaults = {
-        class = "glass",
         frame = false,
         materialType = "Glass_Solid",
         doorSound = "SlidingGlassDoor",
@@ -20,12 +19,14 @@ return {
             skill = { MetalWelding = 3 },
             time = 100,
             xp = 15,
-            tools = { "Base.WeldingMask" },
+            tools = {
+                { tag = "base:weldingmask" },
+            },
 
             materials = {
                 { item = "Base.BlowTorch", uses = 4 },
                 { item = "Base.SmallSheetMetal", amount = 2 },
-                { item = "Base.MetalBar", amount = 2 },
+                { anyOf = { "Base.MetalBar", "Base.IronBar" }, amount = 2 },
                 { item = "Base.GlassPanel", amount = 2 },
                 { item = "Base.WeldingRods", uses = 4 },
             },
@@ -33,7 +34,9 @@ return {
 
         pickup = {
             skill = { MetalWelding = 1 },
-            tools = { "Base.Crowbar" },
+            tools = {
+                { tag = "base:crowbar" },
+            },
             breakChance = 0,
             packages = {
                 count = 1,
@@ -43,10 +46,10 @@ return {
 
         replacement = {
             packages = 1,
-            tools = { "Base.BlowTorch", "Base.WeldingMask" },
-            materials = {
-                { item = "Base.WeldingRods", uses = 2 },
+            tools = {
+                { tag = "base:hammer" },
             },
+            materials = {},
         },
     },
 }

@@ -1,8 +1,7 @@
 return {
-    id = "Doors.Wood.Restroom",
+    definitionId = "Doors.Wood.Restroom",
 
     defaults = {
-        class = "wood",
         frame = "standard",
         materialType = "Wood",
         doorSound = "WoodDoor",
@@ -20,7 +19,9 @@ return {
             skill = { Woodwork = 1 },
             time = 50,
             xp = 5,
-            tools = { "Base.Screwdriver" },
+            tools = {
+                { tag = "base:screwdriver" },
+            },
 
             materials = {
                 { item = "Base.Plank", amount = 2 },
@@ -31,7 +32,9 @@ return {
 
         pickup = {
             skill = { Woodwork = 0 },
-            tools = { "Base.Screwdriver" },
+            tools = {
+                { tag = "base:screwdriver" },
+            },
             breakChance = 0,
             packages = {
                 count = 1,
@@ -41,7 +44,9 @@ return {
 
         replacement = {
             packages = 1,
-            tools = { "Base.Screwdriver" },
+            tools = {
+                { tag = "base:screwdriver" },
+            },
             materials = {},
         },
     },

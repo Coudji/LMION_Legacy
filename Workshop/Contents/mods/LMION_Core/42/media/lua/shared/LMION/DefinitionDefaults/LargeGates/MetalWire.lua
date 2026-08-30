@@ -1,8 +1,7 @@
 return {
-    id = "LargeGates.Metal.Wire",
+    definitionId = "LargeGates.Metal.Wire",
 
     defaults = {
-        class = "metal",
         frame = false,
         materialType = "Metal_Light",
         doorSound = "MetalGate",
@@ -20,7 +19,9 @@ return {
             skill = { MetalWelding = 5 },
             time = 220,
             xp = 40,
-            tools = { "Base.WeldingMask" },
+            tools = {
+                { tag = "base:weldingmask" },
+            },
 
             materials = {
                 { item = "Base.BlowTorch", uses = 10 },
@@ -34,7 +35,9 @@ return {
 
         pickup = {
             skill = { MetalWelding = 2 },
-            tools = { "Base.BlowTorch", "Base.WeldingMask" },
+            tools = {
+                { tag = "base:crowbar" },
+            },
             breakChance = 0,
             packages = {
                 count = 2,
@@ -44,10 +47,10 @@ return {
 
         replacement = {
             packages = 2,
-            tools = { "Base.BlowTorch", "Base.WeldingMask" },
-            materials = {
-                { item = "Base.WeldingRods", uses = 5 },
+            tools = {
+                { tag = "base:hammer" },
             },
+            materials = {},
         },
     },
 }

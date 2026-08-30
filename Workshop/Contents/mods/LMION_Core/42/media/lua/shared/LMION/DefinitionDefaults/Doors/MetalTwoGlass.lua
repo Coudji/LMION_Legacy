@@ -1,8 +1,7 @@
 return {
-    id = "Doors.Metal.TwoGlass",
+    definitionId = "Doors.Metal.TwoGlass",
 
     defaults = {
-        class = "metal_glazed",
         frame = "standard",
         materialType = "Metal_Solid",
         doorSound = "MetalDoor",
@@ -20,12 +19,14 @@ return {
             skill = { MetalWelding = 5 },
             time = 190,
             xp = 35,
-            tools = { "Base.WeldingMask" },
+            tools = {
+                { tag = "base:weldingmask" },
+            },
 
             materials = {
                 { item = "Base.BlowTorch", uses = 4 },
                 { item = "Base.SheetMetal", amount = 1 },
-                { item = "Base.MetalBar", amount = 2 },
+                { anyOf = { "Base.MetalBar", "Base.IronBar" }, amount = 2 },
                 { item = "Base.Hinge", amount = 2 },
                 { item = "Base.WeldingRods", uses = 4 },
                 { item = "Base.Doorknob", amount = 1 },
@@ -35,7 +36,9 @@ return {
 
         pickup = {
             skill = { MetalWelding = 2 },
-            tools = { "Base.Screwdriver", "Base.Crowbar" },
+            tools = {
+                { tag = "base:screwdriver" },
+            },
             breakChance = 0,
             packages = {
                 count = 1,
@@ -45,7 +48,9 @@ return {
 
         replacement = {
             packages = 1,
-            tools = { "Base.Screwdriver" },
+            tools = {
+                { tag = "base:screwdriver" },
+            },
             materials = {},
         },
     },

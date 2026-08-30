@@ -1,14 +1,5 @@
 return {
-    id = "Base.IndustrialGarageDoor",
+    definitionId = "GarageDoors.IndustrialGarageDoor",
+    entity = "Base.IndustrialGarageDoor",
     inherits = "GarageDoors.Solid",
-
-    topology = {
-        type = "garageChain",
-        roles = { "START", "MIDDLE", "END" },
-    },
-
-    geometry = {
-        N = { closed = {}, open = {} },
-        W = { closed = {}, open = {} },
-    },
 }

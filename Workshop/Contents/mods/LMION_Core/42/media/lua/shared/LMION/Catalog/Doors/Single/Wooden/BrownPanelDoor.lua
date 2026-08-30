@@ -1,9 +1,5 @@
 return {
-    id = "Base.BrownPanelDoor",
-    inherits = "Doors.Wooden.Paneled",
-
-    geometry = {
-        N = { closed = "TODO", open = "TODO" },
-        W = { closed = "TODO", open = "TODO" },
-    },
+    definitionId = "Doors.Wood.BrownPanelDoor",
+    entity = "Base.BrownPanelDoor",
+    inherits = "Doors.Wood.FourPanels",
 }

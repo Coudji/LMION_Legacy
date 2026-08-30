@@ -1,8 +1,7 @@
 return {
-    id = "Doors.Wood.OneGlass",
+    definitionId = "Doors.Wood.OneGlass",
 
     defaults = {
-        class = "wood_glazed",
         frame = "standard",
         materialType = "Wood_Solid",
         doorSound = "WoodDoor",
@@ -20,7 +19,10 @@ return {
             skill = { Woodwork = 6 },
             time = 160,
             xp = 35,
-            tools = { "Base.Hammer", "Base.Screwdriver" },
+            tools = {
+                { tag = "base:hammer" },
+                { tag = "base:screwdriver" },
+            },
 
             materials = {
                 { item = "Base.Plank", amount = 4 },
@@ -34,7 +36,9 @@ return {
 
         pickup = {
             skill = { Woodwork = 3 },
-            tools = { "Base.Hammer", "Base.Screwdriver" },
+            tools = {
+                { tag = "base:screwdriver" },
+            },
             breakChance = 0,
             packages = {
                 count = 1,
@@ -44,7 +48,9 @@ return {
 
         replacement = {
             packages = 1,
-            tools = { "Base.Hammer", "Base.Screwdriver" },
+            tools = {
+                { tag = "base:screwdriver" },
+            },
             materials = {},
         },
     },

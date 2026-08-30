@@ -1,8 +1,7 @@
 return {
-    id = "GarageDoors.Glazed",
+    definitionId = "GarageDoors.Glazed",
 
     defaults = {
-        class = "metal_glazed",
         frame = false,
         materialType = "Metal_Light",
         doorSound = "GarageDoor",
@@ -20,13 +19,15 @@ return {
             skill = { MetalWelding = 6 },
             time = 200,
             xp = 50,
-            tools = { "Base.WeldingMask" },
+            tools = {
+                { tag = "base:weldingmask" },
+            },
 
             materials = {
                 { item = "Base.BlowTorch", uses = 6 },
                 { item = "Base.SmallSheetMetal", amount = 6 },
                 { item = "Base.GlassPanel", amount = 3 },
-                { item = "Base.MetalBar", amount = 3 },
+                { anyOf = { "Base.MetalBar", "Base.IronBar" }, amount = 3 },
                 { item = "Base.Hinge", amount = 6 },
                 { item = "Base.WeldingRods", uses = 3 },
             },
@@ -34,7 +35,9 @@ return {
 
         pickup = {
             skill = { MetalWelding = 3 },
-            tools = { "Base.BlowTorch", "Base.WeldingMask" },
+            tools = {
+                { tag = "base:crowbar" },
+            },
             breakChance = 0,
             packages = {
                 count = 3,
@@ -44,10 +47,10 @@ return {
 
         replacement = {
             packages = 3,
-            tools = { "Base.BlowTorch", "Base.WeldingMask" },
-            materials = {
-                { item = "Base.WeldingRods", uses = 2 },
+            tools = {
+                { tag = "base:hammer" },
             },
+            materials = {},
         },
     },
 }

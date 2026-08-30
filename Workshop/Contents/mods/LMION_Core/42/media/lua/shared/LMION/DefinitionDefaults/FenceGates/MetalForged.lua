@@ -1,8 +1,7 @@
 return {
-    id = "FenceGates.Metal.Forged",
+    definitionId = "FenceGates.Metal.Forged",
 
     defaults = {
-        class = "metal",
         frame = false,
         materialType = "Metal_Solid",
         doorSound = "MetalPoleGate",
@@ -20,11 +19,13 @@ return {
             skill = { MetalWelding = 4 },
             time = 140,
             xp = 25,
-            tools = { "Base.WeldingMask" },
+            tools = {
+                { tag = "base:weldingmask" },
+            },
 
             materials = {
                 { item = "Base.BlowTorch", uses = 5 },
-                { item = "Base.MetalBar", amount = 4 },
+                { anyOf = { "Base.MetalBar", "Base.IronBar" }, amount = 4 },
                 { item = "Base.MetalPipe", amount = 2 },
                 { item = "Base.Hinge", amount = 2 },
                 { item = "Base.WeldingRods", uses = 4 },
@@ -33,7 +34,9 @@ return {
 
         pickup = {
             skill = { MetalWelding = 2 },
-            tools = { "Base.BlowTorch", "Base.WeldingMask" },
+            tools = {
+                { tag = "base:crowbar" },
+            },
             breakChance = 0,
             packages = {
                 count = 1,
@@ -43,10 +46,10 @@ return {
 
         replacement = {
             packages = 1,
-            tools = { "Base.BlowTorch", "Base.WeldingMask" },
-            materials = {
-                { item = "Base.WeldingRods", uses = 2 },
+            tools = {
+                { tag = "base:hammer" },
             },
+            materials = {},
         },
     },
 }

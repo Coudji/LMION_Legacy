@@ -1,15 +1,10 @@
 return {
-    id = "Base.GreyMetalDoubleDoor",
-    inherits = "Doors.Metal.FinishedMetal",
+    definitionId = "Doors.Metal.GreyMetalDoubleDoor",
+    inherits = "Doors.Metal.Base",
 
     topology = {
         type = "paired",
         left = "Base.GreyMetalDoubleDoorLeft",
         right = "Base.GreyMetalDoubleDoorRight",
-    },
-
-    geometry = {
-        N = { closed = "TODO", open = "TODO" },
-        W = { closed = "TODO", open = "TODO" },
     },
 }
