@@ -23,7 +23,7 @@ end
 
 
 local function buildRuntime(definition)
-    local topology = definition and definition.topology or nil
+    local topology = LMION.getLargeGateTopology()
     local geometry = definition and definition.geometry or nil
     local pickup = definition and definition.pickup or nil
     local packages = type(pickup) == "table" and pickup.packages or nil
@@ -33,7 +33,6 @@ local function buildRuntime(definition)
         or type(definition.displayName) ~= "string"
         or definition.displayName == ""
         or type(topology) ~= "table"
-        or topology.type ~= "largeGate"
         or definition.frame ~= false
         or type(geometry) ~= "table"
         or type(packages) ~= "table"
@@ -364,8 +363,6 @@ local function installHooks()
             return previousInstanceItem(self, spriteNameOverride)
         end
 
-        -- Do not call vanilla ReadFromWorldSprite() for Large Gate parcels.
-        -- The represented segment is transport data, not the parcel's visual.
         local item = instanceItem(PARCEL_ITEM)
         if item ~= nil then
             item:setActualWeight(runtime.weight)
