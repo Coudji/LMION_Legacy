@@ -1,5 +1,6 @@
 return {
     definitionId = "LargeGates.Metal.DoubleFenceGate",
+    displayName = "Large Scrap Metal Gate",
     entity = "Base.DoubleFenceGate",
     inherits = "LargeGates.Metal.Pipe",
 
