@@ -30,6 +30,8 @@ local function buildRuntime(definition)
 
     if type(definition) ~= "table"
         or type(definition.definitionId) ~= "string"
+        or type(definition.displayName) ~= "string"
+        or definition.displayName == ""
         or type(topology) ~= "table"
         or topology.type ~= "largeGate"
         or definition.frame ~= false
@@ -78,6 +80,7 @@ local function buildRuntime(definition)
 
     return {
         definitionId = definition.definitionId,
+        displayName = definition.displayName,
         definition = definition,
         topology = topology,
         geometry = geometry,
@@ -236,12 +239,8 @@ end
 
 
 function LargeGatePickup.getParcelIdentity(item)
-    local spriteName = item
-        and item.getWorldSprite ~= nil
-        and item:getWorldSprite()
-        or nil
-    local segment = LargeGatePickup.getSegment(spriteName)
     local state = item and TransportState.read(item) or nil
+    local segment = state and LargeGatePickup.getSegment(state.spriteName) or nil
 
     if segment == nil or state == nil then
         return nil
@@ -270,6 +269,16 @@ function LargeGatePickup.getPartSprite(definitionId, facing, leaf, partIndex, is
 end
 
 
+local function getParcelName(runtime, leaf, partIndex)
+    return runtime.displayName
+        .. " "
+        .. tostring(leaf)
+        .. " ("
+        .. tostring(partIndex)
+        .. "/2)"
+end
+
+
 local function applyMoveProps(moveProps, sprite)
     if moveProps == nil then
         return moveProps
@@ -293,10 +302,6 @@ local function applyMoveProps(moveProps, sprite)
     moveProps.weight = runtime.weight
     moveProps.canBreak = false
     moveProps.facing = segment.facing
-
-    -- Preserve vanilla's real multisprite classification. The Moveables cursor
-    -- needs it to render the complete two-part leaf ghost. Pickup temporarily
-    -- disables multisprite validation below so only one LMION leaf is removed.
 
     moveProps.lmionLargeGateDefinitionId = runtime.definitionId
     moveProps.lmionLargeGateFacing = segment.facing
@@ -359,10 +364,17 @@ local function installHooks()
             return previousInstanceItem(self, spriteNameOverride)
         end
 
-        local item = previousInstanceItem(self, spriteNameOverride)
+        -- Do not call vanilla ReadFromWorldSprite() for Large Gate parcels.
+        -- The represented segment is transport data, not the parcel's visual.
+        local item = instanceItem(PARCEL_ITEM)
         if item ~= nil then
             item:setActualWeight(runtime.weight)
             item:setWeight(runtime.weight)
+            item:setName(getParcelName(
+                runtime,
+                self.lmionLargeGateLeaf,
+                self.lmionLargeGatePart
+            ))
             TransportState.write(item, self.lmionLargeGatePendingState or {})
         end
 
@@ -392,6 +404,13 @@ local function installHooks()
 
             self.lmionLargeGatePendingState = {
                 entityId = entityId,
+                spriteName = LargeGatePickup.getPartSprite(
+                    runtime.definitionId,
+                    self.lmionLargeGateFacing,
+                    self.lmionLargeGateLeaf,
+                    self.lmionLargeGatePart,
+                    false
+                ),
                 health = captured.health,
                 maxHealth = captured.maxHealth,
             }
@@ -444,8 +463,6 @@ local function installHooks()
             local moveProps = ISMoveableSpriteProps.new(part.closed)
             local object = members[partIndex]
 
-            -- Match vanilla multisprite delivery: one parcel per member, each
-            -- retaining the canonical CLOSED worldSprite for that segment.
             moveProps.isMultiSprite = true
             items[partIndex] = moveProps:pickUpMoveableInternal(
                 character,
