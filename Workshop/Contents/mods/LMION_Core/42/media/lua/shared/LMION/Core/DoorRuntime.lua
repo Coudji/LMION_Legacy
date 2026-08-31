@@ -383,16 +383,43 @@ function DoorRuntime.canPlaceAt(square, facing, frame, pairedFrameSide)
 end
 
 
-function DoorRuntime.finalizePlacedDoor(object, definition, facing)
+local function getGeometryFace(definition, facing, member)
+    local geometry = definition and definition.geometry or nil
+    local face = type(geometry) == "table" and geometry[facing] or nil
+
+    if member ~= nil then
+        face = type(face) == "table" and face[member] or nil
+    end
+
+    return face
+end
+
+
+local function hasValidGeometryMember(definition, member)
+    local topology = definition and definition.topology or nil
+
+    if topology == nil then
+        return member == nil
+    end
+
+    if type(topology) ~= "table" or topology.type ~= "paired" then
+        return false
+    end
+
+    return member == "left" or member == "right"
+end
+
+
+function DoorRuntime.finalizePlacedDoor(object, definition, facing, member)
     if not DoorRuntime.isDoorObject(object)
         or type(definition) ~= "table"
         or (facing ~= "N" and facing ~= "W")
+        or not hasValidGeometryMember(definition, member)
     then
         return nil
     end
 
-    local geometry = definition.geometry
-    local face = type(geometry) == "table" and geometry[facing] or nil
+    local face = getGeometryFace(definition, facing, member)
 
     if type(face) ~= "table"
         or type(face.closed) ~= "string"
