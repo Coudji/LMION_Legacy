@@ -180,9 +180,8 @@ function LMIONSimpleDoorPlacementCursor:render(x, y, z, square)
 end
 
 
--- Same placement UX already proven by Legacy garages: orientation is only N/W,
--- so mouse-drag rotation is deliberately disabled and the configured Rotate
--- building key owns orientation changes.
+-- Dedicated placement starts in N. The parcel does not preserve its former
+-- orientation because placement orientation is a player choice.
 function LMIONSimpleDoorPlacementCursor:rotateMouse(x, y)
 end
 
@@ -239,8 +238,7 @@ function LMIONSimpleDoorPlacementCursor:new(
     character,
     item,
     definitionId,
-    member,
-    initialFacing
+    member
 )
     local o = ISBuildingObject.new(self)
 
@@ -250,7 +248,7 @@ function LMIONSimpleDoorPlacementCursor:new(
     o.item = item
     o.definitionId = definitionId
     o.member = member
-    o.facing = initialFacing == "W" and "W" or "N"
+    o.facing = "N"
     o:setDragNilAfterPlace(true)
     o.noNeedHammer = true
 
@@ -271,8 +269,7 @@ function MoveableAdapter.openPlacementCursor(item, character)
         character,
         item,
         identity.definitionId,
-        identity.member,
-        identity.facing
+        identity.member
     )
 
     getCell():setDrag(cursor, cursor.player)
