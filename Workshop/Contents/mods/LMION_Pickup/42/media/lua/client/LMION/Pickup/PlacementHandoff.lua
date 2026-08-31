@@ -1,11 +1,11 @@
 local MoveableAdapter = require "LMION/Pickup/MoveableAdapter"
 local LargeGatePickup = require "LMION/Pickup/LargeGatePickup"
+local LargeGatePlacement = require "LMION/Pickup/LargeGatePlacement"
 
 
--- Legacy garages already established the safe cross-tree pattern:
--- inventory UI is client Lua, BuildingObjects cursors are gameplay/server Lua.
--- Do not require the server cursor during early client loading. Wait until
--- OnGameStart, when both globals/module mutations are available in-game.
+-- Inventory UI is client Lua while BuildingObjects cursors live in gameplay /
+-- server Lua. Do not require cursor files here. Wait until OnGameStart, when
+-- their public handoff functions have been attached to the shared modules.
 local function installPlacementHandoff()
     if type(ISMoveableContextMenu) ~= "table"
         or type(ISMoveableContextMenu.openMovableCursor) ~= "function"
@@ -26,10 +26,13 @@ local function installPlacementHandoff()
     end
 
     MoveableAdapter._lmionOpenMovableCursor = function(item, playerObj)
-        -- Large-gate parcels are identified by their native Moveable worldSprite.
-        -- They intentionally use the Moveables cursor, not the simple/paired
-        -- dedicated cursor, so dispatch them before entity-based parcel lookup.
         if LargeGatePickup.getParcelIdentity(item) ~= nil then
+            if type(LargeGatePlacement.openPlacementCursor) == "function"
+                and LargeGatePlacement.openPlacementCursor(item, playerObj)
+            then
+                return
+            end
+
             return MoveableAdapter._originalOpenMovableCursor(
                 item,
                 playerObj
