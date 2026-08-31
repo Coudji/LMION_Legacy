@@ -124,11 +124,12 @@ function API.canPlaceDoorAt(square, facing, frame, pairedFrameSide)
 end
 
 
-function API.finalizePlacedDoor(object, definition, facing)
+function API.finalizePlacedDoor(object, definition, facing, member)
     return DoorRuntime.finalizePlacedDoor(
         object,
         definition,
-        facing
+        facing,
+        member
     )
 end
 
