@@ -2,10 +2,10 @@ module Base
 {
     item LMION_OpeningParcel
     {
+        DisplayName = Opening Parcel,
         DisplayCategory = Furniture,
         ItemType = base:moveable,
-        Icon = default,
+        Icon = Parcel2,
         Weight = 1.0,
-        Tags = base:usedisplayname,
     }
 }
