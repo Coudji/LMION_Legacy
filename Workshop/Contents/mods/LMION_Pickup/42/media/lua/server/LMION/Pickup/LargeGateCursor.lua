@@ -144,14 +144,12 @@ local function renderPreviewPart(entry, planValid)
         return
     end
 
-    local valid = planValid and entry.valid == true
-    renderFloor(entry.square, valid)
-
     local sprite = entry.sprite and getSprite(entry.sprite) or nil
     if sprite == nil then
         return
     end
 
+    local valid = planValid and entry.valid == true
     local r = valid and 0.5 or 1.0
     local g = valid and 1.0 or 0.0
     local b = valid and 0.5 or 0.0
@@ -170,6 +168,75 @@ local function renderPreviewPart(entry, planValid)
 end
 
 
+local function hasSpriteModel(entry)
+    local sprite = entry and entry.sprite and getSprite(entry.sprite) or nil
+    return sprite ~= nil and sprite.spriteModel ~= nil
+end
+
+
+local function findPartByLogicalIndex(plan, wantedIndex)
+    local runtime = plan and plan.runtime or nil
+    local topology = runtime and runtime.topology or nil
+    local leaf = plan and plan.leaf or nil
+    local facing = plan and plan.facing or nil
+    local indices = topology
+        and topology.leaves
+        and topology.leaves[leaf]
+        and topology.leaves[leaf].indices
+        and topology.leaves[leaf].indices[facing]
+        or nil
+
+    if indices == nil then
+        return nil
+    end
+
+    for partIndex = 1, 2 do
+        if tonumber(indices[partIndex]) == wantedIndex then
+            return partIndex
+        end
+    end
+
+    return nil
+end
+
+
+local function shouldRenderPreviewPart(plan, partIndex)
+    local runtime = plan and plan.runtime or nil
+    local topology = runtime and runtime.topology or nil
+    local leaf = plan and plan.leaf or nil
+    local facing = plan and plan.facing or nil
+    local indices = topology
+        and topology.leaves
+        and topology.leaves[leaf]
+        and topology.leaves[leaf].indices
+        and topology.leaves[leaf].indices[facing]
+        or nil
+
+    if indices == nil then
+        return true
+    end
+
+    local logicalIndex = tonumber(indices[partIndex])
+    local modelOwnerIndex = nil
+
+    -- Mirror IsoDoor.renderWallTile(): DoubleDoor member 2 is visually
+    -- suppressed when member 1 owns a SpriteModel; member 3 is suppressed
+    -- when member 4 owns one. Gates without SpriteModels (Farm Gate) keep
+    -- both ordinary 2D members visible.
+    if logicalIndex == 2 then
+        modelOwnerIndex = 1
+    elseif logicalIndex == 3 then
+        modelOwnerIndex = 4
+    else
+        return true
+    end
+
+    local modelOwnerPart = findPartByLogicalIndex(plan, modelOwnerIndex)
+    return modelOwnerPart == nil
+        or not hasSpriteModel(plan.preview[modelOwnerPart])
+end
+
+
 function LMIONLargeGatePlacementCursor:render(x, y, z, square)
     if square == nil then
         return
@@ -181,11 +248,25 @@ function LMIONLargeGatePlacementCursor:render(x, y, z, square)
         return
     end
 
-    -- Inventory placement owns the entire preview. Do not delegate any visual
-    -- member to vanilla: Core provides the two closed sprites we want to show,
-    -- and LMION renders both explicitly on their closed-footprint squares.
-    renderPreviewPart(preview[1], plan.valid == true)
-    renderPreviewPart(preview[2], plan.valid == true)
+    -- Footprint always represents the two physical target squares.
+    for partIndex = 1, 2 do
+        local entry = preview[partIndex]
+        if entry ~= nil then
+            renderFloor(
+                entry.square,
+                plan.valid == true and entry.valid == true
+            )
+        end
+    end
+
+    -- Visual members follow the same SpriteModel suppression rule as
+    -- IsoDoor.renderWallTile(), so modded Large Gates inherit vanilla
+    -- behaviour without LMION-specific per-definition preview metadata.
+    for partIndex = 1, 2 do
+        if shouldRenderPreviewPart(plan, partIndex) then
+            renderPreviewPart(preview[partIndex], plan.valid == true)
+        end
+    end
 end
 
 
