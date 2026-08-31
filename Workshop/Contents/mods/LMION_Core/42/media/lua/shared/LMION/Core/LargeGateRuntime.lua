@@ -28,6 +28,22 @@ local function getPart(definition, facing, leaf, partIndex)
 end
 
 
+local function refreshSquare(door)
+    local square = door and door:getSquare() or nil
+    if square == nil then
+        return
+    end
+
+    -- placeMoveableInternal() recalculates the square while the temporary
+    -- closed sprite is still installed. Large-gate open placement then swaps
+    -- the final IsoDoor to its open sprite/state without using ToggleDoor().
+    -- Recalculate again so collision/door-edge properties match the final
+    -- sprite instead of the temporary closed representation.
+    square:RecalcProperties()
+    square:RecalcAllWithNeighbours(true)
+end
+
+
 function LargeGateRuntime.finalizePart(
     object,
     definition,
@@ -62,6 +78,8 @@ function LargeGateRuntime.finalizePart(
     if targetSprite ~= nil then
         door:setSprite(targetSprite)
     end
+
+    refreshSquare(door)
 
     return door
 end
