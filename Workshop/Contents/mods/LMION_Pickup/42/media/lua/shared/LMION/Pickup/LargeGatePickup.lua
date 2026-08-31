@@ -363,7 +363,9 @@ local function installHooks()
             return previousInstanceItem(self, spriteNameOverride)
         end
 
-        local item = instanceItem(PARCEL_ITEM)
+        -- Legacy deliberately lets vanilla create the Moveable from customItem.
+        -- This is what initializes the normal furniture/flatpack presentation.
+        local item = previousInstanceItem(self, spriteNameOverride)
         if item ~= nil then
             item:setActualWeight(runtime.weight)
             item:setWeight(runtime.weight)
@@ -372,6 +374,7 @@ local function installHooks()
                 self.lmionLargeGateLeaf,
                 self.lmionLargeGatePart
             ))
+            item:setCustomName(true)
             TransportState.write(item, self.lmionLargeGatePendingState or {})
         end
 
