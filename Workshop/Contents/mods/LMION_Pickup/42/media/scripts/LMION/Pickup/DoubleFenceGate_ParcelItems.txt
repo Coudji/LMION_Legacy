@@ -1,0 +1,38 @@
+module Base
+{
+    item LMION_DoubleFenceGateA_Part1
+    {
+        DisplayCategory = Furniture,
+        ItemType = base:moveable,
+        Icon = default,
+        Weight = 12.0,
+        Tags = base:usedisplayname,
+    }
+
+    item LMION_DoubleFenceGateA_Part2
+    {
+        DisplayCategory = Furniture,
+        ItemType = base:moveable,
+        Icon = default,
+        Weight = 12.0,
+        Tags = base:usedisplayname,
+    }
+
+    item LMION_DoubleFenceGateB_Part1
+    {
+        DisplayCategory = Furniture,
+        ItemType = base:moveable,
+        Icon = default,
+        Weight = 12.0,
+        Tags = base:usedisplayname,
+    }
+
+    item LMION_DoubleFenceGateB_Part2
+    {
+        DisplayCategory = Furniture,
+        ItemType = base:moveable,
+        Icon = default,
+        Weight = 12.0,
+        Tags = base:usedisplayname,
+    }
+}
