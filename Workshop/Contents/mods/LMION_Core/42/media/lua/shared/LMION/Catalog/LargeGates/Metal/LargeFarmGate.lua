@@ -24,20 +24,7 @@ return {
         },
     },
     pickup = {
-        tools = {
-            { tag = "base:blowtorch" },
-            { tag = "base:weldingmask" },
-        },
         packages = { count = 2, weight = 12 },
-    },
-    replacement = {
-        tools = {
-            { tag = "base:blowtorch" },
-            { tag = "base:weldingmask" },
-        },
-        materials = {
-            { item = "Base.WeldingRods", uses = 2 },
-        },
     },
 
     geometry = {
