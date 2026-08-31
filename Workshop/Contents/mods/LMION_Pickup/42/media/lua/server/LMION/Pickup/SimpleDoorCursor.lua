@@ -2,6 +2,7 @@ require "BuildingObjects/ISMoveableCursor"
 require "Moveables/ISMoveablesAction"
 
 local MoveableAdapter = require "LMION/Pickup/MoveableAdapter"
+local LargeGateCursor = require "LMION/Pickup/LargeGateCursor"
 
 
 local function consumeParcel(item)
@@ -259,6 +260,10 @@ end
 -- Public handoff consumed by the client inventory context-menu hook at
 -- OnGameStart. The client never requires this server-tree file directly.
 function MoveableAdapter.openPlacementCursor(item, character)
+    if LargeGateCursor.open(item, character) then
+        return true
+    end
+
     local identity = MoveableAdapter.getParcelIdentity(item)
 
     if identity == nil or character == nil then
