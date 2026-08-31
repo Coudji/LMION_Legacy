@@ -1,6 +1,5 @@
 local DoorRuntime = require "LMION/Core/DoorRuntime"
 local EntityIndex = require "LMION/Core/EntityIndex"
-local LargeGateRuntime = require "LMION/Core/LargeGateRuntime"
 local ObjectLookup = require "LMION/Core/ObjectLookup"
 local Registry = require "LMION/Core/Registry"
 local Resolver = require "LMION/Core/Resolver"
@@ -131,25 +130,6 @@ function API.finalizePlacedDoor(object, definition, facing, member)
         definition,
         facing,
         member
-    )
-end
-
-
-function API.finalizePlacedLargeGatePart(
-    object,
-    definition,
-    facing,
-    leaf,
-    partIndex,
-    isOpen
-)
-    return LargeGateRuntime.finalizePlacedPart(
-        object,
-        definition,
-        facing,
-        leaf,
-        partIndex,
-        isOpen
     )
 end
 
