@@ -3,6 +3,7 @@ local TransportState = {}
 local KEYS = {
     definitionId = "lmionPickupDefinitionId",
     entityId = "lmionPickupEntityId",
+    member = "lmionPickupMember",
     facing = "lmionPickupFacing",
     health = "lmionPickupHealth",
     maxHealth = "lmionPickupMaxHealth",
@@ -29,6 +30,7 @@ function TransportState.write(item, state)
 
     writeValue(modData, KEYS.definitionId, state.definitionId)
     writeValue(modData, KEYS.entityId, state.entityId)
+    writeValue(modData, KEYS.member, state.member)
     writeValue(modData, KEYS.facing, state.facing)
     writeValue(modData, KEYS.health, state.health)
     writeValue(modData, KEYS.maxHealth, state.maxHealth)
@@ -56,6 +58,7 @@ function TransportState.read(item)
     return {
         definitionId = definitionId,
         entityId = modData[KEYS.entityId],
+        member = modData[KEYS.member],
         facing = modData[KEYS.facing],
         health = tonumber(modData[KEYS.health]),
         maxHealth = tonumber(modData[KEYS.maxHealth]),
