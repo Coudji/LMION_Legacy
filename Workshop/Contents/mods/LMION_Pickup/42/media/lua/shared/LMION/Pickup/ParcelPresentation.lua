@@ -5,7 +5,8 @@ local ParcelPresentation = {}
 local installed = false
 
 
-local function applyVanillaFlatpack(item, identity)
+local function applyVanillaFlatpack(item)
+    local identity = LargeGatePickup.getParcelIdentity(item)
     local state = identity and identity.state or nil
     local spriteName = state and state.spriteName or nil
 
@@ -14,14 +15,16 @@ local function applyVanillaFlatpack(item, identity)
         or spriteName == ""
         or item.ReadFromWorldSprite == nil
     then
-        return
+        return item
     end
 
-    -- Vanilla Moveable.ReadFromWorldSprite() detects SpriteGrid members and
-    -- applies the standard furniture flatpack presentation (Item_Flatpack,
-    -- tint and Flatpack modData). Legacy Large Gate parcels relied on this
-    -- exact path too; keep LMION transport semantics separate from visuals.
+    -- Keep the same ordering as vanilla/Legacy ISMoveableSpriteProps:instanceItem():
+    -- ReadFromWorldSprite() must run before TransferComponents() and before the
+    -- IsoWorldInventoryObject is created. For SpriteGrid members Java applies
+    -- Item_Flatpack + modData.Flatpack, which also selects the Flatpack ground
+    -- model through InventoryItem:getWorldStaticItem().
     item:ReadFromWorldSprite(spriteName)
+    return item
 end
 
 
@@ -36,11 +39,8 @@ local function finalize(item)
         return item
     end
 
-    applyVanillaFlatpack(item, identity)
-
-    -- ReadFromWorldSprite() deliberately rewrites vanilla Moveable
-    -- presentation fields. LMION owns the transported opening identity and
-    -- balance values, so restore those afterwards.
+    -- Vanilla component transfer may rewrite presentation fields. LMION owns
+    -- the transported opening name and balance values, so restore them last.
     item:setActualWeight(runtime.weight)
     item:setWeight(runtime.weight)
     item:setName(
@@ -67,6 +67,16 @@ function ParcelPresentation.install()
     end
 
     require "Moveables/ISMoveableSpriteProps"
+
+    -- LargeGatePickup installs its instanceItem() wrapper first. Wrap that
+    -- result here so the LMION transport identity already exists when we ask
+    -- vanilla Moveable to derive its Flatpack presentation.
+    local previousInstanceItem = ISMoveableSpriteProps.instanceItem
+    ISMoveableSpriteProps.instanceItem = function(self, spriteNameOverride)
+        return applyVanillaFlatpack(
+            previousInstanceItem(self, spriteNameOverride)
+        )
+    end
 
     local previousInternal = ISMoveableSpriteProps.pickUpMoveableInternal
     ISMoveableSpriteProps.pickUpMoveableInternal = function(
