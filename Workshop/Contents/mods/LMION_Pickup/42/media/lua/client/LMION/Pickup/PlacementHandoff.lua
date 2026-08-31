@@ -1,4 +1,5 @@
 local MoveableAdapter = require "LMION/Pickup/MoveableAdapter"
+local LargeGatePickup = require "LMION/Pickup/LargeGatePickup"
 
 
 -- Legacy garages already established the safe cross-tree pattern:
@@ -25,6 +26,16 @@ local function installPlacementHandoff()
     end
 
     MoveableAdapter._lmionOpenMovableCursor = function(item, playerObj)
+        -- Large-gate parcels are identified by their native Moveable worldSprite.
+        -- They intentionally use the Moveables cursor, not the simple/paired
+        -- dedicated cursor, so dispatch them before entity-based parcel lookup.
+        if LargeGatePickup.getParcelIdentity(item) ~= nil then
+            return MoveableAdapter._originalOpenMovableCursor(
+                item,
+                playerObj
+            )
+        end
+
         local identity = MoveableAdapter.getParcelIdentity(item)
 
         if identity ~= nil
