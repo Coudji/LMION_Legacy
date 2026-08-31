@@ -265,8 +265,102 @@ local function getClosedSprite(runtime, facing)
 end
 
 
+function MoveableAdapter.getParcelIdentity(item)
+    local state = TransportState.read(item)
+    if state == nil then
+        return nil
+    end
+
+    local runtime = runtimeByDefinitionId[state.definitionId]
+    if runtime == nil then
+        return nil
+    end
+
+    return {
+        definitionId = state.definitionId,
+        facing = state.facing == "W" and "W" or "N",
+    }
+end
+
+
+function MoveableAdapter.getPlacementSpriteName(item, facing)
+    local identity = MoveableAdapter.getParcelIdentity(item)
+    if identity == nil or (facing ~= "N" and facing ~= "W") then
+        return nil
+    end
+
+    local runtime = runtimeByDefinitionId[identity.definitionId]
+    return getClosedSprite(runtime, facing)
+end
+
+
+function MoveableAdapter.getPlacementMoveProps(definitionId, facing)
+    if facing ~= "N" and facing ~= "W" then
+        return nil
+    end
+
+    local runtime = runtimeByDefinitionId[definitionId]
+    local spriteName = getClosedSprite(runtime, facing)
+    local moveProps = spriteName and ISMoveableSpriteProps.new(spriteName) or nil
+
+    if moveProps == nil or runtime == nil then
+        return nil
+    end
+
+    moveProps.lmionDefinitionId = definitionId
+    moveProps.lmionFacing = facing
+    moveProps.facing = facing
+
+    return moveProps
+end
+
+
+function MoveableAdapter.canPlaceParcel(character, square, item, facing)
+    local identity = MoveableAdapter.getParcelIdentity(item)
+    if identity == nil or (facing ~= "N" and facing ~= "W") then
+        return false
+    end
+
+    local moveProps = MoveableAdapter.getPlacementMoveProps(
+        identity.definitionId,
+        facing
+    )
+
+    return moveProps ~= nil
+        and moveProps:canPlaceMoveableInternal(
+            character,
+            square,
+            item
+        )
+end
+
+
+function MoveableAdapter.placeParcel(square, item, facing)
+    local identity = MoveableAdapter.getParcelIdentity(item)
+    if identity == nil or (facing ~= "N" and facing ~= "W") then
+        return nil
+    end
+
+    local moveProps = MoveableAdapter.getPlacementMoveProps(
+        identity.definitionId,
+        facing
+    )
+    local spriteName = MoveableAdapter.getPlacementSpriteName(item, facing)
+
+    if moveProps == nil or spriteName == nil then
+        return nil
+    end
+
+    return moveProps:placeMoveableInternal(
+        square,
+        item,
+        spriteName
+    )
+end
+
+
 local function hasPlacementRequirements(moveProps, character)
-    if character == nil or not instanceof(character, "IsoGameCharacter") then
+    if character == nil or not instanceof(character, "IsoPlayer") then
         return false
     end
 

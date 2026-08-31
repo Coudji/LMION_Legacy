@@ -36,92 +36,31 @@ DefinitionDefaults never inherit other defaults. Catalog and DefinitionDefault f
 
 ## Current Core runtime
 
-Workshop contains a runnable B42 Core with:
+Workshop contains a runnable B42 Core with Registry/Resolver/Validation, GameEntity reverse lookup, world-object lookup and `Core/DoorRuntime.lua` for physical door state/placement helpers.
 
-```text
-LMION/API.lua
-LMION/Core/Bootstrap.lua
-LMION/Core/BuiltinContent.lua
-LMION/Core/Diagnostics.lua
-LMION/Core/DoorRuntime.lua
-LMION/Core/EntityIndex.lua
-LMION/Core/GameEntityValidation.lua
-LMION/Core/ObjectLookup.lua
-LMION/Core/Registry.lua
-LMION/Core/Resolver.lua
-LMION/Core/TableUtils.lua
-LMION/Core/Validation.lua
-```
-
-`LMION_Core.lua` is the runtime startup. `API.lua` exposes the API only.
-
-## Live Core tests completed
-
-In-game bootstrap/resolution is validated:
+Live Core state remains:
 
 ```text
 23 defaults
 54 definitions
-0 extensions
-```
-
-Reverse indexing is also live-tested:
-
-```text
 58 GameEntity mappings -> 54 definitions
-56/58 GameEntities found in PZ ScriptManager
+56/58 PZ GameEntities found
 ```
 
-The only missing mappings are expected development gaps because their new large-gate scripts have not been created yet:
+The expected missing scripts are still:
 
 ```text
 Base.LargeWroughtIronGate
 Base.LargeHardenedWoodenGate
 ```
 
-Keep these diagnostic errors for now; do not waste time special-casing them.
+Keep those diagnostic errors for now.
 
-The verbose `[LMION:Catalog]` line-per-definition dump was removed. Keep summary lines plus anomalies only.
+## Public Core direction
 
-## Public Core API
+Core exposes registration/resolution, GameEntity/world-object lookup, and the door runtime helpers needed by mechanics. Registry stays private. Resolver returns fresh effective data.
 
-```lua
-local LMION = require "LMION/API"
-
-LMION.registerDefault(...)
-LMION.registerDefinition(...)
-LMION.registerExtension(...)
-LMION.registerContent(...)
-
-LMION.getEffectiveDefault(defaultId)
-LMION.getEffectiveDefinition(definitionId)
-LMION.getDefinitionIdByEntity(entityId)
-LMION.getEffectiveDefinitionByEntity(entityId)
-
-LMION.getEntityIdForObject(object)
-LMION.getDefinitionIdForObject(object)
-LMION.getEffectiveDefinitionForObject(object)
-
-LMION.isDoorObject(object)
-LMION.captureDoorState(object)
-LMION.restoreDoorState(object, state)
-LMION.canPlaceDoorAt(square, facing, frame, pairedFrameSide)
-LMION.finalizePlacedDoor(object, definition, facing)
-```
-
-Registry is private. Resolver returns fresh effective data.
-
-## Lookup contract
-
-The uploaded B42.20.3 jar confirms:
-
-```text
-IsoObject extends GameEntity
-GameEntity.getEntityScript()
-GameEntityScript.getFullName()
-```
-
-World-object lookup uses stable GameEntity identity:
+World-object identity is:
 
 ```text
 IsoDoor / IsoObject
@@ -132,38 +71,27 @@ IsoDoor / IsoObject
 
 Do not use current sprite as the primary identity mechanism.
 
-Different definitions cannot claim the same GameEntity. A mod modifying an existing definition must use `registerExtension`.
+## Load-order rule that must not be forgotten
 
-Detailed lookup doc: `Legacy/Research/Architecture/CoreEntityLookup.md`.
+Core registration follows the verified scope/mod ordering in `Legacy/Research/Architecture/CoreLoadOrder.md`.
 
-## Extensions and load order
-
-Resolution order:
+For gameplay/UI cross-tree code, preserve the **Legacy garage pattern**:
 
 ```text
-raw default
--> default extensions in registration order
--> concrete definition overrides
--> concrete definition extensions in registration order
--> effective definition
+server cursor file
+    -> loads normally in server/gameplay scope
+
+client inventory hook
+    -> DO NOT require server/BuildingObjects cursor during early client load
+    -> wait until OnGameStart
+    -> install handoff only when both sides are available
 ```
 
-No priority score. Later same-layer registration/load order wins.
+This matters because `BuildingObjects/ISMoveableCursor` can be unavailable during early client loading. A rewritten Pickup experiment reproduced that failure on 2026-08-31 and was replaced with the Legacy pattern.
 
-Verified B42.20.3 Lua loading:
+PZ autoexecutes Lua files in each active scope; do not add an entrypoint solely to make an ordinary cursor file execute.
 
-```text
-client: shared -> client -> OnGameBoot later
-server: shared -> client scanned/not executed -> server -> OnGameBoot later
-```
-
-Detailed load-order doc: `Legacy/Research/Architecture/CoreLoadOrder.md`.
-
-## Geometry
-
-Geometry is explicit and exact. Never infer complex geometry through sprite-number arithmetic.
-
-Current 1x1 geometry pilots:
+## Geometry pilots
 
 ```text
 Doors.Wood.WhitePanelDoor
@@ -179,106 +107,70 @@ W closed fixtures_doors_02_20
 W open   fixtures_doors_02_22
 ```
 
-Values come directly from verified PZ SpriteConfig scripts.
+Geometry is explicit and exact; do not infer complex geometry by sprite-number arithmetic.
 
-Large portals will use explicit A/B membership. True paired 1x1 doors may use Left/Right. Garages use START/MIDDLE/END with variable width.
+## Rewritten Pickup slice
 
-## First rewritten Pickup slice
+Workshop contains `LMION_Pickup` with capability-driven simple 1x1 support. Pickup does not own concrete DoorProfiles.
 
-Workshop now also contains:
-
-```text
-Workshop/Contents/mods/LMION_Pickup/42/
-```
-
-Pickup no longer owns `DoorProfiles`, garage families or large-gate profiles. The first implementation discovers compatible simple 1x1 definitions from Core capabilities.
-
-Current requirements for the first slice are exact N/W geometry, one pickup/replacement package, zero break chance, understood tool/skill semantics and simple topology.
-
-The current geometry pilots therefore give an expected boot line:
+Current compatible pilots should produce:
 
 ```text
 [LMION:Pickup] simple 1x1 registry ready: 2 definitions, 8 sprites
 ```
 
-Pickup uses one generic transport item:
+Transport uses one generic item:
 
 ```text
 Base.LMION_OpeningParcel
 ```
 
-The parcel keeps the definition identity and primitive door state in modData while its world sprite identifies the exact closed face for vanilla Moveables inventory selection.
+Placement now follows the proven garage architecture rather than patching `ISMoveableCursor` globally:
+
+```text
+server/LMION/Pickup/SimpleDoorCursor.lua
+client/LMION/Pickup/PlacementHandoff.lua
+```
+
+Client handoff installs at `OnGameStart`. The dedicated cursor disables mouse rotation and uses `R` / `Rotate building` for N/W.
 
 Detailed design/test note: `Legacy/Research/Architecture/PickupRewrite.md`.
-
-## Pickup placement UX
-
-For LMION parcels in vanilla Moveables Place mode:
-
-```text
-mouse drag -> does not rotate
-R / Rotate building -> toggles N <-> W
-```
-
-This deliberately preserves the garage-style rotation UX the user preferred instead of vanilla click-drag facing selection.
-
-Core exact geometry supplies the actual sprites; Pickup only controls the mechanic/cursor behavior.
-
-## Script versus Catalog
-
-```text
-.txt = minimum data PZ needs during script/GameEntity/item loading
-.lua = LMION semantic and geometry contract
-```
-
-Do not duplicate health, sounds, recipes, pickup properties, etc. in opening `.txt`. Do not create LMION opening scripts for GameEntities PZ already provides.
-
-Pickup's generic `LMION_OpeningParcel` item script is a legitimate engine-load-time item registration, not opening semantic duplication.
-
-The two unresolved large-gate scripts remain intentionally deferred until their A/B topology contract is frozen.
 
 ## Known Legacy behavior to preserve
 
 - finalized LMION doors persist as `IsoDoor`;
-- `IsoThumpable(isDoor)` is accepted as vanilla/legacy input, not a second persistent backend;
-- framed doors use screwdriver pickup/replacement;
-- frameless/gate-like openings use crowbar pickup and hammer replacement;
-- physical tool and governing skill are separate concepts;
-- vanilla Moveables may overwrite item weight during `ReadFromWorldSprite`; synchronize both item weight fields afterward;
+- `IsoThumpable(isDoor)` accepted as source input only;
+- framed doors: screwdriver pickup/replacement;
+- frameless/gate-like: crowbar pickup, hammer replacement;
+- physical tool and governing skill remain separate;
+- vanilla Moveables may overwrite item weight during `ReadFromWorldSprite`, so synchronize both weight fields;
 - LMION standards are defaults, not limitations;
 - MetalBar/IronBar alternatives remain supported where reviewed.
 
 ## Immediate next test
 
-Enable Workshop `LMION_Core` + `LMION_Pickup` and test the simple 1x1 pipeline before adding more families.
+With Workshop Core + Pickup enabled, use `WhiteRestroomStallDoor` first.
 
-Recommended first target is `WhiteRestroomStallDoor` because its pickup requirement is Woodwork 0 + screwdriver.
-
-Verify:
+Expected:
 
 ```text
-pickup through vanilla Moveables
--> one LMION parcel
--> correct weight
--> placement preview
--> R toggles N/W
--> matching frame required
--> placed result functions as a door
--> health survives pickup/replacement
+boot -> simple 1x1 registry line
+OnGameStart -> simple-door Place handoff line
+pickup -> one generic parcel
+Place -> dedicated ghost preview
+R -> N/W
+valid frame -> functioning IsoDoor
+health survives
 ```
 
-Then test WhitePanelDoor when Woodwork 3 is available.
-
-Fix real B42 integration issues first. Do not migrate paired, large-gate or garage logic until this simple pipeline is sound.
-
-Fake third-party content remains postponed until built-in Core behavior is solid.
+Do not add paired/large/garage rewrite code until this simple vertical slice is sound.
 
 ## Git workflow
 
-- Work in `Coudji/LMION_Legacy` development `main` unless told otherwise.
-- Workshop is the clean candidate mod tree.
-- Research/history stays under Legacy.
-- Coudji manually copies validated Workshop content into `PZMOD_LMION`.
+- Work only in `Coudji/LMION_Legacy` unless explicitly told otherwise.
+- Workshop = clean candidate tree.
+- Legacy = old code/research/history.
+- Coudji manually copies validated Workshop content to `PZMOD_LMION`.
 - Re-fetch `LMION_Legacy/main` before writes.
 - Prefer coherent commits.
 

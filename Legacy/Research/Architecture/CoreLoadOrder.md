@@ -1,6 +1,6 @@
 # LMION Core load order
 
-Status: verified against the uploaded Project Zomboid B42.20.3 jar on 2026-08-30.
+Status: core ordering verified against the uploaded Project Zomboid B42.20.3 jar on 2026-08-30. The Legacy gameplay/UI handoff rule below is also preserved because it already avoided a real early-client cross-tree failure.
 
 ## Project Zomboid Lua scopes
 
@@ -75,6 +75,29 @@ ThirdPartyMod shared Lua
 ```
 
 External mods never need to place files inside LMION folders.
+
+## Gameplay/UI cross-tree rule from Legacy
+
+Do **not** require a `server/BuildingObjects` cursor from an early client Lua file.
+
+Legacy garages already established the safe pattern:
+
+```text
+server/LMION/Pickup/GarageDoorCursor.lua
+    -> loaded in its normal gameplay/server scope
+    -> defines GarageDoor.openPlacementCursor(...)
+
+client/LMION/GarageWidthKeys.lua
+    -> does NOT require GarageDoorCursor
+    -> waits until OnGameStart
+    -> patches ISMoveableContextMenu.openMovableCursor only when both sides exist
+```
+
+Why: inventory UI belongs to the client tree, while `BuildingObjects/ISMoveableCursor` belongs to the gameplay/server tree. An early client `require "BuildingObjects/ISMoveableCursor"` can legitimately fail before that tree is available.
+
+The rewritten simple-door Pickup must use the same pattern. A previous experiment that patched `ISMoveableCursor.rotateMouse/rotateKey` from a client entrypoint was rejected after reproducing this exact failure.
+
+Also remember that PZ autoexecutes Lua files in each active scope. A dedicated `*_Server.lua` entrypoint is not required merely to make a normal server-scope cursor file execute.
 
 ## OnGameBoot checkpoint
 
