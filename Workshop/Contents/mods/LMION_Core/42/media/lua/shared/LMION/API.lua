@@ -1,6 +1,7 @@
 local DoorRuntime = require "LMION/Core/DoorRuntime"
 local EntityIndex = require "LMION/Core/EntityIndex"
 local LargeGateRuntime = require "LMION/Core/LargeGateRuntime"
+local LargeGateTopology = require "LMION/Core/LargeGateTopology"
 local ObjectLookup = require "LMION/Core/ObjectLookup"
 local Registry = require "LMION/Core/Registry"
 local Resolver = require "LMION/Core/Resolver"
@@ -97,6 +98,11 @@ end
 
 function API.getEffectiveDefinitionForObject(object)
     return ObjectLookup.getEffectiveDefinition(object)
+end
+
+
+function API.getLargeGateTopology()
+    return LargeGateTopology.get()
 end
 
 
