@@ -168,9 +168,46 @@ local function renderPreviewPart(entry, planValid)
 end
 
 
+local spriteModelCache = {}
+
+
 local function hasSpriteModel(entry)
-    local sprite = entry and entry.sprite and getSprite(entry.sprite) or nil
-    return sprite ~= nil and sprite.spriteModel ~= nil
+    local spriteName = entry and entry.sprite or nil
+    if type(spriteName) ~= "string" or spriteName == "" then
+        return false
+    end
+
+    local cached = spriteModelCache[spriteName]
+    if cached ~= nil then
+        return cached
+    end
+
+    local sprite = getSprite(spriteName)
+    if sprite == nil or IsoObject == nil or IsoObject.new == nil then
+        spriteModelCache[spriteName] = false
+        return false
+    end
+
+    -- IsoDoor.renderWallTile() asks the partner IsoObject for getSpriteModel().
+    -- The raw IsoSprite.spriteModel field is not reliably visible through the
+    -- Lua bridge, so query it through the same Java API vanilla uses. This
+    -- temporary object is never added to the square/world and the result is
+    -- cached per sprite.
+    local okObject, probe = pcall(
+        IsoObject.new,
+        getCell(),
+        entry.square,
+        sprite
+    )
+    local okModel, model = false, nil
+
+    if okObject and probe ~= nil and probe.getSpriteModel ~= nil then
+        okModel, model = pcall(probe.getSpriteModel, probe)
+    end
+
+    local result = okModel and model ~= nil
+    spriteModelCache[spriteName] = result
+    return result
 end
 
 
