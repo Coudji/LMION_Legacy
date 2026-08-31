@@ -105,6 +105,7 @@ function LMIONSimpleDoorPlacementAction:new(
     square,
     item,
     definitionId,
+    member,
     facing
 )
     local o = ISBaseTimedAction.new(self, character)
@@ -113,11 +114,13 @@ function LMIONSimpleDoorPlacementAction:new(
     o.square = square
     o.item = item
     o.definitionId = definitionId
+    o.member = member
     o.facing = facing
     o.mode = "place"
     o.moveProps = MoveableAdapter.getPlacementMoveProps(
         definitionId,
-        facing
+        facing,
+        member
     )
     o.origMoveProps = o.moveProps
     o.origSpriteName = o.moveProps and o.moveProps.spriteName or nil
@@ -201,7 +204,8 @@ function LMIONSimpleDoorPlacementCursor:create(x, y, z, north, sprite)
 
     local moveProps = MoveableAdapter.getPlacementMoveProps(
         self.definitionId,
-        self.facing
+        self.facing,
+        self.member
     )
     local spriteName = self:getSprite()
 
@@ -223,6 +227,7 @@ function LMIONSimpleDoorPlacementCursor:create(x, y, z, north, sprite)
                 square,
                 self.item,
                 self.definitionId,
+                self.member,
                 self.facing
             )
         )
@@ -234,6 +239,7 @@ function LMIONSimpleDoorPlacementCursor:new(
     character,
     item,
     definitionId,
+    member,
     initialFacing
 )
     local o = ISBuildingObject.new(self)
@@ -243,6 +249,7 @@ function LMIONSimpleDoorPlacementCursor:new(
     o.player = character:getPlayerNum()
     o.item = item
     o.definitionId = definitionId
+    o.member = member
     o.facing = initialFacing == "W" and "W" or "N"
     o:setDragNilAfterPlace(true)
     o.noNeedHammer = true
@@ -264,6 +271,7 @@ function MoveableAdapter.openPlacementCursor(item, character)
         character,
         item,
         identity.definitionId,
+        identity.member,
         identity.facing
     )
 
