@@ -5,6 +5,8 @@ local TransportState = require "LMION/Pickup/TransportState"
 local MoveableAdapter = {}
 
 local PARCEL_ITEM = "Base.LMION_OpeningParcel"
+local FACINGS = { "N", "W" }
+local PAIRED_MEMBERS = { "left", "right" }
 
 local installed = false
 local runtimeByDefinitionId = {}
@@ -24,22 +26,55 @@ local function isEmptyTable(value)
 end
 
 
-local function getExactGeometry(definition)
+local function isGeometryFace(face)
+    return type(face) == "table"
+        and type(face.closed) == "string"
+        and face.closed ~= ""
+        and type(face.open) == "string"
+        and face.open ~= ""
+end
+
+
+local function getSimpleGeometry(definition)
     local geometry = definition and definition.geometry or nil
     local north = type(geometry) == "table" and geometry.N or nil
     local west = type(geometry) == "table" and geometry.W or nil
 
-    if type(north) ~= "table" or type(west) ~= "table" then
+    if not isGeometryFace(north) or not isGeometryFace(west) then
         return nil
     end
 
-    for _, face in ipairs({ north, west }) do
-        if type(face.closed) ~= "string"
-            or face.closed == ""
-            or type(face.open) ~= "string"
-            or face.open == ""
-        then
+    return geometry
+end
+
+
+local function getPairedGeometry(definition)
+    local topology = definition and definition.topology or nil
+    if type(topology) ~= "table"
+        or topology.type ~= "paired"
+        or type(topology.left) ~= "string"
+        or topology.left == ""
+        or type(topology.right) ~= "string"
+        or topology.right == ""
+    then
+        return nil
+    end
+
+    local geometry = definition.geometry
+    if type(geometry) ~= "table" then
+        return nil
+    end
+
+    for _, facing in ipairs(FACINGS) do
+        local face = geometry[facing]
+        if type(face) ~= "table" then
             return nil
+        end
+
+        for _, member in ipairs(PAIRED_MEMBERS) do
+            if not isGeometryFace(face[member]) then
+                return nil
+            end
         end
     end
 
@@ -51,19 +86,43 @@ local function buildRuntime(definition)
     if type(definition) ~= "table"
         or type(definition.definitionId) ~= "string"
         or definition.definitionId == ""
-        or type(definition.entity) ~= "string"
-        or definition.entity == ""
-        or definition.topology ~= nil
     then
         return nil
     end
 
-    local geometry = getExactGeometry(definition)
+    local topology = definition.topology
+    local kind = nil
+    local geometry = nil
+    local entities = nil
+
+    if topology == nil then
+        if type(definition.entity) ~= "string" or definition.entity == "" then
+            return nil
+        end
+
+        geometry = getSimpleGeometry(definition)
+        kind = "simple"
+        entities = { default = definition.entity }
+    elseif type(topology) == "table" and topology.type == "paired" then
+        geometry = getPairedGeometry(definition)
+        kind = "paired"
+        entities = {
+            left = topology.left,
+            right = topology.right,
+        }
+    else
+        return nil
+    end
+
     if geometry == nil then
         return nil
     end
 
-    if definition.frame ~= "standard" and definition.frame ~= false then
+    if kind == "paired" then
+        if definition.frame ~= "standard" then
+            return nil
+        end
+    elseif definition.frame ~= "standard" and definition.frame ~= false then
         return nil
     end
 
@@ -103,8 +162,9 @@ local function buildRuntime(definition)
 
     return {
         definitionId = definition.definitionId,
-        entity = definition.entity,
         definition = definition,
+        kind = kind,
+        entities = entities,
         geometry = geometry,
         frame = definition.frame,
         weight = packageWeight,
@@ -115,12 +175,82 @@ local function buildRuntime(definition)
 end
 
 
-local function addSpriteMapping(target, runtime, facing, isOpen, spriteName)
+local function getGeometryFace(runtime, facing, member)
+    local face = runtime and runtime.geometry[facing] or nil
+    if face == nil then
+        return nil
+    end
+
+    if runtime.kind == "paired" then
+        return face[member]
+    end
+
+    return member == nil and face or nil
+end
+
+
+local function getEntityForMember(runtime, member)
+    if runtime == nil then
+        return nil
+    end
+
+    if runtime.kind == "paired" then
+        return runtime.entities[member]
+    end
+
+    return member == nil and runtime.entities.default or nil
+end
+
+
+local function getPairedFrameSide(runtime, member)
+    if runtime == nil or runtime.kind ~= "paired" then
+        return nil
+    end
+
+    if member == "left" then
+        return 1
+    end
+
+    if member == "right" then
+        return 2
+    end
+
+    return nil
+end
+
+
+local function getObjectMember(runtime, object)
+    if runtime == nil or runtime.kind ~= "paired" then
+        return nil
+    end
+
+    local entityId = LMION.getEntityIdForObject(object)
+    if entityId == runtime.entities.left then
+        return "left"
+    end
+
+    if entityId == runtime.entities.right then
+        return "right"
+    end
+
+    return nil
+end
+
+
+local function addSpriteMapping(
+    target,
+    runtime,
+    facing,
+    member,
+    isOpen,
+    spriteName
+)
     local existing = target[spriteName]
 
     if existing ~= nil then
         if existing.definitionId ~= runtime.definitionId
             or existing.facing ~= facing
+            or existing.member ~= member
         then
             error(
                 "LMION: Pickup sprite "
@@ -139,8 +269,40 @@ local function addSpriteMapping(target, runtime, facing, isOpen, spriteName)
     target[spriteName] = {
         definitionId = runtime.definitionId,
         facing = facing,
+        member = member,
         isOpen = isOpen,
     }
+end
+
+
+local function addRuntimeSprites(target, runtime)
+    local members = runtime.kind == "paired"
+        and PAIRED_MEMBERS
+        or { false }
+
+    for _, facing in ipairs(FACINGS) do
+        for _, memberValue in ipairs(members) do
+            local member = memberValue or nil
+            local face = getGeometryFace(runtime, facing, member)
+
+            addSpriteMapping(
+                target,
+                runtime,
+                facing,
+                member,
+                false,
+                face.closed
+            )
+            addSpriteMapping(
+                target,
+                runtime,
+                facing,
+                member,
+                true,
+                face.open
+            )
+        end
+    end
 end
 
 
@@ -168,25 +330,7 @@ function MoveableAdapter.refresh()
         if runtime ~= nil then
             nextRuntimeByDefinitionId[definitionId] = runtime
             supportedDefinitions = supportedDefinitions + 1
-
-            for _, facing in ipairs({ "N", "W" }) do
-                local face = runtime.geometry[facing]
-
-                addSpriteMapping(
-                    nextSpriteEntries,
-                    runtime,
-                    facing,
-                    false,
-                    face.closed
-                )
-                addSpriteMapping(
-                    nextSpriteEntries,
-                    runtime,
-                    facing,
-                    true,
-                    face.open
-                )
-            end
+            addRuntimeSprites(nextSpriteEntries, runtime)
         end
     end
 
@@ -244,6 +388,7 @@ local function applyMoveProps(moveProps, sprite)
 
     moveProps.lmionDefinitionId = runtime.definitionId
     moveProps.lmionFacing = entry.facing
+    moveProps.lmionMember = entry.member
 
     return moveProps
 end
@@ -255,12 +400,8 @@ local function getRuntime(moveProps)
 end
 
 
-local function getClosedSprite(runtime, facing)
-    local face = runtime
-        and runtime.geometry
-        and runtime.geometry[facing]
-        or nil
-
+local function getClosedSprite(runtime, facing, member)
+    local face = getGeometryFace(runtime, facing, member)
     return face and face.closed or nil
 end
 
@@ -276,8 +417,18 @@ function MoveableAdapter.getParcelIdentity(item)
         return nil
     end
 
+    local member = state.member
+    if runtime.kind == "paired" then
+        if member ~= "left" and member ~= "right" then
+            return nil
+        end
+    else
+        member = nil
+    end
+
     return {
         definitionId = state.definitionId,
+        member = member,
         facing = state.facing == "W" and "W" or "N",
     }
 end
@@ -290,17 +441,17 @@ function MoveableAdapter.getPlacementSpriteName(item, facing)
     end
 
     local runtime = runtimeByDefinitionId[identity.definitionId]
-    return getClosedSprite(runtime, facing)
+    return getClosedSprite(runtime, facing, identity.member)
 end
 
 
-function MoveableAdapter.getPlacementMoveProps(definitionId, facing)
+function MoveableAdapter.getPlacementMoveProps(definitionId, facing, member)
     if facing ~= "N" and facing ~= "W" then
         return nil
     end
 
     local runtime = runtimeByDefinitionId[definitionId]
-    local spriteName = getClosedSprite(runtime, facing)
+    local spriteName = getClosedSprite(runtime, facing, member)
     local moveProps = spriteName and ISMoveableSpriteProps.new(spriteName) or nil
 
     if moveProps == nil or runtime == nil then
@@ -309,6 +460,7 @@ function MoveableAdapter.getPlacementMoveProps(definitionId, facing)
 
     moveProps.lmionDefinitionId = definitionId
     moveProps.lmionFacing = facing
+    moveProps.lmionMember = member
     moveProps.facing = facing
 
     return moveProps
@@ -323,7 +475,8 @@ function MoveableAdapter.canPlaceParcel(character, square, item, facing)
 
     local moveProps = MoveableAdapter.getPlacementMoveProps(
         identity.definitionId,
-        facing
+        facing,
+        identity.member
     )
 
     return moveProps ~= nil
@@ -343,7 +496,8 @@ function MoveableAdapter.placeParcel(square, item, facing)
 
     local moveProps = MoveableAdapter.getPlacementMoveProps(
         identity.definitionId,
-        facing
+        facing,
+        identity.member
     )
     local spriteName = MoveableAdapter.getPlacementSpriteName(item, facing)
 
@@ -402,8 +556,8 @@ local function installMoveableHooks()
 
         if runtime ~= nil then
             return {
-                N = runtime.geometry.N.closed,
-                W = runtime.geometry.W.closed,
+                N = getClosedSprite(runtime, "N", self.lmionMember),
+                W = getClosedSprite(runtime, "W", self.lmionMember),
             }
         end
 
@@ -415,12 +569,10 @@ local function installMoveableHooks()
         local runtime = getRuntime(self)
 
         if runtime ~= nil then
-            return {
-                runtime.geometry.N.closed,
-                runtime.geometry.W.closed,
-                runtime.geometry.N.closed,
-                runtime.geometry.W.closed,
-            }
+            local north = getClosedSprite(runtime, "N", self.lmionMember)
+            local west = getClosedSprite(runtime, "W", self.lmionMember)
+
+            return { north, west, north, west }
         end
 
         return previousGetIndexedFaces(self)
@@ -437,6 +589,12 @@ local function installMoveableHooks()
             then
                 return false
             end
+
+            if runtime.kind == "paired"
+                and getObjectMember(runtime, object) ~= self.lmionMember
+            then
+                return false
+            end
         end
 
         return previousCanPickUpMoveable(self, character, square, object)
@@ -450,7 +608,11 @@ local function installMoveableHooks()
             return previousInstanceItem(self, spriteNameOverride)
         end
 
-        local closedSprite = getClosedSprite(runtime, self.lmionFacing)
+        local closedSprite = getClosedSprite(
+            runtime,
+            self.lmionFacing,
+            self.lmionMember
+        )
         local item = previousInstanceItem(
             self,
             closedSprite or spriteNameOverride
@@ -462,7 +624,8 @@ local function installMoveableHooks()
 
             local state = self.lmionPendingTransportState or {
                 definitionId = runtime.definitionId,
-                entityId = runtime.entity,
+                entityId = getEntityForMember(runtime, self.lmionMember),
+                member = self.lmionMember,
                 facing = self.lmionFacing,
             }
 
@@ -491,13 +654,18 @@ local function installMoveableHooks()
             and LMION.isDoorObject(object)
             and LMION.getDefinitionIdForObject(object) == runtime.definitionId
         then
-            local state = LMION.captureDoorState(object) or {}
+            local member = getObjectMember(runtime, object)
 
-            state.definitionId = runtime.definitionId
-            state.entityId = LMION.getEntityIdForObject(object)
-            state.facing = self.lmionFacing
+            if runtime.kind ~= "paired" or member ~= nil then
+                local state = LMION.captureDoorState(object) or {}
 
-            self.lmionPendingTransportState = state
+                state.definitionId = runtime.definitionId
+                state.entityId = LMION.getEntityIdForObject(object)
+                state.member = member
+                state.facing = self.lmionFacing
+
+                self.lmionPendingTransportState = state
+            end
         end
 
         local item = previousPickUpMoveableInternal(
@@ -536,8 +704,10 @@ local function installMoveableHooks()
             )
         end
 
-        if item == nil
-            or TransportState.getDefinitionId(item) ~= runtime.definitionId
+        local state = item and TransportState.read(item) or nil
+        if state == nil
+            or state.definitionId ~= runtime.definitionId
+            or state.member ~= self.lmionMember
         then
             return false
         end
@@ -550,7 +720,7 @@ local function installMoveableHooks()
             square,
             self.lmionFacing,
             runtime.frame,
-            nil
+            getPairedFrameSide(runtime, self.lmionMember)
         )
     end
 
@@ -573,11 +743,18 @@ local function installMoveableHooks()
         end
 
         local state = TransportState.read(item)
-        if state == nil or state.definitionId ~= runtime.definitionId then
+        if state == nil
+            or state.definitionId ~= runtime.definitionId
+            or state.member ~= self.lmionMember
+        then
             return nil
         end
 
-        local closedSprite = getClosedSprite(runtime, self.lmionFacing)
+        local closedSprite = getClosedSprite(
+            runtime,
+            self.lmionFacing,
+            self.lmionMember
+        )
         if closedSprite == nil then
             return nil
         end
@@ -596,7 +773,8 @@ local function installMoveableHooks()
         local door = LMION.finalizePlacedDoor(
             object,
             runtime.definition,
-            self.lmionFacing
+            self.lmionFacing,
+            self.lmionMember
         )
 
         if door == nil then
@@ -632,7 +810,7 @@ function MoveableAdapter.install()
         local stats = MoveableAdapter.refresh()
 
         print(
-            "[LMION:Pickup] simple 1x1 registry ready: "
+            "[LMION:Pickup] door registry ready: "
                 .. tostring(stats.definitions)
                 .. " definitions, "
                 .. tostring(stats.sprites)
