@@ -292,7 +292,11 @@ local function applyMoveProps(moveProps, sprite)
     moveProps.rawWeight = runtime.weight * 10
     moveProps.weight = runtime.weight
     moveProps.canBreak = false
-    moveProps.isMultiSprite = false
+    moveProps.facing = segment.facing
+
+    -- Preserve vanilla's real multisprite classification. The Moveables cursor
+    -- needs it to render the complete two-part leaf ghost. Pickup temporarily
+    -- disables multisprite validation below so only one LMION leaf is removed.
 
     moveProps.lmionLargeGateDefinitionId = runtime.definitionId
     moveProps.lmionLargeGateFacing = segment.facing
@@ -329,7 +333,12 @@ local function installHooks()
             return false
         end
 
-        if not previousCanPickUp(self, character, square, selected) then
+        local wasMultiSprite = self.isMultiSprite
+        self.isMultiSprite = false
+        local canPickUp = previousCanPickUp(self, character, square, selected)
+        self.isMultiSprite = wasMultiSprite
+
+        if not canPickUp then
             return false
         end
 
@@ -376,7 +385,13 @@ local function installHooks()
 
         if runtime ~= nil and object ~= nil then
             local captured = LMION.captureDoorState(object) or {}
+            local entityId = LMION.getEntityIdForObject(object)
+            if type(entityId) ~= "string" or entityId == "" then
+                entityId = nil
+            end
+
             self.lmionLargeGatePendingState = {
+                entityId = entityId,
                 health = captured.health,
                 maxHealth = captured.maxHealth,
             }
@@ -429,6 +444,9 @@ local function installHooks()
             local moveProps = ISMoveableSpriteProps.new(part.closed)
             local object = members[partIndex]
 
+            -- Match vanilla multisprite delivery: one parcel per member, each
+            -- retaining the canonical CLOSED worldSprite for that segment.
+            moveProps.isMultiSprite = true
             items[partIndex] = moveProps:pickUpMoveableInternal(
                 character,
                 object:getSquare(),
