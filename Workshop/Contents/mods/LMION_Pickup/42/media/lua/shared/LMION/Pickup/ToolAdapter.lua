@@ -2,6 +2,11 @@ local ToolAdapter = {}
 
 local installed = false
 
+-- Core exposes semantic tool tags. Moveables still uses historical item tokens,
+-- but ISMoveableDefinitions.parseItemTypes() expands these tokens through PZ
+-- ItemTags (for example Base.Screwdriver -> ItemTag.SCREWDRIVER). Keep that
+-- engine-specific translation here instead of leaking concrete item lists into
+-- Core definitions.
 local TOOL_NAMES = {
     ["base:screwdriver"] = {
         Woodwork = "Screwdriver",
@@ -133,13 +138,7 @@ function ToolAdapter.resolve(definition)
 end
 
 
-function ToolAdapter.install()
-    if installed then
-        return
-    end
-
-    require "Moveables/ISMoveableDefinitions"
-
+local function registerToolDefinitions()
     local definitions = ISMoveableDefinitions:getInstance()
 
     definitions.removeToolDefinition("LMIONMetalScrewdriver")
@@ -155,10 +154,10 @@ function ToolAdapter.install()
     definitions.removeToolDefinition("LMIONMetalCrowbar")
     definitions.addToolDefinition(
         "LMIONMetalCrowbar",
-        { "Tag.Crowbar", "Crowbar" },
+        { "Tag.Crowbar" },
         Perks.MetalWelding,
-        100,
-        "Dismantle",
+        150,
+        "Hammering",
         true
     )
 
@@ -167,10 +166,24 @@ function ToolAdapter.install()
         "LMIONMetalHammer",
         { "Base.Hammer" },
         Perks.MetalWelding,
-        100,
-        "Dismantle",
+        75,
+        "Hammering",
         true
     )
+end
+
+
+function ToolAdapter.install()
+    if installed then
+        return
+    end
+
+    require "Moveables/ISMoveableDefinitions"
+
+    -- ISMoveableDefinitions.load() is registered by vanilla on OnGameBoot and
+    -- resets the complete Moveables registry. This handler is registered after
+    -- requiring that file, so it runs once immediately after vanilla's reset.
+    Events.OnGameBoot.Add(registerToolDefinitions)
 
     installed = true
 end
