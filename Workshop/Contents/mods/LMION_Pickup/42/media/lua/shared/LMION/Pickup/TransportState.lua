@@ -41,7 +41,16 @@ function TransportState.write(item, state)
     end
 
     local entityId = state.entityId
-    if type(entityId) ~= "string" or entityId == "" then
+    if entityId ~= nil
+        and (type(entityId) ~= "string" or entityId == "")
+    then
+        return false
+    end
+
+    local health = tonumber(state.health)
+    local maxHealth = tonumber(state.maxHealth)
+
+    if entityId == nil and health == nil and maxHealth == nil then
         return false
     end
 
@@ -49,8 +58,8 @@ function TransportState.write(item, state)
     clearState(modData)
 
     writeValue(modData, KEYS.entityId, entityId)
-    writeValue(modData, KEYS.health, state.health)
-    writeValue(modData, KEYS.maxHealth, state.maxHealth)
+    writeValue(modData, KEYS.health, health)
+    writeValue(modData, KEYS.maxHealth, maxHealth)
 
     return true
 end
@@ -63,15 +72,23 @@ function TransportState.read(item)
 
     local modData = item:getModData()
     local entityId = modData[KEYS.entityId]
+    local health = tonumber(modData[KEYS.health])
+    local maxHealth = tonumber(modData[KEYS.maxHealth])
 
-    if type(entityId) ~= "string" or entityId == "" then
+    if entityId ~= nil
+        and (type(entityId) ~= "string" or entityId == "")
+    then
+        entityId = nil
+    end
+
+    if entityId == nil and health == nil and maxHealth == nil then
         return nil
     end
 
     return {
         entityId = entityId,
-        health = tonumber(modData[KEYS.health]),
-        maxHealth = tonumber(modData[KEYS.maxHealth]),
+        health = health,
+        maxHealth = maxHealth,
     }
 end
 
