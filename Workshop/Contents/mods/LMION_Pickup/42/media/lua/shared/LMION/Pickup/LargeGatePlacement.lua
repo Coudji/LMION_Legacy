@@ -216,6 +216,29 @@ local function consumeParcel(item, source)
     end
 end
 
+local function isGridAnchor(moveProps)
+    if getRuntime(moveProps) == nil or not moveProps.isMultiSprite then
+        return false
+    end
+
+    local sprite = moveProps.sprite
+    local grid = sprite and sprite:getSpriteGrid() or nil
+    return grid ~= nil and grid:getAnchorSprite() == sprite
+end
+
+local function getLeafAnchorFaces(moveProps)
+    local runtime = getRuntime(moveProps)
+    local leaf = moveProps and moveProps.lmionLargeGateLeaf or nil
+    if runtime == nil or (leaf ~= "A" and leaf ~= "B") then
+        return nil
+    end
+
+    return {
+        N = LargeGatePickup.getPartSprite(runtime.definitionId, "N", leaf, 1, false),
+        W = LargeGatePickup.getPartSprite(runtime.definitionId, "W", leaf, 1, false),
+    }
+end
+
 local function installHooks()
     require "Moveables/ISMoveableSpriteProps"
 
@@ -229,6 +252,10 @@ local function installHooks()
     ISMoveableSpriteProps.getFaces = function(self)
         local runtime = getRuntime(self)
         if runtime ~= nil then
+            if isGridAnchor(self) then
+                return getLeafAnchorFaces(self) or {}
+            end
+
             return {
                 N = LargeGatePickup.getPartSprite(runtime.definitionId, "N", self.lmionLargeGateLeaf, self.lmionLargeGatePart, false),
                 W = LargeGatePickup.getPartSprite(runtime.definitionId, "W", self.lmionLargeGateLeaf, self.lmionLargeGatePart, false),
@@ -245,6 +272,16 @@ local function installHooks()
             return { faces.N, faces.W, faces.N, faces.W }
         end
         return previousGetIndexedFaces(self)
+    end
+
+    local previousGetFaceIndex = ISMoveableSpriteProps.getFaceIndex
+    ISMoveableSpriteProps.getFaceIndex = function(self)
+        if getRuntime(self) ~= nil then
+            if self.lmionLargeGateFacing == "N" then return 1 end
+            if self.lmionLargeGateFacing == "W" then return 2 end
+            return -1
+        end
+        return previousGetFaceIndex(self)
     end
 
     local previousCanPlace = ISMoveableSpriteProps.canPlaceMoveable
@@ -265,7 +302,15 @@ local function installHooks()
         for partIndex = 1, 2 do
             local entry = plan[partIndex]
             local moveProps = ISMoveableSpriteProps.new(entry.closedSprite)
+            local wasMultiSprite = moveProps and moveProps.isMultiSprite or false
+            if moveProps == nil then return false end
+
+            -- The cursor/ghost uses the real two-part multisprite grid. Physical
+            -- placement is deliberately one segment at a time so LMION can
+            -- restore each segment's own durability and canonical IsoDoor state.
+            moveProps.isMultiSprite = false
             local object = moveProps:placeMoveableInternal(entry.square, entry.item, entry.closedSprite)
+            moveProps.isMultiSprite = wasMultiSprite
             if object == nil then return false end
 
             local door = LMION.finalizePlacedLargeGatePart(object, runtime.definition, plan.facing, plan.leaf, partIndex, plan.isOpen)
