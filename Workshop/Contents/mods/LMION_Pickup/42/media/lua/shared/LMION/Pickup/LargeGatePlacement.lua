@@ -168,7 +168,17 @@ end
 
 local function findParcel(character, definitionId, leaf, partIndex, preferred)
     if preferred ~= nil and itemMatches(preferred, definitionId, leaf, partIndex) then
-        return preferred, preferred:getContainer()
+        local container = preferred:getContainer()
+        if container ~= nil then
+            return preferred, container
+        end
+
+        local worldItem = preferred.getWorldItem ~= nil
+            and preferred:getWorldItem()
+            or nil
+        if worldItem ~= nil and worldItem:getSquare() ~= nil then
+            return preferred, "floor"
+        end
     end
 
     local inventory = character and character:getInventory() or nil
@@ -214,20 +224,6 @@ local function findParcel(character, definitionId, leaf, partIndex, preferred)
 end
 
 
-local function hasPlacementRequirements(moveProps, character)
-    if character == nil or not instanceof(character, "IsoPlayer") then
-        return false
-    end
-
-    if not moveProps:hasRequiredSkill(character, "place") then
-        return false
-    end
-
-    return moveProps.placeTool == nil
-        or moveProps:hasTool(character, "place") ~= nil
-end
-
-
 local function buildPlan(moveProps, character, square, item)
     local runtime = getRuntime(moveProps)
     local facing = moveProps and moveProps.lmionLargeGateFacing or nil
@@ -239,7 +235,6 @@ local function buildPlan(moveProps, character, square, item)
         or (facing ~= "N" and facing ~= "W")
         or (leaf ~= "A" and leaf ~= "B")
         or (selectedPart ~= 1 and selectedPart ~= 2)
-        or not hasPlacementRequirements(moveProps, character)
     then
         return nil
     end
@@ -283,12 +278,26 @@ local function buildPlan(moveProps, character, square, item)
             partIndex,
             partIndex == selectedPart and item or nil
         )
+        local closedSprite = LargeGatePickup.getPartSprite(
+            runtime.definitionId,
+            facing,
+            leaf,
+            partIndex,
+            false
+        )
+        local partProps = closedSprite and ISMoveableSpriteProps.new(closedSprite) or nil
 
         if targetSquare == nil
             or parcel == nil
             or source == nil
-            or targetSquare:getFloor() == nil
-            or targetSquare:isVehicleIntersecting()
+            or partProps == nil
+            or not partProps.isMoveable
+            or not partProps:canPlaceMoveableInternal(
+                character,
+                targetSquare,
+                parcel
+            )
+            or (targetState == "open" and not partProps:isFreeTile(targetSquare))
             or not LMION.canPlaceDoorAt(targetSquare, facing, false, nil)
         then
             return nil
@@ -298,13 +307,7 @@ local function buildPlan(moveProps, character, square, item)
             square = targetSquare,
             item = parcel,
             source = source,
-            closedSprite = LargeGatePickup.getPartSprite(
-                runtime.definitionId,
-                facing,
-                leaf,
-                partIndex,
-                false
-            ),
+            closedSprite = closedSprite,
         }
     end
 
@@ -326,7 +329,7 @@ local function consumeParcel(item, source)
 
     if item ~= nil and source ~= nil then
         source:Remove(item)
-        sendRemoveItemFromContainer(source, item)
+        sendRemoveItemToContainer(source, item)
     end
 end
 
