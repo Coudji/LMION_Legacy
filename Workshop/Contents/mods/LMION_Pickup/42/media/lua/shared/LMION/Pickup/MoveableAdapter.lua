@@ -202,6 +202,40 @@ local function getEntityForMember(runtime, member)
 end
 
 
+local function getMemberForEntity(runtime, entityId)
+    if runtime == nil or type(entityId) ~= "string" or entityId == "" then
+        return nil
+    end
+
+    if runtime.kind ~= "paired" then
+        return nil
+    end
+
+    if entityId == runtime.entities.left then
+        return "left"
+    end
+
+    if entityId == runtime.entities.right then
+        return "right"
+    end
+
+    return nil
+end
+
+
+local function hasEntityIdentity(runtime, entityId)
+    if runtime == nil or type(entityId) ~= "string" or entityId == "" then
+        return false
+    end
+
+    if runtime.kind == "paired" then
+        return getMemberForEntity(runtime, entityId) ~= nil
+    end
+
+    return entityId == runtime.entities.default
+end
+
+
 local function getPairedFrameSide(runtime, member)
     if runtime == nil or runtime.kind ~= "paired" then
         return nil
@@ -224,16 +258,10 @@ local function getObjectMember(runtime, object)
         return nil
     end
 
-    local entityId = LMION.getEntityIdForObject(object)
-    if entityId == runtime.entities.left then
-        return "left"
-    end
-
-    if entityId == runtime.entities.right then
-        return "right"
-    end
-
-    return nil
+    return getMemberForEntity(
+        runtime,
+        LMION.getEntityIdForObject(object)
+    )
 end
 
 
@@ -413,22 +441,14 @@ function MoveableAdapter.getParcelIdentity(item)
     end
 
     local runtime = runtimeByDefinitionId[state.definitionId]
-    if runtime == nil then
+    if runtime == nil or not hasEntityIdentity(runtime, state.entityId) then
         return nil
-    end
-
-    local member = state.member
-    if runtime.kind == "paired" then
-        if member ~= "left" and member ~= "right" then
-            return nil
-        end
-    else
-        member = nil
     end
 
     return {
         definitionId = state.definitionId,
-        member = member,
+        entityId = state.entityId,
+        member = getMemberForEntity(runtime, state.entityId),
         facing = state.facing == "W" and "W" or "N",
     }
 end
@@ -625,7 +645,6 @@ local function installMoveableHooks()
             local state = self.lmionPendingTransportState or {
                 definitionId = runtime.definitionId,
                 entityId = getEntityForMember(runtime, self.lmionMember),
-                member = self.lmionMember,
                 facing = self.lmionFacing,
             }
 
@@ -654,14 +673,13 @@ local function installMoveableHooks()
             and LMION.isDoorObject(object)
             and LMION.getDefinitionIdForObject(object) == runtime.definitionId
         then
-            local member = getObjectMember(runtime, object)
+            local entityId = LMION.getEntityIdForObject(object)
 
-            if runtime.kind ~= "paired" or member ~= nil then
+            if hasEntityIdentity(runtime, entityId) then
                 local state = LMION.captureDoorState(object) or {}
 
                 state.definitionId = runtime.definitionId
-                state.entityId = LMION.getEntityIdForObject(object)
-                state.member = member
+                state.entityId = entityId
                 state.facing = self.lmionFacing
 
                 self.lmionPendingTransportState = state
@@ -705,9 +723,12 @@ local function installMoveableHooks()
         end
 
         local state = item and TransportState.read(item) or nil
+        local member = state and getMemberForEntity(runtime, state.entityId) or nil
+
         if state == nil
             or state.definitionId ~= runtime.definitionId
-            or state.member ~= self.lmionMember
+            or not hasEntityIdentity(runtime, state.entityId)
+            or member ~= self.lmionMember
         then
             return false
         end
@@ -720,7 +741,7 @@ local function installMoveableHooks()
             square,
             self.lmionFacing,
             runtime.frame,
-            getPairedFrameSide(runtime, self.lmionMember)
+            getPairedFrameSide(runtime, member)
         )
     end
 
@@ -743,9 +764,12 @@ local function installMoveableHooks()
         end
 
         local state = TransportState.read(item)
+        local member = state and getMemberForEntity(runtime, state.entityId) or nil
+
         if state == nil
             or state.definitionId ~= runtime.definitionId
-            or state.member ~= self.lmionMember
+            or not hasEntityIdentity(runtime, state.entityId)
+            or member ~= self.lmionMember
         then
             return nil
         end
@@ -753,7 +777,7 @@ local function installMoveableHooks()
         local closedSprite = getClosedSprite(
             runtime,
             self.lmionFacing,
-            self.lmionMember
+            member
         )
         if closedSprite == nil then
             return nil
@@ -774,7 +798,7 @@ local function installMoveableHooks()
             object,
             runtime.definition,
             self.lmionFacing,
-            self.lmionMember
+            member
         )
 
         if door == nil then
