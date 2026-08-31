@@ -270,4 +270,78 @@ function LargeGatePlacement.openPlacementCursor(item, character)
 end
 
 
+local function renderPickupFootprint(cursor, x, y, z)
+    if ISMoveableCursor.mode[cursor.player] ~= "pickup" then
+        return
+    end
+
+    local moveProps = cursor.currentMoveProps
+    local definitionId = moveProps and moveProps.lmionLargeGateDefinitionId or nil
+    local leaf = moveProps and moveProps.lmionLargeGateLeaf or nil
+    local facing = moveProps and moveProps.lmionLargeGateFacing or nil
+    local runtime = definitionId and LargeGatePickup.getRuntime(definitionId) or nil
+
+    if runtime == nil
+        or (leaf ~= "A" and leaf ~= "B")
+        or (facing ~= "N" and facing ~= "W")
+        or IsoDoor == nil
+        or IsoDoor.getDoubleDoorObject == nil
+    then
+        return
+    end
+
+    local square = cursor.currentSquare or getCell():getGridSquare(x, y, z)
+    local selected = square
+        and moveProps:findOnSquare(square, moveProps.spriteName)
+        or nil
+    if selected == nil then
+        return
+    end
+
+    local indices = runtime.topology.leaves[leaf].indices[facing]
+
+    for partIndex = 1, 2 do
+        local ok, object = pcall(
+            IsoDoor.getDoubleDoorObject,
+            selected,
+            tonumber(indices[partIndex])
+        )
+        local targetSquare = ok and object and object:getSquare() or nil
+        local floor = targetSquare and targetSquare:getFloor() or nil
+        local floorSprite = floor and floor:getSprite() or nil
+
+        if floorSprite ~= nil then
+            floorSprite:RenderGhostTileColor(
+                targetSquare:getX(),
+                targetSquare:getY(),
+                targetSquare:getZ(),
+                0.75,
+                1,
+                0.75,
+                0.25
+            )
+        end
+    end
+end
+
+
+if ISMoveableCursor._lmionLargeGateOriginalRender == nil then
+    ISMoveableCursor._lmionLargeGateOriginalRender = ISMoveableCursor.render
+end
+
+
+ISMoveableCursor.render = function(self, x, y, z, square)
+    local result = ISMoveableCursor._lmionLargeGateOriginalRender(
+        self,
+        x,
+        y,
+        z,
+        square
+    )
+
+    renderPickupFootprint(self, x, y, z)
+    return result
+end
+
+
 return LargeGatePlacement
