@@ -225,6 +225,51 @@ local function getLeafMembers(runtime, source, segment)
 end
 
 
+function LargeGatePickup.getRuntime(definitionId)
+    return runtimeByDefinitionId[definitionId]
+end
+
+
+function LargeGatePickup.getSegment(spriteName)
+    return type(spriteName) == "string" and segmentBySprite[spriteName] or nil
+end
+
+
+function LargeGatePickup.getParcelIdentity(item)
+    local spriteName = item
+        and item.getWorldSprite ~= nil
+        and item:getWorldSprite()
+        or nil
+    local segment = LargeGatePickup.getSegment(spriteName)
+    local state = item and TransportState.read(item) or nil
+
+    if segment == nil or state == nil then
+        return nil
+    end
+
+    return {
+        definitionId = segment.definitionId,
+        leaf = segment.leaf,
+        partIndex = segment.partIndex,
+        state = state,
+    }
+end
+
+
+function LargeGatePickup.getPartSprite(definitionId, facing, leaf, partIndex, isOpen)
+    local runtime = runtimeByDefinitionId[definitionId]
+    local face = runtime and runtime.geometry[facing] or nil
+    local parts = type(face) == "table" and face[leaf] or nil
+    local part = type(parts) == "table" and parts[partIndex] or nil
+
+    if not isPart(part) then
+        return nil
+    end
+
+    return isOpen and part.open or part.closed
+end
+
+
 local function applyMoveProps(moveProps, sprite)
     if moveProps == nil then
         return moveProps
