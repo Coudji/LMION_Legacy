@@ -42,7 +42,7 @@ local function installPlacementHandoff()
     ISMoveableContextMenu.openMovableCursor =
         MoveableAdapter._lmionOpenMovableCursor
 
-    print("[LMION:Pickup] simple-door Place handoff installed")
+    print("[LMION:Pickup] door Place handoff installed")
 end
 
 
