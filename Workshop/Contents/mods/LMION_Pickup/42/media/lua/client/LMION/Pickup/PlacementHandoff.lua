@@ -1,4 +1,11 @@
 local MoveableAdapter = require "LMION/Pickup/MoveableAdapter"
+local LargeGateAdapter = require "LMION/Pickup/LargeGateAdapter"
+
+
+local function getLmionParcelIdentity(item)
+    return MoveableAdapter.getParcelIdentity(item)
+        or LargeGateAdapter.getParcelIdentity(item)
+end
 
 
 -- Legacy garages already established the safe cross-tree pattern:
@@ -25,7 +32,7 @@ local function installPlacementHandoff()
     end
 
     MoveableAdapter._lmionOpenMovableCursor = function(item, playerObj)
-        local identity = MoveableAdapter.getParcelIdentity(item)
+        local identity = getLmionParcelIdentity(item)
 
         if identity ~= nil
             and MoveableAdapter.openPlacementCursor(item, playerObj)
