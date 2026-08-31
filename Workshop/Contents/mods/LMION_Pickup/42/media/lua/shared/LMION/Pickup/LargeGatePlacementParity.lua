@@ -25,37 +25,27 @@ local function keyForSquare(square)
 end
 
 
-local function sameFootprint(left, right)
+local function footprintsOverlap(left, right)
     if type(left) ~= "table" or type(right) ~= "table" then
         return false
     end
 
-    local leftKeys = {}
     local rightKeys = {}
+    for partIndex = 1, 2 do
+        local key = keyForSquare(right[partIndex])
+        if key ~= nil then
+            rightKeys[key] = true
+        end
+    end
 
     for partIndex = 1, 2 do
-        local leftKey = keyForSquare(left[partIndex])
-        local rightKey = keyForSquare(right[partIndex])
-        if leftKey == nil or rightKey == nil then
-            return false
-        end
-        leftKeys[leftKey] = true
-        rightKeys[rightKey] = true
-    end
-
-    for key in pairs(leftKeys) do
-        if not rightKeys[key] then
-            return false
+        local key = keyForSquare(left[partIndex])
+        if key ~= nil and rightKeys[key] then
+            return true
         end
     end
 
-    for key in pairs(rightKeys) do
-        if not leftKeys[key] then
-            return false
-        end
-    end
-
-    return true
+    return false
 end
 
 
@@ -181,6 +171,7 @@ local function hasFacingConflict(plan)
                         if segment ~= nil
                             and segment.definitionId == plan.runtime.definitionId
                             and segment.leaf == wantedPartner
+                            and segment.facing ~= plan.facing
                         then
                             local anchor = getAnchorForSegment(
                                 plan.runtime,
@@ -194,8 +185,8 @@ local function hasFacingConflict(plan)
                                 plan.leaf
                             )
 
-                            if sameFootprint(previewSquares, missingClosed) then
-                                return segment.facing ~= plan.facing
+                            if footprintsOverlap(previewSquares, missingClosed) then
+                                return true
                             end
                         end
                     end
