@@ -278,6 +278,34 @@ local function getParcelName(runtime, leaf, partIndex)
 end
 
 
+local function getParcelItemType(runtime, leaf, partIndex)
+    local shortName = runtime
+        and runtime.definitionId
+        and string.match(runtime.definitionId, "([^.]+)$")
+        or nil
+
+    if shortName ~= nil then
+        local candidate = "Base.LMION_"
+            .. shortName
+            .. tostring(leaf)
+            .. "_Part"
+            .. tostring(partIndex)
+
+        if ScriptManager ~= nil
+            and ScriptManager.instance ~= nil
+            and ScriptManager.instance:FindItem(candidate) ~= nil
+        then
+            return candidate
+        end
+    end
+
+    -- Third-party definitions remain usable without declaring LMION parcel
+    -- item scripts. Built-in LMION Large Gates provide the Legacy per-segment
+    -- items so vanilla Moveables can reproduce their original parcel behavior.
+    return PARCEL_ITEM
+end
+
+
 local function applyMoveProps(moveProps, sprite)
     if moveProps == nil then
         return moveProps
@@ -292,7 +320,11 @@ local function applyMoveProps(moveProps, sprite)
     end
 
     moveProps.isMoveable = true
-    moveProps.customItem = PARCEL_ITEM
+    moveProps.customItem = getParcelItemType(
+        runtime,
+        segment.leaf,
+        segment.partIndex
+    )
     moveProps.type = "Object"
     moveProps.pickUpTool = runtime.pickUpTool
     moveProps.placeTool = runtime.placeTool
@@ -363,8 +395,6 @@ local function installHooks()
             return previousInstanceItem(self, spriteNameOverride)
         end
 
-        -- Legacy deliberately lets vanilla create the Moveable from customItem.
-        -- This is what initializes the normal furniture/flatpack presentation.
         local item = previousInstanceItem(self, spriteNameOverride)
         if item ~= nil then
             item:setActualWeight(runtime.weight)
