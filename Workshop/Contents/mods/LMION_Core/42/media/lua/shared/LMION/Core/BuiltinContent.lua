@@ -75,6 +75,7 @@ return {
         require "LMION/Catalog/GarageDoors/WhiteGarageDoor",
         require "LMION/Catalog/LargeGates/Metal/DoubleFenceGate",
         require "LMION/Catalog/LargeGates/Metal/DoubleWireGate",
+        require "LMION/Catalog/LargeGates/Metal/LargeFarmGate",
         require "LMION/Catalog/LargeGates/Metal/LargeWroughtIronGate",
         require "LMION/Catalog/LargeGates/Wooden/DoubleDoor",
         require "LMION/Catalog/LargeGates/Wooden/LargeHardenedWoodenGate",
