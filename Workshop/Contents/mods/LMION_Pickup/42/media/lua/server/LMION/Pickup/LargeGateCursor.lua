@@ -139,16 +139,15 @@ local function renderFloor(square, valid)
 end
 
 
-local function renderPart(entry, planValid)
+local function renderPreviewPart(entry, planValid)
     if entry == nil or entry.square == nil then
         return
     end
 
-    local sprite = entry.displaySprite and getSprite(entry.displaySprite) or nil
-    local valid = planValid and entry.valid
-
+    local valid = planValid and entry.valid == true
     renderFloor(entry.square, valid)
 
+    local sprite = entry.sprite and getSprite(entry.sprite) or nil
     if sprite == nil then
         return
     end
@@ -177,12 +176,16 @@ function LMIONLargeGatePlacementCursor:render(x, y, z, square)
     end
 
     local plan = self:getPlan(square)
-    if plan == nil then
+    local preview = plan and plan.preview or nil
+    if preview == nil then
         return
     end
 
-    renderPart(plan[1], plan.valid)
-    renderPart(plan[2], plan.valid)
+    -- Inventory placement owns the entire preview. Do not delegate any visual
+    -- member to vanilla: Core provides the two closed sprites we want to show,
+    -- and LMION renders both explicitly on their closed-footprint squares.
+    renderPreviewPart(preview[1], plan.valid == true)
+    renderPreviewPart(preview[2], plan.valid == true)
 end
 
 
