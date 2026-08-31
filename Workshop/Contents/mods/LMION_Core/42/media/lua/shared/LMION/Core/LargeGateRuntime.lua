@@ -4,12 +4,9 @@ local LargeGateRuntime = {}
 
 
 local function getPart(definition, facing, leaf, partIndex)
-    local topology = definition and definition.topology or nil
     local geometry = definition and definition.geometry or nil
 
-    if type(topology) ~= "table"
-        or topology.type ~= "largeGate"
-        or (facing ~= "N" and facing ~= "W")
+    if (facing ~= "N" and facing ~= "W")
         or (leaf ~= "A" and leaf ~= "B")
         or (partIndex ~= 1 and partIndex ~= 2)
     then
