@@ -140,6 +140,11 @@ local function hasFacingConflict(plan)
         plan.preview[1] and plan.preview[1].square,
         plan.preview[2] and plan.preview[2].square,
     }
+
+    if previewSquares[1] == nil or previewSquares[2] == nil then
+        return false
+    end
+
     local minX = math.min(
         previewSquares[1]:getX(),
         previewSquares[2]:getX()
@@ -266,12 +271,11 @@ function LargeGatePlacementParity.install()
         item
     )
         if self ~= nil and self.lmionLargeGateDefinitionId ~= nil then
-            local facing = self.lmionLargeGateFacing
             local plan = LargeGatePlacement.getPreview(
                 character,
                 square,
                 item,
-                facing
+                self.lmionLargeGateFacing
             )
             return plan ~= nil and plan.valid == true
         end
@@ -291,7 +295,7 @@ function LargeGatePlacementParity.install()
             local plan = LargeGatePlacement.getPreview(
                 character,
                 square,
-                item,
+                nil,
                 self.lmionLargeGateFacing
             )
             if plan == nil or not plan.valid then
