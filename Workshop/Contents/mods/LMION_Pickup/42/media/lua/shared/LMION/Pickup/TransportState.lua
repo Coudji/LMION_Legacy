@@ -2,6 +2,7 @@ local TransportState = {}
 
 local KEYS = {
     entityId = "lmionPickupEntityId",
+    spriteName = "lmionPickupSpriteName",
     health = "lmionPickupHealth",
     maxHealth = "lmionPickupMaxHealth",
 }
@@ -35,22 +36,39 @@ local function writeValue(modData, key, value)
 end
 
 
+local function cleanString(value)
+    if value == nil then
+        return nil
+    end
+
+    if type(value) ~= "string" or value == "" then
+        return false
+    end
+
+    return value
+end
+
+
 function TransportState.write(item, state)
     if item == nil or type(state) ~= "table" then
         return false
     end
 
-    local entityId = state.entityId
-    if entityId ~= nil
-        and (type(entityId) ~= "string" or entityId == "")
-    then
+    local entityId = cleanString(state.entityId)
+    local spriteName = cleanString(state.spriteName)
+
+    if entityId == false or spriteName == false then
         return false
     end
 
     local health = tonumber(state.health)
     local maxHealth = tonumber(state.maxHealth)
 
-    if entityId == nil and health == nil and maxHealth == nil then
+    if entityId == nil
+        and spriteName == nil
+        and health == nil
+        and maxHealth == nil
+    then
         return false
     end
 
@@ -58,6 +76,7 @@ function TransportState.write(item, state)
     clearState(modData)
 
     writeValue(modData, KEYS.entityId, entityId)
+    writeValue(modData, KEYS.spriteName, spriteName)
     writeValue(modData, KEYS.health, health)
     writeValue(modData, KEYS.maxHealth, maxHealth)
 
@@ -71,22 +90,29 @@ function TransportState.read(item)
     end
 
     local modData = item:getModData()
-    local entityId = modData[KEYS.entityId]
+    local entityId = cleanString(modData[KEYS.entityId])
+    local spriteName = cleanString(modData[KEYS.spriteName])
     local health = tonumber(modData[KEYS.health])
     local maxHealth = tonumber(modData[KEYS.maxHealth])
 
-    if entityId ~= nil
-        and (type(entityId) ~= "string" or entityId == "")
-    then
+    if entityId == false then
         entityId = nil
     end
+    if spriteName == false then
+        spriteName = nil
+    end
 
-    if entityId == nil and health == nil and maxHealth == nil then
+    if entityId == nil
+        and spriteName == nil
+        and health == nil
+        and maxHealth == nil
+    then
         return nil
     end
 
     return {
         entityId = entityId,
+        spriteName = spriteName,
         health = health,
         maxHealth = maxHealth,
     }
