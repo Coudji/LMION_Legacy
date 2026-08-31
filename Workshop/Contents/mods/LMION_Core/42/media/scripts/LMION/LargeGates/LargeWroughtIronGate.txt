@@ -1,0 +1,27 @@
+module Base
+{
+    entity LargeWroughtIronGate
+    {
+        component SpriteConfig
+        {
+            face W
+            {
+                layer
+                {
+                    row = fixtures_doors_fences_01_33,
+                    row = fixtures_doors_fences_01_32,
+                    row = fixtures_doors_fences_01_41,
+                    row = fixtures_doors_fences_01_40,
+                }
+            }
+
+            face N
+            {
+                layer
+                {
+                    row = fixtures_doors_fences_01_34 fixtures_doors_fences_01_35 fixtures_doors_fences_01_42 fixtures_doors_fences_01_43,
+                }
+            }
+        }
+    }
+}
