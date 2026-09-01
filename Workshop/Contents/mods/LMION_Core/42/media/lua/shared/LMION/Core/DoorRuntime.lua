@@ -257,7 +257,11 @@ function DoorRuntime.ensureCanonicalDoor(object)
 
     local square = object:getSquare()
     local sprite = object:getSprite()
-    local north = object.getNorth ~= nil and object:getNorth() or nil
+    local north = nil
+
+    if object.getNorth ~= nil then
+        north = object:getNorth()
+    end
 
     if square == nil or sprite == nil or north == nil then
         error("LMION: cannot canonicalize incomplete door object", 2)
