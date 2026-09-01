@@ -206,29 +206,16 @@ function GaragePickup.getPickupPlan(source)
     return buildPickupPlan(source, runtime)
 end
 
-local function canPickUpMember(character, entry)
-    local moveProps = ISMoveableSpriteProps.new(entry.segment.spriteName)
-    if moveProps == nil then return false end
+local function allMembersEmpty(plan)
+    if plan == nil then return false end
 
-    -- Garage members are part of one multi-object pickup. Vanilla deliberately
-    -- skips inventory-capacity checks for _isMulti=true while still validating
-    -- object state, skills, tools and other per-member requirements.
-    return moveProps:canPickUpMoveableInternal(
-        character,
-        entry.square,
-        entry.object,
-        true
-    ) == true
-end
-
-local function canPickUpPlan(character, plan)
-    if character == nil or plan == nil then return false end
     for position = 1, plan.length do
         local entry = plan.entries[position]
-        if not entry.object:isObjectNoContainerOrEmpty()
-            or not canPickUpMember(character, entry)
-        then return false end
+        if entry.object == nil or not entry.object:isObjectNoContainerOrEmpty() then
+            return false
+        end
     end
+
     return true
 end
 
@@ -246,13 +233,23 @@ local function installHooks()
         if runtime == nil then return previousCanPickUp(self, character, square, object) end
 
         local selected = getSelectedObject(self, square, object)
-        local segment = LMION.getGarageSegmentForObject(selected)
-        if segment == nil
-            or segment.definitionId ~= runtime.definitionId
-            or segment.role ~= self.lmionGarageRole
-        then return false end
+        local plan = buildPickupPlan(selected, runtime)
+        if plan == nil then return false end
 
-        return canPickUpPlan(character, buildPickupPlan(selected, runtime))
+        -- Legacy-proven path: validate the selected garage member through the
+        -- existing Moveables chain as a single sprite. The synthetic L3
+        -- SpriteGrid is only a toolbar adapter and must not define pickup size.
+        local wasMultiSprite = self.isMultiSprite
+        self.isMultiSprite = false
+        local canPickUp = previousCanPickUp(self, character, square, selected)
+        self.isMultiSprite = wasMultiSprite
+
+        if not canPickUp then return false end
+
+        -- The complete real chain has already been resolved by Core. As in
+        -- Legacy, only require every member to be safe to remove; do not invent
+        -- additional per-member Moveables validation here.
+        return allMembersEmpty(plan)
     end
 
     local previousInstanceItem = ISMoveableSpriteProps.instanceItem
@@ -312,16 +309,18 @@ local function installHooks()
         if not forceAllow
             and not character:isMovablesCheat()
             and not ISMoveableDefinitions.cheat
-            and not canPickUpPlan(character, plan)
+            and not self:canPickUpMoveable(character, square, selected)
         then return false end
 
         local items = {}
         for position = 1, plan.length do
             local entry = plan.entries[position]
-            local moveProps = ISMoveableSpriteProps.new(entry.segment.closedSprite)
+            local moveProps = ISMoveableSpriteProps.new(entry.segment.spriteName)
             if moveProps == nil then return false end
 
-            -- This makes vanilla deposit the parcel on the member's square.
+            -- One parcel per physical member, exactly like the validated Legacy
+            -- implementation. MultiSprite here controls parcel output location;
+            -- it does not define the semantic garage length.
             moveProps.isMultiSprite = true
             items[position] = moveProps:pickUpMoveableInternal(
                 character,
