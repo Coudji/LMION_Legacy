@@ -1,6 +1,8 @@
 local MoveableAdapter = require "LMION/Pickup/MoveableAdapter"
 local LargeGatePickup = require "LMION/Pickup/LargeGatePickup"
 local LargeGatePlacement = require "LMION/Pickup/LargeGatePlacement"
+local GaragePickup = require "LMION/Pickup/GaragePickup"
+local GaragePlacement = require "LMION/Pickup/GaragePlacement"
 
 
 -- Inventory UI is client Lua while BuildingObjects cursors live in gameplay /
@@ -29,6 +31,19 @@ local function installPlacementHandoff()
         if LargeGatePickup.getParcelIdentity(item) ~= nil then
             if type(LargeGatePlacement.openPlacementCursor) == "function"
                 and LargeGatePlacement.openPlacementCursor(item, playerObj)
+            then
+                return
+            end
+
+            return MoveableAdapter._originalOpenMovableCursor(
+                item,
+                playerObj
+            )
+        end
+
+        if GaragePickup.getParcelIdentity(item) ~= nil then
+            if type(GaragePlacement.openPlacementCursor) == "function"
+                and GaragePlacement.openPlacementCursor(item, playerObj)
             then
                 return
             end
