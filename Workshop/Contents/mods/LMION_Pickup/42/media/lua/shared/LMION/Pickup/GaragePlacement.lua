@@ -184,8 +184,8 @@ end
 local function getTargetSquare(startSquare, facing, position)
     local topology = LMION.getGarageTopology()
     local step = topology
-        and topology.steps
-        and topology.steps[facing]
+        and topology.step
+        and topology.step[facing]
         or nil
 
     if startSquare == nil or type(step) ~= "table" then
