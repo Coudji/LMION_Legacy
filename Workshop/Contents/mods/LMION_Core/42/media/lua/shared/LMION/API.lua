@@ -1,5 +1,8 @@
 local DoorRuntime = require "LMION/Core/DoorRuntime"
 local EntityIndex = require "LMION/Core/EntityIndex"
+local GaragePolicy = require "LMION/Core/GaragePolicy"
+local GarageRuntime = require "LMION/Core/GarageRuntime"
+local GarageTopology = require "LMION/Core/GarageTopology"
 local LargeGateRuntime = require "LMION/Core/LargeGateRuntime"
 local LargeGateTopology = require "LMION/Core/LargeGateTopology"
 local ObjectLookup = require "LMION/Core/ObjectLookup"
@@ -21,11 +24,17 @@ local function registerList(list, register)
 end
 
 
+local function invalidateIndexes()
+    EntityIndex.invalidate()
+    GarageRuntime.invalidate()
+end
+
+
 function API.registerDefault(definitionDefault)
     Validation.definitionDefault(definitionDefault)
 
     local defaultId = Registry.registerDefault(definitionDefault)
-    EntityIndex.invalidate()
+    invalidateIndexes()
 
     return defaultId
 end
@@ -35,7 +44,7 @@ function API.registerDefinition(definition)
     Validation.definition(definition)
 
     local definitionId = Registry.registerDefinition(definition)
-    EntityIndex.invalidate()
+    invalidateIndexes()
 
     return definitionId
 end
@@ -45,7 +54,7 @@ function API.registerExtension(extension)
     Validation.extension(extension)
 
     local extensionId = Registry.registerExtension(extension)
-    EntityIndex.invalidate()
+    invalidateIndexes()
 
     return extensionId
 end
@@ -103,6 +112,36 @@ end
 
 function API.getLargeGateTopology()
     return LargeGateTopology.get()
+end
+
+
+function API.getGarageTopology()
+    return GarageTopology.get()
+end
+
+
+function API.getGarageMaxLength()
+    return GaragePolicy.getMaxLength()
+end
+
+
+function API.isGarageLengthAllowed(length)
+    return GaragePolicy.isLengthAllowed(length)
+end
+
+
+function API.getGarageSegmentBySprite(spriteName)
+    return GarageRuntime.getSegmentBySprite(spriteName)
+end
+
+
+function API.getGarageSegmentForObject(object)
+    return GarageRuntime.getSegmentForObject(object)
+end
+
+
+function API.getGarageChain(object)
+    return GarageRuntime.getChain(object)
 end
 
 
