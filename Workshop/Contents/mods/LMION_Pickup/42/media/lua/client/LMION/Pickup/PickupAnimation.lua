@@ -1,18 +1,14 @@
 require "Moveables/ISMoveablesAction"
-require "Moveables/ISMoveableSpriteProps"
-require "TimedActions/ISEquipWeaponAction"
-
-
-local function isLmionTransportMoveProps(moveProps)
-    return moveProps ~= nil
-        and (moveProps.lmionDefinitionId ~= nil
-            or moveProps.lmionGarageDefinitionId ~= nil
-            or moveProps.lmionLargeGateDefinitionId ~= nil)
-end
-
 
 local function isLmionTransportAction(action)
-    return isLmionTransportMoveProps(action and action.moveProps or nil)
+    local moveProps = action and action.moveProps or nil
+    if moveProps == nil then
+        return false
+    end
+
+    return moveProps.lmionDefinitionId ~= nil
+        or moveProps.lmionGarageDefinitionId ~= nil
+        or moveProps.lmionLargeGateDefinitionId ~= nil
 end
 
 
@@ -34,29 +30,23 @@ local function getActionToolName(action)
 end
 
 
-local function getResolvedMovePropsTool(moveProps, character, mode)
-    if moveProps == nil
-        or character == nil
-        or (mode ~= "pickup" and mode ~= "place")
-    then
+local function getResolvedActionTool(action)
+    local moveProps = action and action.moveProps or nil
+    local character = action and action.character or nil
+    if moveProps == nil or character == nil then
         return nil
     end
 
-    local tool = moveProps:hasTool(character, mode)
+    if action.mode ~= "pickup" and action.mode ~= "place" then
+        return nil
+    end
+
+    local tool = moveProps:hasTool(character, action.mode)
     if tool == nil or tool == false or tool == true then
         return nil
     end
 
     return tool
-end
-
-
-local function getResolvedActionTool(action)
-    return getResolvedMovePropsTool(
-        action and action.moveProps or nil,
-        action and action.character or nil,
-        action and action.mode or nil
-    )
 end
 
 
@@ -149,125 +139,6 @@ local function isHammerTool(toolName)
 end
 
 
-local function sameInventoryItem(first, second)
-    if first == second then
-        return true
-    end
-
-    if first == nil
-        or second == nil
-        or first.getID == nil
-        or second.getID == nil
-    then
-        return false
-    end
-
-    return first:getID() == second:getID()
-end
-
-
-local function markQueuedEquipAction(character, firstNewIndex, tool, mode)
-    local timedQueue = character
-        and ISTimedActionQueue.getTimedActionQueue(character)
-        or nil
-    local queue = timedQueue and timedQueue.queue or nil
-
-    if queue == nil or tool == nil then
-        return
-    end
-
-    for index = firstNewIndex, #queue do
-        local action = queue[index]
-
-        if action ~= nil
-            and action.Type == "ISEquipWeaponAction"
-            and sameInventoryItem(action.item, tool)
-        then
-            action.lmionTransportEquip = true
-            action.lmionTransportMode = mode
-        end
-    end
-end
-
-
--- Vanilla walkToAndEquip() correctly selects and queues the gameplay tool, but
--- non-hotbar ISEquipWeaponAction keeps rendering the previously held item until
--- complete(). Mark only the equip action created for an LMION transport action so
--- its presentation can show the tool being equipped instead of a stale crowbar,
--- hammer or screwdriver.
-if ISMoveableSpriteProps._lmionPresentationOriginalWalkToAndEquip == nil then
-    ISMoveableSpriteProps._lmionPresentationOriginalWalkToAndEquip =
-        ISMoveableSpriteProps.walkToAndEquip
-end
-
-
-ISMoveableSpriteProps.walkToAndEquip = function(
-    self,
-    character,
-    square,
-    mode,
-    origSpriteName
-)
-    if not isLmionTransportMoveProps(self)
-        or (mode ~= "pickup" and mode ~= "place")
-    then
-        return ISMoveableSpriteProps._lmionPresentationOriginalWalkToAndEquip(
-            self,
-            character,
-            square,
-            mode,
-            origSpriteName
-        )
-    end
-
-    local tool = getResolvedMovePropsTool(self, character, mode)
-    local timedQueue = character
-        and ISTimedActionQueue.getTimedActionQueue(character)
-        or nil
-    local queue = timedQueue and timedQueue.queue or nil
-    local firstNewIndex = (queue and #queue or 0) + 1
-
-    local result = ISMoveableSpriteProps._lmionPresentationOriginalWalkToAndEquip(
-        self,
-        character,
-        square,
-        mode,
-        origSpriteName
-    )
-
-    if result and tool ~= nil then
-        markQueuedEquipAction(character, firstNewIndex, tool, mode)
-    end
-
-    return result
-end
-
-
--- ISEquipWeaponAction normally swaps the real hand item only in complete(). That
--- is correct gameplay, but during its animation it leaves the old tool visible.
--- For the LMION equip action marked above, keep vanilla timing/transfer semantics
--- and only override the displayed hand model with the target tool.
-if ISEquipWeaponAction._lmionPresentationOriginalStart == nil then
-    ISEquipWeaponAction._lmionPresentationOriginalStart = ISEquipWeaponAction.start
-end
-
-
-ISEquipWeaponAction.start = function(self)
-    local showTargetTool = self.lmionTransportEquip == true
-        and self.item ~= nil
-        and not self:isAlreadyEquipped(self.item)
-
-    ISEquipWeaponAction._lmionPresentationOriginalStart(self)
-
-    if showTargetTool then
-        self:setOverrideHandModels(
-            self.item,
-            self.twoHands and self.item or nil
-        )
-    end
-end
-
-
 -- Presentation must follow LMION's resolved gameplay tool, not whichever item
 -- happens to remain in the character's hands from the previous Moveables action.
 -- This is especially visible when a frameless opening is picked up with a crowbar
@@ -290,7 +161,7 @@ ISMoveablesAction.start = function(self)
 
     -- walkToAndEquip() still owns pathing, inventory transfers and normal tool
     -- validation. At action start, make the already-resolved tool authoritative
-    -- for the real hand state as well as the presentation.
+    -- for the hand model so a stale crowbar/hammer cannot leak into presentation.
     equipResolvedToolNow(self, tool)
 
     ISMoveablesAction._lmionPresentationOriginalStart(self)
