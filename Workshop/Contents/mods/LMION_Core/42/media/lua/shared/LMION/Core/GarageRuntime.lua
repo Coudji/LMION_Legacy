@@ -286,4 +286,41 @@ function GarageRuntime.getChain(source)
 end
 
 
+function GarageRuntime.finalizeSegment(object, definition, facing, role)
+    if not DoorRuntime.isDoorObject(object)
+        or not isGarageDefinition(definition)
+        or (facing ~= "N" and facing ~= "W")
+        or GarageTopology.get().roles[role] == nil
+        or not validateGeometry(definition)
+    then
+        return nil
+    end
+
+    local part = definition.geometry[facing][role]
+    local closedSprite = getSprite(part.closed)
+    local openSprite = getSprite(part.open)
+
+    if closedSprite == nil or openSprite == nil then
+        return nil
+    end
+
+    local door = DoorRuntime.ensureCanonicalDoor(object)
+    if door == nil or door:getNorth() ~= (facing == "N") then
+        return nil
+    end
+
+    door:setSprite(closedSprite)
+
+    if door.setOpenSprite ~= nil then
+        door:setOpenSprite(openSprite)
+    end
+
+    if door.setOpen ~= nil then
+        door:setOpen(false)
+    end
+
+    return door
+end
+
+
 return GarageRuntime
