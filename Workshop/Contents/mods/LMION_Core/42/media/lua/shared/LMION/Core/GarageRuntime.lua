@@ -292,6 +292,8 @@ function GarageRuntime.finalizeSegment(object, definition, facing, role)
         or (facing ~= "N" and facing ~= "W")
         or GarageTopology.get().roles[role] == nil
         or not validateGeometry(definition)
+        or object.getNorth == nil
+        or object:getNorth() ~= (facing == "N")
     then
         return nil
     end
@@ -305,7 +307,7 @@ function GarageRuntime.finalizeSegment(object, definition, facing, role)
     end
 
     local door = DoorRuntime.ensureCanonicalDoor(object)
-    if door == nil or door:getNorth() ~= (facing == "N") then
+    if door == nil then
         return nil
     end
 
