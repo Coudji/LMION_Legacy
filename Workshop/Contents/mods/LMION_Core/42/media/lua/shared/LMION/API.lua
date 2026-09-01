@@ -161,10 +161,18 @@ end
 
 
 function API.canPlaceDoorAt(square, facing, frame, pairedFrameSide)
+    local runtimeFrame = frame
+
+    if frame == "paired" then
+        runtimeFrame = "standard"
+    elseif frame == "none" then
+        runtimeFrame = false
+    end
+
     return DoorRuntime.canPlaceAt(
         square,
         facing,
-        frame,
+        runtimeFrame,
         pairedFrameSide
     )
 end

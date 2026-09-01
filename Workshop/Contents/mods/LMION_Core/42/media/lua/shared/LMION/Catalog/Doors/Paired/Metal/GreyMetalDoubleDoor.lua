@@ -1,6 +1,7 @@
 return {
     definitionId = "Doors.Metal.GreyMetalDoubleDoor",
     inherits = "Doors.Metal.Base",
+    frame = "paired",
 
     topology = {
         type = "paired",

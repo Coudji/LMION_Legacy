@@ -119,10 +119,13 @@ local function buildRuntime(definition)
     end
 
     if kind == "paired" then
-        if definition.frame ~= "standard" then
+        if definition.frame ~= "paired" then
             return nil
         end
-    elseif definition.frame ~= "standard" and definition.frame ~= false then
+    elseif definition.frame ~= "standard"
+        and definition.frame ~= "none"
+        and definition.frame ~= false
+    then
         return nil
     end
 

@@ -1,6 +1,7 @@
 return {
     definitionId = "Doors.Wood.BrownChurchDoubleDoor",
     inherits = "Doors.Wood.FourPanels",
+    frame = "paired",
 
     topology = {
         type = "paired",
