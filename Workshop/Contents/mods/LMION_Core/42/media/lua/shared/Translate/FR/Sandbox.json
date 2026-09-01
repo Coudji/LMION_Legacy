@@ -1,0 +1,7 @@
+{
+    "Sandbox_LMION_Core": "LMION",
+    "Sandbox_LMION_Core_GarageMaxLength": "Longueur maximale des portes de garage",
+    "Sandbox_LMION_Core_GarageMaxLength_tooltip": "Longueur maximale autorisée pour la construction et le placement variable des portes de garage LMION. Valeur minimale configurable : 3. Les portes de garage de longueur 2 restent prises en charge par le placement variable LMION.",
+    "Sandbox_LMION_Core_UnlimitedGarageWidth": "Longueur illimitée des portes de garage",
+    "Sandbox_LMION_Core_UnlimitedGarageWidth_tooltip": "Désactive la limite maximale de longueur imposée par LMION. Lorsque cette option est activée, la longueur maximale configurée est ignorée."
+}
