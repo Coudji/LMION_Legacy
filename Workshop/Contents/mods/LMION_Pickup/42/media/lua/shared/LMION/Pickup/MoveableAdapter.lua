@@ -49,18 +49,7 @@ end
 
 
 local function getPairedGeometry(definition)
-    local topology = definition and definition.topology or nil
-    if type(topology) ~= "table"
-        or topology.type ~= "paired"
-        or type(topology.left) ~= "string"
-        or topology.left == ""
-        or type(topology.right) ~= "string"
-        or topology.right == ""
-    then
-        return nil
-    end
-
-    local geometry = definition.geometry
+    local geometry = definition and definition.geometry or nil
     if type(geometry) ~= "table" then
         return nil
     end
@@ -82,6 +71,25 @@ local function getPairedGeometry(definition)
 end
 
 
+local function getPairedEntities(definition)
+    local entities = definition and definition.entities or nil
+
+    if type(entities) ~= "table"
+        or type(entities.left) ~= "string"
+        or entities.left == ""
+        or type(entities.right) ~= "string"
+        or entities.right == ""
+    then
+        return nil
+    end
+
+    return {
+        left = entities.left,
+        right = entities.right,
+    }
+end
+
+
 local function buildRuntime(definition)
     if type(definition) ~= "table"
         or type(definition.definitionId) ~= "string"
@@ -90,12 +98,15 @@ local function buildRuntime(definition)
         return nil
     end
 
-    local topology = definition.topology
     local kind = nil
     local geometry = nil
     local entities = nil
 
-    if topology == nil then
+    if definition.frame == "paired" then
+        entities = getPairedEntities(definition)
+        geometry = getPairedGeometry(definition)
+        kind = "paired"
+    else
         if type(definition.entity) ~= "string" or definition.entity == "" then
             return nil
         end
@@ -103,26 +114,14 @@ local function buildRuntime(definition)
         geometry = getSimpleGeometry(definition)
         kind = "simple"
         entities = { default = definition.entity }
-    elseif type(topology) == "table" and topology.type == "paired" then
-        geometry = getPairedGeometry(definition)
-        kind = "paired"
-        entities = {
-            left = topology.left,
-            right = topology.right,
-        }
-    else
+    end
+
+    if geometry == nil or entities == nil then
         return nil
     end
 
-    if geometry == nil then
-        return nil
-    end
-
-    if kind == "paired" then
-        if definition.frame ~= "paired" then
-            return nil
-        end
-    elseif definition.frame ~= "standard"
+    if kind ~= "paired"
+        and definition.frame ~= "standard"
         and definition.frame ~= "none"
         and definition.frame ~= false
     then
