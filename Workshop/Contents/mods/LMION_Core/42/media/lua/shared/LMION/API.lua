@@ -180,6 +180,16 @@ function API.finalizePlacedDoor(object, definition, facing, member)
 end
 
 
+function API.finalizePlacedGarageSegment(object, definition, facing, role)
+    return GarageRuntime.finalizeSegment(
+        object,
+        definition,
+        facing,
+        role
+    )
+end
+
+
 function API.finalizePlacedLargeGatePart(
     object,
     definition,
