@@ -2,7 +2,7 @@ return {
     defaultId = "GarageDoors.Solid",
 
     defaults = {
-        frame = false,
+        frame = "none",
         materialType = "Metal_Light",
         doorSound = "GarageDoor",
         thumpSound = "ZombieThumpGarageDoor",

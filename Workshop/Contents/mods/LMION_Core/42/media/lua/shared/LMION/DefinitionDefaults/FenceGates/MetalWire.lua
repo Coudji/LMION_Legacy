@@ -2,7 +2,7 @@ return {
     defaultId = "FenceGates.Metal.Wire",
 
     defaults = {
-        frame = false,
+        frame = "none",
         materialType = "Metal_Light",
         doorSound = "MetalGate",
         thumpSound = "ZombieThumpChainlinkFence",
