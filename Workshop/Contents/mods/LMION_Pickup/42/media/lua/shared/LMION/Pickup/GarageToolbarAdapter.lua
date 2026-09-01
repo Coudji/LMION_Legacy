@@ -333,7 +333,7 @@ local function installMoveableHooks()
     )
         local segment, runtime = getMovePropsSegment(self, spriteName)
 
-        if runtime == nil then
+        if runtime == nil or self.isMultiSprite ~= true then
             return previousPlaceInternal(self, square, item, spriteName)
         end
 
