@@ -400,17 +400,11 @@ end
 
 
 local function hasValidGeometryMember(definition, member)
-    local topology = definition and definition.topology or nil
-
-    if topology == nil then
-        return member == nil
+    if definition ~= nil and definition.frame == "paired" then
+        return member == "left" or member == "right"
     end
 
-    if type(topology) ~= "table" or topology.type ~= "paired" then
-        return false
-    end
-
-    return member == "left" or member == "right"
+    return member == nil
 end
 
 
