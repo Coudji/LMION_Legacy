@@ -17,7 +17,15 @@ return {
                 { item = "Base.Hinge", amount = 6 }, { item = "Base.WeldingRods", uses = 3 },
             },
         },
-        pickup = { skill = { MetalWelding = 3 }, tools = { { tag = "base:crowbar" } }, breakChance = 0, packages = { count = 3, weight = 20 } },
-        replacement = { packages = 3, tools = { { tag = "base:hammer" } }, materials = {} },
+        pickup = {
+            skill = { MetalWelding = 3 },
+            tools = { { tag = "base:crowbar" } },
+            breakChance = 0,
+            packages = { weight = 20 },
+        },
+        replacement = {
+            tools = { { tag = "base:hammer" } },
+            materials = {},
+        },
     },
 }
