@@ -32,14 +32,20 @@ local function renderFloor(square, valid)
 end
 
 
-local function renderPickupFootprint(cursor, x, y, z)
+local function isGarageMoveProps(moveProps)
+    return moveProps ~= nil
+        and moveProps.lmionGarageDefinitionId ~= nil
+end
+
+
+local function getPickupChain(cursor, x, y, z)
     if ISMoveableCursor.mode[cursor.player] ~= "pickup" then
-        return
+        return nil
     end
 
     local moveProps = cursor.currentMoveProps
-    if moveProps == nil or moveProps.lmionGarageDefinitionId == nil then
-        return
+    if not isGarageMoveProps(moveProps) then
+        return nil
     end
 
     local square = cursor.currentSquare or getCell():getGridSquare(x, y, z)
@@ -51,16 +57,30 @@ local function renderPickupFootprint(cursor, x, y, z)
     if chain == nil
         or chain.definitionId ~= moveProps.lmionGarageDefinitionId
     then
-        return
+        return nil
+    end
+
+    return chain
+end
+
+
+local function renderPickupFootprint(cursor, x, y, z)
+    local chain = getPickupChain(cursor, x, y, z)
+    if chain == nil then
+        return false
     end
 
     for position = 1, chain.length do
         local object = chain.members[position]
         renderFloor(object and object:getSquare() or nil, true)
     end
+
+    return true
 end
 
 
+-- Open garage sprites do not reliably run vanilla's SpriteGrid renderer, so
+-- supplement the normal cursor render path for that state only.
 if ISMoveableCursor._lmionGarageOriginalRender == nil then
     ISMoveableCursor._lmionGarageOriginalRender = ISMoveableCursor.render
 end
@@ -75,8 +95,44 @@ ISMoveableCursor.render = function(self, x, y, z, square)
         square
     )
 
-    renderPickupFootprint(self, x, y, z)
+    local moveProps = self.currentMoveProps
+    if isGarageMoveProps(moveProps)
+        and moveProps.lmionGarageIsOpen == true
+    then
+        renderPickupFootprint(self, x, y, z)
+    end
+
     return result
+end
+
+
+-- Closed garage sprites intentionally carry a synthetic L3 SpriteGrid for the
+-- vanilla toolbar. During pickup that grid is not real geometry: suppress its
+-- renderer and highlight the actual START + MIDDLE* + END chain instead.
+if ISMoveableCursor._lmionGarageOriginalRenderSpriteGrid == nil then
+    ISMoveableCursor._lmionGarageOriginalRenderSpriteGrid =
+        ISMoveableCursor.renderSpriteGrid
+end
+
+
+ISMoveableCursor.renderSpriteGrid = function(self, x, y, z, color)
+    local mode = ISMoveableCursor.mode and ISMoveableCursor.mode[self.player] or nil
+
+    if mode == "pickup"
+        and isGarageMoveProps(self.origMoveProps)
+        and isGarageMoveProps(self.currentMoveProps)
+    then
+        renderPickupFootprint(self, x, y, z)
+        return
+    end
+
+    return ISMoveableCursor._lmionGarageOriginalRenderSpriteGrid(
+        self,
+        x,
+        y,
+        z,
+        color
+    )
 end
 
 
