@@ -56,15 +56,15 @@ local function indexDefinition(index, ids, definitionId, definition)
         addMapping(index, ids, definitionId, definition.entity, "entity")
     end
 
-    local topology = definition.topology
+    local entities = definition.entities
 
-    if type(topology) == "table" then
-        if topology.left ~= nil then
-            addMapping(index, ids, definitionId, topology.left, "topology.left")
+    if type(entities) == "table" then
+        if entities.left ~= nil then
+            addMapping(index, ids, definitionId, entities.left, "entities.left")
         end
 
-        if topology.right ~= nil then
-            addMapping(index, ids, definitionId, topology.right, "topology.right")
+        if entities.right ~= nil then
+            addMapping(index, ids, definitionId, entities.right, "entities.right")
         end
     end
 
