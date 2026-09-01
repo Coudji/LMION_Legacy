@@ -1,0 +1,7 @@
+{
+    "Sandbox_LMION_Core": "LMION",
+    "Sandbox_LMION_Core_GarageMaxLength": "Maximum Garage Door Length",
+    "Sandbox_LMION_Core_GarageMaxLength_tooltip": "Maximum length allowed for LMION garage door construction and variable placement. Minimum configurable value: 3. Garage doors of length 2 remain supported by LMION variable placement.",
+    "Sandbox_LMION_Core_UnlimitedGarageWidth": "Unlimited Garage Door Length",
+    "Sandbox_LMION_Core_UnlimitedGarageWidth_tooltip": "Disable LMION's maximum garage door length. When enabled, Maximum Garage Door Length is ignored."
+}
