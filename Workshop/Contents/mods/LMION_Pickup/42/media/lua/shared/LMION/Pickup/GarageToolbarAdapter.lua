@@ -2,6 +2,7 @@ require "Moveables/ISMoveableSpriteProps"
 
 local LMION = require "LMION/API"
 local GaragePickup = require "LMION/Pickup/GaragePickup"
+local GaragePlacement = require "LMION/Pickup/GaragePlacement"
 local TransportState = require "LMION/Pickup/TransportState"
 
 local GarageToolbarAdapter = {}
@@ -35,9 +36,6 @@ local function getRuntime(segment)
 end
 
 
--- Keep the Moveables anchor identity independent from whichever SpriteGrid
--- member vanilla is currently processing. In W, the grid anchor is END while
--- in N it is START.
 local function ensureMovePropsIdentity(moveProps)
     if moveProps == nil then
         return nil, nil
@@ -86,8 +84,6 @@ local function getRotationFaces(runtime, segment)
         return nil
     end
 
-    -- Match spatial slots, not semantic roles:
-    -- START N <-> END W, MIDDLE <-> MIDDLE, END N <-> START W.
     if segment.facing == "N" then
         return {
             N = runtime.geometry.N[segment.role].closed,
@@ -215,8 +211,6 @@ local function installGrid(runtime, facing)
         grid:setSprite(2, 0, sprites.END)
     elseif facing == "W" then
         grid = IsoSpriteGrid.new(1, 3)
-        -- W traversal progresses toward decreasing Y. The first SpriteGrid slot
-        -- is therefore END; START lives at the far end of the visual grid.
         grid:setSprite(0, 0, sprites.END)
         grid:setSprite(0, 1, sprites.MIDDLE)
         grid:setSprite(0, 2, sprites.START)
@@ -267,26 +261,12 @@ end
 
 
 local function findParcel(character, definitionId, role)
-    local inventory = character and character:getInventory() or nil
-    local items = inventory and inventory:getItems() or nil
-
-    if items == nil then
-        return nil, nil
-    end
-
-    for index = 0, items:size() - 1 do
-        local item = items:get(index)
-        local identity = GaragePickup.getParcelIdentity(item)
-
-        if identity ~= nil
-            and identity.definitionId == definitionId
-            and identity.role == role
-        then
-            return item, inventory
-        end
-    end
-
-    return nil, nil
+    return GaragePlacement.findAvailableParcel(
+        character,
+        definitionId,
+        role,
+        nil
+    )
 end
 
 
@@ -486,7 +466,7 @@ function GarageToolbarAdapter.getMoveProps(item, facing)
     local runtime = identity and GaragePickup.getRuntime(identity.definitionId) or nil
     facing = facing == "W" and "W" or "N"
 
-    if runtime == nil or identity.role ~= "START" then
+    if runtime == nil then
         return nil
     end
 
@@ -530,7 +510,6 @@ function GarageToolbarAdapter.install()
         )
     end)
 
-    -- In-world Lua reload: OnLoadedTileDefinitions already fired.
     if tileDefinitionsAreReady() then
         GarageToolbarAdapter.installRuntimeSpriteGrids()
     end
