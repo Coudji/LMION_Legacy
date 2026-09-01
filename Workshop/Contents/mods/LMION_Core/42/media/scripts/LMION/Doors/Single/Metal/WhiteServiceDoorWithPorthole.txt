@@ -1,0 +1,40 @@
+module Base
+{
+    entity WhiteServiceDoorWithPorthole
+    {
+        component SpriteConfig
+        {
+            face W
+            {
+                layer
+                {
+                    row = fixtures_doors_01_60,
+                }
+            }
+
+            face N
+            {
+                layer
+                {
+                    row = fixtures_doors_01_61,
+                }
+            }
+
+            face W_OPEN
+            {
+                layer
+                {
+                    row = fixtures_doors_01_62,
+                }
+            }
+
+            face N_OPEN
+            {
+                layer
+                {
+                    row = fixtures_doors_01_63,
+                }
+            }
+        }
+    }
+}
