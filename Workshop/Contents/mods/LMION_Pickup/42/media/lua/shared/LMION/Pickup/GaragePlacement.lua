@@ -144,6 +144,32 @@ local function maximumLength(parts)
 end
 
 
+function GaragePlacement.findAvailableParcel(
+    character,
+    definitionId,
+    role,
+    preferred
+)
+    if GaragePickup.getRuntime(definitionId) == nil then
+        return nil, nil
+    end
+
+    local found = collectRoleParcels(
+        character,
+        definitionId,
+        role,
+        preferred
+    )
+    local parcel = found[1]
+
+    if parcel == nil then
+        return nil, nil
+    end
+
+    return parcel.item, parcel.source
+end
+
+
 function GaragePlacement.getMaximumAvailableLength(character, definitionId, preferred)
     if GaragePickup.getRuntime(definitionId) == nil then
         return nil
