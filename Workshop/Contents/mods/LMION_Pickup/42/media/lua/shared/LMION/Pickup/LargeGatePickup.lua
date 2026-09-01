@@ -31,7 +31,7 @@ local function buildRuntime(definition)
         or type(definition.displayName) ~= "string"
         or definition.displayName == ""
         or type(topology) ~= "table"
-        or definition.frame ~= false
+        or (definition.frame ~= "none" and definition.frame ~= false)
         or type(geometry) ~= "table"
         or type(packages) ~= "table"
         or tonumber(packages.count) ~= 2
