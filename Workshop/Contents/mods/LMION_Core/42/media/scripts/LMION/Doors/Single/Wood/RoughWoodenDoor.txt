@@ -1,0 +1,40 @@
+module Base
+{
+    entity RoughWoodenDoor
+    {
+        component SpriteConfig
+        {
+            face W
+            {
+                layer
+                {
+                    row = fixtures_doors_01_28,
+                }
+            }
+
+            face N
+            {
+                layer
+                {
+                    row = fixtures_doors_01_29,
+                }
+            }
+
+            face W_OPEN
+            {
+                layer
+                {
+                    row = fixtures_doors_01_30,
+                }
+            }
+
+            face N_OPEN
+            {
+                layer
+                {
+                    row = fixtures_doors_01_31,
+                }
+            }
+        }
+    }
+}

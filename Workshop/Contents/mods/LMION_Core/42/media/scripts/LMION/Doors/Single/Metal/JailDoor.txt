@@ -1,0 +1,40 @@
+module Base
+{
+    entity JailDoor
+    {
+        component SpriteConfig
+        {
+            face W
+            {
+                layer
+                {
+                    row = location_community_police_01_4,
+                }
+            }
+
+            face N
+            {
+                layer
+                {
+                    row = location_community_police_01_5,
+                }
+            }
+
+            face W_OPEN
+            {
+                layer
+                {
+                    row = location_community_police_01_6,
+                }
+            }
+
+            face N_OPEN
+            {
+                layer
+                {
+                    row = location_community_police_01_7,
+                }
+            }
+        }
+    }
+}

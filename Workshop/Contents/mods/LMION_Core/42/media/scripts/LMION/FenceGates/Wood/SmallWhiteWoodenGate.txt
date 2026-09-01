@@ -1,0 +1,42 @@
+module Base
+{
+    entity SmallWhiteWoodenGate
+    {
+        component SpriteConfig
+        {
+            dontNeedFrame = true,
+
+            face W
+            {
+                layer
+                {
+                    row = fixtures_doors_fences_01_8,
+                }
+            }
+
+            face N
+            {
+                layer
+                {
+                    row = fixtures_doors_fences_01_9,
+                }
+            }
+
+            face W_OPEN
+            {
+                layer
+                {
+                    row = fixtures_doors_fences_01_10,
+                }
+            }
+
+            face N_OPEN
+            {
+                layer
+                {
+                    row = fixtures_doors_fences_01_11,
+                }
+            }
+        }
+    }
+}

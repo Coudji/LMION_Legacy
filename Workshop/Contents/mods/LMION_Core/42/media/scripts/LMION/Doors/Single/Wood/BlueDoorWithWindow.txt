@@ -1,0 +1,40 @@
+module Base
+{
+    entity BlueDoorWithWindow
+    {
+        component SpriteConfig
+        {
+            face W
+            {
+                layer
+                {
+                    row = location_restaurant_pileocrepe_01_48,
+                }
+            }
+
+            face N
+            {
+                layer
+                {
+                    row = location_restaurant_pileocrepe_01_49,
+                }
+            }
+
+            face W_OPEN
+            {
+                layer
+                {
+                    row = location_restaurant_pileocrepe_01_50,
+                }
+            }
+
+            face N_OPEN
+            {
+                layer
+                {
+                    row = location_restaurant_pileocrepe_01_51,
+                }
+            }
+        }
+    }
+}
