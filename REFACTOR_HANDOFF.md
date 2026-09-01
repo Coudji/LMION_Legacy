@@ -71,6 +71,62 @@ IsoDoor / IsoObject
 
 Do not use current sprite as the primary identity mechanism.
 
+## Future topology direction — design note, not current contract
+
+A future Core API may make the structural topology of every opening explicit and use it as the canonical dispatch point for mechanics and placement.
+
+Potential direction:
+
+```lua
+topology = {
+    type = "single",
+}
+```
+
+with topology types such as:
+
+```text
+single
+paired
+garage
+largeGate
+sliding
+```
+
+and future topology-specific parameters where needed, for example a multi-tile sliding opening:
+
+```lua
+topology = {
+    type = "sliding",
+    width = 2,
+}
+```
+
+or a paired/sliding arrangement if that eventually proves useful.
+
+The intended architectural goal would be:
+
+```text
+definition.topology.type
+    -> Core topology resolver/handler
+    -> placement / member layout / structural rules
+    -> mechanics consume Core's resolved topology instead of inferring shape from geometry, frame, or ad-hoc fields
+```
+
+This would make it easier to add opening forms that do not exist in the current catalog, such as two-tile sliding glass doors, shop-style automatic paired sliding doors, or other custom layouts.
+
+`frame` should remain orthogonal to topology. It answers what structural support is required for placement, while topology answers how the opening itself is spatially composed. Current intended frame vocabulary is:
+
+```text
+frame = "standard"
+frame = "paired"
+frame = "none"
+```
+
+Do not fold `frame` into `topology` unless later design work proves there is a strong reason to do so.
+
+This topology model is intentionally **not implemented yet**. Revisit it once more non-trivial opening forms exist, so the final contract is based on real requirements rather than guessed abstractions.
+
 ## Load-order rule that must not be forgotten
 
 Core registration follows the verified scope/mod ordering in `Legacy/Research/Architecture/CoreLoadOrder.md`.
