@@ -4,6 +4,8 @@ return {
     entity = "Base.IndustrialGarageDoor",
     inherits = "GarageDoors.Solid",
 
+    topology = { type = "garage" },
+
     geometry = {
         N = {
             START = { closed = "industry_trucks_01_35", open = "industry_trucks_01_43" },
