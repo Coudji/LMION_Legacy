@@ -3,8 +3,7 @@ return {
     inherits = "Doors.Metal.TwoGlass",
     frame = "paired",
 
-    topology = {
-        type = "paired",
+    entities = {
         left = "Base.BlackTwoPaneDoubleDoorLeft",
         right = "Base.BlackTwoPaneDoubleDoorRight",
     },
