@@ -1,0 +1,19 @@
+VERSION = 1,
+
+option LMION_Core.GarageMaxLength
+{
+    type = integer,
+    min = 3,
+    max = 2147483647,
+    default = 6,
+    page = LMION_Core,
+    translation = LMION_Core_GarageMaxLength,
+}
+
+option LMION_Core.UnlimitedGarageWidth
+{
+    type = boolean,
+    default = false,
+    page = LMION_Core,
+    translation = LMION_Core_UnlimitedGarageWidth,
+}
