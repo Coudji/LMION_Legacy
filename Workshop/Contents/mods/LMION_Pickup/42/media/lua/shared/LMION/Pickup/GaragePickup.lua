@@ -36,7 +36,7 @@ local function buildRuntime(definition)
         or type(definition.displayName) ~= "string" or definition.displayName == ""
         or type(definition.entity) ~= "string" or definition.entity == ""
         or type(topology) ~= "table" or topology.type ~= "garage"
-        or definition.frame ~= false
+        or (definition.frame ~= "none" and definition.frame ~= false)
         or type(geometry) ~= "table"
         or type(packages) ~= "table"
         or weight == nil or weight <= 0
