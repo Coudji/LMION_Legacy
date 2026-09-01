@@ -12,7 +12,6 @@ local installed = false
 local runtimeByDefinitionId = {}
 local segmentBySprite = {}
 
-
 local function isPart(part)
     return type(part) == "table"
         and type(part.closed) == "string"
@@ -20,7 +19,6 @@ local function isPart(part)
         and type(part.open) == "string"
         and part.open ~= ""
 end
-
 
 local function buildRuntime(definition)
     local topology = LMION.getLargeGateTopology()
@@ -90,7 +88,6 @@ local function buildRuntime(definition)
     }
 end
 
-
 local function addSegment(target, runtime, facing, leaf, partIndex, isOpen, spriteName)
     if target[spriteName] ~= nil then
         error("LMION: duplicate Large Gate sprite " .. tostring(spriteName), 3)
@@ -107,7 +104,6 @@ local function addSegment(target, runtime, facing, leaf, partIndex, isOpen, spri
         isOpen = isOpen,
     }
 end
-
 
 function LargeGatePickup.refresh()
     local nextRuntime = {}
@@ -151,7 +147,6 @@ function LargeGatePickup.refresh()
     return { definitions = supported, sprites = sprites }
 end
 
-
 local function getSpriteName(value)
     if type(value) == "string" then
         return value
@@ -159,12 +154,10 @@ local function getSpriteName(value)
     return value ~= nil and value:getName() or nil
 end
 
-
 local function getRuntime(moveProps)
     local definitionId = moveProps and moveProps.lmionLargeGateDefinitionId or nil
     return definitionId and runtimeByDefinitionId[definitionId] or nil
 end
-
 
 local function getSegmentForObject(runtime, object)
     if runtime == nil or not LMION.isDoorObject(object) then
@@ -190,7 +183,6 @@ local function getSegmentForObject(runtime, object)
 
     return segment
 end
-
 
 local function getLeafMembers(runtime, source, segment)
     if IsoDoor == nil or IsoDoor.getDoubleDoorObject == nil then
@@ -226,16 +218,13 @@ local function getLeafMembers(runtime, source, segment)
     return members
 end
 
-
 function LargeGatePickup.getRuntime(definitionId)
     return runtimeByDefinitionId[definitionId]
 end
 
-
 function LargeGatePickup.getSegment(spriteName)
     return type(spriteName) == "string" and segmentBySprite[spriteName] or nil
 end
-
 
 function LargeGatePickup.getParcelIdentity(item)
     local state = item and TransportState.read(item) or nil
@@ -253,7 +242,6 @@ function LargeGatePickup.getParcelIdentity(item)
     }
 end
 
-
 function LargeGatePickup.getPartSprite(definitionId, facing, leaf, partIndex, isOpen)
     local runtime = runtimeByDefinitionId[definitionId]
     local face = runtime and runtime.geometry[facing] or nil
@@ -267,7 +255,6 @@ function LargeGatePickup.getPartSprite(definitionId, facing, leaf, partIndex, is
     return isOpen and part.open or part.closed
 end
 
-
 local function getParcelName(runtime, leaf, partIndex)
     return runtime.displayName
         .. " "
@@ -276,7 +263,6 @@ local function getParcelName(runtime, leaf, partIndex)
         .. tostring(partIndex)
         .. "/2)"
 end
-
 
 local function applyMoveProps(moveProps, sprite)
     if moveProps == nil then
@@ -311,15 +297,11 @@ local function applyMoveProps(moveProps, sprite)
     return moveProps
 end
 
-
 local function applyFlatpackPresentation(item)
     if item == nil then
         return nil
     end
 
-    -- Reproduce only the visual state that Moveable.ReadFromWorldSprite()
-    -- applies to SpriteGrid furniture. Do not call ReadFromWorldSprite() here:
-    -- it would also bind the transported gate sprite as this item's worldSprite.
     local texture = Texture ~= nil
         and Texture.getSharedTexture ~= nil
         and Texture.getSharedTexture("Item_Flatpack")
@@ -336,7 +318,6 @@ local function applyFlatpackPresentation(item)
 
     return item
 end
-
 
 local function installHooks()
     require "Moveables/ISMoveableSpriteProps"
@@ -363,23 +344,30 @@ local function installHooks()
             return false
         end
 
-        local wasMultiSprite = self.isMultiSprite
-        self.isMultiSprite = false
-        local canPickUp = previousCanPickUp(self, character, square, selected)
-        self.isMultiSprite = wasMultiSprite
-
-        if not canPickUp then
-            return false
-        end
-
         local members = getLeafMembers(runtime, selected, segment)
         if members == nil then
             return false
         end
 
-        return members[1]:isObjectNoContainerOrEmpty()
-            and members[2]:isObjectNoContainerOrEmpty()
-            and character:getInventory():hasRoomFor(character, runtime.weight * 2)
+        for partIndex = 1, 2 do
+            local object = members[partIndex]
+            local part = runtime.geometry[segment.facing][segment.leaf][partIndex]
+            local moveProps = ISMoveableSpriteProps.new(part.closed)
+
+            if moveProps == nil
+                or not object:isObjectNoContainerOrEmpty()
+                or not moveProps:canPickUpMoveableInternal(
+                    character,
+                    object:getSquare(),
+                    object,
+                    true
+                )
+            then
+                return false
+            end
+        end
+
+        return true
     end
 
     local previousInstanceItem = ISMoveableSpriteProps.instanceItem
@@ -389,9 +377,6 @@ local function installHooks()
             return previousInstanceItem(self, spriteNameOverride)
         end
 
-        -- One ScriptItem type, unlimited per-instance identities. Core geometry
-        -- and TransportState describe what the parcel carries; the Moveable
-        -- itself stays a flatpack and never receives the gate's worldSprite.
         local item = applyFlatpackPresentation(instanceItem(PARCEL_ITEM))
         if item ~= nil then
             item:setActualWeight(runtime.weight)
@@ -512,7 +497,6 @@ local function installHooks()
     end
 end
 
-
 function LargeGatePickup.install()
     if installed then
         return
@@ -535,6 +519,5 @@ function LargeGatePickup.install()
 
     installed = true
 end
-
 
 return LargeGatePickup
