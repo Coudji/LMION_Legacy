@@ -28,22 +28,24 @@ local function getSegment(value)
 end
 
 
-local function getRuntimeForSegment(segment)
+local function getRuntime(segment)
     return segment
         and GaragePickup.getRuntime(segment.definitionId)
         or nil
 end
 
 
-local function getMovePropsSegment(moveProps, override)
+-- Keep the Moveables anchor identity independent from whichever SpriteGrid
+-- member vanilla is currently processing. In W, the grid anchor is END while
+-- in N it is START.
+local function ensureMovePropsIdentity(moveProps)
     if moveProps == nil then
         return nil, nil
     end
 
-    local segment = getSegment(override)
-        or getSegment(moveProps.sprite)
+    local segment = getSegment(moveProps.sprite)
         or getSegment(moveProps.spriteName)
-    local runtime = getRuntimeForSegment(segment)
+    local runtime = getRuntime(segment)
 
     if runtime == nil then
         return nil, nil
@@ -54,38 +56,53 @@ local function getMovePropsSegment(moveProps, override)
     moveProps.lmionGarageRole = segment.role
     moveProps.lmionGarageIsOpen = segment.isOpen
     moveProps.facing = segment.facing
+    moveProps.name = runtime.displayName
 
     return segment, runtime
 end
 
 
-function GarageToolbarAdapter.ensureMovePropsIdentity(moveProps, override)
-    return getMovePropsSegment(moveProps, override)
+function GarageToolbarAdapter.ensureMovePropsIdentity(moveProps)
+    return ensureMovePropsIdentity(moveProps)
 end
 
 
-local function getRoleFaces(runtime, role)
-    if runtime == nil or role == nil then
+local function getRotationFaces(runtime, segment)
+    if runtime == nil or segment == nil then
         return nil
     end
 
-    local north = runtime.geometry
-        and runtime.geometry.N
-        and runtime.geometry.N[role]
+    local topology = LMION.getGarageTopology()
+    local roleIndex = topology
+        and topology.roles
+        and topology.roles[segment.role]
         or nil
-    local west = runtime.geometry
-        and runtime.geometry.W
-        and runtime.geometry.W[role]
+    local oppositeRole = roleIndex
+        and topology.roleNames
+        and topology.roleNames[4 - roleIndex]
         or nil
 
-    if north == nil or west == nil then
+    if oppositeRole == nil then
         return nil
     end
 
-    return {
-        N = north.closed,
-        W = west.closed,
-    }
+    -- Match spatial slots, not semantic roles:
+    -- START N <-> END W, MIDDLE <-> MIDDLE, END N <-> START W.
+    if segment.facing == "N" then
+        return {
+            N = runtime.geometry.N[segment.role].closed,
+            W = runtime.geometry.W[oppositeRole].closed,
+        }
+    end
+
+    if segment.facing == "W" then
+        return {
+            N = runtime.geometry.N[oppositeRole].closed,
+            W = runtime.geometry.W[segment.role].closed,
+        }
+    end
+
+    return nil
 end
 
 
@@ -108,41 +125,101 @@ local function detachOldGrid(runtime, facing)
 end
 
 
+local function tileDefinitionsAreReady()
+    local definitionIds = LMION.getRegisteredDefinitionIds()
+
+    for index = 1, #definitionIds do
+        local runtime = GaragePickup.getRuntime(definitionIds[index])
+        if runtime ~= nil then
+            local part = runtime.geometry.N.START
+            local sprite = part and getSprite(part.closed) or nil
+            local properties = sprite and sprite:getProperties() or nil
+
+            return properties ~= nil
+                and properties:has("GarageDoor")
+                and tonumber(properties:get("GarageDoor")) == 1
+        end
+    end
+
+    return false
+end
+
+
+local function validateRuntimeSprites(runtime)
+    local topology = LMION.getGarageTopology()
+
+    if runtime == nil
+        or runtime.geometry == nil
+        or topology == nil
+        or topology.roles == nil
+    then
+        return false
+    end
+
+    for _, facing in ipairs(FACINGS) do
+        local face = runtime.geometry[facing]
+        if face == nil then
+            return false
+        end
+
+        for _, role in ipairs(ROLES) do
+            local part = face[role]
+            local closedSprite = part and getSprite(part.closed) or nil
+            local openSprite = part and getSprite(part.open) or nil
+            local properties = closedSprite and closedSprite:getProperties() or nil
+            local rawRole = nil
+
+            if properties ~= nil and properties:has("GarageDoor") then
+                rawRole = tonumber(properties:get("GarageDoor"))
+            end
+
+            if closedSprite == nil
+                or openSprite == nil
+                or rawRole ~= topology.roles[role]
+            then
+                return false
+            end
+        end
+    end
+
+    return true
+end
+
+
 local function installGrid(runtime, facing)
     if runtime == nil
         or runtime.geometry == nil
         or runtime.geometry[facing] == nil
+        or IsoSpriteGrid == nil
     then
         return false
+    end
+
+    local sprites = {}
+    for _, role in ipairs(ROLES) do
+        local part = runtime.geometry[facing][role]
+        local sprite = part and getSprite(part.closed) or nil
+        if sprite == nil then
+            return false
+        end
+        sprites[role] = sprite
     end
 
     detachOldGrid(runtime, facing)
 
     local grid = nil
-
     if facing == "N" then
         grid = IsoSpriteGrid.new(3, 1)
-
-        for index, role in ipairs(ROLES) do
-            local sprite = getSprite(runtime.geometry.N[role].closed)
-            if sprite == nil then
-                return false
-            end
-
-            grid:setSprite(index - 1, 0, sprite)
-        end
+        grid:setSprite(0, 0, sprites.START)
+        grid:setSprite(1, 0, sprites.MIDDLE)
+        grid:setSprite(2, 0, sprites.END)
     elseif facing == "W" then
         grid = IsoSpriteGrid.new(1, 3)
-
-        for index, role in ipairs(ROLES) do
-            local sprite = getSprite(runtime.geometry.W[role].closed)
-            if sprite == nil then
-                return false
-            end
-
-            -- Vanilla garage indices advance toward decreasing Y when W-facing.
-            grid:setSprite(0, 3 - index, sprite)
-        end
+        -- W traversal progresses toward decreasing Y. The first SpriteGrid slot
+        -- is therefore END; START lives at the far end of the visual grid.
+        grid:setSprite(0, 0, sprites.END)
+        grid:setSprite(0, 1, sprites.MIDDLE)
+        grid:setSprite(0, 2, sprites.START)
     else
         return false
     end
@@ -152,8 +229,7 @@ local function installGrid(runtime, facing)
     end
 
     for _, role in ipairs(ROLES) do
-        local sprite = getSprite(runtime.geometry[facing][role].closed)
-        sprite:setSpriteGrid(grid)
+        sprites[role]:setSpriteGrid(grid)
     end
 
     runtimeSpriteGrids[runtime.definitionId .. ":" .. facing] = grid
@@ -162,6 +238,10 @@ end
 
 
 function GarageToolbarAdapter.installRuntimeSpriteGrids()
+    if not tileDefinitionsAreReady() then
+        return 0, 0
+    end
+
     local definitionIds = LMION.getRegisteredDefinitionIds()
     local installedCount = 0
     local expectedCount = 0
@@ -170,10 +250,13 @@ function GarageToolbarAdapter.installRuntimeSpriteGrids()
         local runtime = GaragePickup.getRuntime(definitionIds[index])
 
         if runtime ~= nil then
-            for _, facing in ipairs(FACINGS) do
-                expectedCount = expectedCount + 1
-                if installGrid(runtime, facing) then
-                    installedCount = installedCount + 1
+            expectedCount = expectedCount + #FACINGS
+
+            if validateRuntimeSprites(runtime) then
+                for _, facing in ipairs(FACINGS) do
+                    if installGrid(runtime, facing) then
+                        installedCount = installedCount + 1
+                    end
                 end
             end
         end
@@ -208,7 +291,7 @@ end
 
 
 local function getRequestedRole(moveProps, requestedName)
-    local segment, runtime = getMovePropsSegment(moveProps)
+    local segment, runtime = ensureMovePropsIdentity(moveProps)
     if runtime == nil then
         return nil, nil
     end
@@ -249,8 +332,8 @@ end
 local function installMoveableHooks()
     local previousHasFaces = ISMoveableSpriteProps.hasFaces
     ISMoveableSpriteProps.hasFaces = function(self)
-        local segment, runtime = getMovePropsSegment(self)
-        local faces = runtime and getRoleFaces(runtime, segment.role) or nil
+        local segment, runtime = ensureMovePropsIdentity(self)
+        local faces = getRotationFaces(runtime, segment)
 
         if faces ~= nil then
             return faces.N ~= nil
@@ -263,8 +346,8 @@ local function installMoveableHooks()
 
     local previousGetFaces = ISMoveableSpriteProps.getFaces
     ISMoveableSpriteProps.getFaces = function(self)
-        local segment, runtime = getMovePropsSegment(self)
-        local faces = runtime and getRoleFaces(runtime, segment.role) or nil
+        local segment, runtime = ensureMovePropsIdentity(self)
+        local faces = getRotationFaces(runtime, segment)
 
         if faces ~= nil then
             return faces
@@ -275,8 +358,8 @@ local function installMoveableHooks()
 
     local previousGetIndexedFaces = ISMoveableSpriteProps.getIndexedFaces
     ISMoveableSpriteProps.getIndexedFaces = function(self)
-        local segment, runtime = getMovePropsSegment(self)
-        local faces = runtime and getRoleFaces(runtime, segment.role) or nil
+        local segment, runtime = ensureMovePropsIdentity(self)
+        local faces = getRotationFaces(runtime, segment)
 
         if faces ~= nil then
             return { faces.N, faces.W, faces.N, faces.W }
@@ -291,15 +374,20 @@ local function installMoveableHooks()
         character,
         spriteName
     )
-        local segment, runtime = getMovePropsSegment(self, spriteName)
+        local anchorSegment, runtime = ensureMovePropsIdentity(self)
 
         if runtime ~= nil then
-            local item = findParcel(
-                character,
-                runtime.definitionId,
-                segment.role
-            )
-            return item
+            local requestedSegment = getSegment(spriteName)
+            local role = anchorSegment.role
+
+            if requestedSegment ~= nil then
+                if requestedSegment.definitionId ~= runtime.definitionId then
+                    return nil
+                end
+                role = requestedSegment.role
+            end
+
+            return findParcel(character, runtime.definitionId, role)
         end
 
         return previousFindInInventory(self, character, spriteName)
@@ -331,10 +419,18 @@ local function installMoveableHooks()
         item,
         spriteName
     )
-        local segment, runtime = getMovePropsSegment(self, spriteName)
+        local anchorSegment, runtime = ensureMovePropsIdentity(self)
 
         if runtime == nil or self.isMultiSprite ~= true then
             return previousPlaceInternal(self, square, item, spriteName)
+        end
+
+        local segment = getSegment(spriteName) or anchorSegment
+        if segment == nil
+            or segment.definitionId ~= runtime.definitionId
+            or segment.facing ~= anchorSegment.facing
+        then
+            return nil
         end
 
         if item ~= nil then
@@ -394,14 +490,22 @@ function GarageToolbarAdapter.getMoveProps(item, facing)
         return nil
     end
 
-    local part = runtime.geometry[facing].START
+    local anchorRole = facing == "W" and "END" or "START"
+    local part = runtime.geometry[facing][anchorRole]
     local moveProps = part and ISMoveableSpriteProps.new(part.closed) or nil
+    local grid = moveProps
+        and moveProps.sprite
+        and moveProps.sprite:getSpriteGrid()
+        or nil
 
-    if moveProps == nil then
+    if moveProps == nil
+        or grid == nil
+        or grid:getAnchorSprite() ~= moveProps.sprite
+    then
         return nil
     end
 
-    getMovePropsSegment(moveProps, part.closed)
+    ensureMovePropsIdentity(moveProps)
     return moveProps
 end
 
@@ -416,12 +520,20 @@ function GarageToolbarAdapter.install()
     Events.OnLoadedTileDefinitions.Add(
         GarageToolbarAdapter.installRuntimeSpriteGrids
     )
-    Events.OnGameBoot.Add(
-        GarageToolbarAdapter.installRuntimeSpriteGrids
-    )
+    Events.OnGameBoot.Add(function()
+        local ready, expected = GarageToolbarAdapter.installRuntimeSpriteGrids()
+        print(
+            "[LMION:Pickup] garage toolbar grids: "
+                .. tostring(ready)
+                .. "/"
+                .. tostring(expected)
+        )
+    end)
 
-    -- Useful for in-world Lua reloads, where tile definitions are already live.
-    GarageToolbarAdapter.installRuntimeSpriteGrids()
+    -- In-world Lua reload: OnLoadedTileDefinitions already fired.
+    if tileDefinitionsAreReady() then
+        GarageToolbarAdapter.installRuntimeSpriteGrids()
+    end
 
     installed = true
 end
