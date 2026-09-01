@@ -5,7 +5,8 @@ module Base
         DisplayName = Opening Parcel,
         DisplayCategory = Furniture,
         ItemType = base:moveable,
-        Icon = default,
+        Icon = Flatpack,
+        WorldStaticModel = Flatpack,
         Weight = 1.0,
     }
 }
