@@ -453,6 +453,8 @@ function LMIONGaragePlacementCursor:new(character, item)
     o.selectedLength = maximum
     o:setDragNilAfterPlace(true)
     o.noNeedHammer = true
+    o.skipBuildAction = true
+    o.skipWalk2 = true
 
     return o
 end
