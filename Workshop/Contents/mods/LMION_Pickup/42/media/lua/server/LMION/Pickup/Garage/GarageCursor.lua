@@ -4,35 +4,10 @@ require "Moveables/ISMoveablesAction"
 local LMION = require "LMION/API"
 local GaragePickup = require "LMION/Pickup/Garage/GaragePickup"
 local GaragePlacement = require "LMION/Pickup/Garage/GaragePlacement"
+local GhostRender = require "LMION/Pickup/Common/GhostRender"
 local PlacementActionUtils = require "LMION/Pickup/Common/PlacementActionUtils"
 local PlacementCursorUtils = require "LMION/Pickup/Common/PlacementCursorUtils"
 local PlacementRules = require "LMION/Pickup/Common/PlacementRules"
-
-
-local function renderFloor(square, valid)
-    local floor = square and square:getFloor() or nil
-    local sprite = floor and floor:getSprite() or nil
-
-    if sprite == nil then
-        return
-    end
-
-    local r = valid == false and 1.0 or 0.5
-    local g = valid == false and 0.0 or 1.0
-    local b = valid == false and 0.0 or 0.5
-
-    sprite:RenderGhostTileColor(
-        square:getX(),
-        square:getY(),
-        square:getZ(),
-        0,
-        0,
-        r,
-        g,
-        b,
-        0.25
-    )
-end
 
 
 local function isGarageMoveProps(moveProps)
@@ -75,7 +50,11 @@ local function renderPickupFootprint(cursor, x, y, z)
 
     for position = 1, chain.length do
         local object = chain.members[position]
-        renderFloor(object and object:getSquare() or nil, true)
+        GhostRender.floor(
+            object and object:getSquare() or nil,
+            true,
+            0.25
+        )
     end
 
     return true
@@ -298,26 +277,11 @@ function LMIONGaragePlacementCursor:render(x, y, z, square)
     for position = 1, plan.length do
         local entry = plan[position]
         local entryValid = valid and entry.valid == true
-        renderFloor(entry.square, entryValid)
+
+        GhostRender.floor(entry.square, entryValid, 0.25)
 
         local sprite = entry.spriteName and getSprite(entry.spriteName) or nil
-        if sprite ~= nil then
-            local r = entryValid and 0.5 or 1.0
-            local g = entryValid and 1.0 or 0.0
-            local b = entryValid and 0.5 or 0.0
-
-            sprite:RenderGhostTileColor(
-                entry.square:getX(),
-                entry.square:getY(),
-                entry.square:getZ(),
-                0,
-                0,
-                r,
-                g,
-                b,
-                0.8
-            )
-        end
+        GhostRender.sprite(sprite, entry.square, entryValid, 0.8)
     end
 end
 
