@@ -1,6 +1,6 @@
 local LMION = require "LMION/API"
-local LargeGatePickup = require "LMION/Pickup/LargeGatePickup"
-local LargeGatePlacement = require "LMION/Pickup/LargeGatePlacement"
+local LargeGatePickup = require "LMION/Pickup/LargeGate/LargeGatePickup"
+local LargeGatePlacement = require "LMION/Pickup/LargeGate/LargeGatePlacement"
 
 local LargeGatePlacementParity = {}
 
