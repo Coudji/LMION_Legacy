@@ -3,6 +3,7 @@ require "Moveables/ISMoveablesAction"
 
 local MoveableAdapter = require "LMION/Pickup/Simple/MoveableAdapter"
 local ParcelUtils = require "LMION/Pickup/Common/ParcelUtils"
+local PlacementCursorUtils = require "LMION/Pickup/Common/PlacementCursorUtils"
 
 
 local function isAdjacentToTarget(character, square)
@@ -162,10 +163,7 @@ end
 
 
 function LMIONSimpleDoorPlacementCursor:rotateKey(key)
-    if getCore():isKey("Rotate building", key) then
-        self.facing = self.facing == "N" and "W" or "N"
-        getSoundManager():playUISound("UIObjectMenuObjectRotateOutline")
-    end
+    PlacementCursorUtils.rotateFacing(self, key)
 end
 
 
@@ -215,19 +213,15 @@ function LMIONSimpleDoorPlacementCursor:new(
     definitionId,
     member
 )
-    local o = ISBuildingObject.new(self)
+    local o = PlacementCursorUtils.configure(
+        ISBuildingObject.new(self),
+        character,
+        item,
+        "N"
+    )
 
-    o:init()
-    o.character = character
-    o.player = character:getPlayerNum()
-    o.item = item
     o.definitionId = definitionId
     o.member = member
-    o.facing = "N"
-    o:setDragNilAfterPlace(true)
-    o.noNeedHammer = true
-    o.skipBuildAction = true
-    o.skipWalk2 = true
 
     return o
 end
