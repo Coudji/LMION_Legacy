@@ -1,5 +1,6 @@
 local LMION = require "LMION/API"
-local LargeGatePickup = require "LMION/Pickup/LargeGatePickup"
+local ParcelUtils = require "LMION/Pickup/Common/ParcelUtils"
+local LargeGatePickup = require "LMION/Pickup/LargeGate/LargeGatePickup"
 local TransportState = require "LMION/Pickup/TransportState"
 
 local LargeGatePlacement = {}
@@ -347,25 +348,6 @@ local function getMovePropsForParcel(item, facing)
 end
 
 
-local function consumeParcel(item, source)
-    if source == "floor" then
-        local worldItem = item and item:getWorldItem() or nil
-        local square = worldItem and worldItem:getSquare() or nil
-        if worldItem ~= nil and square ~= nil then
-            square:transmitRemoveItemFromSquare(worldItem)
-            square:removeWorldObject(worldItem)
-            item:setWorldItem(nil)
-        end
-        return
-    end
-
-    if item ~= nil and source ~= nil then
-        source:Remove(item)
-        sendRemoveItemFromContainer(source, item)
-    end
-end
-
-
 local function placePlan(plan)
     if plan == nil or not plan.valid then
         return false
@@ -413,7 +395,7 @@ local function placePlan(plan)
 
     for partIndex = 1, 2 do
         local entry = plan[partIndex]
-        consumeParcel(entry.item, entry.source)
+        ParcelUtils.consume(entry.item, entry.source)
         buildUtil.setHaveConstruction(entry.square, true)
     end
 

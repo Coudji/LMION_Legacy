@@ -1,5 +1,6 @@
 local LMION = require "LMION/API"
-local GaragePickup = require "LMION/Pickup/GaragePickup"
+local ParcelUtils = require "LMION/Pickup/Common/ParcelUtils"
+local GaragePickup = require "LMION/Pickup/Garage/GaragePickup"
 local TransportState = require "LMION/Pickup/TransportState"
 
 local GaragePlacement = {}
@@ -384,31 +385,6 @@ local function rollbackPlaced(objects)
 end
 
 
-local function consumeParcel(entry)
-    local item = entry and entry.item or nil
-    local source = entry and entry.source or nil
-
-    if item == nil or source == nil then
-        return
-    end
-
-    if source == "floor" then
-        local worldItem = item.getWorldItem ~= nil and item:getWorldItem() or nil
-        local square = worldItem and worldItem:getSquare() or nil
-
-        if worldItem ~= nil and square ~= nil then
-            square:transmitRemoveItemFromSquare(worldItem)
-            square:removeWorldObject(worldItem)
-            item:setWorldItem(nil)
-        end
-        return
-    end
-
-    source:Remove(item)
-    sendRemoveItemFromContainer(source, item)
-end
-
-
 function GaragePlacement.placePlan(character, plan)
     if not GaragePlacement.validatePlan(character, plan) then
         return false
@@ -460,7 +436,7 @@ function GaragePlacement.placePlan(character, plan)
 
     for position = 1, plan.length do
         local entry = plan[position]
-        consumeParcel(entry)
+        ParcelUtils.consume(entry.item, entry.source)
         buildUtil.setHaveConstruction(entry.square, true)
     end
 
