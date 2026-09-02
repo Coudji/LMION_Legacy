@@ -2,32 +2,7 @@ require "BuildingObjects/ISMoveableCursor"
 require "Moveables/ISMoveablesAction"
 
 local MoveableAdapter = require "LMION/Pickup/Simple/MoveableAdapter"
-
-
-local function consumeParcel(item)
-    if item == nil then
-        return false
-    end
-
-    local container = item.getContainer ~= nil and item:getContainer() or nil
-    if container ~= nil then
-        container:Remove(item)
-        sendRemoveItemFromContainer(container, item)
-        return true
-    end
-
-    local worldItem = item.getWorldItem ~= nil and item:getWorldItem() or nil
-    local square = worldItem and worldItem:getSquare() or nil
-
-    if worldItem ~= nil and square ~= nil then
-        square:transmitRemoveItemFromSquare(worldItem)
-        square:removeWorldObject(worldItem)
-        item:setWorldItem(nil)
-        return true
-    end
-
-    return false
-end
+local ParcelUtils = require "LMION/Pickup/Common/ParcelUtils"
 
 
 local function isAdjacentToTarget(character, square)
@@ -93,7 +68,7 @@ function LMIONSimpleDoorPlacementAction:complete()
         return false
     end
 
-    consumeParcel(self.item)
+    ParcelUtils.consume(self.item)
     buildUtil.setHaveConstruction(self.square, true)
 
     return true
