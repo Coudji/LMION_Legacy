@@ -1,6 +1,6 @@
 local LMION = require "LMION/API"
 local DisplayName = require "LMION/Core/DisplayName"
-local MoveableAdapter = require "LMION/Pickup/MoveableAdapter"
+local MoveableAdapter = require "LMION/Pickup/Simple/MoveableAdapter"
 local GaragePickup = require "LMION/Pickup/GaragePickup"
 local LargeGatePickup = require "LMION/Pickup/LargeGatePickup"
 
@@ -141,8 +141,6 @@ local function finalizeResult(result)
         return finalizeItem(result)
     end
 
-    -- Garage and large-gate pickup return one item per physical segment.
-    -- Finalize them only after their complete specialized pickup path returns.
     for index = 1, #result do
         finalizeItem(result[index])
     end
@@ -158,11 +156,6 @@ function ParcelPresentation.install()
 
     require "Moveables/ISMoveableSpriteProps"
 
-    -- The generic Moveables path can still rewrite item presentation after
-    -- pickUpMoveableInternal() returns. Garage and LargeGate bypass that outer
-    -- vanilla path, which is why their names already survived. Finalize parcel
-    -- names at the outermost pickup boundary so every LMION family follows the
-    -- same rule and no later pickup step can restore "Door" / "Gate".
     local previousPickUp = ISMoveableSpriteProps.pickUpMoveable
     ISMoveableSpriteProps.pickUpMoveable = function(
         self,

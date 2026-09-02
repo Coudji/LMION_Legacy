@@ -1,4 +1,4 @@
-local MoveableAdapter = require "LMION/Pickup/MoveableAdapter"
+local MoveableAdapter = require "LMION/Pickup/Simple/MoveableAdapter"
 local LargeGatePickup = require "LMION/Pickup/LargeGatePickup"
 local LargeGatePlacement = require "LMION/Pickup/LargeGatePlacement"
 local GaragePickup = require "LMION/Pickup/GaragePickup"

@@ -1,7 +1,7 @@
 require "BuildingObjects/ISMoveableCursor"
 require "Moveables/ISMoveablesAction"
 
-local MoveableAdapter = require "LMION/Pickup/MoveableAdapter"
+local MoveableAdapter = require "LMION/Pickup/Simple/MoveableAdapter"
 
 
 local function consumeParcel(item)
