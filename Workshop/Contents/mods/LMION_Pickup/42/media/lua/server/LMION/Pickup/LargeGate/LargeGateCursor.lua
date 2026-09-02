@@ -1,8 +1,9 @@
 require "BuildingObjects/ISMoveableCursor"
 require "Moveables/ISMoveablesAction"
 
-local LargeGatePickup = require "LMION/Pickup/LargeGatePickup"
-local LargeGatePlacement = require "LMION/Pickup/LargeGatePlacement"
+local LargeGatePickup = require "LMION/Pickup/LargeGate/LargeGatePickup"
+local LargeGatePlacement = require "LMION/Pickup/LargeGate/LargeGatePlacement"
+local PlacementCursorUtils = require "LMION/Pickup/Common/PlacementCursorUtils"
 
 
 local function isAdjacentToPlan(character, plan)
@@ -188,11 +189,6 @@ local function hasSpriteModel(entry)
         return false
     end
 
-    -- IsoDoor.renderWallTile() asks the partner IsoObject for getSpriteModel().
-    -- The raw IsoSprite.spriteModel field is not reliably visible through the
-    -- Lua bridge, so query it through the same Java API vanilla uses. This
-    -- temporary object is never added to the square/world and the result is
-    -- cached per sprite.
     local okObject, probe = pcall(
         IsoObject.new,
         getCell(),
@@ -256,10 +252,6 @@ local function shouldRenderPreviewPart(plan, partIndex)
     local logicalIndex = tonumber(indices[partIndex])
     local modelOwnerIndex = nil
 
-    -- Mirror IsoDoor.renderWallTile(): DoubleDoor member 2 is visually
-    -- suppressed when member 1 owns a SpriteModel; member 3 is suppressed
-    -- when member 4 owns one. Gates without SpriteModels (Farm Gate) keep
-    -- both ordinary 2D members visible.
     if logicalIndex == 2 then
         modelOwnerIndex = 1
     elseif logicalIndex == 3 then
@@ -285,7 +277,6 @@ function LMIONLargeGatePlacementCursor:render(x, y, z, square)
         return
     end
 
-    -- Footprint always represents the two physical target squares.
     for partIndex = 1, 2 do
         local entry = preview[partIndex]
         if entry ~= nil then
@@ -296,9 +287,6 @@ function LMIONLargeGatePlacementCursor:render(x, y, z, square)
         end
     end
 
-    -- Visual members follow the same SpriteModel suppression rule as
-    -- IsoDoor.renderWallTile(), so modded Large Gates inherit vanilla
-    -- behaviour without LMION-specific per-definition preview metadata.
     for partIndex = 1, 2 do
         if shouldRenderPreviewPart(plan, partIndex) then
             renderPreviewPart(preview[partIndex], plan.valid == true)
@@ -314,10 +302,7 @@ end
 
 
 function LMIONLargeGatePlacementCursor:rotateKey(key)
-    if getCore():isKey("Rotate building", key) then
-        self.facing = self.facing == "N" and "W" or "N"
-        getSoundManager():playUISound("UIObjectMenuObjectRotateOutline")
-    end
+    PlacementCursorUtils.rotateFacing(self, key)
 end
 
 
@@ -362,19 +347,12 @@ function LMIONLargeGatePlacementCursor:new(character, item)
         return nil
     end
 
-    local o = ISBuildingObject.new(self)
-
-    o:init()
-    o.character = character
-    o.player = character:getPlayerNum()
-    o.item = item
-    o.facing = "N"
-    o:setDragNilAfterPlace(true)
-    o.noNeedHammer = true
-    o.skipBuildAction = true
-    o.skipWalk2 = true
-
-    return o
+    return PlacementCursorUtils.configure(
+        ISBuildingObject.new(self),
+        character,
+        item,
+        "N"
+    )
 end
 
 
