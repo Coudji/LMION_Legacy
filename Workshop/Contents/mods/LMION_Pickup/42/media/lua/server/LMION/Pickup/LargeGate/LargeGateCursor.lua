@@ -274,23 +274,18 @@ function LMIONLargeGatePlacementCursor:create(x, y, z, north, sprite)
         return
     end
 
-    if ISMoveableDefinitions.cheat
-        or moveProps:walkToAndEquip(
+    PlacementCursorUtils.queuePlacement(
+        self.character,
+        square,
+        moveProps,
+        equipSprite,
+        LMIONLargeGatePlacementAction:new(
             self.character,
             square,
-            "place",
-            equipSprite
+            self.item,
+            self.facing
         )
-    then
-        ISTimedActionQueue.add(
-            LMIONLargeGatePlacementAction:new(
-                self.character,
-                square,
-                self.item,
-                self.facing
-            )
-        )
-    end
+    )
 end
 
 
