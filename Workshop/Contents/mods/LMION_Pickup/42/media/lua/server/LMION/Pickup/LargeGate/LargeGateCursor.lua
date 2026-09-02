@@ -3,6 +3,7 @@ require "Moveables/ISMoveablesAction"
 
 local LargeGatePickup = require "LMION/Pickup/LargeGate/LargeGatePickup"
 local LargeGatePlacement = require "LMION/Pickup/LargeGate/LargeGatePlacement"
+local GhostRender = require "LMION/Pickup/Common/GhostRender"
 local PlacementActionUtils = require "LMION/Pickup/Common/PlacementActionUtils"
 local PlacementCursorUtils = require "LMION/Pickup/Common/PlacementCursorUtils"
 local PlacementRules = require "LMION/Pickup/Common/PlacementRules"
@@ -107,55 +108,16 @@ function LMIONLargeGatePlacementCursor:isValid(square)
 end
 
 
-local function renderFloor(square, valid)
-    local floor = square and square:getFloor() or nil
-    local sprite = floor and floor:getSprite() or nil
-    if sprite == nil then
-        return
-    end
-
-    local r = valid and 0.5 or 1.0
-    local g = valid and 1.0 or 0.0
-    local b = valid and 0.5 or 0.0
-
-    sprite:RenderGhostTileColor(
-        square:getX(),
-        square:getY(),
-        square:getZ(),
-        0,
-        0,
-        r,
-        g,
-        b,
-        0.25
-    )
-end
-
-
 local function renderPreviewPart(entry, planValid)
     if entry == nil or entry.square == nil then
         return
     end
 
     local sprite = entry.sprite and getSprite(entry.sprite) or nil
-    if sprite == nil then
-        return
-    end
-
-    local valid = planValid and entry.valid == true
-    local r = valid and 0.5 or 1.0
-    local g = valid and 1.0 or 0.0
-    local b = valid and 0.5 or 0.0
-
-    sprite:RenderGhostTileColor(
-        entry.square:getX(),
-        entry.square:getY(),
-        entry.square:getZ(),
-        0,
-        0,
-        r,
-        g,
-        b,
+    GhostRender.sprite(
+        sprite,
+        entry.square,
+        planValid and entry.valid == true,
         0.8
     )
 end
@@ -272,9 +234,10 @@ function LMIONLargeGatePlacementCursor:render(x, y, z, square)
     for partIndex = 1, 2 do
         local entry = preview[partIndex]
         if entry ~= nil then
-            renderFloor(
+            GhostRender.floor(
                 entry.square,
-                plan.valid == true and entry.valid == true
+                plan.valid == true and entry.valid == true,
+                0.25
             )
         end
     end
