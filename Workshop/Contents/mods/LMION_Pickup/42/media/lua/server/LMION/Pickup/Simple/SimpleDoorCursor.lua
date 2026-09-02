@@ -3,6 +3,7 @@ require "Moveables/ISMoveablesAction"
 
 local MoveableAdapter = require "LMION/Pickup/Simple/MoveableAdapter"
 local ParcelUtils = require "LMION/Pickup/Common/ParcelUtils"
+local PlacementActionUtils = require "LMION/Pickup/Common/PlacementActionUtils"
 local PlacementCursorUtils = require "LMION/Pickup/Common/PlacementCursorUtils"
 local PlacementRules = require "LMION/Pickup/Common/PlacementRules"
 
@@ -64,23 +65,22 @@ function LMIONSimpleDoorPlacementAction:new(
     member,
     facing
 )
-    local o = ISBaseTimedAction.new(self, character)
-
-    o.playerNum = character:getPlayerNum()
-    o.square = square
-    o.item = item
-    o.definitionId = definitionId
-    o.member = member
-    o.facing = facing
-    o.mode = "place"
-    o.moveProps = MoveableAdapter.getPlacementMoveProps(
+    local moveProps = MoveableAdapter.getPlacementMoveProps(
         definitionId,
         facing,
         member
     )
-    o.origMoveProps = o.moveProps
-    o.origSpriteName = o.moveProps and o.moveProps.spriteName or nil
-    o.maxTime = o:getDuration()
+    local o = PlacementActionUtils.configure(
+        ISBaseTimedAction.new(self, character),
+        character,
+        square,
+        item,
+        facing,
+        moveProps
+    )
+
+    o.definitionId = definitionId
+    o.member = member
 
     return o
 end
