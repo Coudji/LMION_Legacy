@@ -37,7 +37,11 @@ ISToolTipInv.render = function(self)
     local padX = 7
     local padY = 5
     local extensionHeight = lineHeight + (padY * 2)
-    local text = "Hit Points: "
+    local label = getTextOrNull ~= nil
+        and getTextOrNull("UI_LMION_HitPoints")
+        or nil
+    local text = (label or "Hit Points")
+        .. ": "
         .. tostring(current)
         .. " / "
         .. tostring(maximum)

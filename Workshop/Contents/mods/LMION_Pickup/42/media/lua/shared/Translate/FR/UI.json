@@ -1,5 +1,11 @@
 {
   "UI_LMION_GarageWidthOptions": "Placement des garages LMION",
   "UI_LMION_GarageWidthDecrease": "Réduire la largeur du garage",
-  "UI_LMION_GarageWidthIncrease": "Augmenter la largeur du garage"
+  "UI_LMION_GarageWidthIncrease": "Augmenter la largeur du garage",
+  "UI_LMION_Parcel_Left": "Gauche",
+  "UI_LMION_Parcel_Right": "Droite",
+  "UI_LMION_Parcel_Start": "Début",
+  "UI_LMION_Parcel_Middle": "Milieu",
+  "UI_LMION_Parcel_End": "Fin",
+  "UI_LMION_HitPoints": "Points de vie"
 }
