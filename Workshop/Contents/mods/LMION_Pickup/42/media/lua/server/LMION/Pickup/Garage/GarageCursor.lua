@@ -347,24 +347,19 @@ function LMIONGaragePlacementCursor:create(x, y, z, north, sprite)
         return
     end
 
-    if ISMoveableDefinitions.cheat
-        or moveProps:walkToAndEquip(
+    PlacementCursorUtils.queuePlacement(
+        self.character,
+        square,
+        moveProps,
+        equipSprite,
+        LMIONGaragePlacementAction:new(
             self.character,
             square,
-            "place",
-            equipSprite
+            self.item,
+            self.selectedLength,
+            self.facing
         )
-    then
-        ISTimedActionQueue.add(
-            LMIONGaragePlacementAction:new(
-                self.character,
-                square,
-                self.item,
-                self.selectedLength,
-                self.facing
-            )
-        )
-    end
+    )
 end
 
 
