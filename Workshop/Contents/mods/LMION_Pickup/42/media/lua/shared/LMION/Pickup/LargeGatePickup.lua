@@ -1,6 +1,7 @@
 local LMION = require "LMION/API"
 local ToolAdapter = require "LMION/Pickup/ToolAdapter"
 local TransportState = require "LMION/Pickup/TransportState"
+local MultiSquarePickupInternal = require "LMION/Pickup/MultiSquarePickupInternal"
 
 local LargeGatePickup = {}
 
@@ -428,16 +429,31 @@ local function installHooks()
             }
         end
 
-        local item = previousInternal(
-            self,
-            character,
-            square,
-            object,
-            sprInstance,
-            spriteName,
-            createItem,
-            rotating
-        )
+        local item = nil
+        local handled = false
+        if runtime ~= nil then
+            item, handled = MultiSquarePickupInternal.pickUpDoorSegment(
+                self,
+                character,
+                square,
+                object,
+                spriteName,
+                createItem
+            )
+        end
+
+        if not handled then
+            item = previousInternal(
+                self,
+                character,
+                square,
+                object,
+                sprInstance,
+                spriteName,
+                createItem,
+                rotating
+            )
+        end
 
         self.lmionLargeGatePendingState = nil
         return item
