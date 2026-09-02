@@ -2,8 +2,9 @@ require "BuildingObjects/ISMoveableCursor"
 require "Moveables/ISMoveablesAction"
 
 local LMION = require "LMION/API"
-local GaragePickup = require "LMION/Pickup/GaragePickup"
-local GaragePlacement = require "LMION/Pickup/GaragePlacement"
+local GaragePickup = require "LMION/Pickup/Garage/GaragePickup"
+local GaragePlacement = require "LMION/Pickup/Garage/GaragePlacement"
+local PlacementCursorUtils = require "LMION/Pickup/Common/PlacementCursorUtils"
 
 
 local function renderFloor(square, valid)
@@ -379,10 +380,7 @@ function LMIONGaragePlacementCursor:rotateKey(key)
         return
     end
 
-    if getCore():isKey("Rotate building", key) then
-        self.facing = self.facing == "N" and "W" or "N"
-        getSoundManager():playUISound("UIObjectMenuObjectRotateOutline")
-    end
+    PlacementCursorUtils.rotateFacing(self, key)
 end
 
 
@@ -442,19 +440,16 @@ function LMIONGaragePlacementCursor:new(character, item)
     local segment = identity.state
         and LMION.getGarageSegmentBySprite(identity.state.spriteName)
         or nil
-    local o = ISBuildingObject.new(self)
+    local facing = segment and segment.facing == "W" and "W" or "N"
+    local o = PlacementCursorUtils.configure(
+        ISBuildingObject.new(self),
+        character,
+        item,
+        facing
+    )
 
-    o:init()
-    o.character = character
-    o.player = character:getPlayerNum()
-    o.item = item
     o.definitionId = identity.definitionId
-    o.facing = segment and segment.facing == "W" and "W" or "N"
     o.selectedLength = maximum
-    o:setDragNilAfterPlace(true)
-    o.noNeedHammer = true
-    o.skipBuildAction = true
-    o.skipWalk2 = true
 
     return o
 end
