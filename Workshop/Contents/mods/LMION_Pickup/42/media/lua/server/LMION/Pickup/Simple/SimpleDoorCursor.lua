@@ -2,6 +2,7 @@ require "BuildingObjects/ISMoveableCursor"
 require "Moveables/ISMoveablesAction"
 
 local MoveableAdapter = require "LMION/Pickup/Simple/MoveableAdapter"
+local GhostRender = require "LMION/Pickup/Common/GhostRender"
 local ParcelUtils = require "LMION/Pickup/Common/ParcelUtils"
 local PlacementActionUtils = require "LMION/Pickup/Common/PlacementActionUtils"
 local PlacementCursorUtils = require "LMION/Pickup/Common/PlacementCursorUtils"
@@ -113,26 +114,7 @@ function LMIONSimpleDoorPlacementCursor:render(x, y, z, square)
     local spriteName = self:getSprite()
     local sprite = spriteName and getSprite(spriteName) or nil
 
-    if sprite == nil or square == nil then
-        return
-    end
-
-    local valid = self:isValid(square)
-    local r = valid and 0.5 or 1.0
-    local g = valid and 1.0 or 0.0
-    local b = valid and 0.5 or 0.0
-
-    sprite:RenderGhostTileColor(
-        square:getX(),
-        square:getY(),
-        square:getZ(),
-        0,
-        0,
-        r,
-        g,
-        b,
-        0.8
-    )
+    GhostRender.sprite(sprite, square, self:isValid(square), 0.8)
 end
 
 
