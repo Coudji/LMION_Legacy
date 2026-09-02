@@ -1,8 +1,8 @@
 local MoveableAdapter = require "LMION/Pickup/Simple/MoveableAdapter"
-local LargeGatePickup = require "LMION/Pickup/LargeGatePickup"
-local LargeGatePlacement = require "LMION/Pickup/LargeGatePlacement"
-local GaragePickup = require "LMION/Pickup/GaragePickup"
-local GaragePlacement = require "LMION/Pickup/GaragePlacement"
+local LargeGatePickup = require "LMION/Pickup/LargeGate/LargeGatePickup"
+local LargeGatePlacement = require "LMION/Pickup/LargeGate/LargeGatePlacement"
+local GaragePickup = require "LMION/Pickup/Garage/GaragePickup"
+local GaragePlacement = require "LMION/Pickup/Garage/GaragePlacement"
 
 
 -- Inventory UI is client Lua while BuildingObjects cursors live in gameplay /
