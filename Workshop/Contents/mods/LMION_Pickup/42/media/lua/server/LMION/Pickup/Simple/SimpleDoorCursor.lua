@@ -145,25 +145,20 @@ function LMIONSimpleDoorPlacementCursor:create(x, y, z, north, sprite)
         return
     end
 
-    if ISMoveableDefinitions.cheat
-        or moveProps:walkToAndEquip(
+    PlacementCursorUtils.queuePlacement(
+        self.character,
+        square,
+        moveProps,
+        spriteName,
+        LMIONSimpleDoorPlacementAction:new(
             self.character,
             square,
-            "place",
-            spriteName
+            self.item,
+            self.definitionId,
+            self.member,
+            self.facing
         )
-    then
-        ISTimedActionQueue.add(
-            LMIONSimpleDoorPlacementAction:new(
-                self.character,
-                square,
-                self.item,
-                self.definitionId,
-                self.member,
-                self.facing
-            )
-        )
-    end
+    )
 end
 
 
