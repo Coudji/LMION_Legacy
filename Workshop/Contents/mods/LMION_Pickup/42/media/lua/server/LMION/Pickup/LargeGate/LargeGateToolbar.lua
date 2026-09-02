@@ -2,8 +2,8 @@ require "BuildingObjects/ISMoveableCursor"
 require "Moveables/ISMoveablesAction"
 require "Moveables/ISMoveableSpriteProps"
 
-local LargeGatePickup = require "LMION/Pickup/LargeGatePickup"
-local LargeGatePlacement = require "LMION/Pickup/LargeGatePlacement"
+local LargeGatePickup = require "LMION/Pickup/LargeGate/LargeGatePickup"
+local LargeGatePlacement = require "LMION/Pickup/LargeGate/LargeGatePlacement"
 
 
 local function getIdentity(item)
