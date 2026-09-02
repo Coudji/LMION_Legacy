@@ -1,10 +1,10 @@
 local MoveableAdapter = require "LMION/Pickup/Simple/MoveableAdapter"
-local LargeGatePickup = require "LMION/Pickup/LargeGatePickup"
-local GaragePickup = require "LMION/Pickup/GaragePickup"
-local GarageToolbarAdapter = require "LMION/Pickup/GarageToolbarAdapter"
+local LargeGatePickup = require "LMION/Pickup/LargeGate/LargeGatePickup"
+local GaragePickup = require "LMION/Pickup/Garage/GaragePickup"
+local GarageToolbarAdapter = require "LMION/Pickup/Garage/GarageToolbarAdapter"
 local ParcelPresentation = require "LMION/Pickup/ParcelPresentation"
-local LargeGatePlacement = require "LMION/Pickup/LargeGatePlacement"
-local LargeGatePlacementParity = require "LMION/Pickup/LargeGatePlacementParity"
+local LargeGatePlacement = require "LMION/Pickup/LargeGate/LargeGatePlacement"
+local LargeGatePlacementParity = require "LMION/Pickup/LargeGate/LargeGatePlacementParity"
 
 MoveableAdapter.install()
 LargeGatePickup.install()
