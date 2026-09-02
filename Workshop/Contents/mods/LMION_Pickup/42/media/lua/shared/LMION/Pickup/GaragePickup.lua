@@ -1,6 +1,7 @@
 local LMION = require "LMION/API"
 local ToolAdapter = require "LMION/Pickup/ToolAdapter"
 local TransportState = require "LMION/Pickup/TransportState"
+local MultiSquarePickupInternal = require "LMION/Pickup/MultiSquarePickupInternal"
 
 local GaragePickup = {}
 
@@ -285,9 +286,32 @@ local function installHooks()
             end
         end
 
-        local item = previousInternal(
-            self, character, square, object, sprInstance, spriteName, createItem, rotating
-        )
+        local item = nil
+        local handled = false
+        if runtime ~= nil then
+            item, handled = MultiSquarePickupInternal.pickUpDoorSegment(
+                self,
+                character,
+                square,
+                object,
+                spriteName,
+                createItem
+            )
+        end
+
+        if not handled then
+            item = previousInternal(
+                self,
+                character,
+                square,
+                object,
+                sprInstance,
+                spriteName,
+                createItem,
+                rotating
+            )
+        end
+
         self.lmionGaragePendingState = nil
         if runtime ~= nil then return finalizeParcel(item, runtime, self.lmionGarageRole) end
         return item
