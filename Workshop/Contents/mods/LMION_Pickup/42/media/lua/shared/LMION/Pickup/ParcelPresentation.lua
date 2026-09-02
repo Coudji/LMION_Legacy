@@ -99,8 +99,8 @@ local function getLargeGateName(identity)
 end
 
 
-local function finalize(item)
-    if item == nil then
+local function finalizeItem(item)
+    if item == nil or type(item) == "boolean" then
         return item
     end
 
@@ -136,6 +136,21 @@ local function finalize(item)
 end
 
 
+local function finalizeResult(result)
+    if type(result) ~= "table" then
+        return finalizeItem(result)
+    end
+
+    -- Garage and large-gate pickup return one item per physical segment.
+    -- Finalize them only after their complete specialized pickup path returns.
+    for index = 1, #result do
+        finalizeItem(result[index])
+    end
+
+    return result
+end
+
+
 function ParcelPresentation.install()
     if installed then
         return
@@ -143,29 +158,28 @@ function ParcelPresentation.install()
 
     require "Moveables/ISMoveableSpriteProps"
 
-    local previousInternal = ISMoveableSpriteProps.pickUpMoveableInternal
-    ISMoveableSpriteProps.pickUpMoveableInternal = function(
+    -- The generic Moveables path can still rewrite item presentation after
+    -- pickUpMoveableInternal() returns. Garage and LargeGate bypass that outer
+    -- vanilla path, which is why their names already survived. Finalize parcel
+    -- names at the outermost pickup boundary so every LMION family follows the
+    -- same rule and no later pickup step can restore "Door" / "Gate".
+    local previousPickUp = ISMoveableSpriteProps.pickUpMoveable
+    ISMoveableSpriteProps.pickUpMoveable = function(
         self,
         character,
         square,
-        object,
-        sprInstance,
-        spriteName,
         createItem,
-        rotating
+        forceAllow
     )
-        local item = previousInternal(
-            self,
-            character,
-            square,
-            object,
-            sprInstance,
-            spriteName,
-            createItem,
-            rotating
+        return finalizeResult(
+            previousPickUp(
+                self,
+                character,
+                square,
+                createItem,
+                forceAllow
+            )
         )
-
-        return finalize(item)
     end
 
     installed = true
