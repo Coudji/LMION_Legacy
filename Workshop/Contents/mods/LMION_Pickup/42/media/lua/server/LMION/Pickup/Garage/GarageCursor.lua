@@ -4,6 +4,7 @@ require "Moveables/ISMoveablesAction"
 local LMION = require "LMION/API"
 local GaragePickup = require "LMION/Pickup/Garage/GaragePickup"
 local GaragePlacement = require "LMION/Pickup/Garage/GaragePlacement"
+local PlacementActionUtils = require "LMION/Pickup/Common/PlacementActionUtils"
 local PlacementCursorUtils = require "LMION/Pickup/Common/PlacementCursorUtils"
 local PlacementRules = require "LMION/Pickup/Common/PlacementRules"
 
@@ -226,19 +227,16 @@ function LMIONGaragePlacementAction:new(
     length,
     facing
 )
-    local o = ISBaseTimedAction.new(self, character)
+    local o = PlacementActionUtils.configure(
+        ISBaseTimedAction.new(self, character),
+        character,
+        square,
+        item,
+        facing,
+        GaragePlacement.getMoveProps(item, facing)
+    )
 
-    o.playerNum = character:getPlayerNum()
-    o.square = square
-    o.item = item
     o.length = length
-    o.facing = facing
-    o.mode = "place"
-    o.moveProps = GaragePlacement.getMoveProps(item, facing)
-    o.origMoveProps = o.moveProps
-    o.origSpriteName = o.moveProps and o.moveProps.spriteName or nil
-    o.maxTime = o:getDuration()
-
     return o
 end
 
