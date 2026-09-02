@@ -251,6 +251,8 @@ function LMIONSimpleDoorPlacementCursor:new(
     o.facing = "N"
     o:setDragNilAfterPlace(true)
     o.noNeedHammer = true
+    o.skipBuildAction = true
+    o.skipWalk2 = true
 
     return o
 end
