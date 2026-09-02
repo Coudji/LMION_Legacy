@@ -2,9 +2,9 @@ require "BuildingObjects/ISMoveableCursor"
 require "Moveables/ISMoveablesAction"
 
 local LMION = require "LMION/API"
-local GaragePickup = require "LMION/Pickup/GaragePickup"
-local GaragePlacement = require "LMION/Pickup/GaragePlacement"
-local GarageToolbarAdapter = require "LMION/Pickup/GarageToolbarAdapter"
+local GaragePickup = require "LMION/Pickup/Garage/GaragePickup"
+local GaragePlacement = require "LMION/Pickup/Garage/GaragePlacement"
+local GarageToolbarAdapter = require "LMION/Pickup/Garage/GarageToolbarAdapter"
 
 local TOOLBAR_LENGTH = 3
 
@@ -56,8 +56,6 @@ local function getStartSquare(anchorSquare, facing)
         return nil
     end
 
-    -- The synthetic W SpriteGrid is anchored on END. GaragePlacement always
-    -- expects START, so walk back two topology steps for the fixed L3 toolbar.
     local offset = TOOLBAR_LENGTH - 1
     return getCell():getGridSquare(
         anchorSquare:getX() - (tonumber(step.x) or 0) * offset,
