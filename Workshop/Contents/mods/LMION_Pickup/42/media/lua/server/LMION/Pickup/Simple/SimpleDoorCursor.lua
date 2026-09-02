@@ -4,25 +4,7 @@ require "Moveables/ISMoveablesAction"
 local MoveableAdapter = require "LMION/Pickup/Simple/MoveableAdapter"
 local ParcelUtils = require "LMION/Pickup/Common/ParcelUtils"
 local PlacementCursorUtils = require "LMION/Pickup/Common/PlacementCursorUtils"
-
-
-local function isAdjacentToTarget(character, square)
-    local playerSquare = character and character:getSquare() or nil
-
-    if playerSquare == nil or square == nil then
-        return false
-    end
-
-    if playerSquare:getZ() ~= square:getZ() then
-        return false
-    end
-
-    if ISMoveableDefinitions.cheat or character:isMovablesCheat() then
-        return true
-    end
-
-    return playerSquare == square or playerSquare:isAdjacentTo(square)
-end
+local PlacementRules = require "LMION/Pickup/Common/PlacementRules"
 
 
 LMIONSimpleDoorPlacementAction = ISMoveablesAction:derive(
@@ -31,21 +13,19 @@ LMIONSimpleDoorPlacementAction = ISMoveablesAction:derive(
 
 
 function LMIONSimpleDoorPlacementAction:isValid()
-    if not isAdjacentToTarget(self.character, self.square) then
+    if not PlacementRules.isCheat(self.character)
+        and not PlacementRules.isSameOrAdjacent(
+            self.character,
+            self.square
+        )
+    then
         return false
     end
 
-    if isClient()
-        and SafeHouse.isSafeHouse(
-            self.square,
-            self.character:getUsername(),
-            true
-        )
-        and not SafeHouse.isSafehouseAllowLoot(
-            self.square,
-            self.character
-        )
-    then
+    if not PlacementRules.isSafehouseAllowed(
+        self.character,
+        self.square
+    ) then
         return false
     end
 
@@ -156,8 +136,6 @@ function LMIONSimpleDoorPlacementCursor:render(x, y, z, square)
 end
 
 
--- Dedicated placement starts in N. The parcel does not preserve its former
--- orientation because placement orientation is a player choice.
 function LMIONSimpleDoorPlacementCursor:rotateMouse(x, y)
 end
 
@@ -227,8 +205,6 @@ function LMIONSimpleDoorPlacementCursor:new(
 end
 
 
--- Public handoff consumed by the client inventory context-menu hook at
--- OnGameStart. The client never requires this server-tree file directly.
 function MoveableAdapter.openPlacementCursor(item, character)
     local identity = MoveableAdapter.getParcelIdentity(item)
 
