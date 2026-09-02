@@ -27,4 +27,27 @@ function PlacementCursorUtils.rotateFacing(cursor, key)
 end
 
 
+function PlacementCursorUtils.queuePlacement(
+    character,
+    square,
+    moveProps,
+    equipSprite,
+    action
+)
+    if ISMoveableDefinitions.cheat
+        or moveProps:walkToAndEquip(
+            character,
+            square,
+            "place",
+            equipSprite
+        )
+    then
+        ISTimedActionQueue.add(action)
+        return true
+    end
+
+    return false
+end
+
+
 return PlacementCursorUtils
