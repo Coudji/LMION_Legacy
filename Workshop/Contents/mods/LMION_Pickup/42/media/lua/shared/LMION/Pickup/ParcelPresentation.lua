@@ -1,8 +1,8 @@
 local LMION = require "LMION/API"
 local DisplayName = require "LMION/Core/DisplayName"
 local MoveableAdapter = require "LMION/Pickup/Simple/MoveableAdapter"
-local GaragePickup = require "LMION/Pickup/GaragePickup"
-local LargeGatePickup = require "LMION/Pickup/LargeGatePickup"
+local GaragePickup = require "LMION/Pickup/Garage/GaragePickup"
+local LargeGatePickup = require "LMION/Pickup/LargeGate/LargeGatePickup"
 
 local ParcelPresentation = {}
 
