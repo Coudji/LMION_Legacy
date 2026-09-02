@@ -4,29 +4,42 @@ require "Moveables/ISMoveablesAction"
 local LargeGatePickup = require "LMION/Pickup/LargeGate/LargeGatePickup"
 local LargeGatePlacement = require "LMION/Pickup/LargeGate/LargeGatePlacement"
 local PlacementCursorUtils = require "LMION/Pickup/Common/PlacementCursorUtils"
+local PlacementRules = require "LMION/Pickup/Common/PlacementRules"
 
 
 local function isAdjacentToPlan(character, plan)
-    local playerSquare = character and character:getSquare() or nil
-    if playerSquare == nil or plan == nil then
+    if character == nil or plan == nil then
         return false
     end
 
-    if ISMoveableDefinitions.cheat or character:isMovablesCheat() then
+    if PlacementRules.isCheat(character) then
         return true
     end
 
     for partIndex = 1, 2 do
         local square = plan[partIndex] and plan[partIndex].square or nil
-        if square ~= nil
-            and playerSquare:getZ() == square:getZ()
-            and (playerSquare == square or playerSquare:isAdjacentTo(square))
-        then
+        if PlacementRules.isSameOrAdjacent(character, square) then
             return true
         end
     end
 
     return false
+end
+
+
+local function isSafehouseAllowed(character, plan)
+    if plan == nil then
+        return false
+    end
+
+    for partIndex = 1, 2 do
+        local square = plan[partIndex] and plan[partIndex].square or nil
+        if not PlacementRules.isSafehouseAllowed(character, square) then
+            return false
+        end
+    end
+
+    return true
 end
 
 
@@ -43,27 +56,10 @@ function LMIONLargeGatePlacementAction:isValid()
         self.facing
     )
 
-    if plan == nil or not plan.valid or not isAdjacentToPlan(self.character, plan) then
-        return false
-    end
-
-    if isClient() then
-        for partIndex = 1, 2 do
-            local square = plan[partIndex].square
-            if SafeHouse.isSafeHouse(
-                square,
-                self.character:getUsername(),
-                true
-            ) and not SafeHouse.isSafehouseAllowLoot(
-                square,
-                self.character
-            ) then
-                return false
-            end
-        end
-    end
-
-    return true
+    return plan ~= nil
+        and plan.valid == true
+        and isAdjacentToPlan(self.character, plan)
+        and isSafehouseAllowed(self.character, plan)
 end
 
 
@@ -296,8 +292,6 @@ end
 
 
 function LMIONLargeGatePlacementCursor:rotateMouse(x, y)
-    -- Inventory placement deliberately does not inherit Moveables click-drag
-    -- rotation. R is the single rotation control for LMION inventory placement.
 end
 
 
