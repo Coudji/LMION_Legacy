@@ -3,6 +3,7 @@ require "Moveables/ISMoveablesAction"
 
 local LargeGatePickup = require "LMION/Pickup/LargeGate/LargeGatePickup"
 local LargeGatePlacement = require "LMION/Pickup/LargeGate/LargeGatePlacement"
+local PlacementActionUtils = require "LMION/Pickup/Common/PlacementActionUtils"
 local PlacementCursorUtils = require "LMION/Pickup/Common/PlacementCursorUtils"
 local PlacementRules = require "LMION/Pickup/Common/PlacementRules"
 
@@ -74,19 +75,14 @@ end
 
 
 function LMIONLargeGatePlacementAction:new(character, square, item, facing)
-    local o = ISBaseTimedAction.new(self, character)
-
-    o.playerNum = character:getPlayerNum()
-    o.square = square
-    o.item = item
-    o.facing = facing
-    o.mode = "place"
-    o.moveProps = LargeGatePlacement.getMoveProps(item, facing)
-    o.origMoveProps = o.moveProps
-    o.origSpriteName = o.moveProps and o.moveProps.spriteName or nil
-    o.maxTime = o:getDuration()
-
-    return o
+    return PlacementActionUtils.configure(
+        ISBaseTimedAction.new(self, character),
+        character,
+        square,
+        item,
+        facing,
+        LargeGatePlacement.getMoveProps(item, facing)
+    )
 end
 
 
