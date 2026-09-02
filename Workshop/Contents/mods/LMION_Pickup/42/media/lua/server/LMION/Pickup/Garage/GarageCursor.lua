@@ -5,6 +5,7 @@ local LMION = require "LMION/API"
 local GaragePickup = require "LMION/Pickup/Garage/GaragePickup"
 local GaragePlacement = require "LMION/Pickup/Garage/GaragePlacement"
 local PlacementCursorUtils = require "LMION/Pickup/Common/PlacementCursorUtils"
+local PlacementRules = require "LMION/Pickup/Common/PlacementRules"
 
 
 local function renderFloor(square, valid)
@@ -80,8 +81,6 @@ local function renderPickupFootprint(cursor, x, y, z)
 end
 
 
--- Open garage sprites do not reliably run vanilla's SpriteGrid renderer, so
--- supplement the normal cursor render path for that state only.
 if ISMoveableCursor._lmionGarageOriginalRender == nil then
     ISMoveableCursor._lmionGarageOriginalRender = ISMoveableCursor.render
 end
@@ -107,9 +106,6 @@ ISMoveableCursor.render = function(self, x, y, z, square)
 end
 
 
--- Closed garage sprites intentionally carry a synthetic L3 SpriteGrid for the
--- vanilla toolbar. During pickup that grid is not real geometry: suppress its
--- renderer and highlight the actual START + MIDDLE* + END chain instead.
 if ISMoveableCursor._lmionGarageOriginalRenderSpriteGrid == nil then
     ISMoveableCursor._lmionGarageOriginalRenderSpriteGrid =
         ISMoveableCursor.renderSpriteGrid
@@ -152,21 +148,17 @@ end
 
 
 local function isAdjacentToPlan(character, plan)
-    local playerSquare = character and character:getSquare() or nil
-    if playerSquare == nil or plan == nil then
+    if character == nil or plan == nil then
         return false
     end
 
-    if ISMoveableDefinitions.cheat or character:isMovablesCheat() then
+    if PlacementRules.isCheat(character) then
         return true
     end
 
     for position = 1, plan.length do
         local square = plan[position] and plan[position].square or nil
-        if square ~= nil
-            and playerSquare:getZ() == square:getZ()
-            and (playerSquare == square or playerSquare:isAdjacentTo(square))
-        then
+        if PlacementRules.isSameOrAdjacent(character, square) then
             return true
         end
     end
@@ -176,20 +168,13 @@ end
 
 
 local function isSafehouseAllowed(character, plan)
-    if not isClient() then
-        return true
+    if plan == nil then
+        return false
     end
 
     for position = 1, plan.length do
-        local square = plan[position].square
-        if SafeHouse.isSafeHouse(
-            square,
-            character:getUsername(),
-            true
-        ) and not SafeHouse.isSafehouseAllowLoot(
-            square,
-            character
-        ) then
+        local square = plan[position] and plan[position].square or nil
+        if not PlacementRules.isSafehouseAllowed(character, square) then
             return false
         end
     end
@@ -340,7 +325,6 @@ end
 
 
 function LMIONGaragePlacementCursor:rotateMouse(x, y)
-    -- Dedicated inventory placement is deliberately N/W with key controls only.
 end
 
 
