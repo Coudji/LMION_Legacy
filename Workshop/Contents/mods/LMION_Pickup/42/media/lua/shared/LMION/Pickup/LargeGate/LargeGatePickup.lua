@@ -320,19 +320,21 @@ local function applyFlatpackPresentation(item)
     return item
 end
 
-local function installHooks()
-    require "Moveables/ISMoveableSpriteProps"
+local function installNewHook()
+    local previous = ISMoveableSpriteProps.new
 
-    local previousNew = ISMoveableSpriteProps.new
     ISMoveableSpriteProps.new = function(sprite)
-        return applyMoveProps(previousNew(sprite), sprite)
+        return applyMoveProps(previous(sprite), sprite)
     end
+end
 
-    local previousCanPickUp = ISMoveableSpriteProps.canPickUpMoveable
+local function installCanPickUpHook()
+    local previous = ISMoveableSpriteProps.canPickUpMoveable
+
     ISMoveableSpriteProps.canPickUpMoveable = function(self, character, square, object)
         local runtime = getRuntime(self)
         if runtime == nil then
-            return previousCanPickUp(self, character, square, object)
+            return previous(self, character, square, object)
         end
 
         local selected = object
@@ -370,12 +372,15 @@ local function installHooks()
 
         return true
     end
+end
 
-    local previousInstanceItem = ISMoveableSpriteProps.instanceItem
+local function installInstanceItemHook()
+    local previous = ISMoveableSpriteProps.instanceItem
+
     ISMoveableSpriteProps.instanceItem = function(self, spriteNameOverride)
         local runtime = getRuntime(self)
         if runtime == nil then
-            return previousInstanceItem(self, spriteNameOverride)
+            return previous(self, spriteNameOverride)
         end
 
         local item = applyFlatpackPresentation(instanceItem(PARCEL_ITEM))
@@ -393,8 +398,11 @@ local function installHooks()
 
         return item
     end
+end
 
-    local previousInternal = ISMoveableSpriteProps.pickUpMoveableInternal
+local function installPickUpInternalHook()
+    local previous = ISMoveableSpriteProps.pickUpMoveableInternal
+
     ISMoveableSpriteProps.pickUpMoveableInternal = function(
         self,
         character,
@@ -443,7 +451,7 @@ local function installHooks()
         end
 
         if not handled then
-            item = previousInternal(
+            item = previous(
                 self,
                 character,
                 square,
@@ -458,12 +466,15 @@ local function installHooks()
         self.lmionLargeGatePendingState = nil
         return item
     end
+end
 
-    local previousPickUp = ISMoveableSpriteProps.pickUpMoveable
+local function installPickUpHook()
+    local previous = ISMoveableSpriteProps.pickUpMoveable
+
     ISMoveableSpriteProps.pickUpMoveable = function(self, character, square, createItem, forceAllow)
         local runtime = getRuntime(self)
         if runtime == nil then
-            return previousPickUp(self, character, square, createItem, forceAllow)
+            return previous(self, character, square, createItem, forceAllow)
         end
 
         local selected = square and self:findOnSquare(square, self.spriteName) or nil
@@ -511,6 +522,16 @@ local function installHooks()
 
         return items
     end
+end
+
+local function installHooks()
+    require "Moveables/ISMoveableSpriteProps"
+
+    installNewHook()
+    installCanPickUpHook()
+    installInstanceItemHook()
+    installPickUpInternalHook()
+    installPickUpHook()
 end
 
 function LargeGatePickup.install()
