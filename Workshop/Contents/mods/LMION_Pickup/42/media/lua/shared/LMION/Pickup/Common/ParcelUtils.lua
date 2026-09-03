@@ -6,14 +6,14 @@ function ParcelUtils.getSource(item)
         return nil
     end
 
-    local container = item.getContainer ~= nil and item:getContainer() or nil
-    if container ~= nil then
-        return container
-    end
-
     local worldItem = item.getWorldItem ~= nil and item:getWorldItem() or nil
     if worldItem ~= nil and worldItem:getSquare() ~= nil then
         return "floor"
+    end
+
+    local container = item.getContainer ~= nil and item:getContainer() or nil
+    if container ~= nil then
+        return container
     end
 
     return nil
