@@ -1,8 +1,8 @@
 require "Moveables/ISMoveableSpriteProps"
 
 local LMION = require "LMION/API"
-local GaragePickup = require "LMION/Pickup/GaragePickup"
-local GaragePlacement = require "LMION/Pickup/GaragePlacement"
+local GaragePickup = require "LMION/Pickup/Garage/GaragePickup"
+local GaragePlacement = require "LMION/Pickup/Garage/GaragePlacement"
 local TransportState = require "LMION/Pickup/TransportState"
 
 local GarageToolbarAdapter = {}
@@ -309,7 +309,7 @@ local function removePlacedObject(object)
 end
 
 
-local function installMoveableHooks()
+local function installFaceHooks()
     local previousHasFaces = ISMoveableSpriteProps.hasFaces
     ISMoveableSpriteProps.hasFaces = function(self)
         local segment, runtime = ensureMovePropsIdentity(self)
@@ -347,7 +347,10 @@ local function installMoveableHooks()
 
         return previousGetIndexedFaces(self)
     end
+end
 
+
+local function installInventoryHooks()
     local previousFindInInventory = ISMoveableSpriteProps.findInInventory
     ISMoveableSpriteProps.findInInventory = function(
         self,
@@ -391,8 +394,12 @@ local function installMoveableHooks()
 
         return previousFindMulti(self, character, requestedName)
     end
+end
 
-    local previousPlaceInternal = ISMoveableSpriteProps.placeMoveableInternal
+
+local function installPlaceInternalHook()
+    local previous = ISMoveableSpriteProps.placeMoveableInternal
+
     ISMoveableSpriteProps.placeMoveableInternal = function(
         self,
         square,
@@ -402,7 +409,7 @@ local function installMoveableHooks()
         local anchorSegment, runtime = ensureMovePropsIdentity(self)
 
         if runtime == nil or self.isMultiSprite ~= true then
-            return previousPlaceInternal(self, square, item, spriteName)
+            return previous(self, square, item, spriteName)
         end
 
         local segment = getSegment(spriteName) or anchorSegment
@@ -423,7 +430,7 @@ local function installMoveableHooks()
             end
         end
 
-        local object = previousPlaceInternal(
+        local object = previous(
             self,
             square,
             item,
@@ -458,6 +465,13 @@ local function installMoveableHooks()
 
         return door
     end
+end
+
+
+local function installMoveableHooks()
+    installFaceHooks()
+    installInventoryHooks()
+    installPlaceInternalHook()
 end
 
 
