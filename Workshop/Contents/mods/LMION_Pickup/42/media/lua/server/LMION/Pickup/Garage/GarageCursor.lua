@@ -127,39 +127,30 @@ local function getWidthKey(optionId, fallback)
 end
 
 
+local function getPlanSquare(plan, position)
+    return plan[position] and plan[position].square or nil
+end
+
+
 local function isAdjacentToPlan(character, plan)
-    if character == nil or plan == nil then
-        return false
-    end
-
-    if PlacementRules.isCheat(character) then
-        return true
-    end
-
-    for position = 1, plan.length do
-        local square = plan[position] and plan[position].square or nil
-        if PlacementRules.isSameOrAdjacent(character, square) then
-            return true
+    return plan ~= nil and PlacementRules.isAnySquareAdjacent(
+        character,
+        plan.length,
+        function(position)
+            return getPlanSquare(plan, position)
         end
-    end
-
-    return false
+    )
 end
 
 
 local function isSafehouseAllowed(character, plan)
-    if plan == nil then
-        return false
-    end
-
-    for position = 1, plan.length do
-        local square = plan[position] and plan[position].square or nil
-        if not PlacementRules.isSafehouseAllowed(character, square) then
-            return false
+    return plan ~= nil and PlacementRules.areAllSafehousesAllowed(
+        character,
+        plan.length,
+        function(position)
+            return getPlanSquare(plan, position)
         end
-    end
-
-    return true
+    )
 end
 
 
