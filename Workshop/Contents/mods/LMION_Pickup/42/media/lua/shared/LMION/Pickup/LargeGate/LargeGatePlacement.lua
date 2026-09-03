@@ -485,9 +485,7 @@ local function getLeafAnchorFaces(moveProps)
 end
 
 
-local function installHooks()
-    require "Moveables/ISMoveableSpriteProps"
-
+local function installFaceHooks()
     local previousHasFaces = ISMoveableSpriteProps.hasFaces
     ISMoveableSpriteProps.hasFaces = function(self)
         if getRuntime(self) ~= nil then
@@ -547,8 +545,12 @@ local function installHooks()
         end
         return previousGetFaceIndex(self)
     end
+end
 
-    local previousCanPlace = ISMoveableSpriteProps.canPlaceMoveable
+
+local function installCanPlaceHook()
+    local previous = ISMoveableSpriteProps.canPlaceMoveable
+
     ISMoveableSpriteProps.canPlaceMoveable = function(
         self,
         character,
@@ -559,10 +561,15 @@ local function installHooks()
             local plan = buildPlan(self, character, square, item)
             return plan ~= nil and plan.valid == true
         end
-        return previousCanPlace(self, character, square, item)
-    end
 
-    local previousPlace = ISMoveableSpriteProps.placeMoveable
+        return previous(self, character, square, item)
+    end
+end
+
+
+local function installPlaceHook()
+    local previous = ISMoveableSpriteProps.placeMoveable
+
     ISMoveableSpriteProps.placeMoveable = function(
         self,
         character,
@@ -572,7 +579,7 @@ local function installHooks()
     )
         local runtime = getRuntime(self)
         if runtime == nil then
-            return previousPlace(
+            return previous(
                 self,
                 character,
                 square,
@@ -592,6 +599,15 @@ local function installHooks()
 
         return placePlan(plan)
     end
+end
+
+
+local function installHooks()
+    require "Moveables/ISMoveableSpriteProps"
+
+    installFaceHooks()
+    installCanPlaceHook()
+    installPlaceHook()
 end
 
 
