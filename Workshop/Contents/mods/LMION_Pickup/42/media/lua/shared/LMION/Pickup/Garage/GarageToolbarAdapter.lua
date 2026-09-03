@@ -3,7 +3,7 @@ require "Moveables/ISMoveableSpriteProps"
 local LMION = require "LMION/API"
 local GaragePickup = require "LMION/Pickup/Garage/GaragePickup"
 local GaragePlacement = require "LMION/Pickup/Garage/GaragePlacement"
-local TransportState = require "LMION/Pickup/TransportState"
+local TransportState = require "LMION/Pickup/Common/TransportState"
 
 local GarageToolbarAdapter = {}
 
