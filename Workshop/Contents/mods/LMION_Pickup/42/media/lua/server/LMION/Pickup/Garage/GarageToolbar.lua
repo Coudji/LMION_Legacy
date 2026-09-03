@@ -6,6 +6,7 @@ local GaragePickup = require "LMION/Pickup/Garage/GaragePickup"
 local GaragePlacement = require "LMION/Pickup/Garage/GaragePlacement"
 local GarageToolbarAdapter = require "LMION/Pickup/Garage/GarageToolbarAdapter"
 local MoveablesActionRouter = require "LMION/Pickup/Common/MoveablesActionRouter"
+local MoveableToolbarRouter = require "LMION/Pickup/Common/MoveableToolbarRouter"
 local PlacementActionUtils = require "LMION/Pickup/Common/PlacementActionUtils"
 
 local TOOLBAR_LENGTH = 3
@@ -61,40 +62,44 @@ local function getStartSquare(anchorSquare, facing)
 end
 
 
-local previousGetInventoryObjectList = ISMoveableCursor.getInventoryObjectList
+MoveableToolbarRouter.register("GarageToolbar", {
+    getEntries = function(cursor)
+        local entries = {}
+        local inventory = cursor.character and cursor.character:getInventory() or nil
+        local items = inventory and inventory:getItems() or nil
+        local seen = {}
 
-ISMoveableCursor.getInventoryObjectList = function(self)
-    local objects = previousGetInventoryObjectList(self)
-    local inventory = self.character and self.character:getInventory() or nil
-    local items = inventory and inventory:getItems() or nil
-    local seen = {}
+        if items == nil then
+            return entries
+        end
 
-    if items == nil then
-        return objects
-    end
+        for index = 0, items:size() - 1 do
+            local item = items:get(index)
+            local identity = getIdentity(item)
 
-    for index = 0, items:size() - 1 do
-        local item = items:get(index)
-        local identity = getIdentity(item)
+            if identity ~= nil
+                and not seen[identity.definitionId]
+                and hasCanonicalL3(
+                    cursor.character,
+                    identity.definitionId,
+                    item
+                )
+            then
+                local moveProps = GarageToolbarAdapter.getMoveProps(item, "N")
 
-        if identity ~= nil
-            and not seen[identity.definitionId]
-            and hasCanonicalL3(self.character, identity.definitionId, item)
-        then
-            local moveProps = GarageToolbarAdapter.getMoveProps(item, "N")
-
-            if moveProps ~= nil and moveProps.isMoveable then
-                table.insert(objects, {
-                    object = item,
-                    moveProps = moveProps,
-                })
-                seen[identity.definitionId] = true
+                if moveProps ~= nil and moveProps.isMoveable then
+                    entries[#entries + 1] = {
+                        object = item,
+                        moveProps = moveProps,
+                    }
+                    seen[identity.definitionId] = true
+                end
             end
         end
-    end
 
-    return objects
-end
+        return entries
+    end,
+})
 
 
 MoveablesActionRouter.register("GarageToolbar", {

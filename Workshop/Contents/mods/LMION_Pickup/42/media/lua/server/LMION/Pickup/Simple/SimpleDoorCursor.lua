@@ -15,6 +15,13 @@ LMIONSimpleDoorPlacementAction = ISMoveablesAction:derive(
 
 
 function LMIONSimpleDoorPlacementAction:isValid()
+    if not PlacementRules.isSameLevel(
+        self.character,
+        self.square
+    ) then
+        return false
+    end
+
     if not PlacementRules.isCheat(self.character)
         and not PlacementRules.isSameOrAdjacent(
             self.character,

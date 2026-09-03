@@ -5,6 +5,7 @@ require "Moveables/ISMoveableSpriteProps"
 local LargeGatePickup = require "LMION/Pickup/LargeGate/LargeGatePickup"
 local LargeGatePlacement = require "LMION/Pickup/LargeGate/LargeGatePlacement"
 local MoveablesActionRouter = require "LMION/Pickup/Common/MoveablesActionRouter"
+local MoveableToolbarRouter = require "LMION/Pickup/Common/MoveableToolbarRouter"
 local PlacementActionUtils = require "LMION/Pickup/Common/PlacementActionUtils"
 
 
@@ -22,103 +23,113 @@ local function getFacing(moveProps, fallback)
 end
 
 
-local function itemMatchesMoveProps(item, moveProps)
+local function getToolbarMoveProps(item, facing)
     local identity = getIdentity(item)
+    facing = facing == "W" and "W" or "N"
 
-    return identity ~= nil
-        and identity.definitionId == moveProps.lmionLargeGateDefinitionId
-        and identity.leaf == moveProps.lmionLargeGateLeaf
-        and identity.partIndex == moveProps.lmionLargeGatePart
+    if identity == nil then
+        return nil
+    end
+
+    local spriteName = LargeGatePickup.getPartSprite(
+        identity.definitionId,
+        facing,
+        identity.leaf,
+        1,
+        false
+    )
+    local moveProps = spriteName and ISMoveableSpriteProps.new(spriteName) or nil
+
+    if moveProps == nil or not moveProps.isMoveable then
+        return nil
+    end
+
+    return moveProps
 end
 
 
-local function findRepresentativeParcel(character, moveProps)
-    if character == nil or moveProps == nil then
+local function getSelectedPartSquare(anchorPartSquare, item, facing)
+    local identity = getIdentity(item)
+    local runtime = identity and LargeGatePickup.getRuntime(identity.definitionId) or nil
+
+    if anchorPartSquare == nil
+        or runtime == nil
+        or (facing ~= "N" and facing ~= "W")
+    then
         return nil
     end
 
-    local inventory = character:getInventory()
-    local items = inventory and inventory:getItems() or nil
+    if identity.partIndex == 1 then
+        return anchorPartSquare
+    end
 
-    if items ~= nil then
+    local indices = runtime.topology
+        and runtime.topology.leaves
+        and runtime.topology.leaves[identity.leaf]
+        and runtime.topology.leaves[identity.leaf].indices
+        and runtime.topology.leaves[identity.leaf].indices[facing]
+        or nil
+    local layout = runtime.topology
+        and runtime.topology.layout
+        and runtime.topology.layout[facing]
+        and runtime.topology.layout[facing].closed
+        or nil
+    local firstIndex = indices and tonumber(indices[1]) or nil
+    local selectedIndex = indices and tonumber(indices[identity.partIndex]) or nil
+    local firstOffset = firstIndex and layout and layout[firstIndex] or nil
+    local selectedOffset = selectedIndex and layout and layout[selectedIndex] or nil
+
+    if firstOffset == nil or selectedOffset == nil then
+        return nil
+    end
+
+    return getCell():getGridSquare(
+        anchorPartSquare:getX()
+            - tonumber(firstOffset[1])
+            + tonumber(selectedOffset[1]),
+        anchorPartSquare:getY()
+            - tonumber(firstOffset[2])
+            + tonumber(selectedOffset[2]),
+        anchorPartSquare:getZ()
+    )
+end
+
+
+MoveableToolbarRouter.register("LargeGateToolbar", {
+    getEntries = function(cursor)
+        local entries = {}
+        local inventory = cursor.character and cursor.character:getInventory() or nil
+        local items = inventory and inventory:getItems() or nil
+        local seenLeaves = {}
+
+        if items == nil then
+            return entries
+        end
+
         for index = 0, items:size() - 1 do
             local item = items:get(index)
-            if itemMatchesMoveProps(item, moveProps) then
-                return item, inventory
-            end
-        end
-    end
+            local identity = getIdentity(item)
 
-    local playerSquare = character:getSquare()
-    if playerSquare == nil then
-        return nil
-    end
+            if identity ~= nil then
+                local key = identity.definitionId .. "\0" .. identity.leaf
 
-    local radius = ISMoveableSpriteProps.multiSpriteFloorRadius or 3
-    local z = playerSquare:getZ()
+                if not seenLeaves[key] then
+                    local moveProps = getToolbarMoveProps(item, "N")
 
-    for x = playerSquare:getX() - radius, playerSquare:getX() + radius do
-        for y = playerSquare:getY() - radius, playerSquare:getY() + radius do
-            local square = getCell():getGridSquare(x, y, z)
-            local worldObjects = square and square:getWorldObjects() or nil
-
-            if worldObjects ~= nil then
-                for index = 0, worldObjects:size() - 1 do
-                    local worldObject = worldObjects:get(index)
-                    if instanceof(worldObject, "IsoWorldInventoryObject") then
-                        local item = worldObject:getItem()
-                        if itemMatchesMoveProps(item, moveProps) then
-                            return item, "floor"
-                        end
+                    if moveProps ~= nil then
+                        entries[#entries + 1] = {
+                            object = item,
+                            moveProps = moveProps,
+                        }
+                        seenLeaves[key] = true
                     end
                 end
             end
         end
-    end
 
-    return nil
-end
-
-
-local previousGetInventoryObjectList = ISMoveableCursor.getInventoryObjectList
-ISMoveableCursor.getInventoryObjectList = function(self)
-    local objects = previousGetInventoryObjectList(self)
-    local items = self.character:getInventory():getItems()
-    local seenLeaves = {}
-
-    for index = 0, items:size() - 1 do
-        local item = items:get(index)
-        local identity = getIdentity(item)
-
-        if identity ~= nil then
-            local key = identity.definitionId .. "\0" .. identity.leaf
-
-            if not seenLeaves[key] then
-                local moveProps = LargeGatePlacement.getMoveProps(item, "N")
-
-                if moveProps ~= nil and moveProps.isMoveable then
-                    table.insert(objects, {
-                        object = item,
-                        moveProps = moveProps,
-                    })
-                    seenLeaves[key] = true
-                end
-            end
-        end
-    end
-
-    return objects
-end
-
-
-local previousFindInInventory = ISMoveableSpriteProps.findInInventory
-ISMoveableSpriteProps.findInInventory = function(self, character, spriteName)
-    if self.lmionLargeGateDefinitionId ~= nil then
-        return findRepresentativeParcel(character, self)
-    end
-
-    return previousFindInInventory(self, character, spriteName)
-end
+        return entries
+    end,
+})
 
 
 MoveablesActionRouter.register("LargeGateToolbar", {
@@ -142,7 +153,7 @@ MoveablesActionRouter.register("LargeGateToolbar", {
             moveCursor,
             "lmionLargeGateFacing"
         )
-        local moveProps = LargeGatePlacement.getMoveProps(item, facing)
+        local moveProps = getToolbarMoveProps(item, facing)
 
         if moveProps == nil then
             return nil
@@ -171,10 +182,19 @@ MoveablesActionRouter.register("LargeGateToolbar", {
             action.moveProps,
             action.lmionLargeGateFacing
         )
+        local selectedSquare = getSelectedPartSquare(
+            action.square,
+            action.item,
+            facing
+        )
+
+        if selectedSquare == nil then
+            return false
+        end
 
         return LargeGatePlacement.placeParcel(
             action.character,
-            action.square,
+            selectedSquare,
             action.item,
             facing
         )

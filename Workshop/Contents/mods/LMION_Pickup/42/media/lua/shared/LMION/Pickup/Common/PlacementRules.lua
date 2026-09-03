@@ -7,6 +7,15 @@ function PlacementRules.isCheat(character)
 end
 
 
+function PlacementRules.isSameLevel(character, square)
+    local playerSquare = character and character:getSquare() or nil
+
+    return playerSquare ~= nil
+        and square ~= nil
+        and playerSquare:getZ() == square:getZ()
+end
+
+
 function PlacementRules.isSameOrAdjacent(character, square)
     local playerSquare = character and character:getSquare() or nil
 
