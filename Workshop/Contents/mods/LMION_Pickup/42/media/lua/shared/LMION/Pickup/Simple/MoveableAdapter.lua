@@ -563,14 +563,16 @@ local function hasPlacementRequirements(moveProps, character)
 end
 
 
-local function installMoveableHooks()
-    require "Moveables/ISMoveableSpriteProps"
+local function installNewHook()
+    local previous = ISMoveableSpriteProps.new
 
-    local previousNew = ISMoveableSpriteProps.new
     ISMoveableSpriteProps.new = function(sprite)
-        return applyMoveProps(previousNew(sprite), sprite)
+        return applyMoveProps(previous(sprite), sprite)
     end
+end
 
+
+local function installFaceHooks()
     local previousHasFaces = ISMoveableSpriteProps.hasFaces
     ISMoveableSpriteProps.hasFaces = function(self)
         if getRuntime(self) ~= nil then
@@ -607,8 +609,12 @@ local function installMoveableHooks()
 
         return previousGetIndexedFaces(self)
     end
+end
 
-    local previousCanPickUpMoveable = ISMoveableSpriteProps.canPickUpMoveable
+
+local function installCanPickUpHook()
+    local previous = ISMoveableSpriteProps.canPickUpMoveable
+
     ISMoveableSpriteProps.canPickUpMoveable = function(self, character, square, object)
         local runtime = getRuntime(self)
 
@@ -627,15 +633,19 @@ local function installMoveableHooks()
             end
         end
 
-        return previousCanPickUpMoveable(self, character, square, object)
+        return previous(self, character, square, object)
     end
+end
 
-    local previousInstanceItem = ISMoveableSpriteProps.instanceItem
+
+local function installInstanceItemHook()
+    local previous = ISMoveableSpriteProps.instanceItem
+
     ISMoveableSpriteProps.instanceItem = function(self, spriteNameOverride)
         local runtime = getRuntime(self)
 
         if runtime == nil then
-            return previousInstanceItem(self, spriteNameOverride)
+            return previous(self, spriteNameOverride)
         end
 
         local closedSprite = getClosedSprite(
@@ -643,7 +653,7 @@ local function installMoveableHooks()
             self.lmionFacing,
             self.lmionMember
         )
-        local item = previousInstanceItem(
+        local item = previous(
             self,
             closedSprite or spriteNameOverride
         )
@@ -661,8 +671,12 @@ local function installMoveableHooks()
 
         return item
     end
+end
 
-    local previousPickUpMoveableInternal = ISMoveableSpriteProps.pickUpMoveableInternal
+
+local function installPickUpInternalHook()
+    local previous = ISMoveableSpriteProps.pickUpMoveableInternal
+
     ISMoveableSpriteProps.pickUpMoveableInternal = function(
         self,
         character,
@@ -694,7 +708,7 @@ local function installMoveableHooks()
             end
         end
 
-        local item = previousPickUpMoveableInternal(
+        local item = previous(
             self,
             character,
             square,
@@ -706,11 +720,14 @@ local function installMoveableHooks()
         )
 
         self.lmionPendingTransportState = nil
-
         return item
     end
+end
 
-    local previousCanPlaceMoveableInternal = ISMoveableSpriteProps.canPlaceMoveableInternal
+
+local function installCanPlaceInternalHook()
+    local previous = ISMoveableSpriteProps.canPlaceMoveableInternal
+
     ISMoveableSpriteProps.canPlaceMoveableInternal = function(
         self,
         character,
@@ -721,7 +738,7 @@ local function installMoveableHooks()
         local runtime = getRuntime(self)
 
         if runtime == nil then
-            return previousCanPlaceMoveableInternal(
+            return previous(
                 self,
                 character,
                 square,
@@ -749,8 +766,12 @@ local function installMoveableHooks()
             getPairedFrameSide(runtime, member)
         )
     end
+end
 
-    local previousPlaceMoveableInternal = ISMoveableSpriteProps.placeMoveableInternal
+
+local function installPlaceInternalHook()
+    local previous = ISMoveableSpriteProps.placeMoveableInternal
+
     ISMoveableSpriteProps.placeMoveableInternal = function(
         self,
         square,
@@ -760,7 +781,7 @@ local function installMoveableHooks()
         local runtime = getRuntime(self)
 
         if runtime == nil then
-            return previousPlaceMoveableInternal(
+            return previous(
                 self,
                 square,
                 item,
@@ -785,7 +806,7 @@ local function installMoveableHooks()
             return nil
         end
 
-        local object = previousPlaceMoveableInternal(
+        local object = previous(
             self,
             square,
             item,
@@ -816,6 +837,19 @@ local function installMoveableHooks()
 
         return door
     end
+end
+
+
+local function installMoveableHooks()
+    require "Moveables/ISMoveableSpriteProps"
+
+    installNewHook()
+    installFaceHooks()
+    installCanPickUpHook()
+    installInstanceItemHook()
+    installPickUpInternalHook()
+    installCanPlaceInternalHook()
+    installPlaceInternalHook()
 end
 
 
