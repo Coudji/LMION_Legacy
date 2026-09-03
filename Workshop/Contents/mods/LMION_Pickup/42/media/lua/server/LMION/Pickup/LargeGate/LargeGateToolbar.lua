@@ -22,26 +22,57 @@ local function getFacing(moveProps, fallback)
 end
 
 
-local function findRepresentativeParcel(character, moveProps)
-    local definitionId = moveProps and moveProps.lmionLargeGateDefinitionId or nil
-    local leaf = moveProps and moveProps.lmionLargeGateLeaf or nil
-    local partIndex = moveProps and moveProps.lmionLargeGatePart or nil
-    local items = character and character:getInventory():getItems() or nil
+local function itemMatchesMoveProps(item, moveProps)
+    local identity = getIdentity(item)
 
-    if items == nil then
+    return identity ~= nil
+        and identity.definitionId == moveProps.lmionLargeGateDefinitionId
+        and identity.leaf == moveProps.lmionLargeGateLeaf
+        and identity.partIndex == moveProps.lmionLargeGatePart
+end
+
+
+local function findRepresentativeParcel(character, moveProps)
+    if character == nil or moveProps == nil then
         return nil
     end
 
-    for index = 0, items:size() - 1 do
-        local item = items:get(index)
-        local identity = getIdentity(item)
+    local inventory = character:getInventory()
+    local items = inventory and inventory:getItems() or nil
 
-        if identity ~= nil
-            and identity.definitionId == definitionId
-            and identity.leaf == leaf
-            and identity.partIndex == partIndex
-        then
-            return item
+    if items ~= nil then
+        for index = 0, items:size() - 1 do
+            local item = items:get(index)
+            if itemMatchesMoveProps(item, moveProps) then
+                return item, inventory
+            end
+        end
+    end
+
+    local playerSquare = character:getSquare()
+    if playerSquare == nil then
+        return nil
+    end
+
+    local radius = ISMoveableSpriteProps.multiSpriteFloorRadius or 3
+    local z = playerSquare:getZ()
+
+    for x = playerSquare:getX() - radius, playerSquare:getX() + radius do
+        for y = playerSquare:getY() - radius, playerSquare:getY() + radius do
+            local square = getCell():getGridSquare(x, y, z)
+            local worldObjects = square and square:getWorldObjects() or nil
+
+            if worldObjects ~= nil then
+                for index = 0, worldObjects:size() - 1 do
+                    local worldObject = worldObjects:get(index)
+                    if instanceof(worldObject, "IsoWorldInventoryObject") then
+                        local item = worldObject:getItem()
+                        if itemMatchesMoveProps(item, moveProps) then
+                            return item, "floor"
+                        end
+                    end
+                end
+            end
         end
     end
 
