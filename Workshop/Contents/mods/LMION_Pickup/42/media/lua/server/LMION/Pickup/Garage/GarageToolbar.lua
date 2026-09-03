@@ -5,6 +5,7 @@ local LMION = require "LMION/API"
 local GaragePickup = require "LMION/Pickup/Garage/GaragePickup"
 local GaragePlacement = require "LMION/Pickup/Garage/GaragePlacement"
 local GarageToolbarAdapter = require "LMION/Pickup/Garage/GarageToolbarAdapter"
+local PlacementActionUtils = require "LMION/Pickup/Common/PlacementActionUtils"
 
 local TOOLBAR_LENGTH = 3
 
@@ -15,17 +16,11 @@ end
 
 
 local function getFacing(moveProps, fallback)
-    local facing = moveProps and moveProps.lmionGarageFacing or nil
-
-    if facing == "N" or facing == "W" then
-        return facing
-    end
-
-    if fallback == "N" or fallback == "W" then
-        return fallback
-    end
-
-    return "N"
+    return PlacementActionUtils.resolveFacing(
+        moveProps,
+        "lmionGarageFacing",
+        fallback
+    )
 end
 
 
@@ -152,27 +147,18 @@ ISMoveablesAction.new = function(
         )
     end
 
-    local o = ISBaseTimedAction.new(self, character)
-
-    o.playerNum = character:getPlayerNum()
-    o.square = square
-    o.origSpriteName = moveProps.spriteName
-    o.spriteFrame = 0
-    o.mode = mode
-    o.object = object
-    o.direction = facing
-    o.item = item
-    o.moveProps = moveProps
-    o.origMoveProps = moveProps
-    o.moveCursor = moveCursor
-    o.lmionGarageFacing = facing
-
-    if isServer() then
-        o.moveCursor = nil
-    end
-
-    o.maxTime = o:getDuration()
-    return o
+    return PlacementActionUtils.configureToolbar(
+        ISBaseTimedAction.new(self, character),
+        character,
+        square,
+        mode,
+        object,
+        item,
+        moveCursor,
+        facing,
+        moveProps,
+        "lmionGarageFacing"
+    )
 end
 
 
