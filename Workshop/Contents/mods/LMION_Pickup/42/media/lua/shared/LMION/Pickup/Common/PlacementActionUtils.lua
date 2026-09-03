@@ -16,6 +16,27 @@ function PlacementActionUtils.resolveFacing(moveProps, fieldName, fallback)
 end
 
 
+function PlacementActionUtils.resolveToolbarFacing(
+    direction,
+    moveCursor,
+    fieldName
+)
+    if direction == "N" or direction == "W" then
+        return direction
+    end
+
+    if moveCursor ~= nil then
+        return PlacementActionUtils.resolveFacing(
+            moveCursor.currentMoveProps,
+            fieldName,
+            "N"
+        )
+    end
+
+    return "N"
+end
+
+
 function PlacementActionUtils.configure(
     action,
     character,
