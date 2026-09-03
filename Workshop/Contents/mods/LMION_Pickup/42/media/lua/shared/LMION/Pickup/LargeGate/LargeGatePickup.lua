@@ -1,7 +1,7 @@
 local LMION = require "LMION/API"
-local ToolAdapter = require "LMION/Pickup/ToolAdapter"
-local TransportState = require "LMION/Pickup/TransportState"
-local MultiSquarePickupInternal = require "LMION/Pickup/MultiSquarePickupInternal"
+local ToolAdapter = require "LMION/Pickup/Common/ToolAdapter"
+local TransportState = require "LMION/Pickup/Common/TransportState"
+local MultiSquarePickupInternal = require "LMION/Pickup/Common/MultiSquarePickupInternal"
 
 local LargeGatePickup = {}
 
