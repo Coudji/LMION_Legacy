@@ -1,6 +1,6 @@
 require "ISUI/ISToolTipInv"
 
-local TransportState = require "LMION/Pickup/TransportState"
+local TransportState = require "LMION/Pickup/Common/TransportState"
 
 
 local function getStoredHealth(item)
