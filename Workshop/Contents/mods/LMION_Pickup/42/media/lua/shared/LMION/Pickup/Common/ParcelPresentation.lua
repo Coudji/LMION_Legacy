@@ -3,6 +3,7 @@ local DisplayName = require "LMION/Core/DisplayName"
 local MoveableAdapter = require "LMION/Pickup/Simple/MoveableAdapter"
 local GaragePickup = require "LMION/Pickup/Garage/GaragePickup"
 local LargeGatePickup = require "LMION/Pickup/LargeGate/LargeGatePickup"
+local TransportState = require "LMION/Pickup/Common/TransportState"
 
 local ParcelPresentation = {}
 
@@ -99,6 +100,18 @@ local function getLargeGateName(identity)
 end
 
 
+local function getSimpleIdentity(item)
+    local state = TransportState.read(item)
+    local entityId = state and state.entityId or nil
+
+    if type(entityId) ~= "string" or entityId == "" then
+        return nil
+    end
+
+    return MoveableAdapter.getParcelIdentity(item)
+end
+
+
 local function finalizeItem(item)
     if item == nil or type(item) == "boolean" then
         return item
@@ -106,7 +119,7 @@ local function finalizeItem(item)
 
     local name = nil
 
-    local identity = MoveableAdapter.getParcelIdentity(item)
+    local identity = getSimpleIdentity(item)
     if identity ~= nil then
         name = getSimpleName(identity)
     else
