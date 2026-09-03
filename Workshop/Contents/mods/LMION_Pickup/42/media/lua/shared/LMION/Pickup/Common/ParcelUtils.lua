@@ -25,7 +25,7 @@ function ParcelUtils.consume(item, source)
         return false
     end
 
-    source = source or ParcelUtils.getSource(item)
+    source = ParcelUtils.getSource(item) or source
     if source == nil then
         return false
     end
