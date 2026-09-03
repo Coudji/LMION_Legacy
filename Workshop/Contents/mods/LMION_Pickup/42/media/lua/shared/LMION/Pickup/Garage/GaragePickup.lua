@@ -220,43 +220,41 @@ local function allMembersEmpty(plan)
     return true
 end
 
-local function installHooks()
-    require "Moveables/ISMoveableSpriteProps"
+local function installNewHook()
+    local previous = ISMoveableSpriteProps.new
 
-    local previousNew = ISMoveableSpriteProps.new
     ISMoveableSpriteProps.new = function(sprite)
-        return applyMoveProps(previousNew(sprite), sprite)
+        return applyMoveProps(previous(sprite), sprite)
     end
+end
 
-    local previousCanPickUp = ISMoveableSpriteProps.canPickUpMoveable
+local function installCanPickUpHook()
+    local previous = ISMoveableSpriteProps.canPickUpMoveable
+
     ISMoveableSpriteProps.canPickUpMoveable = function(self, character, square, object)
         local runtime = getRuntime(self)
-        if runtime == nil then return previousCanPickUp(self, character, square, object) end
+        if runtime == nil then return previous(self, character, square, object) end
 
         local selected = getSelectedObject(self, square, object)
         local plan = buildPickupPlan(selected, runtime)
         if plan == nil then return false end
 
-        -- Legacy-proven path: validate the selected garage member through the
-        -- existing Moveables chain as a single sprite. The synthetic L3
-        -- SpriteGrid is only a toolbar adapter and must not define pickup size.
         local wasMultiSprite = self.isMultiSprite
         self.isMultiSprite = false
-        local canPickUp = previousCanPickUp(self, character, square, selected)
+        local canPickUp = previous(self, character, square, selected)
         self.isMultiSprite = wasMultiSprite
 
         if not canPickUp then return false end
-
-        -- The complete real chain has already been resolved by Core. As in
-        -- Legacy, only require every member to be safe to remove; do not invent
-        -- additional per-member Moveables validation here.
         return allMembersEmpty(plan)
     end
+end
 
-    local previousInstanceItem = ISMoveableSpriteProps.instanceItem
+local function installInstanceItemHook()
+    local previous = ISMoveableSpriteProps.instanceItem
+
     ISMoveableSpriteProps.instanceItem = function(self, spriteNameOverride)
         local runtime = getRuntime(self)
-        if runtime == nil then return previousInstanceItem(self, spriteNameOverride) end
+        if runtime == nil then return previous(self, spriteNameOverride) end
 
         local item = applyFlatpackPresentation(instanceItem(PARCEL_ITEM))
         if item ~= nil then
@@ -265,8 +263,11 @@ local function installHooks()
         end
         return item
     end
+end
 
-    local previousInternal = ISMoveableSpriteProps.pickUpMoveableInternal
+local function installPickUpInternalHook()
+    local previous = ISMoveableSpriteProps.pickUpMoveableInternal
+
     ISMoveableSpriteProps.pickUpMoveableInternal = function(
         self, character, square, object, sprInstance, spriteName, createItem, rotating
     )
@@ -300,7 +301,7 @@ local function installHooks()
         end
 
         if not handled then
-            item = previousInternal(
+            item = previous(
                 self,
                 character,
                 square,
@@ -316,14 +317,17 @@ local function installHooks()
         if runtime ~= nil then return finalizeParcel(item, runtime, self.lmionGarageRole) end
         return item
     end
+end
 
-    local previousPickUp = ISMoveableSpriteProps.pickUpMoveable
+local function installPickUpHook()
+    local previous = ISMoveableSpriteProps.pickUpMoveable
+
     ISMoveableSpriteProps.pickUpMoveable = function(
         self, character, square, createItem, forceAllow
     )
         local runtime = getRuntime(self)
         if runtime == nil then
-            return previousPickUp(self, character, square, createItem, forceAllow)
+            return previous(self, character, square, createItem, forceAllow)
         end
 
         local selected = getSelectedObject(self, square, nil)
@@ -342,9 +346,6 @@ local function installHooks()
             local moveProps = ISMoveableSpriteProps.new(entry.segment.spriteName)
             if moveProps == nil then return false end
 
-            -- One parcel per physical member, exactly like the validated Legacy
-            -- implementation. MultiSprite here controls parcel output location;
-            -- it does not define the semantic garage length.
             moveProps.isMultiSprite = true
             items[position] = moveProps:pickUpMoveableInternal(
                 character,
@@ -362,6 +363,16 @@ local function installHooks()
         end
         return items
     end
+end
+
+local function installHooks()
+    require "Moveables/ISMoveableSpriteProps"
+
+    installNewHook()
+    installCanPickUpHook()
+    installInstanceItemHook()
+    installPickUpInternalHook()
+    installPickUpHook()
 end
 
 function GaragePickup.install()
