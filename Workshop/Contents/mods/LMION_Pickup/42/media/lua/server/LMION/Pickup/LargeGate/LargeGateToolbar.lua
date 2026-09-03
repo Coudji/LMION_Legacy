@@ -117,14 +117,13 @@ ISMoveablesAction.new = function(
         )
     end
 
-    local facing = direction
-    if facing ~= "N" and facing ~= "W" then
-        facing = moveCursor
-            and getFacing(moveCursor.currentMoveProps, "N")
-            or "N"
-    end
-
+    local facing = PlacementActionUtils.resolveToolbarFacing(
+        direction,
+        moveCursor,
+        "lmionLargeGateFacing"
+    )
     local moveProps = LargeGatePlacement.getMoveProps(item, facing)
+
     if moveProps == nil then
         return previousActionNew(
             self,
