@@ -90,7 +90,7 @@ ISMoveableCursor.getInventoryObjectList = function(self)
         local item = items:get(index)
         local identity = getIdentity(item)
 
-        if identity ~= nil and identity.partIndex == 1 then
+        if identity ~= nil then
             local key = identity.definitionId .. "\0" .. identity.leaf
 
             if not seenLeaves[key] then
