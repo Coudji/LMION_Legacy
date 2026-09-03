@@ -4,6 +4,7 @@ require "Moveables/ISMoveableSpriteProps"
 
 local LargeGatePickup = require "LMION/Pickup/LargeGate/LargeGatePickup"
 local LargeGatePlacement = require "LMION/Pickup/LargeGate/LargeGatePlacement"
+local MoveablesActionRouter = require "LMION/Pickup/Common/MoveablesActionRouter"
 local PlacementActionUtils = require "LMION/Pickup/Common/PlacementActionUtils"
 
 
@@ -89,87 +90,65 @@ ISMoveableSpriteProps.findInInventory = function(self, character, spriteName)
 end
 
 
-local previousActionNew = ISMoveablesAction.new
-ISMoveablesAction.new = function(
-    self,
-    character,
-    square,
-    mode,
-    origSpriteName,
-    object,
-    direction,
-    item,
-    moveCursor
-)
-    local identity = mode == "place" and getIdentity(item) or nil
+MoveablesActionRouter.register("LargeGateToolbar", {
+    matchesNew = function(mode, item)
+        return mode == "place" and getIdentity(item) ~= nil
+    end,
 
-    if identity == nil then
-        return previousActionNew(
-            self,
-            character,
-            square,
-            mode,
-            origSpriteName,
-            object,
-            direction,
-            item,
-            moveCursor
-        )
-    end
-
-    local facing = PlacementActionUtils.resolveToolbarFacing(
-        direction,
-        moveCursor,
-        "lmionLargeGateFacing"
-    )
-    local moveProps = LargeGatePlacement.getMoveProps(item, facing)
-
-    if moveProps == nil then
-        return previousActionNew(
-            self,
-            character,
-            square,
-            mode,
-            origSpriteName,
-            object,
-            direction,
-            item,
-            moveCursor
-        )
-    end
-
-    return PlacementActionUtils.configureToolbar(
-        ISBaseTimedAction.new(self, character),
+    createAction = function(
+        self,
         character,
         square,
         mode,
+        origSpriteName,
         object,
+        direction,
         item,
-        moveCursor,
-        facing,
-        moveProps,
-        "lmionLargeGateFacing"
+        moveCursor
     )
-end
+        local facing = PlacementActionUtils.resolveToolbarFacing(
+            direction,
+            moveCursor,
+            "lmionLargeGateFacing"
+        )
+        local moveProps = LargeGatePlacement.getMoveProps(item, facing)
 
+        if moveProps == nil then
+            return nil
+        end
 
-local previousActionComplete = ISMoveablesAction.complete
-ISMoveablesAction.complete = function(self)
-    local identity = self.mode == "place" and getIdentity(self.item) or nil
+        return PlacementActionUtils.configureToolbar(
+            ISBaseTimedAction.new(self, character),
+            character,
+            square,
+            mode,
+            object,
+            item,
+            moveCursor,
+            facing,
+            moveProps,
+            "lmionLargeGateFacing"
+        )
+    end,
 
-    if identity == nil then
-        return previousActionComplete(self)
-    end
+    matchesComplete = function(action)
+        return action.mode == "place" and getIdentity(action.item) ~= nil
+    end,
 
-    local facing = getFacing(self.moveProps, self.lmionLargeGateFacing)
+    complete = function(action)
+        local facing = getFacing(
+            action.moveProps,
+            action.lmionLargeGateFacing
+        )
 
-    return LargeGatePlacement.placeParcel(
-        self.character,
-        self.square,
-        self.item,
-        facing
-    )
-end
+        return LargeGatePlacement.placeParcel(
+            action.character,
+            action.square,
+            action.item,
+            facing
+        )
+    end,
+})
 
 
 return LargeGatePlacement
