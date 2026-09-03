@@ -5,6 +5,7 @@ local LMION = require "LMION/API"
 local GaragePickup = require "LMION/Pickup/Garage/GaragePickup"
 local GaragePlacement = require "LMION/Pickup/Garage/GaragePlacement"
 local GarageToolbarAdapter = require "LMION/Pickup/Garage/GarageToolbarAdapter"
+local MoveablesActionRouter = require "LMION/Pickup/Common/MoveablesActionRouter"
 local PlacementActionUtils = require "LMION/Pickup/Common/PlacementActionUtils"
 
 local TOOLBAR_LENGTH = 3
@@ -96,96 +97,69 @@ ISMoveableCursor.getInventoryObjectList = function(self)
 end
 
 
-local previousActionNew = ISMoveablesAction.new
+MoveablesActionRouter.register("GarageToolbar", {
+    matchesNew = function(mode, item)
+        return mode == "place" and getIdentity(item) ~= nil
+    end,
 
-ISMoveablesAction.new = function(
-    self,
-    character,
-    square,
-    mode,
-    origSpriteName,
-    object,
-    direction,
-    item,
-    moveCursor
-)
-    local identity = mode == "place" and getIdentity(item) or nil
-
-    if identity == nil then
-        return previousActionNew(
-            self,
-            character,
-            square,
-            mode,
-            origSpriteName,
-            object,
-            direction,
-            item,
-            moveCursor
-        )
-    end
-
-    local facing = PlacementActionUtils.resolveToolbarFacing(
-        direction,
-        moveCursor,
-        "lmionGarageFacing"
-    )
-    local moveProps = GarageToolbarAdapter.getMoveProps(item, facing)
-
-    if moveProps == nil then
-        return previousActionNew(
-            self,
-            character,
-            square,
-            mode,
-            origSpriteName,
-            object,
-            direction,
-            item,
-            moveCursor
-        )
-    end
-
-    return PlacementActionUtils.configureToolbar(
-        ISBaseTimedAction.new(self, character),
+    createAction = function(
+        self,
         character,
         square,
         mode,
+        origSpriteName,
         object,
+        direction,
         item,
-        moveCursor,
-        facing,
-        moveProps,
-        "lmionGarageFacing"
+        moveCursor
     )
-end
+        local facing = PlacementActionUtils.resolveToolbarFacing(
+            direction,
+            moveCursor,
+            "lmionGarageFacing"
+        )
+        local moveProps = GarageToolbarAdapter.getMoveProps(item, facing)
 
+        if moveProps == nil then
+            return nil
+        end
 
-local previousActionComplete = ISMoveablesAction.complete
+        return PlacementActionUtils.configureToolbar(
+            ISBaseTimedAction.new(self, character),
+            character,
+            square,
+            mode,
+            object,
+            item,
+            moveCursor,
+            facing,
+            moveProps,
+            "lmionGarageFacing"
+        )
+    end,
 
-ISMoveablesAction.complete = function(self)
-    local identity = self.mode == "place" and getIdentity(self.item) or nil
+    matchesComplete = function(action)
+        return action.mode == "place" and getIdentity(action.item) ~= nil
+    end,
 
-    if identity == nil then
-        return previousActionComplete(self)
-    end
+    complete = function(action)
+        local facing = getFacing(action.moveProps, action.lmionGarageFacing)
+        local startSquare = getStartSquare(action.square, facing)
+        local plan = GaragePlacement.buildPlan(
+            action.character,
+            action.item,
+            TOOLBAR_LENGTH,
+            facing,
+            startSquare
+        )
 
-    local facing = getFacing(self.moveProps, self.lmionGarageFacing)
-    local startSquare = getStartSquare(self.square, facing)
-    local plan = GaragePlacement.buildPlan(
-        self.character,
-        self.item,
-        TOOLBAR_LENGTH,
-        facing,
-        startSquare
-    )
+        if plan == nil then
+            return false
+        end
 
-    if plan == nil then
-        return false
-    end
-
-    return GaragePlacement.placePlan(self.character, plan)
-end
+        return GaragePlacement.placePlan(action.character, plan)
+    end,
+})
 
 
 return GarageToolbarAdapter
