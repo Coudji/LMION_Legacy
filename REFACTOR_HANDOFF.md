@@ -8,17 +8,78 @@ This repository is the development workspace for the LMION rewrite.
 - `Coudji/PZMOD_LMION` = clean final repository managed manually by Coudji.
 - Never write to `PZMOD_LMION` unless Coudji explicitly reverses that rule.
 
-## Architecture
+## Refactor rule
 
-> **Core owns opening content and stable contracts. Submods own mechanics. No submod owns the opening catalog.**
+> **Behavior already validated in game is the contract. Refactoring must adapt to that behavior, not redefine it.**
+
+The functional baseline before the Pickup cleanup is:
 
 ```text
-Build  ─┐
-Pickup ─┼─> Core
-Lock   ─┘
+0549bfcaec05ef1d6db1ca9137ac3dbdaff3ff8f
+branch: baseline-pre-refactor-0549bf
 ```
 
-Mechanics must not hard-code concrete opening catalogs.
+Use that commit as the reference when a refactor changes an established behavior.
+
+A later smoke-tested checkpoint before the action-router experiment is:
+
+```text
+95bcd9abd26d4426c618bcc27fea3c219ab74d3e
+branch: backup-main-2026-09-03-tested-pre-action-router
+```
+
+Do not preserve an abstraction merely because it reduces line count. If Garage, Simple and LargeGate require different hooks to preserve their vanilla contracts, keep those hooks family-local.
+
+## Architecture
+
+> **Core owns opening data and stable contracts. Common owns genuinely common plumbing. Families own topology-specific behavior.**
+
+```text
+                         Core
+             definitions / geometry / topology
+                          |
+                          v
+                       Pickup
+             +------------+------------+
+             |            |            |
+           Simple       Garage      LargeGate
+             \            |            /
+              +------ Common helpers --+
+```
+
+Core knows the registered openings and exposes the information mechanics need. Pickup must not maintain a second concrete door catalog.
+
+`Common` must not force identical behavior on different families. A helper belongs in `Common` only when its input/output contract is genuinely the same for every caller.
+
+Current common placement helpers:
+
+```text
+LMION/Pickup/Common/
+├── GhostRender.lua
+├── ParcelUtils.lua
+├── PlacementActionUtils.lua
+├── PlacementCursorUtils.lua
+└── PlacementRules.lua
+```
+
+The attempted common `MoveableToolbarRouter` / `MoveablesActionRouter` were removed after they changed the validated vanilla-toolbar behavior. Do not reintroduce a global router unless every dispatch contract is first proven equivalent.
+
+## Function-design rule
+
+Prefer small functions with one obvious responsibility. A reader should normally understand a function without tracing a hundred lines of unrelated hook setup.
+
+Good family-local decomposition examples:
+
+```text
+installFaceHooks()
+installInventoryHooks()
+installCanPickUpHook()
+installPickUpInternalHook()
+installCanPlaceHook()
+installPlaceHook()
+```
+
+Duplication is acceptable when two functions only look similar but have different behavioral contracts. Remove semantic duplication, not necessary specialization.
 
 ## Data vocabulary
 
@@ -30,35 +91,13 @@ extensionId   -> extension/patch identity
 inherits      -> one concrete Definition -> one DefinitionDefault
 ```
 
-No generic top-level `id`, no `kind`, no removed `class`. Technical IDs use `Wood` and `Metal`.
+No generic top-level `id`, no removed `class`. Technical IDs use `Wood` and `Metal`.
 
 DefinitionDefaults never inherit other defaults. Catalog and DefinitionDefault files are pure data and do not register themselves.
 
 ## Current Core runtime
 
 Workshop contains a runnable B42 Core with Registry/Resolver/Validation, GameEntity reverse lookup, world-object lookup and `Core/DoorRuntime.lua` for physical door state/placement helpers.
-
-Live Core state remains:
-
-```text
-23 defaults
-54 definitions
-58 GameEntity mappings -> 54 definitions
-56/58 PZ GameEntities found
-```
-
-The expected missing scripts are still:
-
-```text
-Base.LargeWroughtIronGate
-Base.LargeHardenedWoodenGate
-```
-
-Keep those diagnostic errors for now.
-
-## Public Core direction
-
-Core exposes registration/resolution, GameEntity/world-object lookup, and the door runtime helpers needed by mechanics. Registry stays private. Resolver returns fresh effective data.
 
 World-object identity is:
 
@@ -69,157 +108,176 @@ IsoDoor / IsoObject
 -> definitionId
 ```
 
-Do not use current sprite as the primary identity mechanism.
+Do not use current sprite as the primary identity mechanism when Core can provide entity/definition identity.
 
-## Future topology direction — design note, not current contract
+Geometry remains explicit and exact; do not infer complex geometry by sprite-number arithmetic.
 
-A future Core API may make the structural topology of every opening explicit and use it as the canonical dispatch point for mechanics and placement.
+## Pickup families
 
-Potential direction:
+### Simple
 
-```lua
-topology = {
-    type = "single",
-}
-```
+Simple covers one-tile openings and paired one-tile members supported by `Simple/MoveableAdapter.lua`.
 
-with topology types such as:
+Inventory right-click placement uses the dedicated LMION cursor and plan path.
 
-```text
-single
-paired
-garage
-largeGate
-sliding
-```
+Important preserved behavior:
 
-and future topology-specific parameters where needed, for example a multi-tile sliding opening:
+- N/W rotation through the dedicated cursor;
+- standard-frame requirement remains enforced;
+- persisted HP/state is restored after placement;
+- same-Z validation occurs before movable cheat bypass, matching the pre-refactor behavior.
 
-```lua
-topology = {
-    type = "sliding",
-    width = 2,
-}
-```
+### Garage
 
-or a paired/sliding arrangement if that eventually proves useful.
+Garage topology is variable-length for dedicated inventory placement and fixed L3 for the vanilla toolbar.
 
-The intended architectural goal would be:
+These are intentionally different behaviors:
 
 ```text
-definition.topology.type
-    -> Core topology resolver/handler
-    -> placement / member layout / structural rules
-    -> mechanics consume Core's resolved topology instead of inferring shape from geometry, frame, or ad-hoc fields
+inventory right-click -> dedicated LMION cursor -> variable width
+vanilla toolbar       -> synthetic SpriteGrid -> fixed L3
 ```
 
-This would make it easier to add opening forms that do not exist in the current catalog, such as two-tile sliding glass doors, shop-style automatic paired sliding doors, or other custom layouts.
+The synthetic toolbar SpriteGrid is not the semantic garage topology. `GaragePlacement` resolves the actual START / MIDDLE* / END parcels.
 
-`frame` should remain orthogonal to topology. It answers what structural support is required for placement, while topology answers how the opening itself is spatially composed. Current intended frame vocabulary is:
+`GarageToolbarAdapter` owns the Garage-specific vanilla hooks:
+
+- N/W face mapping;
+- `findInInventory`;
+- `findInInventoryMultiSprite`;
+- synthetic L3 SpriteGrid;
+- multi-sprite placement finalization.
+
+Do not replace those with a generic toolbar-item selection scheme unless it reproduces the validated baseline exactly.
+
+### LargeGate
+
+A LargeGate is handled per leaf/vantail. Each leaf uses two physical parcels.
+
+Dedicated inventory placement is LMION-owned.
+
+The toolbar deliberately follows the vanilla multi-sprite path. The validated toolbar contract is:
 
 ```text
-frame = "standard"
-frame = "paired"
-frame = "none"
+part 1 parcel in inventory
+    -> toolbar representative / anchor
+    -> vanilla SpriteGrid ghost and rotation
+    -> LargeGate placement validation resolves part 2 from inventory/floor
 ```
 
-Do not fold `frame` into `topology` unless later design work proves there is a strong reason to do so.
+Only `partIndex == 1` creates the toolbar entry. This is not an arbitrary restriction: part 1 is the visual/geometry anchor used by the validated vanilla pipeline.
 
-This topology model is intentionally **not implemented yet**. Revisit it once more non-trivial opening forms exist, so the final contract is based on real requirements rather than guessed abstractions.
+`LargeGateToolbar.lua` therefore keeps its own `findInInventory` hook instead of sharing Garage's lookup semantics.
 
-## Load-order rule that must not be forgotten
+## Placement pipelines
+
+### Dedicated inventory placement
+
+This path is LMION-owned:
+
+```text
+right-click Place
+-> family cursor
+-> family plan
+-> LMION ghost
+-> LMION timed action
+-> family placement
+-> parcel consumption
+```
+
+Garage variable width and LargeGate leaf reconstruction live here.
+
+### Vanilla toolbar placement
+
+This path should remain vanilla as far as practical:
+
+```text
+ISMoveableCursor
+-> inventory object list + family adapter
+-> vanilla facing / SpriteGrid ghost
+-> family canPlace override only where required
+-> vanilla walkToAndEquip
+-> ISMoveablesAction
+-> family completion/finalization only where required
+```
+
+LMION may adapt tools, actions, parcel lookup and finalization, but should not replace the whole toolbar pipeline merely to make the families look uniform.
+
+## Transport state
+
+Transport uses the generic item:
+
+```text
+Base.LMION_OpeningParcel
+```
+
+`TransportState` preserves stable opening identity plus physical state such as HP/max HP. Family placement restores that state after the physical world object is finalized.
+
+For multi-square families, parcel source (`inventory` container or `"floor"`) is resolved while building the family plan and is authoritative during consumption.
+
+## Load-order rule
 
 Core registration follows the verified scope/mod ordering in `Legacy/Research/Architecture/CoreLoadOrder.md`.
 
-For gameplay/UI cross-tree code, preserve the **Legacy garage pattern**:
+For gameplay/UI cross-tree code, preserve the Legacy pattern:
 
 ```text
 server cursor file
     -> loads normally in server/gameplay scope
 
 client inventory hook
-    -> DO NOT require server/BuildingObjects cursor during early client load
+    -> do not require server/BuildingObjects cursor during early client load
     -> wait until OnGameStart
     -> install handoff only when both sides are available
 ```
 
-This matters because `BuildingObjects/ISMoveableCursor` can be unavailable during early client loading. A rewritten Pickup experiment reproduced that failure on 2026-08-31 and was replaced with the Legacy pattern.
-
 PZ autoexecutes Lua files in each active scope; do not add an entrypoint solely to make an ordinary cursor file execute.
 
-## Geometry pilots
-
-```text
-Doors.Wood.WhitePanelDoor
-N closed fixtures_doors_01_1
-N open   fixtures_doors_01_3
-W closed fixtures_doors_01_0
-W open   fixtures_doors_01_2
-
-Doors.Wood.WhiteRestroomStallDoor
-N closed fixtures_doors_02_21
-N open   fixtures_doors_02_23
-W closed fixtures_doors_02_20
-W open   fixtures_doors_02_22
-```
-
-Geometry is explicit and exact; do not infer complex geometry by sprite-number arithmetic.
-
-## Rewritten Pickup slice
-
-Workshop contains `LMION_Pickup` with capability-driven simple 1x1 support. Pickup does not own concrete DoorProfiles.
-
-Current compatible pilots should produce:
-
-```text
-[LMION:Pickup] simple 1x1 registry ready: 2 definitions, 8 sprites
-```
-
-Transport uses one generic item:
-
-```text
-Base.LMION_OpeningParcel
-```
-
-Placement now follows the proven garage architecture rather than patching `ISMoveableCursor` globally:
-
-```text
-server/LMION/Pickup/SimpleDoorCursor.lua
-client/LMION/Pickup/PlacementHandoff.lua
-```
-
-Client handoff installs at `OnGameStart`. The dedicated cursor disables mouse rotation and uses `R` / `Rotate building` for N/W.
-
-Detailed design/test note: `Legacy/Research/Architecture/PickupRewrite.md`.
-
-## Known Legacy behavior to preserve
+## Known behavior to preserve
 
 - finalized LMION doors persist as `IsoDoor`;
-- `IsoThumpable(isDoor)` accepted as source input only;
-- framed doors: screwdriver pickup/replacement;
-- frameless/gate-like: crowbar pickup, hammer replacement;
+- `IsoThumpable(isDoor)` accepted as source input only where supported;
 - physical tool and governing skill remain separate;
 - vanilla Moveables may overwrite item weight during `ReadFromWorldSprite`, so synchronize both weight fields;
-- LMION standards are defaults, not limitations;
-- MetalBar/IronBar alternatives remain supported where reviewed.
+- HP/max HP survive pickup and replacement;
+- standard framed doors still require their frame;
+- Garage toolbar places fixed L3 while inventory placement remains variable;
+- LargeGate pickup/placement operates per leaf;
+- LargeGate and Garage placement can resolve required secondary parcels from the nearby floor where the validated family pipeline supports it;
+- special pickup/preview rendering must stay family-local when its color/model rules differ from the common green/red ghost.
 
-## Immediate next test
+## Crash-test checklist after refactor
 
-With Workshop Core + Pickup enabled, use `WhiteRestroomStallDoor` first.
-
-Expected:
+Test both N and W when relevant.
 
 ```text
-boot -> simple 1x1 registry line
-OnGameStart -> simple-door Place handoff line
-pickup -> one generic parcel
-Place -> dedicated ghost preview
-R -> N/W
-valid frame -> functioning IsoDoor
-health survives
+Simple
+- pickup
+- inventory Place
+- toolbar Place where applicable
+- rotation
+- frame rejection
+- damaged HP persists
+
+Garage
+- pickup full chain
+- inventory Place at variable widths
+- toolbar fixed L3
+- START / MIDDLE / END split between inventory and nearby floor
+- no parcel left over
+- damaged HP persists
+
+LargeGate
+- pickup one leaf
+- inventory Place with one parcel on floor
+- toolbar ghost shows the complete leaf
+- toolbar placement with part 1 in inventory and part 2 nearby on floor
+- rotation
+- partner leaf open/closed parity
+- damaged HP persists
 ```
 
-Do not add paired/large/garage rewrite code until this simple vertical slice is sound.
+If a crash-test case fails, instrument the narrow family path first. Useful diagnostics are parcel identity, item ID, selected source, plan entries and consume result. Avoid broad logging across unrelated families.
 
 ## Git workflow
 
@@ -228,10 +286,12 @@ Do not add paired/large/garage rewrite code until this simple vertical slice is 
 - Legacy = old code/research/history.
 - Coudji manually copies validated Workshop content to `PZMOD_LMION`.
 - Re-fetch `LMION_Legacy/main` before writes.
-- Prefer coherent commits.
+- Prefer coherent, behavior-preserving commits.
 
-Pre-reorganization backup:
+Important refs:
 
 ```text
-backup/main-before-workshop-refactor-20260830
+baseline-pre-refactor-0549bf
+backup-main-2026-09-03-tested-pre-action-router
+backup-main-2026-09-03-refactor-complete-pre-crash-test
 ```
