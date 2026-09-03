@@ -9,39 +9,30 @@ local PlacementCursorUtils = require "LMION/Pickup/Common/PlacementCursorUtils"
 local PlacementRules = require "LMION/Pickup/Common/PlacementRules"
 
 
+local function getPlanSquare(plan, partIndex)
+    return plan[partIndex] and plan[partIndex].square or nil
+end
+
+
 local function isAdjacentToPlan(character, plan)
-    if character == nil or plan == nil then
-        return false
-    end
-
-    if PlacementRules.isCheat(character) then
-        return true
-    end
-
-    for partIndex = 1, 2 do
-        local square = plan[partIndex] and plan[partIndex].square or nil
-        if PlacementRules.isSameOrAdjacent(character, square) then
-            return true
+    return plan ~= nil and PlacementRules.isAnySquareAdjacent(
+        character,
+        2,
+        function(partIndex)
+            return getPlanSquare(plan, partIndex)
         end
-    end
-
-    return false
+    )
 end
 
 
 local function isSafehouseAllowed(character, plan)
-    if plan == nil then
-        return false
-    end
-
-    for partIndex = 1, 2 do
-        local square = plan[partIndex] and plan[partIndex].square or nil
-        if not PlacementRules.isSafehouseAllowed(character, square) then
-            return false
+    return plan ~= nil and PlacementRules.areAllSafehousesAllowed(
+        character,
+        2,
+        function(partIndex)
+            return getPlanSquare(plan, partIndex)
         end
-    end
-
-    return true
+    )
 end
 
 
