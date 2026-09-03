@@ -1,7 +1,7 @@
 local LMION = require "LMION/API"
 local ParcelUtils = require "LMION/Pickup/Common/ParcelUtils"
 local LargeGatePickup = require "LMION/Pickup/LargeGate/LargeGatePickup"
-local TransportState = require "LMION/Pickup/TransportState"
+local TransportState = require "LMION/Pickup/Common/TransportState"
 
 local LargeGatePlacement = {}
 

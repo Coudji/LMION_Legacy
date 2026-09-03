@@ -1,7 +1,7 @@
 local LMION = require "LMION/API"
 local ParcelUtils = require "LMION/Pickup/Common/ParcelUtils"
 local GaragePickup = require "LMION/Pickup/Garage/GaragePickup"
-local TransportState = require "LMION/Pickup/TransportState"
+local TransportState = require "LMION/Pickup/Common/TransportState"
 
 local GaragePlacement = {}
 
