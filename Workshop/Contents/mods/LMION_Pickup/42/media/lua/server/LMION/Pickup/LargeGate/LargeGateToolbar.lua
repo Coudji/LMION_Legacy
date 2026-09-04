@@ -2,7 +2,6 @@ require "BuildingObjects/ISMoveableCursor"
 require "Moveables/ISMoveablesAction"
 require "Moveables/ISMoveableSpriteProps"
 
-local LMION = require "LMION/API"
 local LargeGatePickup = require "LMION/Pickup/LargeGate/LargeGatePickup"
 local LargeGatePlacement = require "LMION/Pickup/LargeGate/LargeGatePlacement"
 local ParcelUtils = require "LMION/Pickup/Common/ParcelUtils"
@@ -67,80 +66,6 @@ local function getRequestedPart(requestedName)
 end
 
 
-local function getToolbarAnchorMoveProps(identity, facing)
-    if identity == nil then
-        return nil
-    end
-
-    facing = facing == "W" and "W" or "N"
-
-    local anchorSprite = LargeGatePickup.getPartSprite(
-        identity.definitionId,
-        facing,
-        identity.leaf,
-        1,
-        false
-    )
-    local moveProps = anchorSprite
-        and ISMoveableSpriteProps.new(anchorSprite)
-        or nil
-
-    if moveProps == nil or not moveProps.isMoveable then
-        return nil
-    end
-
-    return moveProps
-end
-
-
-local function getSelectedPartSquare(anchorSquare, item, facing)
-    local identity = getIdentity(item)
-    if anchorSquare == nil or identity == nil then
-        return nil
-    end
-
-    if identity.partIndex == 1 then
-        return anchorSquare
-    end
-
-    local topology = LMION.getLargeGateTopology()
-    local indices = topology
-        and topology.leaves
-        and topology.leaves[identity.leaf]
-        and topology.leaves[identity.leaf].indices
-        and topology.leaves[identity.leaf].indices[facing]
-        or nil
-    local layout = topology
-        and topology.layout
-        and topology.layout[facing]
-        and topology.layout[facing].closed
-        or nil
-
-    if indices == nil or layout == nil then
-        return nil
-    end
-
-    local anchorLogicalIndex = tonumber(indices[1])
-    local selectedLogicalIndex = tonumber(indices[identity.partIndex])
-    local anchorOffset = anchorLogicalIndex and layout[anchorLogicalIndex] or nil
-    local selectedOffset = selectedLogicalIndex and layout[selectedLogicalIndex] or nil
-
-    if anchorOffset == nil or selectedOffset == nil then
-        return nil
-    end
-
-    return getCell():getGridSquare(
-        anchorSquare:getX()
-            + tonumber(selectedOffset[1])
-            - tonumber(anchorOffset[1]),
-        anchorSquare:getY()
-            + tonumber(selectedOffset[2])
-            - tonumber(anchorOffset[2]),
-        anchorSquare:getZ()
-    )
-end
-
-
 local function appendToolbarEntry(objects, item, seenLeaves)
     local identity = getIdentity(item)
     if identity == nil then
@@ -152,8 +77,8 @@ local function appendToolbarEntry(objects, item, seenLeaves)
         return
     end
 
-    local moveProps = getToolbarAnchorMoveProps(identity, "N")
-    if moveProps == nil then
+    local moveProps = LargeGatePlacement.getMoveProps(item, "N")
+    if moveProps == nil or not moveProps.isMoveable then
         return
     end
 
@@ -243,32 +168,6 @@ local function installInventoryLookupHooks()
 end
 
 
-local function installCanPlaceHook()
-    local previous = ISMoveableSpriteProps.canPlaceMoveable
-
-    ISMoveableSpriteProps.canPlaceMoveable = function(
-        self,
-        character,
-        square,
-        item
-    )
-        if self ~= nil and self.lmionLargeGateDefinitionId ~= nil then
-            local anchorParcel = findParcel(
-                character,
-                self.lmionLargeGateDefinitionId,
-                self.lmionLargeGateLeaf,
-                1,
-                nil
-            )
-
-            return previous(self, character, square, anchorParcel)
-        end
-
-        return previous(self, character, square, item)
-    end
-end
-
-
 local function createToolbarAction(
     actionClass,
     character,
@@ -279,8 +178,7 @@ local function createToolbarAction(
     item,
     moveCursor
 )
-    local identity = getIdentity(item)
-    if mode ~= "place" or identity == nil then
+    if mode ~= "place" or getIdentity(item) == nil then
         return nil
     end
 
@@ -289,7 +187,7 @@ local function createToolbarAction(
         moveCursor,
         "lmionLargeGateFacing"
     )
-    local moveProps = getToolbarAnchorMoveProps(identity, facing)
+    local moveProps = LargeGatePlacement.getMoveProps(item, facing)
     if moveProps == nil then
         return nil
     end
@@ -358,19 +256,10 @@ local function completeToolbarPlacement(action)
         action.moveProps,
         action.lmionLargeGateFacing
     )
-    local selectedSquare = getSelectedPartSquare(
-        action.square,
-        action.item,
-        facing
-    )
-
-    if selectedSquare == nil then
-        return false
-    end
 
     return LargeGatePlacement.placeParcel(
         action.character,
-        selectedSquare,
+        action.square,
         action.item,
         facing
     )
@@ -392,7 +281,6 @@ end
 
 installInventoryListHook()
 installInventoryLookupHooks()
-installCanPlaceHook()
 installActionNewHook()
 installActionCompleteHook()
 
