@@ -1,24 +1,12 @@
 require "BuildingObjects/ISMoveableCursor"
-require "Moveables/ISMoveablesAction"
 require "Moveables/ISMoveableSpriteProps"
 
 local LargeGatePickup = require "LMION/Pickup/LargeGate/LargeGatePickup"
-local LargeGatePlacement = require "LMION/Pickup/LargeGate/LargeGatePlacement"
 local ParcelUtils = require "LMION/Pickup/Common/ParcelUtils"
-local PlacementActionUtils = require "LMION/Pickup/Common/PlacementActionUtils"
 
 
 local function getIdentity(item)
     return item and LargeGatePickup.getParcelIdentity(item) or nil
-end
-
-
-local function getFacing(moveProps, fallback)
-    return PlacementActionUtils.resolveFacing(
-        moveProps,
-        "lmionLargeGateFacing",
-        fallback
-    )
 end
 
 
@@ -38,18 +26,28 @@ local function findParcel(character, definitionId, leaf, partIndex, preferred)
 end
 
 
-local function findMovePropsParcel(character, moveProps)
-    if moveProps == nil then
+local function getLeafAnchorMoveProps(item, facing)
+    local identity = getIdentity(item)
+    if identity == nil then
         return nil
     end
 
-    return findParcel(
-        character,
-        moveProps.lmionLargeGateDefinitionId,
-        moveProps.lmionLargeGateLeaf,
-        moveProps.lmionLargeGatePart,
-        nil
+    facing = facing == "W" and "W" or "N"
+
+    local spriteName = LargeGatePickup.getPartSprite(
+        identity.definitionId,
+        facing,
+        identity.leaf,
+        1,
+        false
     )
+    local moveProps = spriteName and ISMoveableSpriteProps.new(spriteName) or nil
+
+    if moveProps == nil or not moveProps.isMoveable then
+        return nil
+    end
+
+    return moveProps
 end
 
 
@@ -77,8 +75,10 @@ local function appendToolbarEntry(objects, item, seenLeaves)
         return
     end
 
-    local moveProps = LargeGatePlacement.getMoveProps(item, "N")
-    if moveProps == nil or not moveProps.isMoveable then
+    -- The toolbar represents a leaf, not the parcel currently carried.
+    -- Part 1 is the vanilla SpriteGrid anchor for both N and W faces.
+    local moveProps = getLeafAnchorMoveProps(item, "N")
+    if moveProps == nil then
         return
     end
 
@@ -135,7 +135,13 @@ local function installInventoryLookupHooks()
                 )
             end
 
-            return findMovePropsParcel(character, self)
+            return findParcel(
+                character,
+                self.lmionLargeGateDefinitionId,
+                self.lmionLargeGateLeaf,
+                self.lmionLargeGatePart,
+                nil
+            )
         end
 
         return previousFind(self, character, spriteName)
@@ -168,120 +174,7 @@ local function installInventoryLookupHooks()
 end
 
 
-local function createToolbarAction(
-    actionClass,
-    character,
-    square,
-    mode,
-    object,
-    direction,
-    item,
-    moveCursor
-)
-    if mode ~= "place" or getIdentity(item) == nil then
-        return nil
-    end
-
-    local facing = PlacementActionUtils.resolveToolbarFacing(
-        direction,
-        moveCursor,
-        "lmionLargeGateFacing"
-    )
-    local moveProps = LargeGatePlacement.getMoveProps(item, facing)
-    if moveProps == nil then
-        return nil
-    end
-
-    return PlacementActionUtils.configureToolbar(
-        ISBaseTimedAction.new(actionClass, character),
-        character,
-        square,
-        mode,
-        object,
-        item,
-        moveCursor,
-        facing,
-        moveProps,
-        "lmionLargeGateFacing"
-    )
-end
-
-
-local function installActionNewHook()
-    local previous = ISMoveablesAction.new
-
-    ISMoveablesAction.new = function(
-        self,
-        character,
-        square,
-        mode,
-        origSpriteName,
-        object,
-        direction,
-        item,
-        moveCursor
-    )
-        local action = createToolbarAction(
-            self,
-            character,
-            square,
-            mode,
-            object,
-            direction,
-            item,
-            moveCursor
-        )
-
-        if action ~= nil then
-            return action
-        end
-
-        return previous(
-            self,
-            character,
-            square,
-            mode,
-            origSpriteName,
-            object,
-            direction,
-            item,
-            moveCursor
-        )
-    end
-end
-
-
-local function completeToolbarPlacement(action)
-    local facing = getFacing(
-        action.moveProps,
-        action.lmionLargeGateFacing
-    )
-
-    return LargeGatePlacement.placeParcel(
-        action.character,
-        action.square,
-        action.item,
-        facing
-    )
-end
-
-
-local function installActionCompleteHook()
-    local previous = ISMoveablesAction.complete
-
-    ISMoveablesAction.complete = function(self)
-        if self.mode == "place" and getIdentity(self.item) ~= nil then
-            return completeToolbarPlacement(self)
-        end
-
-        return previous(self)
-    end
-end
-
-
 installInventoryListHook()
 installInventoryLookupHooks()
-installActionNewHook()
-installActionCompleteHook()
 
-return LargeGatePlacement
+return true
