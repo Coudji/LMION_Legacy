@@ -2,6 +2,7 @@ return {
     defaultId = "SlidingDoors.SlidingGlass",
 
     defaults = {
+        doorType = "Sliding",
         frame = "none",
         materialType = "Glass_Solid",
         doorSound = "SlidingGlassDoor",

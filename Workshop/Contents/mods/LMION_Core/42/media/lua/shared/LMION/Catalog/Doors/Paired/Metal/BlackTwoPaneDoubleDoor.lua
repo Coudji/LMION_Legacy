@@ -1,6 +1,7 @@
 return {
     definitionId = "Doors.Metal.BlackTwoPaneDoubleDoor",
     inherits = "Doors.Metal.TwoGlass",
+    doorType = "Paired",
     frame = "paired",
 
     entities = {
