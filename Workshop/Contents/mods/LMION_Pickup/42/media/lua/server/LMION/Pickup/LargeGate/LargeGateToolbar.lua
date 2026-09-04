@@ -66,6 +66,30 @@ local function getRequestedPart(requestedName)
 end
 
 
+local function getToolbarAnchorMoveProps(identity)
+    if identity == nil then
+        return nil
+    end
+
+    local anchorSprite = LargeGatePickup.getPartSprite(
+        identity.definitionId,
+        "N",
+        identity.leaf,
+        1,
+        false
+    )
+    local moveProps = anchorSprite
+        and ISMoveableSpriteProps.new(anchorSprite)
+        or nil
+
+    if moveProps == nil or not moveProps.isMoveable then
+        return nil
+    end
+
+    return moveProps
+end
+
+
 local function appendToolbarEntry(objects, item, seenLeaves)
     local identity = getIdentity(item)
     if identity == nil then
@@ -77,8 +101,10 @@ local function appendToolbarEntry(objects, item, seenLeaves)
         return
     end
 
-    local moveProps = LargeGatePlacement.getMoveProps(item, "N")
-    if moveProps == nil or not moveProps.isMoveable then
+    -- The carried parcel selects the leaf, but vanilla must render the
+    -- multi-sprite ghost from part 1 because part 1 is the SpriteGrid anchor.
+    local moveProps = getToolbarAnchorMoveProps(identity)
+    if moveProps == nil then
         return
     end
 
