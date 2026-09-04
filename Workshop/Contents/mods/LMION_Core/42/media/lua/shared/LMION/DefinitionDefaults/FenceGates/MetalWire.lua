@@ -2,6 +2,7 @@ return {
     defaultId = "FenceGates.Metal.Wire",
 
     defaults = {
+        doorType = "FenceGate",
         frame = "none",
         materialType = "Metal_Light",
         doorSound = "MetalGate",

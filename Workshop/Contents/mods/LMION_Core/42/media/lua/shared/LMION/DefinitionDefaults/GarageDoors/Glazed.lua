@@ -2,6 +2,7 @@ return {
     defaultId = "GarageDoors.Glazed",
 
     defaults = {
+        doorType = "Garage",
         frame = "none",
         materialType = "Metal_Light",
         doorSound = "GarageDoor",

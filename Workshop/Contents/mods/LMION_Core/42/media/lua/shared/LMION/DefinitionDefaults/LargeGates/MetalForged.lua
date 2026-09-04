@@ -2,6 +2,7 @@ return {
     defaultId = "LargeGates.Metal.Forged",
 
     defaults = {
+        doorType = "LargeGate",
         frame = "none",
         materialType = "Metal_Solid",
         doorSound = "MetalPoleGateDouble",

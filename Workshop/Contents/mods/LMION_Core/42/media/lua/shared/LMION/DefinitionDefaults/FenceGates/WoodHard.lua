@@ -2,6 +2,7 @@ return {
     defaultId = "FenceGates.Wood.Hard",
 
     defaults = {
+        doorType = "FenceGate",
         frame = "none",
         materialType = "Wood_Solid",
         doorSound = "WoodGate",

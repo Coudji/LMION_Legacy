@@ -2,6 +2,7 @@ return {
     defaultId = "LargeGates.Wood.Hard",
 
     defaults = {
+        doorType = "LargeGate",
         frame = "none",
         materialType = "Wood_Solid",
         doorSound = "WoodGate",

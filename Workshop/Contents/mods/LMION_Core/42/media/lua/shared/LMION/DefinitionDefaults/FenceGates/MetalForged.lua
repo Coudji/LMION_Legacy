@@ -2,6 +2,7 @@ return {
     defaultId = "FenceGates.Metal.Forged",
 
     defaults = {
+        doorType = "FenceGate",
         frame = "none",
         materialType = "Metal_Solid",
         doorSound = "MetalPoleGate",

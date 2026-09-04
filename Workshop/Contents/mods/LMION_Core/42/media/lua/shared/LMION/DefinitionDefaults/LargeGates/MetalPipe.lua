@@ -2,6 +2,7 @@ return {
     defaultId = "LargeGates.Metal.Pipe",
 
     defaults = {
+        doorType = "LargeGate",
         frame = "none",
         materialType = "Metal_Light",
         doorSound = "MetalGate",
