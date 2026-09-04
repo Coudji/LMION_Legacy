@@ -4,6 +4,7 @@ require "Moveables/ISMoveableSpriteProps"
 
 local LargeGatePickup = require "LMION/Pickup/LargeGate/LargeGatePickup"
 local LargeGatePlacement = require "LMION/Pickup/LargeGate/LargeGatePlacement"
+local ParcelUtils = require "LMION/Pickup/Common/ParcelUtils"
 local PlacementActionUtils = require "LMION/Pickup/Common/PlacementActionUtils"
 
 
@@ -21,58 +22,44 @@ local function getFacing(moveProps, fallback)
 end
 
 
-local function itemMatchesMoveProps(item, moveProps)
-    local identity = getIdentity(item)
+local function findParcel(character, definitionId, leaf, partIndex, preferred)
+    return ParcelUtils.findNearbyItem(
+        character,
+        function(item)
+            local identity = getIdentity(item)
 
-    return identity ~= nil
-        and identity.definitionId == moveProps.lmionLargeGateDefinitionId
-        and identity.leaf == moveProps.lmionLargeGateLeaf
-        and identity.partIndex == moveProps.lmionLargeGatePart
+            return identity ~= nil
+                and identity.definitionId == definitionId
+                and identity.leaf == leaf
+                and identity.partIndex == partIndex
+        end,
+        preferred
+    )
 end
 
 
-local function findRepresentativeParcel(character, moveProps)
-    if character == nil or moveProps == nil then
+local function findMovePropsParcel(character, moveProps)
+    if moveProps == nil then
         return nil
     end
 
-    local inventory = character:getInventory()
-    local items = inventory and inventory:getItems() or nil
+    return findParcel(
+        character,
+        moveProps.lmionLargeGateDefinitionId,
+        moveProps.lmionLargeGateLeaf,
+        moveProps.lmionLargeGatePart,
+        nil
+    )
+end
 
-    if items ~= nil then
-        for index = 0, items:size() - 1 do
-            local item = items:get(index)
-            if itemMatchesMoveProps(item, moveProps) then
-                return item, inventory
-            end
-        end
-    end
 
-    local playerSquare = character:getSquare()
-    if playerSquare == nil then
-        return nil
-    end
+local function getRequestedPart(requestedName)
+    local partIndex = tonumber(
+        string.match(requestedName or "", "%((%d+)/2%)$")
+    )
 
-    local radius = ISMoveableSpriteProps.multiSpriteFloorRadius or 3
-    local z = playerSquare:getZ()
-
-    for x = playerSquare:getX() - radius, playerSquare:getX() + radius do
-        for y = playerSquare:getY() - radius, playerSquare:getY() + radius do
-            local square = getCell():getGridSquare(x, y, z)
-            local worldObjects = square and square:getWorldObjects() or nil
-
-            if worldObjects ~= nil then
-                for index = 0, worldObjects:size() - 1 do
-                    local worldObject = worldObjects:get(index)
-                    if instanceof(worldObject, "IsoWorldInventoryObject") then
-                        local item = worldObject:getItem()
-                        if itemMatchesMoveProps(item, moveProps) then
-                            return item, "floor"
-                        end
-                    end
-                end
-            end
-        end
+    if partIndex == 1 or partIndex == 2 then
+        return partIndex
     end
 
     return nil
@@ -128,15 +115,55 @@ local function installInventoryListHook()
 end
 
 
-local function installFindInInventoryHook()
-    local previous = ISMoveableSpriteProps.findInInventory
+local function installInventoryLookupHooks()
+    local previousFind = ISMoveableSpriteProps.findInInventory
 
     ISMoveableSpriteProps.findInInventory = function(self, character, spriteName)
         if self.lmionLargeGateDefinitionId ~= nil then
-            return findRepresentativeParcel(character, self)
+            local segment = spriteName and LargeGatePickup.getSegment(spriteName) or nil
+
+            if segment ~= nil
+                and segment.definitionId == self.lmionLargeGateDefinitionId
+                and segment.leaf == self.lmionLargeGateLeaf
+            then
+                return findParcel(
+                    character,
+                    segment.definitionId,
+                    segment.leaf,
+                    segment.partIndex,
+                    nil
+                )
+            end
+
+            return findMovePropsParcel(character, self)
         end
 
-        return previous(self, character, spriteName)
+        return previousFind(self, character, spriteName)
+    end
+
+    local previousFindMulti = ISMoveableSpriteProps.findInInventoryMultiSprite
+
+    ISMoveableSpriteProps.findInInventoryMultiSprite = function(
+        self,
+        character,
+        requestedName
+    )
+        if self.lmionLargeGateDefinitionId ~= nil then
+            local partIndex = getRequestedPart(requestedName)
+            if partIndex == nil then
+                return nil
+            end
+
+            return findParcel(
+                character,
+                self.lmionLargeGateDefinitionId,
+                self.lmionLargeGateLeaf,
+                partIndex,
+                nil
+            )
+        end
+
+        return previousFindMulti(self, character, requestedName)
     end
 end
 
@@ -253,7 +280,7 @@ end
 
 
 installInventoryListHook()
-installFindInInventoryHook()
+installInventoryLookupHooks()
 installActionNewHook()
 installActionCompleteHook()
 
