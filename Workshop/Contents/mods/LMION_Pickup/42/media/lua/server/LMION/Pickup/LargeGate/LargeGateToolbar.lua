@@ -32,16 +32,46 @@ end
 
 
 local function findRepresentativeParcel(character, moveProps)
-    local inventory = character and character:getInventory() or nil
-    local items = inventory and inventory:getItems() or nil
-    if items == nil or moveProps == nil then
+    if character == nil or moveProps == nil then
         return nil
     end
 
-    for index = 0, items:size() - 1 do
-        local item = items:get(index)
-        if itemMatchesMoveProps(item, moveProps) then
-            return item
+    local inventory = character:getInventory()
+    local items = inventory and inventory:getItems() or nil
+
+    if items ~= nil then
+        for index = 0, items:size() - 1 do
+            local item = items:get(index)
+            if itemMatchesMoveProps(item, moveProps) then
+                return item, inventory
+            end
+        end
+    end
+
+    local playerSquare = character:getSquare()
+    if playerSquare == nil then
+        return nil
+    end
+
+    local radius = ISMoveableSpriteProps.multiSpriteFloorRadius or 3
+    local z = playerSquare:getZ()
+
+    for x = playerSquare:getX() - radius, playerSquare:getX() + radius do
+        for y = playerSquare:getY() - radius, playerSquare:getY() + radius do
+            local square = getCell():getGridSquare(x, y, z)
+            local worldObjects = square and square:getWorldObjects() or nil
+
+            if worldObjects ~= nil then
+                for index = 0, worldObjects:size() - 1 do
+                    local worldObject = worldObjects:get(index)
+                    if instanceof(worldObject, "IsoWorldInventoryObject") then
+                        local item = worldObject:getItem()
+                        if itemMatchesMoveProps(item, moveProps) then
+                            return item, "floor"
+                        end
+                    end
+                end
+            end
         end
     end
 
@@ -51,7 +81,7 @@ end
 
 local function appendToolbarEntry(objects, item, seenLeaves)
     local identity = getIdentity(item)
-    if identity == nil or identity.partIndex ~= 1 then
+    if identity == nil then
         return
     end
 
