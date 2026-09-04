@@ -252,57 +252,6 @@ function LargeGatePlacementParity.install()
         )
     end
 
-    require "Moveables/ISMoveableSpriteProps"
-
-    local previousCanPlace = ISMoveableSpriteProps.canPlaceMoveable
-    ISMoveableSpriteProps.canPlaceMoveable = function(
-        self,
-        character,
-        square,
-        item
-    )
-        if self ~= nil and self.lmionLargeGateDefinitionId ~= nil then
-            local plan = LargeGatePlacement.getPreview(
-                character,
-                square,
-                item,
-                self.lmionLargeGateFacing
-            )
-            return plan ~= nil and plan.valid == true
-        end
-
-        return previousCanPlace(self, character, square, item)
-    end
-
-    local previousPlace = ISMoveableSpriteProps.placeMoveable
-    ISMoveableSpriteProps.placeMoveable = function(
-        self,
-        character,
-        square,
-        origSpriteName,
-        forceAllow
-    )
-        if self ~= nil and self.lmionLargeGateDefinitionId ~= nil then
-            local plan = LargeGatePlacement.getPreview(
-                character,
-                square,
-                nil,
-                self.lmionLargeGateFacing
-            )
-            if plan == nil or not plan.valid then
-                return false
-            end
-        end
-
-        return previousPlace(
-            self,
-            character,
-            square,
-            origSpriteName,
-            forceAllow
-        )
-    end
-
     installed = true
 end
 
