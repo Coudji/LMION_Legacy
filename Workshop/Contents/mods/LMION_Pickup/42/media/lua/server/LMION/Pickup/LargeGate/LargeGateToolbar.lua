@@ -2,6 +2,7 @@ require "BuildingObjects/ISMoveableCursor"
 require "Moveables/ISMoveablesAction"
 require "Moveables/ISMoveableSpriteProps"
 
+local LMION = require "LMION/API"
 local LargeGatePickup = require "LMION/Pickup/LargeGate/LargeGatePickup"
 local LargeGatePlacement = require "LMION/Pickup/LargeGate/LargeGatePlacement"
 local ParcelUtils = require "LMION/Pickup/Common/ParcelUtils"
@@ -66,14 +67,16 @@ local function getRequestedPart(requestedName)
 end
 
 
-local function getToolbarAnchorMoveProps(identity)
+local function getToolbarAnchorMoveProps(identity, facing)
     if identity == nil then
         return nil
     end
 
+    facing = facing == "W" and "W" or "N"
+
     local anchorSprite = LargeGatePickup.getPartSprite(
         identity.definitionId,
-        "N",
+        facing,
         identity.leaf,
         1,
         false
@@ -90,6 +93,54 @@ local function getToolbarAnchorMoveProps(identity)
 end
 
 
+local function getSelectedPartSquare(anchorSquare, item, facing)
+    local identity = getIdentity(item)
+    if anchorSquare == nil or identity == nil then
+        return nil
+    end
+
+    if identity.partIndex == 1 then
+        return anchorSquare
+    end
+
+    local topology = LMION.getLargeGateTopology()
+    local indices = topology
+        and topology.leaves
+        and topology.leaves[identity.leaf]
+        and topology.leaves[identity.leaf].indices
+        and topology.leaves[identity.leaf].indices[facing]
+        or nil
+    local layout = topology
+        and topology.layout
+        and topology.layout[facing]
+        and topology.layout[facing].closed
+        or nil
+
+    if indices == nil or layout == nil then
+        return nil
+    end
+
+    local anchorLogicalIndex = tonumber(indices[1])
+    local selectedLogicalIndex = tonumber(indices[identity.partIndex])
+    local anchorOffset = anchorLogicalIndex and layout[anchorLogicalIndex] or nil
+    local selectedOffset = selectedLogicalIndex and layout[selectedLogicalIndex] or nil
+
+    if anchorOffset == nil or selectedOffset == nil then
+        return nil
+    end
+
+    return getCell():getGridSquare(
+        anchorSquare:getX()
+            + tonumber(selectedOffset[1])
+            - tonumber(anchorOffset[1]),
+        anchorSquare:getY()
+            + tonumber(selectedOffset[2])
+            - tonumber(anchorOffset[2]),
+        anchorSquare:getZ()
+    )
+end
+
+
 local function appendToolbarEntry(objects, item, seenLeaves)
     local identity = getIdentity(item)
     if identity == nil then
@@ -101,9 +152,9 @@ local function appendToolbarEntry(objects, item, seenLeaves)
         return
     end
 
-    -- The carried parcel selects the leaf, but vanilla must render the
-    -- multi-sprite ghost from part 1 because part 1 is the SpriteGrid anchor.
-    local moveProps = getToolbarAnchorMoveProps(identity)
+    -- The carried parcel selects the leaf, but vanilla must render and
+    -- validate the multi-sprite placement from part 1, the SpriteGrid anchor.
+    local moveProps = getToolbarAnchorMoveProps(identity, "N")
     if moveProps == nil then
         return
     end
@@ -204,7 +255,8 @@ local function createToolbarAction(
     item,
     moveCursor
 )
-    if mode ~= "place" or getIdentity(item) == nil then
+    local identity = getIdentity(item)
+    if mode ~= "place" or identity == nil then
         return nil
     end
 
@@ -213,7 +265,7 @@ local function createToolbarAction(
         moveCursor,
         "lmionLargeGateFacing"
     )
-    local moveProps = LargeGatePlacement.getMoveProps(item, facing)
+    local moveProps = getToolbarAnchorMoveProps(identity, facing)
     if moveProps == nil then
         return nil
     end
@@ -282,10 +334,19 @@ local function completeToolbarPlacement(action)
         action.moveProps,
         action.lmionLargeGateFacing
     )
+    local selectedSquare = getSelectedPartSquare(
+        action.square,
+        action.item,
+        facing
+    )
+
+    if selectedSquare == nil then
+        return false
+    end
 
     return LargeGatePlacement.placeParcel(
         action.character,
-        action.square,
+        selectedSquare,
         action.item,
         facing
     )
