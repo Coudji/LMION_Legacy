@@ -1,3 +1,4 @@
+local DoorTypes = require "LMION/Core/DoorTypes"
 local Registry = require "LMION/Core/Registry"
 local TableUtils = require "LMION/Core/TableUtils"
 
@@ -21,6 +22,20 @@ local function applyExtensions(targetType, targetId, target)
 end
 
 
+local function applyDoorTypeCharacteristics(target)
+    if type(target) ~= "table" then
+        return target
+    end
+
+    local frame = DoorTypes.getFrame(target.doorType)
+    if frame ~= nil then
+        target.frame = frame
+    end
+
+    return target
+end
+
+
 function Resolver.resolveDefault(defaultId)
     local rawDefault = Registry.getDefault(defaultId)
 
@@ -35,6 +50,7 @@ function Resolver.resolveDefault(defaultId)
         defaultId,
         effectiveDefault.defaults
     )
+    applyDoorTypeCharacteristics(effectiveDefault.defaults)
 
     return effectiveDefault
 end
@@ -77,6 +93,7 @@ function Resolver.resolveDefinition(definitionId)
         definitionId,
         effectiveDefinition
     )
+    applyDoorTypeCharacteristics(effectiveDefinition)
 
     return effectiveDefinition
 end
