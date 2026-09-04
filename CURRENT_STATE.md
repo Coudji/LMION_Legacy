@@ -14,6 +14,27 @@ Do not reintroduce feature toggles as a substitute: load-time hooks, SpriteGrid/
 
 Debug may remain a separate development tool because it is not player-facing gameplay functionality.
 
+## Repository decision
+
+V3 should live in a **new clean repository**, rather than moving all V1/V2 material into an `archive/` directory inside this repository.
+
+Recommended target repository name:
+
+```text
+Coudji/LMION
+```
+
+Reason:
+
+- this repository is already named `LMION_Legacy` and is now accurately the archaeology/reference repository;
+- keeping it intact preserves Git history, old paths, research links and easy V1/V2 comparison;
+- a new repository gives V3 a clean root where everything visible is current;
+- it avoids a giant rename/move commit whose only purpose would be cosmetic cleanup.
+
+Do not modify `Coudji/PZMOD_LMION` unless Coudji explicitly asks. That repository remains manually managed.
+
+Until the new V3 repository exists, this file remains the canonical handoff. Once it exists, migrate the active handoff and selected active research there, then keep this repository as historical reference.
+
 ## V3 architecture goals
 
 The internal source must be organized by responsibility/domain, not by historical addon packaging.
@@ -176,19 +197,43 @@ The exact cancellation boundary was not instrumented before the decision to stop
 Do not resume speculative patching on that V2 stack.
 If LargeGate is ported to V3, recover the validated Legacy path and instrument narrow vanilla boundaries before changing behavior.
 
+## Current audit findings
+
+Workshop currently contains only two gameplay Mod IDs:
+
+```text
+LMION_Core
+LMION_Pickup
+```
+
+`LMION_Pickup` explicitly requires `LMION_Core` in `mod.info`; this packaging is V2-only and will not be preserved in V3.
+
+Workshop Core contains:
+
+- a large populated Lua catalog and DefinitionDefaults tree;
+- matching `media/scripts/LMION/...` GameEntity/script definitions for many door families;
+- Registry/Resolver/API/index/runtime modules;
+- translations;
+- Garage sandbox settings.
+
+Workshop Pickup contains:
+
+- two validated/custom AnimSets;
+- one generic `Base.LMION_OpeningParcel` script item;
+- translations;
+- client/server/shared Lua for UI, cursors, hooks, placement and transport.
+
+The V2 source also contains very large files (examples: `MoveableAdapter.lua` ~21 KB, `LargeGatePlacement.lua` ~17 KB, `LargeGatePickup.lua` ~16 KB, `GaragePickup.lua` ~14 KB, `GarageToolbarAdapter.lua` ~14 KB), confirming that these runtime files should be treated as migration sources/knowledge rather than copied wholesale into V3.
+
 ## Immediate V3 plan
 
-1. Audit repository contents without deleting anything.
-2. Classify material into:
-   - migrate to V3;
-   - behavioral reference only;
-   - research/specification to preserve;
-   - historical/superseded documentation;
-   - obsolete/removable after V3 replacement.
-3. Create the V3 tree separately from the existing V2 source.
-4. Migrate data/API foundations first where they survive audit.
-5. Port one small behavior path at a time and test it before cleanup.
-6. Keep `CURRENT_STATE.md` updated at meaningful checkpoints and **before/through any long operation likely to span a conversation limit**.
+1. Continue the audit in `LMION_Legacy` without destructive moves.
+2. Finish classifying data/scripts/assets/research into migration units.
+3. Create the new clean V3 repository once the minimal seed set is identified.
+4. Seed V3 with project guardrails/research first, then package skeleton.
+5. Migrate data/API foundations before gameplay runtime.
+6. Port one small behavior path at a time and test it before cleanup.
+7. Keep `CURRENT_STATE.md` updated at meaningful checkpoints and **before/through any long operation likely to span a conversation limit**.
 
 ## Handoff discipline for future conversations
 
