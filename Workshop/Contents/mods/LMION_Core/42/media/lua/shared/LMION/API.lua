@@ -1,4 +1,5 @@
 local DoorRuntime = require "LMION/Core/DoorRuntime"
+local DoorTypes = require "LMION/Core/DoorTypes"
 local EntityIndex = require "LMION/Core/EntityIndex"
 local GaragePolicy = require "LMION/Core/GaragePolicy"
 local GarageRuntime = require "LMION/Core/GarageRuntime"
@@ -76,6 +77,21 @@ end
 
 function API.getEffectiveDefinition(definitionId)
     return Resolver.resolveDefinition(definitionId)
+end
+
+
+function API.isDoorTypeSupported(doorType)
+    return DoorTypes.isSupported(doorType)
+end
+
+
+function API.getSupportedDoorTypes()
+    return DoorTypes.getNames()
+end
+
+
+function API.getDoorTypeFrame(doorType)
+    return DoorTypes.getFrame(doorType)
 end
 
 
