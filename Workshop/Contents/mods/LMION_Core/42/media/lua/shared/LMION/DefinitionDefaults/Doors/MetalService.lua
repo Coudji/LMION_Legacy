@@ -2,6 +2,7 @@ return {
     defaultId = "Doors.Metal.Service",
 
     defaults = {
+        doorType = "Simple",
         frame = "standard",
         materialType = "Metal_Light",
         doorSound = "MetalDoor",

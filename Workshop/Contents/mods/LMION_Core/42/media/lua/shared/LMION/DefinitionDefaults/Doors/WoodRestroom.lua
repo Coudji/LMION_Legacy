@@ -2,6 +2,7 @@ return {
     defaultId = "Doors.Wood.Restroom",
 
     defaults = {
+        doorType = "Simple",
         frame = "standard",
         materialType = "Wood",
         doorSound = "WoodDoor",

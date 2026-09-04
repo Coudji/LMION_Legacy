@@ -2,6 +2,7 @@ return {
     defaultId = "Doors.Metal.OneGlass",
 
     defaults = {
+        doorType = "Simple",
         frame = "standard",
         materialType = "Metal_Solid",
         doorSound = "MetalDoor",
