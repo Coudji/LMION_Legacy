@@ -152,8 +152,6 @@ local function appendToolbarEntry(objects, item, seenLeaves)
         return
     end
 
-    -- The carried parcel selects the leaf, but vanilla must render and
-    -- validate the multi-sprite placement from part 1, the SpriteGrid anchor.
     local moveProps = getToolbarAnchorMoveProps(identity, "N")
     if moveProps == nil then
         return
@@ -241,6 +239,32 @@ local function installInventoryLookupHooks()
         end
 
         return previousFindMulti(self, character, requestedName)
+    end
+end
+
+
+local function installCanPlaceHook()
+    local previous = ISMoveableSpriteProps.canPlaceMoveable
+
+    ISMoveableSpriteProps.canPlaceMoveable = function(
+        self,
+        character,
+        square,
+        item
+    )
+        if self ~= nil and self.lmionLargeGateDefinitionId ~= nil then
+            local anchorParcel = findParcel(
+                character,
+                self.lmionLargeGateDefinitionId,
+                self.lmionLargeGateLeaf,
+                1,
+                nil
+            )
+
+            return previous(self, character, square, anchorParcel)
+        end
+
+        return previous(self, character, square, item)
     end
 end
 
@@ -368,6 +392,7 @@ end
 
 installInventoryListHook()
 installInventoryLookupHooks()
+installCanPlaceHook()
 installActionNewHook()
 installActionCompleteHook()
 
